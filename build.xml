@@ -158,7 +158,7 @@
 	<!-- ================================= 
           target: run something
          ================================= -->
-	<target name="run" description="--> launch a java class" depends="compile">
+	<target name="run" description="launch a java class" depends="compile">
 		<java classname="${java.class}" fork="true" failonerror="true">
 			<classpath>
 				<pathelement location="${build.dir}"/>
@@ -217,7 +217,7 @@
 	<!-- =================================
           target: publish snapshot
          ================================= -->
-    <target name="publish-snapshot" description="--> publish this project in the ivy repository (SNAPSHOT)">
+    <target name="publish-snapshot" description="publish this project in the ivy repository (SNAPSHOT)">
 		<property name="pub.revision" value="${project.revision}-SNAPSHOT"/>
     	<antcall target="publish">
 			<param name="publish.repo" value="nexus-snapshot"/>
