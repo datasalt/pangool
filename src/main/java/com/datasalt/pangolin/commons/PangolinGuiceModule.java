@@ -29,7 +29,7 @@ import com.google.inject.name.Names;
  * 		MyClass c = injector.getInstance(MyClass.class);
  * </code>
  * 
- * @author ivan
+ * @author ivan,epalace
  */
 public class PangolinGuiceModule extends AbstractModule {
 

@@ -140,44 +140,5 @@ public class SolrAdminCoreUtils {
 	
 	
 	
-	/**
-	 * 
-	 * Filters indexes that contain the part specified in the constructor
-	 *
-	 */
-	public static final class ContainsShardFilter implements PathFilter {
-		private FileSystem fs;
-		private int shard;
-
-		public ContainsShardFilter(FileSystem fs, int containsShard) {
-			this.fs = fs;
-			this.shard = containsShard;
-		}
-
-		public boolean accept(Path path) {
-			try {
-				if(!fs.getFileStatus(path).isDir()) {
-					return false;
-				}
-				
-				String part = "part-"+padWithZeros(shard,5);
-				return fs.exists(new Path(path,part+"/conf/solrconfig.xml")) &&
-							 fs.exists(new Path(path,part+"/conf/schema.xml")) &&
-							 fs.exists(new Path(path,part+"/data/index"));
-			} catch(IOException e) {
-				return false;
-			}
-		}
-	}
-	
-	public static String padWithZeros(int number,int length){
-		String numberString = Integer.toString(number);
-		StringBuilder buffer = new StringBuilder();
-		for (int i = 0 ; i < length - numberString.length() ; i++){
-			buffer.append('0');
-		}
-		buffer.append(numberString);
-		return buffer.toString();
-	}
 	
 }
