@@ -11,6 +11,9 @@ import com.datasalt.pangolin.mapred.joiner.JoinDatum.Source;
 
 public class TestJoinDatum {
 
+	@Test
+	public void test(){}
+	
 	//TODO
 //	@Test
 //	public void test() throws InstantiationException, IllegalAccessException, TException {
