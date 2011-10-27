@@ -1,0 +1,2 @@
+id1	http://new.foo.bar
+id2	http://new.hello.com

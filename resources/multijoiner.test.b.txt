@@ -1,0 +1,2 @@
+http://foo.bar	http://www.foo-bar.com
+http://hello.com	http://www.hello.com
