@@ -12,9 +12,10 @@
 		
 	<property name="conf.dir" value="conf" />
     <property name="build.dir" value="build" /> 
-    <property name="src.dir" value="src" /> 
+    <property name="src.main.dir" value="src/main/java" />
+	  <property name="src.contrib.dir" value="src/contrib/java"/>
 	<property name="lib.dir" value="lib" />
-	<property name="test.dir" value="test" />
+	<property name="test.dir" value="src/test/java" />
 	<property name="dist.dir" value="dist" />
 	<property name="reports.dir" value="reports" />
     
@@ -114,11 +115,12 @@
 	<target name="compile" description="compile the source code" depends="install-ivy">
 		<!-- Compile the java code from ${src} into ${build} -->
 		<mkdir dir="${build.dir}"/>
-		<mkdir dir="${src.dir}"/>
+		<mkdir dir="${src.main.dir}"/>
+		<mkdir dir="${src.contrib.dir}"/>
 		<mkdir dir="${test.dir}"/>
 		<!--mkdir dir="${integration.dir}"/-->
 		<mkdir dir="${thrift.gen.dir}"/>
-		<javac srcdir="${src.dir}:${test.dir}:${thrift.gen.dir}" destdir="${build.dir}" debug="on" encoding="UTF-8">
+		<javac srcdir="${src.main.dir}:${src.contrib.dir}:${test.dir}:${thrift.gen.dir}" destdir="${build.dir}" debug="on" encoding="UTF-8">
 		<!--javac srcdir="${src.dir}:${test.dir}" destdir="${build.dir}" debug="on" encoding="UTF-8"-->
 			<exclude name="net/peerindex/pisae/crawler/**"/>
 			<classpath refid="common.classpath"/>
@@ -129,7 +131,7 @@
           target: javadoc            
          ================================= -->
 	<target name="javadoc" description="--> generate javadoc for the project">
-	  <javadoc package="com.datasalt" sourcepath="${src.dir}" defaultexcludes="yes"
+	  <javadoc package="com.datasalt" sourcepath="${src.main.dir}" defaultexcludes="yes"
 	           destdir="docs/api"
 	           author="true"
 	           version="true"
@@ -176,7 +178,8 @@
 	  		<classpath refid="common.classpath"/>
 			<classpath>
 				<pathelement location="${build.dir}"/>
-				<pathelement location="${src.dir}"/>
+				<pathelement location="${src.main.dir}"/>
+				<pathelement location="${src.contrib.dir}"/>
 			</classpath>
 			<formatter type="plain"/>
 		    <batchtest fork="yes" todir="${reports.dir}">

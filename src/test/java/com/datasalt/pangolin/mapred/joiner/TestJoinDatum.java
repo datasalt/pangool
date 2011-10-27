@@ -1,12 +1,6 @@
 package com.datasalt.pangolin.mapred.joiner;
 
-import static org.junit.Assert.assertEquals;
-
-import org.apache.thrift.TException;
 import org.junit.Test;
-
-import com.datasalt.pangolin.mapred.joiner.JoinDatum;
-import com.datasalt.pangolin.mapred.joiner.JoinDatum.Source;
 
 
 public class TestJoinDatum {
