@@ -1,5 +1,5 @@
 <ivy-module version="2.0">
-    <info organisation="net.peerindex" module="${project.name}" revision="${project.revision}"/>
+    <info organisation="com.datasalt" module="${project.name}" revision="${project.revision}"/>
     <dependencies>
     
 	    <dependency org="org.javatuples" name="javatuples" rev="1.2"/>
