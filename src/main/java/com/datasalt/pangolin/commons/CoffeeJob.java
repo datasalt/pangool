@@ -73,7 +73,7 @@ public class CoffeeJob extends BaseHadoopJob {
 	}
 	
 	public static void main(String args[]) throws Exception {
-		BaseJob.main(CoffeeJob.class, args);
+		CommonUtils.main(CoffeeJob.class, args);
 	}
 
 	@Override

@@ -5,7 +5,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 
 /**
  * Guice configuration test : This test was inspired by a bug in my ide. If it fails, you may have to remove conf/ from
@@ -14,7 +14,7 @@ import com.datasalt.pangolin.commons.test.BaseTest;
  * @author Jpeerindex
  * 
  */
-public class TestGuiceConfig extends BaseTest {
+public class TestGuiceConfig extends PangolinBaseTest {
 	@Test
 	public void test() {
 		try {

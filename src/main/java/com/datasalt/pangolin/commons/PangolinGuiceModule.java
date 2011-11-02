@@ -33,20 +33,20 @@ import com.google.inject.name.Names;
  */
 public class PangolinGuiceModule extends AbstractModule {
 
-	static Logger log = LoggerFactory.getLogger(PangolinGuiceModule.class);
+	
+	private static Logger log = LoggerFactory.getLogger(PangolinGuiceModule.class);
+	
 
 	public Properties getConfigProperties() {
 		return configProperties;
 	}
 
-	Properties configProperties = new Properties();
+	private Properties configProperties = new Properties();
 
 	// named annotation used to check if an object has been or not injected
 	public final static String IS_INJECTED = "is.injected";
 
 	public PangolinGuiceModule() {
-		//load("pisae.properties.defaults", true);
-		//load("pisae.properties", false);
 		load("project.properties", true);
 	}
 
@@ -67,22 +67,6 @@ public class PangolinGuiceModule extends AbstractModule {
 			bind(String.class).annotatedWith(Names.named((String) key))
 			    .toInstance(configProperties.getProperty((String) key));
 		}
-		
-//		String cl = (String) configProperties.get("vw.topic.classifier.helper.class");
-//		try {
-//	    bind(KeywordFeatureExtractionHelper.class).to((Class<KeywordFeatureExtractionHelper>)Class.forName(cl));
-//	    log.info("Binding " + KeywordFeatureExtractionHelper.class.getName() + " to " + cl);
-//    } catch(ClassNotFoundException e) {
-//    	throw new RuntimeException(e);
-//    }
-//    
-//    cl = (String) configProperties.get("urlprocessor.boilerplate.removal.impl");
-//		try {
-//	    bind(BoilerplateRemoval.class).to((Class<BoilerplateRemoval>)Class.forName(cl));
-//	    log.info("Binding " + BoilerplateRemoval.class.getName() + " to " + cl);
-//    } catch(ClassNotFoundException e) {
-//    	throw new RuntimeException(e);
-//    }
     
 	}
 

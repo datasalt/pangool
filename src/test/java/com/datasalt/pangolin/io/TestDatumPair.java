@@ -12,13 +12,13 @@ import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 import com.datasalt.pangolin.io.DatumPairBase;
 import com.datasalt.pangolin.io.Serialization;
 
 import static org.junit.Assert.*;
 
-public class TestDatumPair extends BaseTest {
+public class TestDatumPair extends PangolinBaseTest {
 
 	Serialization ser; 
 	

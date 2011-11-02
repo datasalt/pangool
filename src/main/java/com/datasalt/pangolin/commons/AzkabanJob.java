@@ -45,7 +45,7 @@ public class AzkabanJob {
 	private Injector injector;
 
 	@Inject
-	PangolinConfigurationFactory pisaeConfiguration;
+	PangolinConfigurationFactory factory;
 	
 	/**
 	 * Azkaban calls this constructor with the name and the configuration
@@ -88,7 +88,7 @@ public class AzkabanJob {
 			argList.add("-D " + entry.getKey() + "=" + entry.getValue());
 		}
 		// Create configuration
-		Configuration conf = pisaeConfiguration.create();
+		Configuration conf = factory.get();
 		// Adding the properties comming from azkaban to the config
 		fillConfig(conf, props);
 		// Parse Hadoop arguments

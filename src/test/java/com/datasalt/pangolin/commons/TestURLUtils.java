@@ -9,9 +9,9 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.URLUtils;
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 
-public class TestURLUtils extends BaseTest{
+public class TestURLUtils extends PangolinBaseTest{
 
 	@Test
 	public void testUrlUtils() throws IOException

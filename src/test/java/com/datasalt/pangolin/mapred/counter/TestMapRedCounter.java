@@ -21,14 +21,14 @@ import org.junit.Test;
 
 import com.datasalt.pangolin.commons.HadoopTestUtils;
 import com.datasalt.pangolin.commons.HadoopUtils;
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 import com.datasalt.pangolin.io.LongPairWritable;
 
 
 import com.datasalt.pangolin.mapred.counter.io.CounterDistinctKey;
 import com.datasalt.pangolin.mapred.counter.io.CounterKey;
 
-public class TestMapRedCounter extends BaseTest {
+public class TestMapRedCounter extends PangolinBaseTest {
 	
 	public static final String OUTPUT_FOR_TEST = "test-" + TestMapRedCounter.class.getName();
 	
@@ -37,7 +37,7 @@ public class TestMapRedCounter extends BaseTest {
 	public static final String OUTPUT_COUNT = OUTPUT_FOR_TEST + "/count";
 
 	private FileSystem getFs() throws IOException {
-		Configuration conf = pisaeConfiguration.create();
+		Configuration conf = getConf();
 		FileSystem fs = FileSystem.get(conf);
 		return fs;
 	}
@@ -95,7 +95,7 @@ public class TestMapRedCounter extends BaseTest {
 	}
 
 	public void test(boolean withCombiner) throws IOException, InterruptedException, ClassNotFoundException, CloneNotSupportedException {
-		Configuration conf = pisaeConfiguration.create();
+		Configuration conf = getConf();
 		Job job;
 		
 		if (withCombiner) {
@@ -149,7 +149,7 @@ public class TestMapRedCounter extends BaseTest {
 	private HashMap<String, Long> itemCountAsMap(FileSystem fs, String file) throws IOException {
 		HashMap<String, Long> m = new HashMap<String,Long> ();
 		
-		SequenceFile.Reader r = new SequenceFile.Reader(getFs(), new Path(file), pisaeConfiguration.create());
+		SequenceFile.Reader r = new SequenceFile.Reader(getFs(), new Path(file), getConf());
 		
 		CounterKey key = new CounterKey();
 		LongWritable count = new LongWritable();
@@ -168,7 +168,7 @@ public class TestMapRedCounter extends BaseTest {
 	private HashMap<String, LongPairWritable> itemGroupCountAsMap(FileSystem fs, String file) throws IOException, CloneNotSupportedException {
 		HashMap<String, LongPairWritable> m = new HashMap<String,LongPairWritable> ();
 		
-		SequenceFile.Reader r = new SequenceFile.Reader(getFs(), new Path(file), pisaeConfiguration.create());
+		SequenceFile.Reader r = new SequenceFile.Reader(getFs(), new Path(file), getConf());
 		
     CounterDistinctKey key = new CounterDistinctKey();
 		LongPairWritable count = new LongPairWritable();

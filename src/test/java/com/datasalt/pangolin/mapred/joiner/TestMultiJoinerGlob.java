@@ -15,13 +15,13 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.HadoopUtils;
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 import com.datasalt.pangolin.mapred.joiner.MultiJoiner;
 import com.datasalt.pangolin.mapred.joiner.TestMultiJoiner.AMapper;
 import com.datasalt.pangolin.mapred.joiner.TestMultiJoiner.BMapper;
 import com.datasalt.pangolin.mapred.joiner.TestMultiJoiner.TestReducer;
 
-public class TestMultiJoinerGlob extends BaseTest {
+public class TestMultiJoinerGlob extends PangolinBaseTest {
 	
 	public static final String OUTPUT_FOR_TEST = "test-" +TestMultiJoinerGlob.class.getName();
 

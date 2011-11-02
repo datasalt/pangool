@@ -57,39 +57,6 @@ public abstract class BaseJob {
 		return cl;
 	}
 	
-	/**
-	 * Executes whichever BaseJob. Canonical Class nam comming as first parameter . 
-	 * @throws Exception 
-	 */
-	public static void main(String[] args) throws Exception {
-		Injector injector = Guice.createInjector(new PangolinGuiceModule());
-
-		/*
-		 * Crate a Hadoop Configuration object with our own configuration
-		 */
-		Configuration conf = injector.getInstance(PangolinConfigurationFactory.class).create();
-		/*
-		 * Parse arguments like -D mapred. ... = ...
-		 */
-		GenericOptionsParser parser = new GenericOptionsParser(conf, args);
-	  String[] arguments = parser.getRemainingArgs();
-		BaseJob job = injector.getInstance(getClass(arguments[0]));
-    /*
-     * Run job
-     */
-		//TODO Add log of execution start.
-		job.execute(new ArrayList<String>(Arrays.asList(arguments)).subList(1, arguments.length).toArray(new String[0]), conf);
-	}
-
-	/**
-	 * Main to be called by each individual Job main, just a wrapper 
-	 * to the regular main that provides the class name.
-	 * @throws Exception 
-	 */
-	public static void main(Class<? extends BaseJob> jobClass, String args[]) throws Exception {
-		ArrayList<String> largs = new ArrayList<String>(Arrays.asList(args));
-		largs.add(0, jobClass.getCanonicalName());
-		BaseJob.main(largs.toArray(new String[0]));
-	}
+	
 
 }

@@ -38,7 +38,7 @@ public class PangolinConfigurationFactory implements Provider<Configuration> {
 		this.projectConf = projectConf;
 	}
 	
-	public void synchronize() throws IOException {
+	private void synchronize() throws IOException {
 		String projectName = projectConf.getProjectName();
 		Configuration conf = new Configuration();
 		FileSystem dFs = FileSystem.get(conf);
@@ -53,7 +53,7 @@ public class PangolinConfigurationFactory implements Provider<Configuration> {
     HadoopUtils.synchronize(local, localConfPath, dFs, confPath);    
 	}
 	
-	public void populate(Configuration conf) throws IOException {
+	private void populate(Configuration conf) throws IOException {
 		FileSystem dFs = FileSystem.get(conf);
 		if(conf.get("fs.default.name").startsWith("file:")) {
 			return;
@@ -77,7 +77,7 @@ public class PangolinConfigurationFactory implements Provider<Configuration> {
 		}				
 	}
 	
-	public void configureSerialization(Configuration conf) {
+	private void configureSerialization(Configuration conf) {
 		// Adding the Thrift serialization
 		String ser = conf.get("io.serializations").trim();
 		if (ser.length() !=0 ) {
@@ -88,7 +88,7 @@ public class PangolinConfigurationFactory implements Provider<Configuration> {
 		conf.set("io.serializations", ser);
 	}
 	
-	public Configuration create() throws IOException {
+	private Configuration create() throws IOException {
 		System.setProperty("javax.xml.parsers.DocumentBuilderFactory", "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");		
 		Configuration conf = new Configuration();
 		

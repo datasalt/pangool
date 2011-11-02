@@ -10,18 +10,18 @@ import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.HadoopUtils;
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 
 /**
  * Test HadoopUtils class
  * 
  * @author ivan
  */
-public class TestHadoopUtils extends BaseTest {
+public class TestHadoopUtils extends PangolinBaseTest {
 
 	@Test
 	public void testStringToFile() throws IOException {
-		FileSystem fs = FileSystem.getLocal(pisaeConfiguration.create());
+		FileSystem fs = FileSystem.getLocal(getConf());
 		Path path = new Path(TestHadoopUtils.class.getCanonicalName());
 		
 		try {

@@ -18,14 +18,14 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.HadoopUtils;
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 import com.datasalt.pangolin.mapred.joiner.MultiJoinChanneledMapper;
 import com.datasalt.pangolin.mapred.joiner.MultiJoinDatum;
 import com.datasalt.pangolin.mapred.joiner.MultiJoinPair;
 import com.datasalt.pangolin.mapred.joiner.MultiJoinReducer;
 import com.datasalt.pangolin.mapred.joiner.MultiJoiner;
 
-public class TestMultiJoinerSameClass extends BaseTest {
+public class TestMultiJoinerSameClass extends PangolinBaseTest {
 
 	public static final String OUTPUT_FOR_TEST = "test-" +TestMultiJoinerSameClass.class.getName();
 	

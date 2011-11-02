@@ -1,21 +1,14 @@
 package com.datasalt.pangolin.mapred;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-
 
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
-import com.datasalt.pangolin.commons.PangolinGuiceModule;
 import com.datasalt.pangolin.io.Serialization;
-import com.datasalt.pangolin.mapred.InjectedReducer;
-import com.google.inject.Module;
 
 /**
  * A mapper with all ready to be injected with the {@link PisaeGuiceModule}.
@@ -23,7 +16,7 @@ import com.google.inject.Module;
  * 
  * @author ivan
  */
-public class PangolinReducer<IKey, IValue, OKey, OValue> extends InjectedReducer<IKey, IValue, OKey, OValue> {
+public class PangolinReducer<IKey, IValue, OKey, OValue> extends Reducer<IKey, IValue, OKey, OValue> {
 
 	/*
 	 * For JSON Ser/De
@@ -32,16 +25,16 @@ public class PangolinReducer<IKey, IValue, OKey, OValue> extends InjectedReducer
 	};
 	protected ObjectMapper mapper = new ObjectMapper();
 
-	@Override
-  protected List<Module> getGuiceModules(Context context) {
-		PangolinGuiceModule pisaeModule = new PangolinGuiceModule();
-		Iterator<Entry<String, String>> it = context.getConfiguration().iterator();
-		while (it.hasNext()) {
-			Entry<String, String> entry = it.next();
-			pisaeModule.getConfigProperties().put(entry.getKey(), entry.getValue());
-		}
-		return Arrays.asList(new Module[]{ pisaeModule });
-  }
+//	@Override
+//  protected List<Module> getGuiceModules(Context context) {
+//		PangolinGuiceModule pisaeModule = new PangolinGuiceModule();
+//		Iterator<Entry<String, String>> it = context.getConfiguration().iterator();
+//		while (it.hasNext()) {
+//			Entry<String, String> entry = it.next();
+//			pisaeModule.getConfigProperties().put(entry.getKey(), entry.getValue());
+//		}
+//		return Arrays.asList(new Module[]{ pisaeModule });
+//  }
 	
 	private Serialization ser;
 	

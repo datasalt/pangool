@@ -24,7 +24,7 @@ import org.junit.Test;
 import com.datasalt.pangolin.commons.HadoopUtils;
 import com.datasalt.pangolin.commons.count.Counter;
 import com.datasalt.pangolin.commons.count.Counter.Count;
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.mapred.crossproduct.CrossProductMapRed;
 import com.datasalt.pangolin.mapred.crossproduct.CrossProductMapRed.CrossProductMapper;
@@ -39,7 +39,7 @@ import com.datasalt.pangolin.mapred.crossproduct.io.CrossProductPair;
  *
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class TestCrossProductMapRed  extends BaseTest {
+public class TestCrossProductMapRed  extends PangolinBaseTest {
 
 	public final static String INPUT_1  = "test-1-"     + TestCrossProductMapRed.class + ".txt";
 	public final static String INPUT_2  = "test-2-"     + TestCrossProductMapRed.class + ".txt";

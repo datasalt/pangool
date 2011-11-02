@@ -17,7 +17,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.HadoopUtils;
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 import com.datasalt.pangolin.mapred.joiner.MultiJoinDatum;
 import com.datasalt.pangolin.mapred.joiner.MultiJoinMultiChannelMapper;
 import com.datasalt.pangolin.mapred.joiner.MultiJoinPair;
@@ -30,7 +30,7 @@ import com.datasalt.pangolin.mapred.joiner.MultiJoiner;
  * @author pere
  *
  */
-public class TestMultiJoinerMultiChannel extends BaseTest {
+public class TestMultiJoinerMultiChannel extends PangolinBaseTest {
 
 	public static final String OUTPUT_FOR_TEST = "test-" + TestMultiJoinerMultiChannel.class.getName();
 

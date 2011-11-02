@@ -11,13 +11,13 @@ import com.datasalt.pangolin.thrift.test.A;
 import org.apache.thrift.TException;
 import org.junit.Test;
 
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 import com.datasalt.pangolin.io.IdDatumBase;
 import com.datasalt.pangolin.io.Serialization;
 
 import static org.junit.Assert.*;
 
-public class TestIdDatum extends BaseTest {
+public class TestIdDatum extends PangolinBaseTest {
 
 	@Test
 	public void testSerialization() throws TException, IOException {

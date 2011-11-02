@@ -1,22 +1,14 @@
 package com.datasalt.pangolin.mapred;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
 
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapreduce.Mapper;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
-
-
-import com.datasalt.pangolin.commons.PangolinGuiceModule;
 import com.datasalt.pangolin.io.Serialization;
-import com.datasalt.pangolin.mapred.InjectedMapper;
-import com.google.inject.Module;
 
 /**
  * A mapper with all ready to be injected with the {@link PisaeGuiceModule}. 
@@ -24,27 +16,26 @@ import com.google.inject.Module;
  * 
  * @author ivan
  */
-public class PangolinMapper<IKey, IValue, OKey, OValue> extends InjectedMapper<IKey, IValue, OKey, OValue> {
+public class PangolinMapper<IKey, IValue, OKey, OValue> extends Mapper<IKey, IValue, OKey, OValue> {
 
 	protected Serialization ser;
 	
 	/*
 	 * For JSON Ser/De
 	 */
-	public final static TypeReference<HashMap<String, Object>> MAP = new TypeReference<HashMap<String, Object>>() {
-	};
+	public final static TypeReference<HashMap<String, Object>> MAP = new TypeReference<HashMap<String, Object>>() {};
 	protected ObjectMapper mapper = new ObjectMapper();
 	
-	@Override
-  protected List<Module> getGuiceModules(final Context context) {
-		PangolinGuiceModule pisaeModule = new PangolinGuiceModule();
-		Iterator<Entry<String, String>> it = context.getConfiguration().iterator();
-		while (it.hasNext()) {
-			Entry<String, String> entry = it.next();
-			pisaeModule.getConfigProperties().put(entry.getKey(), entry.getValue());
-		}
-		return Arrays.asList(new Module[]{ pisaeModule });
-  }
+//	@Override
+//  protected List<Module> getGuiceModules(final Context context) {
+//		PangolinGuiceModule pisaeModule = new PangolinGuiceModule();
+//		Iterator<Entry<String, String>> it = context.getConfiguration().iterator();
+//		while (it.hasNext()) {
+//			Entry<String, String> entry = it.next();
+//			pisaeModule.getConfigProperties().put(entry.getKey(), entry.getValue());
+//		}
+//		return Arrays.asList(new Module[]{ pisaeModule });
+//  }
 
 	/**
 	 * Configures the serialization

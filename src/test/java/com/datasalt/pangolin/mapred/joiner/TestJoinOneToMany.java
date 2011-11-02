@@ -23,14 +23,14 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.HadoopUtils;
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 import com.datasalt.pangolin.mapred.joiner.JoinOneToMany;
 import com.datasalt.pangolin.mapred.joiner.JoinOneToMany.ManySideMapper;
 import com.datasalt.pangolin.mapred.joiner.JoinOneToMany.OneSideMapper;
 import com.datasalt.pangolin.mapred.joiner.JoinOneToMany.OneToManyReducer;
 import com.google.common.io.Files;
 
-public class TestJoinOneToMany extends BaseTest {
+public class TestJoinOneToMany extends PangolinBaseTest {
 
 	final static String OUTPUT = "output-" + TestJoinOneToMany.class;
 	final static String INPUT1  = "input1-" + TestJoinOneToMany.class;

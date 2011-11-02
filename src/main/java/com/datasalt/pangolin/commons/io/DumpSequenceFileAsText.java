@@ -1,9 +1,7 @@
 package com.datasalt.pangolin.commons.io;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Properties;
-
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -12,6 +10,7 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.thrift.TBase;
 
 import com.datasalt.pangolin.commons.BaseJob;
+import com.datasalt.pangolin.commons.CommonUtils;
 import com.datasalt.pangolin.commons.ThriftUtils;
 
 /**
@@ -123,7 +122,7 @@ public class DumpSequenceFileAsText extends BaseJob {
 	 * @throws Exception
 	 */
 	public static void main(String args[]) throws Exception {
-		BaseJob.main(DumpSequenceFileAsText.class, args);
+		CommonUtils.main(DumpSequenceFileAsText.class, args);
 	}
 
 	@Override

@@ -13,13 +13,13 @@ import org.junit.Test;
 import com.datasalt.pangolin.commons.HadoopUtils;
 import com.datasalt.pangolin.commons.RepoTool;
 import com.datasalt.pangolin.commons.RepoTool.PackageStatus;
-import com.datasalt.pangolin.commons.test.BaseTest;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 
-public class TestRepoTool extends BaseTest {
+public class TestRepoTool extends PangolinBaseTest {
 
 	@Test
 	public void test() throws IOException {
-		FileSystem fs = FileSystem.getLocal(pisaeConfiguration.create());
+		FileSystem fs = FileSystem.getLocal(getConf());
 		
 		Path repo = new Path("repoTest87463829");
 		HadoopUtils.deleteIfExists(fs, repo);

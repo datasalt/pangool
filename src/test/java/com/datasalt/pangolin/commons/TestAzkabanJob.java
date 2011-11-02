@@ -10,14 +10,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.datasalt.pangolin.commons.AzkabanJob;
-import com.datasalt.pangolin.commons.BaseJob;
-import com.datasalt.pangolin.commons.HadoopUtils;
-import com.datasalt.pangolin.commons.PangolinConfigurationFactory;
-import com.datasalt.pangolin.commons.test.BaseTest;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import com.datasalt.pangolin.commons.test.PangolinBaseTest;
 
 /**
  * <p>Tests the integration between {@link BaseJob} and Azkaban through {@link AzkabanJob} by simulating how Azkaban would use it.</p>
@@ -25,7 +18,7 @@ import com.google.inject.Injector;
  * @author pere
  *
  */
-public class TestAzkabanJob extends BaseTest {
+public class TestAzkabanJob extends PangolinBaseTest {
 	
 	@Before
 	@After
@@ -35,7 +28,7 @@ public class TestAzkabanJob extends BaseTest {
 		Path fakeIn = new Path("/tmp/fakein");
 		Path fakeOut = new Path("/tmp/fakeout");
 		
-		FileSystem fS = FileSystem.get(pisaeConfiguration.create());
+		FileSystem fS = FileSystem.get(getConf());
 		HadoopUtils.deleteIfExists(fS, fakeIn);
 		HadoopUtils.deleteIfExists(fS, fakeOut);
 		fS.mkdirs(fakeIn);
