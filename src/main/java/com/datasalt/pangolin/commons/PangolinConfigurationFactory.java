@@ -10,13 +10,7 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datasalt.pangolin.commons.conf.ProjectConf;
 import com.datasalt.pangolin.commons.io.ProtoStuffSerialization;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
 
 /**
  * <p>This class provides a factory for instantiating Hadoop Configuration objects in a way such that all the libs and
@@ -26,20 +20,30 @@ import com.google.inject.Singleton;
  * @author pere
  *
  */
-@Singleton
-public class PangolinConfigurationFactory implements Provider<Configuration> {
-	
-	static Logger log = LoggerFactory.getLogger(PangolinConfigurationFactory.class);
 
-	protected ProjectConf projectConf;
+public class PangolinConfigurationFactory implements ConfigurationFactory{
 	
-	@Inject
-	public PangolinConfigurationFactory(ProjectConf projectConf) {
-		this.projectConf = projectConf;
+	private static Logger log = LoggerFactory.getLogger(PangolinConfigurationFactory.class);
+
+	private static PangolinConfigurationFactory instance;
+	
+	public static PangolinConfigurationFactory getInstance(){
+		if (instance == null){
+			instance = new PangolinConfigurationFactory();
+		}
+		
+		return instance;
 	}
 	
-	private void synchronize() throws IOException {
-		String projectName = projectConf.getProjectName();
+	//protected ProjectConf projectConf;
+	private String projectName = "pangolin";
+	
+	private PangolinConfigurationFactory() {
+		
+	}
+	
+	public void synchronize() throws IOException {
+		//String projectName = projectConf.getProjectName();
 		Configuration conf = new Configuration();
 		FileSystem dFs = FileSystem.get(conf);
 		FileSystem local = FileSystem.getLocal(conf);
@@ -59,7 +63,7 @@ public class PangolinConfigurationFactory implements Provider<Configuration> {
 			return;
 		}
 
-		String projectName = projectConf.getProjectName();
+		//String projectName = projectConf.getProjectName();
 		Path libPath  = new Path("/" + projectName + "/lib");
 		Path confPath = new Path("/" + projectName + "/conf");
 		/*
@@ -134,13 +138,8 @@ public class PangolinConfigurationFactory implements Provider<Configuration> {
 		}
 	}
 
-	public static void main(String[] args) throws IOException {
-		Injector injector = Guice.createInjector(new PangolinGuiceModule());
-		injector.getInstance(PangolinConfigurationFactory.class).synchronize();
-	}
-
 	@Override
-  public Configuration get() {
+  public Configuration getConf() {
 	  try {
 	    return create();
     } catch(IOException e) {

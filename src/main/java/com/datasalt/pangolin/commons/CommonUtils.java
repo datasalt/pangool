@@ -8,9 +8,6 @@ import java.util.TreeMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.GenericOptionsParser;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
 public class CommonUtils {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -27,22 +24,17 @@ public class CommonUtils {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		Injector injector = Guice.createInjector(new PangolinGuiceModule());
-
-		/*
-		 * Crate a Hadoop Configuration object with our own configuration
-		 */
-		Configuration conf = injector.getInstance(PangolinConfigurationFactory.class).get();
 		/*
 		 * Parse arguments like -D mapred. ... = ...
 		 */
+		
+		PangolinConfigurationFactory factory = PangolinConfigurationFactory.getInstance();
+		Configuration conf = factory.getConf();
+		
 		GenericOptionsParser parser = new GenericOptionsParser(conf, args);
 	  String[] arguments = parser.getRemainingArgs();
 	  BaseJob job = BaseJob.getClass(arguments[0]).newInstance();
-		//BaseJob job = injector.getInstance(getClass(arguments[0]));
-    /*
-     * Run job
-     */
+		
 		//TODO Add log of execution start.
 		job.execute(new ArrayList<String>(Arrays.asList(arguments)).subList(1, arguments.length).toArray(new String[0]), conf);
 	}

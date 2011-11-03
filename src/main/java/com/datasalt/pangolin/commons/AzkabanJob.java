@@ -12,10 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import azkaban.common.utils.Props;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-
 /**
  * <p>This class can be called from Azkaban to run any Job that implements BaseJob.</p>
  * <p>It implements its API as described <a href='http://sna-projects.com/azkaban/documentation.php'>here</a>.</p>
@@ -42,10 +38,10 @@ public class AzkabanJob {
 	String name;
 	BaseJob job;
 	
-	private Injector injector;
 
-	@Inject
-	PangolinConfigurationFactory factory;
+
+	
+	private PangolinConfigurationFactory factory = PangolinConfigurationFactory.getInstance();
 	
 	/**
 	 * Azkaban calls this constructor with the name and the configuration
@@ -57,8 +53,7 @@ public class AzkabanJob {
 		this.name = name;
 		this.props = props;
 		
-		injector = Guice.createInjector(new PropertiesToGuiceModule(props), new PangolinGuiceModule());
-		injector.injectMembers(this);
+		
 	}
 	
 	/**
@@ -88,14 +83,14 @@ public class AzkabanJob {
 			argList.add("-D " + entry.getKey() + "=" + entry.getValue());
 		}
 		// Create configuration
-		Configuration conf = factory.get();
+		Configuration conf = factory.getConf();
 		// Adding the properties comming from azkaban to the config
 		fillConfig(conf, props);
 		// Parse Hadoop arguments
 		GenericOptionsParser parser = new GenericOptionsParser(conf, argList.toArray(new String[0]));
 		parser.getRemainingArgs();
 		// Get BaseJob instance by reflection
-		job = injector.getInstance(BaseJob.getClass(className));
+		job = BaseJob.getClass(className).newInstance();
 		// Get the Hadoop job
 		job.execute(args, conf);
 	}

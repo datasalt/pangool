@@ -19,6 +19,10 @@ import java.util.Collection;
  * @author Magnus Skjegstad <magnus@skjegstad.com>
  */
 public class BloomFilter<E> implements Serializable {
+	/**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 	private BitSet bitset;
 	private int bitSetSize;
 	private double bitsPerElement;
@@ -182,7 +186,8 @@ public class BloomFilter<E> implements Serializable {
 		if(getClass() != obj.getClass()) {
 			return false;
 		}
-		final BloomFilter<E> other = (BloomFilter<E>) obj;
+		@SuppressWarnings("unchecked")
+    final BloomFilter<E> other = (BloomFilter<E>) obj;
 		if(this.expectedNumberOfFilterElements != other.expectedNumberOfFilterElements) {
 			return false;
 		}

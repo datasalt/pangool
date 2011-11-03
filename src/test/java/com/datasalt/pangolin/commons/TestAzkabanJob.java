@@ -23,7 +23,7 @@ public class TestAzkabanJob extends PangolinBaseTest {
 	@Before
 	@After
 	public void prepare() throws IOException {
-		super.prepare();
+
 		
 		Path fakeIn = new Path("/tmp/fakein");
 		Path fakeOut = new Path("/tmp/fakeout");

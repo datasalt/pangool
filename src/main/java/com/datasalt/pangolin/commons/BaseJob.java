@@ -1,16 +1,10 @@
 package com.datasalt.pangolin.commons;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Properties;
 
-
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.util.GenericOptionsParser;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+
 
 /**
  * <p>Base class for Pangolin jobs. By implementing this class we can run any job 
@@ -37,26 +31,21 @@ public abstract class BaseJob {
 	 */
 	public abstract Properties getJobGeneratedProperties();
 
-  public static Class<? extends BaseJob> getClass(String className) throws ClassNotFoundException {
+	public static Class<? extends BaseJob> getClass(String className) throws ClassNotFoundException {
 		Class cl;
-		try 
-		{
-	    /*
-	     * Instantiate Job by reflection
-	     */
+		try {
+			/*
+			 * Instantiate Job by reflection
+			 */
 			cl = Class.forName(className);
-		} 
-		catch (ClassNotFoundException e) 
-		{
+		} catch(ClassNotFoundException e) {
 			cl = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
 		}
-		if (!BaseJob.class.isAssignableFrom(cl)) 
-		{
+		if(!BaseJob.class.isAssignableFrom(cl)) {
 			throw new RuntimeException("Class is not of type BaseJob");
 		}
 		return cl;
 	}
-	
 	
 
 }

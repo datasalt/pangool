@@ -42,7 +42,7 @@
 		<dependency org="net.peerindex.azkaban" name="azkaban-common" rev="1.0" conf="*->*,!sources,!javadoc"/>
 	
 		<!-- Google's Guice for dependency injection -->
-		<dependency org="com.google.inject" name="guice" rev="3.0" conf="*->*,!javadoc"/>
+		<!--dependency org="com.google.inject" name="guice" rev="3.0" conf="*->*,!javadoc"/-->
 			
 		<!-- Boilerpipe and similars -->		
 		<!-- <dependency org="de.l3s.boilerpipe" name="boilerpipe" rev="1.2.0"/> 
