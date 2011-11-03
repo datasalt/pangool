@@ -83,9 +83,9 @@ public class MultiJoiner {
 			job = new Job(conf, name);
 
 			HadoopUtils.deleteIfExists(FileSystem.get(conf), outputPath);
-			job.setJarByClass(reducer);
+			job.setJarByClass((jarByClass != null) ? jarByClass : reducer);
 
-			job.setReducerClass((jarByClass != null) ? jarByClass : reducer);
+			job.setReducerClass(reducer);
 			job.setMapOutputValueClass(MultiJoinDatum.class);
 			job.setMapOutputKeyClass(MultiJoinPair.class);
 			job.setOutputFormatClass(outputFormat);
