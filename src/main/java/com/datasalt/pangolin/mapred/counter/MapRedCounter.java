@@ -384,6 +384,7 @@ public class MapRedCounter {
 
 		Job job = new Job(conf, name); 
 
+		
 		Path output = new Path(outPath);
 		HadoopUtils.deleteIfExists(FileSystem.get(conf), output);
 		job.setJarByClass(MapRedCounter.class);
@@ -426,6 +427,7 @@ public class MapRedCounter {
 			Class<? extends MapRedCounterMapper> mapper) throws IOException {
 		
   	MultipleInputs.addInputPath(job, location, inputFormat, mapper);
+  	job.setJarByClass(mapper);
 	}
 	
 }

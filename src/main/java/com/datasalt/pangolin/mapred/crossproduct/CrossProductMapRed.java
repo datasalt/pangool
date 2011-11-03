@@ -214,6 +214,7 @@ public class CrossProductMapRed<K, V> {
 	private Path leftInputPath, rightInputPath, outputPath;
 	private Class<? extends InputFormat> leftInputFormat, rightInputFormat;
 	private Class<? extends CrossProductMapper> leftInputMapper, rightInputMapper;
+	private Class jarByClass;
 
 	public CrossProductMapRed(String name, Configuration conf) {
 		this.name = name;
@@ -251,6 +252,10 @@ public class CrossProductMapRed<K, V> {
 	public void setRightInputMapper(Class<? extends CrossProductMapper> rightInputMapper) {
 		this.rightInputMapper = rightInputMapper;
 	}
+	
+	public void setJarByClass(Class clazz){
+		this.jarByClass = clazz;
+	}
 
 	public Job getJob() throws IOException {
 
@@ -261,6 +266,7 @@ public class CrossProductMapRed<K, V> {
 			multiJoiner.setOutputValueClass(NullWritable.class);
 			multiJoiner.setOutputFormat(outputFormat);
 			multiJoiner.setOutputPath(outputPath);
+			multiJoiner.setJarByClass((jarByClass != null) ? jarByClass : leftInputMapper);
 
 			Job job = multiJoiner
 			    .addChanneledInput(SECOND_CHANNEL_IN_REDUCER, leftInputPath, Object.class, leftInputFormat, leftInputMapper)

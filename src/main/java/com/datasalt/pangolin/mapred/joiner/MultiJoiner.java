@@ -59,6 +59,7 @@ public class MultiJoiner {
 	private Configuration conf;
 	private Class<? extends MultiJoinReducer> reducer;
 	private Class outputKeyClass;
+	private Class jarByClass;
 	private Class outputValueClass;
 	private Class<? extends OutputFormat> outputFormat;
 	private Path outputPath;
@@ -76,14 +77,15 @@ public class MultiJoiner {
 		this.conf = conf;
 	}
 
-	public Job getJob() throws IOException {
+	@SuppressWarnings("unchecked")
+  public Job getJob() throws IOException {
 		if(job == null) {
 			job = new Job(conf, name);
 
 			HadoopUtils.deleteIfExists(FileSystem.get(conf), outputPath);
-			job.setJarByClass(MultiJoiner.class);
+			job.setJarByClass(reducer);
 
-			job.setReducerClass(reducer);
+			job.setReducerClass((jarByClass != null) ? jarByClass : reducer);
 			job.setMapOutputValueClass(MultiJoinDatum.class);
 			job.setMapOutputKeyClass(MultiJoinPair.class);
 			job.setOutputFormatClass(outputFormat);
@@ -220,6 +222,7 @@ public class MultiJoiner {
 
 	public MultiJoiner setReducer(Class<? extends MultiJoinReducer> reducer) {
 		this.reducer = reducer;
+		
 		return this;
 	}
 
@@ -242,4 +245,10 @@ public class MultiJoiner {
 		this.outputPath = outputPath;
 		return this;
 	}
+	
+	public MultiJoiner setJarByClass(Class clazz){
+		this.jarByClass = clazz;
+		return this;
+	}
+	
 }
