@@ -47,12 +47,12 @@ import com.datasalt.pangolin.commons.HadoopUtils;
 @SuppressWarnings({ "rawtypes" })
 public class MultiJoiner {
 
-	final static Logger log = LoggerFactory.getLogger(MultiJoiner.class);
+	private final static Logger log = LoggerFactory.getLogger(MultiJoiner.class);
 
-	public static final String MULTIJOINER_CHANNELS = "pisae.multijoiner.channels";
-	public static final String MULTIJOINER_CLASSES = "pisae.multijoiner.classes";
+	public static final String MULTIJOINER_CHANNELS = "pangolin.multijoiner.channels";
+	public static final String MULTIJOINER_CLASSES = "pangolin.multijoiner.classes";
 
-	public static final String MULTIJOINER_KEY_IMPL = "pisae.multijoiner.key.impl";
+	public static final String MULTIJOINER_KEY_IMPL = "pangolin.multijoiner.key.impl";
 
 	private Job job = null;
 	private String name;

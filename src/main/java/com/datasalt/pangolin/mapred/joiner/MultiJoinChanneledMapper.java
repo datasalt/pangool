@@ -28,8 +28,8 @@ import org.apache.hadoop.mapreduce.lib.input.GetInputFileFromTaggedInputSplit;
 @SuppressWarnings({ "rawtypes" })
 public class MultiJoinChanneledMapper<INPUT_KEY, INPUT_VALUE, OUTPUT_VALUE> extends MultiJoinMapperBase<INPUT_KEY, INPUT_VALUE> {
 
-	public static final String MULTIJOINER_CHANNELED_FILES = "pisae.multijoiner.channeled.files";
-	public static final String MULTIJOINER_CHANNELED_CHANNELS = "pisae.multijoiner.channeled.channels";
+	public static final String MULTIJOINER_CHANNELED_FILES = "pangolin.multijoiner.channeled.files";
+	public static final String MULTIJOINER_CHANNELED_CHANNELS = "pangolin.multijoiner.channeled.channels";
 
 	private Map<String, Integer> idByFile = new HashMap<String, Integer>();
 

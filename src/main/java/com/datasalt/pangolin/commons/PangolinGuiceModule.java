@@ -15,17 +15,17 @@ import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
 /**
- * Guice Module Class for the Pisae project
+ * Guice Module Class for the Pangolin project
  * 
  * This class defines the bindings performed by the Guice injector in the project.
  * 
  * It also load the configuration properties files and prepares them to be binded with properties anywhere in the app
  * with commands as @Inject @Name("key.name") String configValue;
  * 
- * For instantiate any class in the Pisae project, the following pattern is recommended:
+ * For instantiate any class in the Pangolin project, the following pattern is recommended:
  * 
  * <code>
- * 		Injector injector = Guice.createInjector(new PisaeGuiceModule());
+ * 		Injector injector = Guice.createInjector(new PangolinGuiceModule());
  * 		MyClass c = injector.getInstance(MyClass.class);
  * </code>
  * 

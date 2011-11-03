@@ -11,8 +11,8 @@ import org.codehaus.jackson.type.TypeReference;
 import com.datasalt.pangolin.io.Serialization;
 
 /**
- * A mapper with all ready to be injected with the {@link PisaeGuiceModule}.
- * It also includes methods for serialize/deserialize
+ * 
+ * A reducer that includes methods for serialize/deserialize
  * 
  * @author ivan
  */
@@ -25,18 +25,7 @@ public class PangolinReducer<IKey, IValue, OKey, OValue> extends Reducer<IKey, I
 	};
 	protected ObjectMapper mapper = new ObjectMapper();
 
-//	@Override
-//  protected List<Module> getGuiceModules(Context context) {
-//		PangolinGuiceModule pisaeModule = new PangolinGuiceModule();
-//		Iterator<Entry<String, String>> it = context.getConfiguration().iterator();
-//		while (it.hasNext()) {
-//			Entry<String, String> entry = it.next();
-//			pisaeModule.getConfigProperties().put(entry.getKey(), entry.getValue());
-//		}
-//		return Arrays.asList(new Module[]{ pisaeModule });
-//  }
-	
-	private Serialization ser;
+	protected Serialization ser;
 	
 	/**
 	 * Configures the serialization

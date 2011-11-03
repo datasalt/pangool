@@ -23,7 +23,7 @@ import com.google.common.collect.Multimap;
 
 /**
  * <p>The CoffeeJob accepts a text file as an input and does nothing with it. Its Mappers and Reducers just have a coffee.</p>
- * <p>This Job can be used to integration-test the PISAE commons running infrastructure.</p>
+ * <p>This Job can be used to integration-test the Pangolin commons running infrastructure.</p>
  * 
  * @author pere
  *

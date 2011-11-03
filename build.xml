@@ -1,4 +1,4 @@
-<project name="pisae" default="build" xmlns:ivy="antlib:org.apache.ivy.ant"> 
+<project name="pangolin" default="build" xmlns:ivy="antlib:org.apache.ivy.ant"> 
 
     <property file="build.properties" />
 	<!--property name="resolve.compile" value="true" /-->
@@ -121,8 +121,8 @@
 		<!--mkdir dir="${integration.dir}"/-->
 		<mkdir dir="${thrift.gen.dir}"/>
 		<javac srcdir="${src.main.dir}:${src.contrib.dir}:${test.dir}:${thrift.gen.dir}" destdir="${build.dir}" debug="on" encoding="UTF-8">
-		<!--javac srcdir="${src.dir}:${test.dir}" destdir="${build.dir}" debug="on" encoding="UTF-8"-->
-			<exclude name="net/peerindex/pisae/crawler/**"/>
+		
+			
 			<classpath refid="common.classpath"/>
 		</javac>
 	</target>
@@ -240,10 +240,10 @@
           target: package
          ================================= -->
 	<target name="package" description="--> package this project into a ZIP file so it can be e.g. deployed to Azkaban" depends="jar">
-		<zip destfile="pisae-packaged.zip">
+		<zip destfile="pangolin-packaged.zip">
 		    <zipfileset dir="conf/" includes="**/*" prefix="conf/"/>
 		    <zipfileset dir="." includes="run_hadoop.sh"/>
-		    <zipfileset dir="." includes="pisae-dist.jar"/>
+		    <zipfileset dir="." includes="pangolin-dist.jar"/>
 		    <zipfileset dir="lib/" includes="**/*" prefix="lib/"/>
 			<!--zipfileset dir="azkaban/" includes="**/*" prefix="/"/-->
 		</zip>

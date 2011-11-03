@@ -1,10 +1,7 @@
 package com.datasalt.pangolin.mapred.joiner;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-
-
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
@@ -12,7 +9,6 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.mapred.PangolinReducer;
 
 /**
@@ -24,13 +20,11 @@ import com.datasalt.pangolin.mapred.PangolinReducer;
 @SuppressWarnings("rawtypes")
 public abstract class MultiJoinReducer<KEYOUT, VALUEOUT> extends PangolinReducer<MultiJoinPair, MultiJoinDatum<?>, KEYOUT, VALUEOUT> {
 
-	final static Logger log = LoggerFactory.getLogger(MultiJoinReducer.class);
+	private final static Logger log = LoggerFactory.getLogger(MultiJoinReducer.class);
 	private HashMap<Integer, Object> instances = new HashMap<Integer, Object>();
 	private HashMap<Integer, Class> classes = new HashMap<Integer, Class>();
 	private Configuration conf;
 	
-	private Serialization serialization;
-
 	@SuppressWarnings("unchecked")
   @Override
 	protected void setup(Context context) throws IOException, InterruptedException {
@@ -38,7 +32,7 @@ public abstract class MultiJoinReducer<KEYOUT, VALUEOUT> extends PangolinReducer
 		try {
 			Configuration conf = context.getConfiguration();
 			this.conf = conf;
-			serialization = new Serialization(conf);
+			
 			/*
 			 * Creating a cached instance of each class for each channel
 			 */
@@ -63,7 +57,7 @@ public abstract class MultiJoinReducer<KEYOUT, VALUEOUT> extends PangolinReducer
 	 */
 	public <T> T deserialize(MultiJoinDatum datum) throws IOException {
 		Object obj = instances.get(datum.getChannelId());
-		return serialization.<T> deser(obj, datum.getDatum());
+		return ser.<T> deser(obj, datum.getDatum());
 	}
 	
 	/**
@@ -74,7 +68,7 @@ public abstract class MultiJoinReducer<KEYOUT, VALUEOUT> extends PangolinReducer
 	@SuppressWarnings("unchecked")
   public <T> T deserializeNewInstance(MultiJoinDatum datum) throws IOException {
 		Object obj = ReflectionUtils.newInstance(classes.get(datum.getChannelId()), conf);
-		return serialization.<T> deser(obj, datum.getDatum());
+		return ser.<T> deser(obj, datum.getDatum());
 	}
 
 
@@ -82,7 +76,7 @@ public abstract class MultiJoinReducer<KEYOUT, VALUEOUT> extends PangolinReducer
 	 * Use this method to deserialize the key that you emitted in the MultiJoin Mappers.
 	 */
 	public <T> T deserializeKey(MultiJoinPair pair, T obj) throws IOException {
-		return serialization.<T> deser(obj, pair.getMultiJoinGroup());
+		return ser.<T> deser(obj, pair.getMultiJoinGroup());
 	}
 
 	/*

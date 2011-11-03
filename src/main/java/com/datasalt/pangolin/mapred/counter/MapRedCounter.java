@@ -108,14 +108,14 @@ public class MapRedCounter {
     CounterValue arbitrary = new CounterValue();
     LongWritable arbitraryNumber = new LongWritable(1);
     
-  	Serialization ser;
+  	//Serialization ser;
   	
 		@Override
     protected void setup(Context context) throws IOException,
         InterruptedException {
 	    super.setup(context);
 	    this.context = context;
-	    ser = new Serialization(context.getConfiguration());
+	    //ser = new Serialization(context.getConfiguration());
 	    one.setCount(ser.ser(numberOne));
     }
 

@@ -20,9 +20,9 @@ import com.google.inject.Injector;
  * <p>This class can be called from Azkaban to run any Job that implements BaseJob.</p>
  * <p>It implements its API as described <a href='http://sna-projects.com/azkaban/documentation.php'>here</a>.</p>
  * <ul>
- * <li>The job class name is configured in Azkaban under "pisae.job.class.name"</li>
- * <li>The hadoop args(-Dmapred...) are configured under "pisae.job.hadoop.args"</li>
- * <li>The job args are configured under "pisae.job.args"</li>
+ * <li>The job class name is configured in Azkaban under "pangolin.job.class.name"</li>
+ * <li>The hadoop args(-Dmapred...) are configured under "pangolin.job.hadoop.args"</li>
+ * <li>The job args are configured under "pangolin.job.args"</li>
  * </ul>
  * <p>All the properties passed by Azkaban will be automatically added to the Hadoop Configuration so that 
  * they are inmediately accessible from BaseJob implementations - both in the master JVM and the Task JVM's.</p>
