@@ -1,5 +1,6 @@
 package com.datasalt.pangolin.mapred.joiner;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -84,10 +85,11 @@ public class TestMultiJoinerSameClass extends PangolinBaseTest {
 		multiJoiner.setOutputFormat(TextOutputFormat.class);
 		multiJoiner.setOutputPath(new Path(OUTPUT_FOR_TEST));
 		Job job = multiJoiner
-			.addChanneledInput(0, new Path("resources/multijoiner.test.a.txt"), A.class, TextInputFormat.class, AMapperSameClass.class)
-			.addChanneledInput(1, new Path("resources/multijoiner.test.same.class.a.txt"), A.class, TextInputFormat.class, AMapperSameClass.class)
+			.addChanneledInput(0, new Path("src/test/resources/multijoiner.test.a.txt"), A.class, TextInputFormat.class, AMapperSameClass.class)
+			.addChanneledInput(1, new Path("src/test/resources/multijoiner.test.same.class.a.txt"), A.class, TextInputFormat.class, AMapperSameClass.class)
 			.getJob();
 		job.waitForCompletion(true);
+		assertTrue(job.isSuccessful());
 		
 		HadoopUtils.deleteIfExists(FileSystem.get(conf), new Path(OUTPUT_FOR_TEST));
 	}

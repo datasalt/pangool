@@ -1,12 +1,10 @@
 package com.datasalt.pangolin.mapred.joiner;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Iterator;
-
-import com.datasalt.pangolin.thrift.test.A;
-import com.datasalt.pangolin.thrift.test.B;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -20,12 +18,8 @@ import org.junit.Test;
 
 import com.datasalt.pangolin.commons.HadoopUtils;
 import com.datasalt.pangolin.commons.test.PangolinBaseTest;
-import com.datasalt.pangolin.mapred.joiner.MultiJoinChanneledMapper;
-import com.datasalt.pangolin.mapred.joiner.MultiJoinDatum;
-import com.datasalt.pangolin.mapred.joiner.MultiJoinPair;
-import com.datasalt.pangolin.mapred.joiner.MultiJoinPairText;
-import com.datasalt.pangolin.mapred.joiner.MultiJoinReducer;
-import com.datasalt.pangolin.mapred.joiner.MultiJoiner;
+import com.datasalt.pangolin.thrift.test.A;
+import com.datasalt.pangolin.thrift.test.B;
 
 public class TestMultiJoinerSecondarySort extends PangolinBaseTest {
 	
@@ -94,13 +88,12 @@ public class TestMultiJoinerSecondarySort extends PangolinBaseTest {
 		multiJoiner.setOutputPath(new Path(OUTPUT_FOR_TEST));
 		Job job = multiJoiner
 			.setMultiJoinPairClass(MultiJoinPairText.class)
-			.addChanneledInput(0, new Path("resources/multijoiner.test.a.2.txt"), A.class, TextInputFormat.class, AMapperSecondarySort.class)
-			.addChanneledInput(1, new Path("resources/multijoiner.test.b.2.txt"), B.class, TextInputFormat.class, BMapperSecondarySort.class)
+			.addChanneledInput(0, new Path("src/test/resources/multijoiner.test.a.2.txt"), A.class, TextInputFormat.class, AMapperSecondarySort.class)
+			.addChanneledInput(1, new Path("src/test/resources/multijoiner.test.b.2.txt"), B.class, TextInputFormat.class, BMapperSecondarySort.class)
 			.getJob();
 		job.waitForCompletion(true);
-		if(!job.isSuccessful()) {
-			throw new RuntimeException("Unit test failed");
-		}
+		assertTrue(job.isSuccessful());
+		
 		
 		HadoopUtils.deleteIfExists(FileSystem.get(conf), new Path(OUTPUT_FOR_TEST));
 	}

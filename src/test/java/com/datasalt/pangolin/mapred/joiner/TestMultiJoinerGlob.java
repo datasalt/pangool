@@ -1,5 +1,7 @@
 package com.datasalt.pangolin.mapred.joiner;
 
+import static org.junit.Assert.*;
+
 import java.io.IOException;
 
 import com.datasalt.pangolin.thrift.test.A;
@@ -37,10 +39,11 @@ public class TestMultiJoinerGlob extends PangolinBaseTest {
 		multiJoiner.setOutputPath(new Path(OUTPUT_FOR_TEST));
 		
 		Job job = multiJoiner
-			.addChanneledInput(0, new Path("resources/glob-folder/*"), A.class, TextInputFormat.class, AMapper.class)
-			.addChanneledInput(1, new Path("resources/multijoiner.test.b.txt"), B.class, TextInputFormat.class, BMapper.class)
+			.addChanneledInput(0, new Path("src/test/resources/glob-folder/*"), A.class, TextInputFormat.class, AMapper.class)
+			.addChanneledInput(1, new Path("src/test/resources/multijoiner.test.b.txt"), B.class, TextInputFormat.class, BMapper.class)
 			.getJob();
 		job.waitForCompletion(true);
+		assertTrue(job.isSuccessful());
 		
 		HadoopUtils.deleteIfExists(FileSystem.get(conf), new Path(OUTPUT_FOR_TEST));
 	}
