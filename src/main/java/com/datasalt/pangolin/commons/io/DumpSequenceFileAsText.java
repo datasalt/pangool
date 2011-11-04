@@ -122,7 +122,7 @@ public class DumpSequenceFileAsText extends BaseJob {
 	 * @throws Exception
 	 */
 	public static void main(String args[]) throws Exception {
-		CommonUtils.main(DumpSequenceFileAsText.class, args);
+		BaseJob.main(DumpSequenceFileAsText.class, args);
 	}
 
 	@Override

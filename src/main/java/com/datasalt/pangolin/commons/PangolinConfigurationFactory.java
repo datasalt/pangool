@@ -137,6 +137,11 @@ public class PangolinConfigurationFactory implements ConfigurationFactory{
 			log.info("Snappy compression not enabled because it was not found. Continue without it");
 		}
 	}
+	
+//	public static void main(String[] args) throws IOException {
+//			PangolinConfigurationFactory.getInstance().synchronize();
+//
+//	}
 
 	@Override
   public Configuration getConf() {
