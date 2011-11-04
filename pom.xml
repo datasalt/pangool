@@ -1,0 +1,473 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.datasalt</groupId>
+  <artifactId>pangolin</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>pangolin</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.2</version>
+      <scope>test</scope>
+    </dependency>
+    
+   <dependency>
+      <groupId>org.javatuples</groupId>
+      <artifactId>javatuples</artifactId>
+      <version>1.2</version>
+    </dependency>
+    
+   
+    <!-- Mockito for mocking in unit testing -->
+   
+   <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>1.8.5</version>
+    </dependency>
+
+      <!-- Very usefull Google's guava - Nice collections API -->
+   <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>10.0.1</version>
+    </dependency>
+      
+      <!-- Logging: SL4J flexible logging API -->        
+    
+    
+  <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>1.6.4</version>
+  </dependency>
+  
+  <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-log4j12</artifactId>
+    <version>1.6.4</version>
+    <scope>test</scope>
+  </dependency>
+    
+      
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.16</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.ning</groupId>
+      <artifactId>async-http-client</artifactId>
+      <version>1.6.4</version>
+    </dependency>
+
+    <!--  
+    <dependency>
+      <groupId>net.peerindex</groupId>
+      <artifactId>libthrift</artifactId>
+      <version>0.6.1-snapshot</version>
+    </dependency>          
+    -->
+    <dependency>
+    <groupId>org.apache.thrift</groupId>
+    <artifactId>libthrift</artifactId>
+    <version>0.6.1</version>
+</dependency>
+    
+    
+    
+    <!-- Xerces for XML parsing --> 
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>2.9.1</version>
+    </dependency>          
+    
+     <!-- Jackson: fast JSON ser/de -->
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+      <version>1.7.3</version>
+    </dependency>          
+     
+     <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-lgpl</artifactId>
+      <version>1.7.3</version>
+    </dependency> 
+    
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-jaxrs</artifactId>
+      <version>1.7.3</version>
+    </dependency> 
+     
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>1.7.3</version>
+    </dependency> 
+    
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-lgpl</artifactId>
+      <version>1.7.3</version>
+    </dependency>  
+    
+    
+    
+    
+    
+      <!-- Cloudera's CDH3 Hadoop -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-core</artifactId>
+      <version>0.20.2-cdh3u0</version>
+    </dependency>  
+      
+    <!-- MRUnit for Hadoop Unit Testing -->
+    
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-mrunit</artifactId>
+      <version>0.20.2-cdh3u0</version>
+    </dependency>
+
+    <!-- Azkaban commons -->
+    
+    <dependency>
+      <groupId>net.peerindex.azkaban</groupId>
+      <artifactId>azkaban-common</artifactId>
+      <version>1.0</version>
+    </dependency>  
+
+    <dependency>
+      <groupId>org.htmlparser</groupId>
+      <artifactId>htmlparser</artifactId>
+      <version>2.1</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>net.htmlparser.jericho</groupId>
+      <artifactId>jericho-html</artifactId>
+      <version>3.2</version>
+    </dependency>
+    
+    <!-- CSV Reader / Writer -->
+    <dependency>
+      <groupId>net.sf.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>2.3</version>
+    </dependency>
+    
+    <!-- Twitter4J -->
+    <dependency>
+      <groupId>org.twitter4j</groupId>
+      <artifactId>twitter4j-async</artifactId>
+      <version>2.2.3</version>
+    </dependency>
+    
+    
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>1.3.2</version>
+    </dependency>
+    
+    
+    
+    <!-- HttpClient 4 -->
+    
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.1.2</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <version>4.1.3</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore-nio</artifactId>
+      <version>4.1.3</version>
+    </dependency>
+      
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>1.6.2</version>
+    </dependency>
+    
+    
+    <!-- Protocol buffers better API -->
+    
+    <dependency>
+      <groupId>com.dyuproject.protostuff</groupId>
+      <artifactId>protostuff-api</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.dyuproject.protostuff</groupId>
+      <artifactId>protostuff-api</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.dyuproject.protostuff</groupId>
+      <artifactId>protostuff-core</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.dyuproject.protostuff</groupId>
+      <artifactId>protostuff-compiler</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.dyuproject.protostuff</groupId>
+      <artifactId>protostuff-model</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-core</artifactId>
+      <version>3.3.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-core</artifactId>
+      <version>1.4</version>
+    </dependency>
+    
+    
+    
+    <!--dependency org="org.apache.solr" name="solr" rev="3.3.0"/-->
+    <!--dependency org="org.apache.solr" name="solr-common" rev="3.3.0"/-->
+    
+    <!-- Wonderdog (ElasticSearch Hadoop) -->
+    <!--dependency org="com.infochimps.elasticsearch" name="wonderdog" rev="1.0-SNAPSHOT"/-->
+    <!-- <dependency org="org.elasticsearch" name="elasticsearch" rev="0.16.0"/> -->
+
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>velocity-tools</artifactId>
+      <version>1.3</version>
+    </dependency>
+
+  
+
+  <!-- 
+    <dependency>
+      <groupId>com.ml</groupId>
+      <artifactId>libsvm</artifactId>
+      <version>2.89</version>
+    </dependency>
+
+    <dependency>
+      <groupId>de.bwaldvogel</groupId>
+      <artifactId>liblinear</artifactId>
+      <version>1.8</version>
+    </dependency>
+    -->
+    
+    <!-- <dependency org="com.ml" name="liblinear" rev="1.33" /> -->
+    
+  </dependencies>
+  
+  <repositories>
+	  <repository>
+	      <id>central</id>
+	      <name>Maven Repository Switchboard</name>
+	      <layout>default</layout>
+	      <url>http://repo1.maven.org/maven2</url>
+	      <snapshots>
+	        <enabled>false</enabled>
+	      </snapshots>
+	    </repository>
+	  <repository>
+      <id>cloudera</id>
+      <name>Cloudera</name>
+      <url>https://repository.cloudera.com/content/repositories/releases</url>
+     
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    
+    <!-- 
+    <repository>
+      <id>sonatype-releases</id>
+      <name>Sonatype Releases</name>
+      <url>http://oss.sonatype.org/content/repositories/releases</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    -->
+    <repository>
+      <id>nexus-public</id>
+      <name>Nexus public</name>
+      <url>http://nexus.viewsflow.com/nexus/content/groups/public/</url>
+      
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    
+    
+    <repository>
+      <id>nexus-thirdparty</id>
+      <name>Nexus Thirdparty</name>
+      <url>http://nexus.viewsflow.com/nexus/content/repositories/thirdparty/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    
+    <repository>
+      <id>nexus-releases</id>
+      <name>Nexus Releases</name>
+      <url>http://nexus.viewsflow.com/nexus/content/repositories/releases/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    
+    <repository>
+      <id>nexus-snapshots</id>
+      <name>Nexus Snapshots</name>
+      <url>http://nexus.viewsflow.com/nexus/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  
+  
+  <build>
+  <plugins>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+     <source>6</source>
+     <target>6</target>
+    </configuration>
+   </plugin>
+   
+   
+   <!-- In order to add aditional source folders -->
+   <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.1</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/contrib/java</source>
+                <source>src/generated-thrift/java</source>
+                
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+  </plugins>
+ </build>
+ 
+ 
+ <profiles>
+    <profile>
+      <id>profile-buildthrift</id>
+      <activation>
+        <file>
+          <exists>/usr/local/bin/thrift</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate-sources</id>
+                <phase>generate-sources</phase>
+                <configuration>
+                  <tasks>
+                    <mkdir dir="src/generated-thrift/java/" />
+                    <exec executable="/usr/local/bin/thrift">
+                      <arg value="--gen" />
+                      <arg value="java:beans"/>
+                      <arg value="-o"/>
+                      <arg value="src/generated-thrift/java/"/>
+                      <arg value="thrift/pangolin-test.thrift"/>
+                    </exec>
+                    <!--  
+                    <delete>
+                      <fileset dir="src/main/java/com/joelpm/generated" includes="**/*"/>
+                    </delete>
+                    -->
+                    <!-- 
+                    <copy todir="src/main/java/com/joelpm/generated">
+                      <fileset dir="target/generated-sources/gen-javabean/com/joelpm/generated"/>
+                    </copy>-->
+                    
+                  </tasks>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+ 
+  
+</project>

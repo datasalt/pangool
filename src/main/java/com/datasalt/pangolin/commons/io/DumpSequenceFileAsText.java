@@ -10,7 +10,6 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.thrift.TBase;
 
 import com.datasalt.pangolin.commons.BaseJob;
-import com.datasalt.pangolin.commons.CommonUtils;
 import com.datasalt.pangolin.commons.ThriftUtils;
 
 /**
