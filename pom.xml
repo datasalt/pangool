@@ -21,32 +21,31 @@
       <version>4.8.2</version>
       <scope>test</scope>
     </dependency>
-    
+   <!-- 
    <dependency>
       <groupId>org.javatuples</groupId>
       <artifactId>javatuples</artifactId>
       <version>1.2</version>
     </dependency>
-    
+    -->
    
     <!-- Mockito for mocking in unit testing -->
-   
+<!--
    <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>1.8.5</version>
     </dependency>
-
+-->
       <!-- Very usefull Google's guava - Nice collections API -->
    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>10.0.1</version>
     </dependency>
-      
       <!-- Logging: SL4J flexible logging API -->        
     
-    
+<!--    
   <dependency>
     <groupId>org.slf4j</groupId>
     <artifactId>slf4j-api</artifactId>
@@ -59,20 +58,20 @@
     <version>1.6.4</version>
     <scope>test</scope>
   </dependency>
-    
+    -->
       
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>1.2.16</version>
     </dependency>
-    
+<!--    
     <dependency>
       <groupId>com.ning</groupId>
       <artifactId>async-http-client</artifactId>
       <version>1.6.4</version>
     </dependency>
-
+-->
     <!--  
     <dependency>
       <groupId>net.peerindex</groupId>
@@ -81,10 +80,10 @@
     </dependency>          
     -->
     <dependency>
-    <groupId>org.apache.thrift</groupId>
-    <artifactId>libthrift</artifactId>
-    <version>0.6.1</version>
-</dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
+      <version>0.6.1</version>
+    </dependency>
     
     
     
@@ -96,6 +95,7 @@
     </dependency>          
     
      <!-- Jackson: fast JSON ser/de -->
+   <!--
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-asl</artifactId>
@@ -125,7 +125,7 @@
       <artifactId>jackson-mapper-lgpl</artifactId>
       <version>1.7.3</version>
     </dependency>  
-    
+    -->
     
     
     
@@ -138,21 +138,23 @@
     </dependency>  
       
     <!-- MRUnit for Hadoop Unit Testing -->
-    
+   <!-- 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-mrunit</artifactId>
       <version>0.20.2-cdh3u0</version>
     </dependency>
-
+-->
     <!-- Azkaban commons -->
-    
+   <!-- 
     <dependency>
       <groupId>net.peerindex.azkaban</groupId>
       <artifactId>azkaban-common</artifactId>
       <version>1.0</version>
     </dependency>  
+-->
 
+<!--
     <dependency>
       <groupId>org.htmlparser</groupId>
       <artifactId>htmlparser</artifactId>
@@ -164,22 +166,24 @@
       <artifactId>jericho-html</artifactId>
       <version>3.2</version>
     </dependency>
-    
+    -->
     <!-- CSV Reader / Writer -->
+    <!--
     <dependency>
       <groupId>net.sf.opencsv</groupId>
       <artifactId>opencsv</artifactId>
       <version>2.3</version>
     </dependency>
-    
+    -->
     <!-- Twitter4J -->
-    <dependency>
+   <!-- 
+   <dependency>
       <groupId>org.twitter4j</groupId>
       <artifactId>twitter4j-async</artifactId>
       <version>2.2.3</version>
     </dependency>
     
-    
+    -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-io</artifactId>
@@ -189,7 +193,7 @@
     
     
     <!-- HttpClient 4 -->
-    
+   <!-- 
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
@@ -207,7 +211,7 @@
       <artifactId>httpcore-nio</artifactId>
       <version>4.1.3</version>
     </dependency>
-      
+      -->
     <dependency>
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
@@ -216,12 +220,6 @@
     
     
     <!-- Protocol buffers better API -->
-    
-    <dependency>
-      <groupId>com.dyuproject.protostuff</groupId>
-      <artifactId>protostuff-api</artifactId>
-      <version>1.0.1</version>
-    </dependency>
     
     <dependency>
       <groupId>com.dyuproject.protostuff</groupId>
@@ -252,13 +250,13 @@
       <artifactId>solr-core</artifactId>
       <version>3.3.0</version>
     </dependency>
-
+<!--
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-core</artifactId>
       <version>1.4</version>
     </dependency>
-    
+    -->
     
     
     <!--dependency org="org.apache.solr" name="solr" rev="3.3.0"/-->
@@ -295,6 +293,7 @@
   </dependencies>
   
   <repositories>
+<!--
 	  <repository>
 	      <id>central</id>
 	      <name>Maven Repository Switchboard</name>
@@ -304,16 +303,17 @@
 	        <enabled>false</enabled>
 	      </snapshots>
 	    </repository>
-	  <repository>
+-->	  
+   <repository>
       <id>cloudera</id>
-      <name>Cloudera</name>
+      <name>Cloudera Releases</name>
       <url>https://repository.cloudera.com/content/repositories/releases</url>
      
       <releases>
         <enabled>true</enabled>
       </releases>
       <snapshots>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
       </snapshots>
     </repository>
     
@@ -330,6 +330,8 @@
       </snapshots>
     </repository>
     -->
+
+<!--
     <repository>
       <id>nexus-public</id>
       <name>Nexus public</name>
@@ -339,7 +341,7 @@
         <enabled>true</enabled>
       </releases>
       <snapshots>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
       </snapshots>
     </repository>
     
@@ -352,7 +354,7 @@
         <enabled>true</enabled>
       </releases>
       <snapshots>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
       </snapshots>
     </repository>
     
@@ -379,11 +381,13 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
+-->
   </repositories>
   
   
   <build>
   <plugins>
+	<!-- set Java 6 compiler -->
    <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-compiler-plugin</artifactId>

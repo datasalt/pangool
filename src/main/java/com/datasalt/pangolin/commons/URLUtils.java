@@ -4,9 +4,8 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.mortbay.log.Log;
+import org.apache.log4j.Logger;
 
-import twitter4j.internal.logging.Logger;
 /**
  * Utils for general URL tasks.
  * @author jaylinux

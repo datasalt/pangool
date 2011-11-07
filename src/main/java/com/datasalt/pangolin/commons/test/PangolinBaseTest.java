@@ -1,11 +1,8 @@
 package com.datasalt.pangolin.commons.test;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 import org.apache.hadoop.conf.Configuration;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 
 import com.datasalt.pangolin.commons.PangolinConfigurationFactory;
 import com.datasalt.pangolin.io.Serialization;
@@ -14,9 +11,9 @@ public class PangolinBaseTest {
 
 	
 	
-	public final static TypeReference<HashMap<String, Object>> MAP = new TypeReference<HashMap<String, Object>>() {
-	};
-	protected ObjectMapper mapper = new ObjectMapper();
+	//public final static TypeReference<HashMap<String, Object>> MAP = new TypeReference<HashMap<String, Object>>() {
+	//};
+	//protected ObjectMapper mapper = new ObjectMapper();
 
 	private Configuration conf;
 	protected Serialization ser; 

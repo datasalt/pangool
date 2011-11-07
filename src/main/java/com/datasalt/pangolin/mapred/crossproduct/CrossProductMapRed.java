@@ -56,7 +56,7 @@ import com.datasalt.pangolin.mapred.joiner.MultiJoiner;
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class CrossProductMapRed<K, V> {
 
-	static Logger log = LoggerFactory.getLogger(CrossProductMapRed.class);
+	private static Logger log = LoggerFactory.getLogger(CrossProductMapRed.class);
 
 	public final static String EXTRA_OUTPUT = "EXTRA";
 

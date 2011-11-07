@@ -1,12 +1,9 @@
 package com.datasalt.pangolin.mapred;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 
 import com.datasalt.pangolin.io.Serialization;
 
@@ -21,9 +18,9 @@ public class PangolinReducer<IKey, IValue, OKey, OValue> extends Reducer<IKey, I
 	/*
 	 * For JSON Ser/De
 	 */
-	public final static TypeReference<HashMap<String, Object>> MAP = new TypeReference<HashMap<String, Object>>() {
-	};
-	protected ObjectMapper mapper = new ObjectMapper();
+	//public final static TypeReference<HashMap<String, Object>> MAP = new TypeReference<HashMap<String, Object>>() {
+	//};
+	//protected ObjectMapper mapper = new ObjectMapper();
 
 	protected Serialization ser;
 	

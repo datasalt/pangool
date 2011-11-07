@@ -2,13 +2,12 @@ package com.datasalt.pangolin.viewbuilder;
 
 import java.io.File;
 
+import org.apache.log4j.Logger;
 import org.apache.solr.cloud.ZkController;
-
-import twitter4j.internal.logging.Logger;
 
 /**
  * This manager allows to perform simple operations to the Zookeeper server that stores the SolrCloud configuration.
- * Basically it provides methods to store a solr configFile in Zookeeper, and asign it to several collections(Solr Cores..).
+ * Basically it provides methods to store a solr configFile in Zookeeper, and assign it to several collections(Solr Cores..).
  * 
  * @author epalace
  */
