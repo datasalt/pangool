@@ -8,7 +8,7 @@
 	<property name="ivy.jar.file" value="${ivy.dir}/ivy.jar" /> 
 	
 	<property name="thrift.gen.dir" value="gen-javabean" />
-	<property name="thrift.dir" value="thrift" />
+	<property name="thrift.dir" value="src/test/resources" />
 		
 	<property name="conf.dir" value="conf" />
     <property name="build.dir" value="build" /> 

@@ -84,7 +84,7 @@ public class PangolinConfigurationFactory implements ConfigurationFactory{
 	private void configureSerialization(Configuration conf) {
 		// Adding the Thrift serialization
 		String ser = conf.get("io.serializations").trim();
-		if (ser.length() !=0 ) {
+		if (!ser.isEmpty()) {
 			ser += ",";
 		}
 		ser += "org.apache.hadoop.contrib.serialization.thrift.ThriftSerialization";

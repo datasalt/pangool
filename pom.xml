@@ -413,8 +413,7 @@
             <configuration>
               <sources>
                 <source>src/contrib/java</source>
-                <source>src/generated-thrift/java</source>
-                
+                <source>src/test/generated-thrift/java</source>
               </sources>
             </configuration>
           </execution>
@@ -438,17 +437,17 @@
             <artifactId>maven-antrun-plugin</artifactId>
             <executions>
               <execution>
-                <id>generate-sources</id>
+                <id>generate-thrift</id>
                 <phase>generate-sources</phase>
                 <configuration>
                   <tasks>
-                    <mkdir dir="src/generated-thrift/java/" />
+                    <mkdir dir="src/test/generated-thrift/java/" />
                     <exec executable="/usr/local/bin/thrift">
                       <arg value="--gen" />
                       <arg value="java:beans"/>
                       <arg value="-o"/>
-                      <arg value="src/generated-thrift/java/"/>
-                      <arg value="thrift/pangolin-test.thrift"/>
+                      <arg value="src/test/generated-thrift/java/"/>
+                      <arg value="src/test/resources/pangolin-test.thrift"/>
                     </exec>
                     <!--  
                     <delete>
