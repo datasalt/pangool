@@ -4,11 +4,11 @@
 
   <groupId>com.datasalt</groupId>
   <artifactId>pangolin</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>pangolin</name>
-  <url>http://maven.apache.org</url>
+  <url>http://www.datasalt.com</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -434,7 +434,7 @@
  
  
  <profiles>
-
+<!--
     <profile>
       <id>profile-buildthrift</id>
       <activation>
@@ -453,14 +453,14 @@
                 <configuration>
                   <tasks>
                     <mkdir dir="src/test/generated-thrift/java/" />
-                    <exec executable="/usr/local/bin/thrift">
-                      <arg value="--gen" />
-                      <arg value="java:beans"/>
+                    <exec executable="/usr/local/bin/thrift">-->
+			    <!--  <arg value="--> <!--gen" />-->
+     <!--                 <arg value="java:beans"/>
                       <arg value="-o"/>
                       <arg value="src/test/generated-thrift/java/"/>
                       <arg value="src/test/resources/pangolin-test.thrift"/>
                     </exec>
-                    <!--  
+                   --> <!--  
                     <delete>
                       <fileset dir="src/main/java/com/joelpm/generated" includes="**/*"/>
                     </delete>
@@ -469,7 +469,7 @@
                     <copy todir="src/main/java/com/joelpm/generated">
                       <fileset dir="target/generated-sources/gen-javabean/com/joelpm/generated"/>
                     </copy>-->
-                    
+                    <!--
                   </tasks>
                 </configuration>
                 <goals>
@@ -480,7 +480,7 @@
           </plugin>
         </plugins>
       </build>
-    </profile>
+    </profile>-->
   </profiles>
  
   
