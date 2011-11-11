@@ -3,10 +3,14 @@ package com.datasalt.pangolin.grouper;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.thrift.TBase;
 
@@ -15,42 +19,10 @@ import org.apache.thrift.TBase;
  * @author epalace
  *
  */
-public class Tuple implements WritableComparable{
+public class Tuple implements WritableComparable,Configurable{
 
-	public static class Schema {
-		private List<String> fieldNames;
-		private List<Class> fieldTypes;
-		
-		private Map<String,Integer> indexByFieldName = new HashMap<String,Integer>();
-		
-		public Schema(List<String> fieldNames,List<Class> fieldTypes){
-			if (fieldNames.size() != fieldTypes.size()){
-				throw new RuntimeException("Field names size ("+ fieldNames.size() + ") doesn't match fieldTypes  (" + fieldTypes.size());
-			}
-			this.fieldNames = fieldNames;
-			this.fieldTypes = fieldTypes;
-		}
-		
-		public List<String> getFieldNames(){
-			return fieldNames;
-		}
-		
-		public List<Class> getFieldTypes(){
-			return fieldTypes;
-		}
-		
-		public String getFieldName(int index){
-			return fieldNames.get(index);
-		}
-		
-		public Class getFieldType(int index){
-			return fieldTypes.get(index);
-		}
-		
-		public int getNumFields(){
-			return fieldNames.size();
-		}
-	}
+	
+	
 	
 	public static class Prefix {
 		
@@ -63,7 +35,10 @@ public class Tuple implements WritableComparable{
 	
 	public void setSchema(Schema schema){
 		this.schema = schema;
-		this.fields = new Comparable[schema.getNumFields()];
+		//TODO this should erase previous state ? 
+		if (this.fields.length != schema.getNumFields()){
+			this.fields = new Comparable[schema.getNumFields()];
+		}
 	}
 	
 	public void setField(String fieldName,Object value){
@@ -77,6 +52,7 @@ public class Tuple implements WritableComparable{
 	
 	@Override
   public void readFields(DataInput input) throws IOException {
+		
 		for(int numField = 0 ; numField < schema.getNumFields(); numField++){
 			Class fieldType = schema.getFieldType(numField);
 			if (fieldType == Integer.class){
@@ -153,5 +129,32 @@ public class Tuple implements WritableComparable{
 	  // TODO Auto-generated method stub
 	  return 0;
   }
+	
+	
+	
+	public int partialHashCode(int[] fieldsIndexes){
+		int result = 0 ; 
+		for ( int fieldIndex : fieldsIndexes){
+			result = result*31 + fields[fieldIndex].hashCode();
+		}
+		
+		return result & Integer.MAX_VALUE;
+	}
+
+	@Override
+	public Configuration getConf() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setConf(Configuration conf) {
+		if (conf != null){
+			String schemaStr = conf.get(Grouper.CONF_SCHEMA);
+			this.schema = Schema.parse(schemaStr);
+		}
+		
+	}
+	
 
 }

@@ -22,13 +22,13 @@
       <scope>test</scope>
     </dependency>
     
-    <!-- 
+    
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro-mapred</artifactId>
       <version>1.6.0</version>
     </dependency>
-    -->
+    
     
    <!-- 
    <dependency>
@@ -221,12 +221,12 @@
       <version>4.1.3</version>
     </dependency>
       -->
-    <dependency>
+ <!--   <dependency>
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
       <version>1.6.2</version>
     </dependency>
-    
+    -->
     
     <!-- Protocol buffers better API -->
     
@@ -274,13 +274,13 @@
     <!-- Wonderdog (ElasticSearch Hadoop) -->
     <!--dependency org="com.infochimps.elasticsearch" name="wonderdog" rev="1.0-SNAPSHOT"/-->
     <!-- <dependency org="org.elasticsearch" name="elasticsearch" rev="0.16.0"/> -->
-
+<!--
     <dependency>
       <groupId>org.apache.velocity</groupId>
       <artifactId>velocity-tools</artifactId>
       <version>1.3</version>
     </dependency>
-
+-->
   
 
   <!-- 
@@ -408,7 +408,8 @@
    
    
    <!-- In order to add aditional source folders -->
-   <plugin>
+   
+  <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <version>1.1</version>
@@ -433,6 +434,7 @@
  
  
  <profiles>
+
     <profile>
       <id>profile-buildthrift</id>
       <activation>

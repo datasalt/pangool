@@ -3,6 +3,7 @@ package com.datasalt.pangolin.grouper;
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 
 
@@ -14,6 +15,11 @@ import org.apache.hadoop.io.NullWritable;
  */
 public class Grouper {
 
+	public static final String CONF_SORT_CRITERIA = "grouper.sort.criteria";
+	public static final String CONF_FIELDS_GROUP = "grouper.group.fields";
+	public static final String CONF_SCHEMA = "grouper.schema";
+	
+	
 	/**
 	 * TODO
 	 * @author epalace
@@ -100,6 +106,14 @@ public class Grouper {
 		
 	}
 	
+	public void setKeySchema(Schema schema){
+		
+	}
+	
+	public static Schema getSchema(Configuration conf){
+		String schemaStr = conf.get(CONF_SCHEMA);
+		return Schema.parse(schemaStr);
+	}
 	
 
 }
