@@ -5,19 +5,56 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.io.VIntWritable;
+import org.apache.hadoop.io.VLongWritable;
+
 import com.datasalt.pangolin.commons.CommonUtils;
 
 public class Schema {
-	private List<String> fieldNames;
-	private List<Class> fieldTypes;
-
+	
+	public static class Field {
+		public static enum SortCriteria {
+			ASC,DESC
+		}
+		private String name;
+		private Class type;
+		private SortCriteria sortCriteria;
+		
+		public Field(String name,Class clazz){
+			this.name = name;
+			this.type = clazz;
+			this.sortCriteria = SortCriteria.ASC;
+		}
+		
+		public Field(String name,Class clazz,SortCriteria sort){
+			this.name = name;
+			this.type = clazz;
+			this.sortCriteria = sort;
+		}
+		
+		
+		public Class getType(){
+			return type;
+		}
+		
+		public String getName(){
+			return name;
+		}
+		
+		public SortCriteria getSortCriteria(){
+			return sortCriteria;
+		}
+	}
+	
 	private static final Map<String,Class> strToClazz=new HashMap<String,Class>();
 	private static final Map<Class,String> clazzToStr;
 	
 	
 	static {
 		strToClazz.put("int",Integer.class);
+		strToClazz.put("vint", VIntWritable.class);
 		strToClazz.put("long",Long.class);
+		strToClazz.put("vlong",VLongWritable.class);
 		strToClazz.put("float",Float.class);
 		strToClazz.put("double",Double.class);
 		strToClazz.put("string",String.class);
@@ -25,6 +62,10 @@ public class Schema {
 		
 		clazzToStr = CommonUtils.invertMap(strToClazz);
 	}
+	
+	private Field[] fields;
+	
+	
 	
 	/**
 	 * TODO
@@ -43,66 +84,55 @@ public class Schema {
 	
 	private Map<String, Integer> indexByFieldName = new HashMap<String, Integer>();
 
-	public Schema(List<String> fieldNames, List<Class> fieldTypes) {
-		if (fieldNames.size() != fieldTypes.size()) {
-			throw new RuntimeException("Field names size (" + fieldNames.size()
-					+ ") doesn't match fieldTypes  (" + fieldTypes.size());
+	public Schema(Field[] fields) {
+		this.fields = fields;
+		int index=0;
+		for (Field field : fields){
+			this.indexByFieldName.put(field.getName(),index);
+			index++;
 		}
-		this.fieldNames = fieldNames;
-		this.fieldTypes = fieldTypes;
+		
 	}
-
-	public List<String> getFieldNames() {
-		return fieldNames;
-	}
-
-	public List<Class> getFieldTypes() {
-		return fieldTypes;
-	}
-
-	public String getFieldName(int index) {
-		return fieldNames.get(index);
-	}
-
-	public Class getFieldType(int index) {
-		return fieldTypes.get(index);
-	}
-
-	public int getNumFields() {
-		return fieldNames.size();
+	
+	public Field[] getFields(){
+		return fields;
 	}
 
 	public String serialize() {
 		StringBuilder b = new StringBuilder();
-		String fieldName = fieldNames.get(0);
-		Class fieldType = fieldTypes.get(0);
+		String fieldName = fields[0].name;
+		Class fieldType = fields[0].type;
 		b.append(fieldName).append(":").append(classToStr(fieldType));
-		for (int i = 1 ; i < fieldTypes.size() ; i++){
-			fieldName = fieldNames.get(i);
-			fieldType = fieldTypes.get(i);
+		for (int i = 1 ; i < fields.length ; i++){
+			fieldName = fields[i].name;
+			fieldType = fields[i].type;
+			//TODO add sort criteria
 			b.append(",").append(fieldName).append(":").append(classToStr(fieldType));
 		}
 		return b.toString();
 	}
+	
+	public int getIndexByFieldName(String name){
+		return indexByFieldName.get(name);
+	}
+	
 	
 	public String toString(){
 		return serialize();
 	}
 
 	public static Schema parse(String serialized) {
-		// TODO super wip
-		List<String> fieldNames = new ArrayList<String>();
-		List<Class> fieldTypes = new ArrayList<Class>();
-
-		String[] fields = serialized.split(",");
-		for (String field : fields) {
+		String[] fieldsStr = serialized.split(",");
+		List<Field> fields = new ArrayList<Field>(fieldsStr.length);
+		for (String field : fieldsStr) {
 			String[] nameType = field.split(":");
 			String name = nameType[0];
 			String type = nameType[1];
-			fieldNames.add(name);
-			fieldTypes.add(strToClass(type));
+			fields.add(new Field(name,strToClass(type)));
 		}
-		return new Schema(fieldNames, fieldTypes);
+		Field[] fieldsArray = new Field[fields.size()];
+		fields.toArray(fieldsArray);
+		return new Schema(fieldsArray);
 	}
 
 

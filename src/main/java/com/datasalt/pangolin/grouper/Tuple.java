@@ -3,158 +3,172 @@ package com.datasalt.pangolin.grouper;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-
-import org.apache.hadoop.conf.Configurable;
-import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.BinaryComparable;
+import org.apache.hadoop.io.DataInputBuffer;
+import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.io.VIntWritable;
+import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.io.WritableUtils;
 import org.apache.thrift.TBase;
+
+import com.datasalt.pangolin.grouper.Schema.Field;
 
 /**
  * TODO
+ * 
  * @author epalace
- *
+ * 
  */
-public class Tuple implements WritableComparable,Configurable{
+public class Tuple extends BinaryComparable implements WritableComparable<BinaryComparable> {
 
+	private DataOutputBuffer dob = new DataOutputBuffer();
+	private DataInputBuffer dib = new DataInputBuffer();
+	private Buffer buf = new Buffer();
 	
-	
-	
-	public static class Prefix {
+	private Comparable[] objects;
+	private Schema schema;
+
+	public Tuple() {
 		
 	}
-	
-	
-	private Comparable[] fields;
-	private Schema schema;
-	public Tuple(){	}
-	
-	public void setSchema(Schema schema){
+
+	public void setSchema(Schema schema) {
 		this.schema = schema;
-		//TODO this should erase previous state ? 
-		if (this.fields.length != schema.getNumFields()){
-			this.fields = new Comparable[schema.getNumFields()];
+		// TODO this should erase previous state ?
+		if (this.objects.length != schema.getFields().length) {
+			this.objects = new Comparable[schema.getFields().length];
 		}
 	}
-	
-	public void setField(String fieldName,Object value){
-		//TODO
+
+	public void setField(String fieldName, Comparable value) {
+		int index = this.schema.getIndexByFieldName(fieldName);
+		//TODO check that index is valid
+		objects[index] = value;
 	}
-	
-	public void setField(int index,Comparable value){
-		this.fields[index] = value;
+
+	public void setField(int index, Comparable value) {
+		this.objects[index] = value;
 	}
-	
-	
-	@Override
-  public void readFields(DataInput input) throws IOException {
-		
-		for(int numField = 0 ; numField < schema.getNumFields(); numField++){
-			Class fieldType = schema.getFieldType(numField);
-			if (fieldType == Integer.class){
-			 setField(numField,input.readInt());
-			} else if(fieldType == Long.class){
-				setField(numField,input.readLong());
-			} else if(fieldType == Double.class){
-				setField(numField,input.readDouble());
-			} else if(fieldType == Float.class){
-				setField(numField,input.readFloat());
-			} else if(fieldType == String.class){
-				setField(numField,input.readUTF()); //TODO use Text ?
-			} else if(fieldType == TBase.class){ //TODO improve this .
-				//TODO ..
-				
-			}else {
-				//TODO
-				throw new RuntimeException("Not implemented fieldType :  " + fieldType);
+
+	private void serializeFieldsToBuffer() throws IOException {
+		dob.reset();
+		for (int numField = 0; numField < schema.getFields().length; numField++) {
+			Class fieldType = schema.getFields()[numField].getType();
+			if (fieldType == Integer.class) {
+				WritableUtils.writeVInt(dob, (Integer) objects[numField]);
+			} else if (fieldType == Long.class) {
+				WritableUtils.writeVLong(dob, (Long) objects[numField]);
+			} else if (fieldType == Double.class) {
+				dob.writeDouble((Double) objects[numField]);
+			} else if (fieldType == Float.class) {
+				dob.writeFloat((Float) objects[numField]);
+			} else if (fieldType == String.class) {
+				dob.writeUTF((String) objects[numField]);
+			} else {
+				throw new RuntimeException("Not implemented fieldType : " + fieldType); // TODO
+																																								// output
+																																								// correct
+																																								// exception
 			}
 		}
-  }
+	}
 
-	@Override
-  public void write(DataOutput output) throws IOException {
-	  for (int numField = 0 ; numField < schema.getNumFields(); numField++){
-	  	Class fieldType = schema.getFieldType(numField);
-	  	if (fieldType == Integer.class){
-	  		output.writeInt((Integer)fields[numField]);
-	  	} else if (fieldType == Long.class){
-	  		output.writeLong((Long)fields[numField]);
-	  	} else if (fieldType == Double.class){
-	  		output.writeDouble((Double) fields[numField]);
-	  	} else if(fieldType == Float.class){
-	  		output.writeFloat((Float)fields[numField]);
-	  	} else if(fieldType == String.class){
-	  		output.writeUTF((String)fields[numField]);
-	  	} else {
-	  		throw new RuntimeException("Not implemented fieldType : "+ fieldType); //TODO output correct exception
-	  	}
-	  }
-  }
+	private void deserializeBufferToFields() throws IOException {
+		int i=0;
+		for (Field field : schema.getFields()) {
+			
+			Class fieldType = field.getType();
+			if (fieldType == VIntWritable.class) {
+				setField(i, WritableUtils.readVInt(dib));
+			} else if (fieldType == VLongWritable.class) {
+				setField(i, WritableUtils.readVLong(dib));
+			} else if (fieldType == Double.class) {
+				setField(i, dib.readDouble());
+			} else if (fieldType == Float.class) {
+				setField(i, dib.readFloat());
+			} else if (fieldType == String.class) {
+				setField(i, dib.readUTF()); // TODO use Text ?
+			} else if (fieldType == TBase.class) { // TODO improve this .
+				// TODO ..
 
-	public void set(Tuple tuple){ 
-		this.schema = tuple.schema;
-		if (fields == null || fields.length != schema.getNumFields()){
-			fields = new Comparable[schema.getNumFields()];
-		}
-		for (int i = 0 ; i < schema.getNumFields(); i++){
-			fields[i] = tuple.fields[i];
+			} else {
+				// TODO
+				throw new RuntimeException("Not implemented fieldType :  " + fieldType);
+			}
+			i++;
 		}
 	}
-	
+
+	@Override
+	public void write(DataOutput output) throws IOException {
+		// TODO this can be cached
+		serializeFieldsToBuffer(); //maybe it's already serialized
+		int size = dob.getLength();
+		WritableUtils.writeVInt(output, size);
+		output.write(dob.getData(),0,size);
+		
+	}
+
+	@Override
+	public void readFields(DataInput input) throws IOException {
+		int size = WritableUtils.readVInt(input);
+		buf.setSize(size);
+		input.readFully(buf.getBytes(), 0,size);
+		dib.reset(buf.getBytes(),size);
+		
+	}
+
+	public void set(Tuple tuple) {
+		this.schema = tuple.schema;
+		//TODO what to do in case of not being serialize to objects
+		if (objects == null || objects.length != schema.getFields().length) {
+			objects = new Comparable[schema.getFields().length];
+		}
+		for (int i = 0; i < schema.getFields().length; i++) {
+			objects[i] = tuple.objects[i];
+		}
+	}
+
 	/**
-	 *  returns the level where they mismatch. 
-	 *  Returns 0 if equals
+	 * returns the level where they mismatch. Returns 0 if equals
+	 * 
 	 * @param tuple1
 	 * @param tuple2
 	 * @param levels
 	 * @return
 	 */
-	public static int compareLevels(Tuple tuple1,Tuple tuple2,int levels){
-		for (int i = 0 ; i < levels; i++){
-			int comparison =tuple1.fields[i].compareTo((tuple2.fields[i])); 
-			if (comparison != 0){
+	public static int compareLevels(Tuple tuple1, Tuple tuple2, int levels) {
+		for (int i = 0; i < levels; i++) {
+			int comparison = tuple1.objects[i].compareTo((tuple2.objects[i]));
+			if (comparison != 0) {
 				return i;
 			}
 		}
 		return 0;
 	}
-	
-	
-	@Override
-  public int compareTo(Object that) {
-	  // TODO Auto-generated method stub
-	  return 0;
-  }
-	
-	
-	
-	public int partialHashCode(int[] fieldsIndexes){
-		int result = 0 ; 
-		for ( int fieldIndex : fieldsIndexes){
-			result = result*31 + fields[fieldIndex].hashCode();
+
+	public int partialHashCode(int[] fieldsIndexes) {
+		int result = 0;
+		for (int fieldIndex : fieldsIndexes) {
+			result = result * 31 + objects[fieldIndex].hashCode();
 		}
-		
+
 		return result & Integer.MAX_VALUE;
 	}
 
 	@Override
-	public Configuration getConf() {
-		// TODO Auto-generated method stub
-		return null;
+	public byte[] getBytes() {
+		//TODO serialize first
+		return buf.getBytes();
 	}
 
 	@Override
-	public void setConf(Configuration conf) {
-		if (conf != null){
-			String schemaStr = conf.get(Grouper.CONF_SCHEMA);
-			this.schema = Schema.parse(schemaStr);
-		}
-		
+	public int getLength() {
+		//TODO serialize first
+		return buf.getLength();
 	}
-	
 
+	
 }

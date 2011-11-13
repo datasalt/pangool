@@ -34,18 +34,7 @@ public class Grouper {
 	    	//private Tuple.Prefix currentPrefix = null;
 	    	private int maxLevels=0;
 	    	
-	  /*
-	    	@Override
-	    	public void close(){
-        //Subclasses can override this as desired.
-	    	}
-	    	
-	   @Override
-	   public void	configure(JobConf jobConf){
-	  	 super.configure(jobConf);
-	  	 
-	   }
-	    */	
+	  
 
 		@Override
 		public final void reduce(Tuple key, Iterable<NullWritable> values, Context context) throws IOException {
@@ -57,7 +46,7 @@ public class Grouper {
 				Tuple currentKey = context.getCurrentKey();
 				if (previousKey == null){
 					for (int i = 0 ; i < maxLevels; i++){
-						onOpenGroup(context,null); //TODO bad
+						//onOpenGroup(context,null); //TODO bad
 					}
 					onElement(currentKey,context);
 					previousKey = new Tuple();
@@ -68,10 +57,10 @@ public class Grouper {
 					int levelMismatch = Tuple.compareLevels(currentKey,previousKey,maxLevels);
 					int numClosingGroups = maxLevels -levelMismatch;
 					for (int i = 0 ; i < numClosingGroups ; i++){
-						onCloseGroup(context,null); //TODO bad
+						//onCloseGroup(context,null); //TODO bad
 					}
 					for (int i=0 ; i < numClosingGroups; i++){
-						onOpenGroup(context,null);
+						//onOpenGroup(context,null);
 					}
 					onElement(currentKey, context);
 					previousKey.set(currentKey);
@@ -84,14 +73,14 @@ public class Grouper {
 		 * @param context
 		 * @param prefix
 		 */
-		protected abstract void onOpenGroup(Context context,Tuple.Prefix prefix);
+		protected abstract void onOpenGroup(Context context);
 
 		/**
 		 * TODO
 		 * @param context
 		 * @param prefix
 		 */
-		protected abstract void onCloseGroup(Context context,Tuple.Prefix prefix);
+		protected abstract void onCloseGroup(Context context);
 
 		/**
 		 * TODO
@@ -106,9 +95,7 @@ public class Grouper {
 		
 	}
 	
-	public void setKeySchema(Schema schema){
-		
-	}
+	
 	
 	public static Schema getSchema(Configuration conf){
 		String schemaStr = conf.get(CONF_SCHEMA);

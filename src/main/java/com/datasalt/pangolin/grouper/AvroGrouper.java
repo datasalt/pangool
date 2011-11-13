@@ -1,11 +1,7 @@
 package com.datasalt.pangolin.grouper;
 
-import java.io.IOException;
-import java.util.Iterator;
-
 import org.apache.avro.mapred.AvroCollector;
 import org.apache.avro.mapred.AvroReducer;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapreduce.Reducer.Context;
@@ -76,14 +72,14 @@ public class AvroGrouper {
 		 * @param context
 		 * @param prefix
 		 */
-		protected abstract void onOpenGroup(Context context,Tuple.Prefix prefix);
+		protected abstract void onOpenGroup(Context context);
 
 		/**
 		 * TODO
 		 * @param context
 		 * @param prefix
 		 */
-		protected abstract void onCloseGroup(Context context,Tuple.Prefix prefix);
+		protected abstract void onCloseGroup(Context context);
 
 		/**
 		 * TODO

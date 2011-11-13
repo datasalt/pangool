@@ -1,7 +1,5 @@
 package com.datasalt.pangolin.grouper;
 
-import java.util.List;
-
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -37,6 +35,10 @@ public class GrouperPartitioner extends Partitioner<Tuple,NullWritable> implemen
 		String fieldsGroupStr = conf.get(Grouper.CONF_FIELDS_GROUP);
 		//TODO do check if they match schema
 		String[] fieldsGroup = fieldsGroupStr.split(",");
+		groupFieldsIndexes = new int[fieldsGroup.length];
+		for (int i=0 ; i < fieldsGroup.length;i++){
+			groupFieldsIndexes[i] = schema.getIndexByFieldName(fieldsGroup[i]);
+		}
 		
 	}
 
