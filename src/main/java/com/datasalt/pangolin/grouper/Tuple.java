@@ -19,6 +19,8 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.BinaryComparable;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
@@ -36,7 +38,7 @@ import com.datasalt.pangolin.grouper.Schema.Field;
  * @author epalace
  * 
  */
-public class Tuple extends BinaryComparable implements WritableComparable<BinaryComparable> {
+public class Tuple extends BinaryComparable implements WritableComparable<BinaryComparable>,Configurable {
 
 	private DataOutputBuffer dob = new DataOutputBuffer();
 	private DataInputBuffer dib = new DataInputBuffer();
@@ -119,7 +121,7 @@ public class Tuple extends BinaryComparable implements WritableComparable<Binary
 	@Override
 	public void write(DataOutput output) throws IOException {
 		// TODO this can be cached
-		serializeFieldsToBuffer(); //maybe it's already serialized
+		//serializeFieldsToBuffer(); //maybe it's already serialized
 		int size = dob.getLength();
 		WritableUtils.writeVInt(output, size);
 		output.write(dob.getData(),0,size);
@@ -184,6 +186,18 @@ public class Tuple extends BinaryComparable implements WritableComparable<Binary
 		//TODO serialize first
 		return buf.getLength();
 	}
+
+	@Override
+  public Configuration getConf() {
+	  // TODO Auto-generated method stub
+	  return null;
+  }
+
+	@Override
+  public void setConf(Configuration conf) {
+	  System.out.println("Tuple llamando setConf" + conf);
+	  
+  }
 
 	
 }
