@@ -423,7 +423,7 @@
             <configuration>
               <sources>
                 <source>src/contrib/java</source>
-                <source>src/test/generated-thrift/java/gen-javabean</source>
+               <!-- <source>src/test/generated-thrift/java/gen-javabean</source> -->
               </sources>
             </configuration>
           </execution>
