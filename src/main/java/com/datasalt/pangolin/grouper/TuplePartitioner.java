@@ -21,9 +21,9 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.log4j.Logger;
 
-public class GrouperPartitioner extends Partitioner<Tuple,NullWritable> implements Configurable{
+public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements Configurable{
 
-	private static Logger log = Logger.getLogger(GrouperPartitioner.class);
+	private static Logger log = Logger.getLogger(TuplePartitioner.class);
 	
 	private Configuration conf;
 	private Schema schema;
@@ -31,7 +31,8 @@ public class GrouperPartitioner extends Partitioner<Tuple,NullWritable> implemen
 	
 	@Override
 	public int getPartition(Tuple key, NullWritable value, int numPartitions) {
-		return key.partialHashCode(groupFieldsIndexes) % numPartitions;
+		int result =  key.partialHashCode(groupFieldsIndexes) % numPartitions;
+		return result;
 	}
 
 	@Override
@@ -48,16 +49,10 @@ public class GrouperPartitioner extends Partitioner<Tuple,NullWritable> implemen
 		}
 		
 		String fieldsGroupStr = conf.get(Grouper.CONF_FIELDS_GROUP);
-		//TODO do check if they match schema
 		String[] fieldsGroup = fieldsGroupStr.split(",");
 		groupFieldsIndexes = new int[fieldsGroup.length];
 		for (int i=0 ; i < fieldsGroup.length;i++){
 			groupFieldsIndexes[i] = schema.getIndexByFieldName(fieldsGroup[i]);
 		}
-		
 	}
-
-	
-
-	
 }

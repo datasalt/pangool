@@ -44,7 +44,7 @@ public class Serialization {
 	}
 	
 	// only one byte array per thread, to make it thread safe and efficient
-	ThreadLocal<ByteArrayOutputStream> cachedOutputStream = new ThreadLocal<ByteArrayOutputStream>() {
+	private ThreadLocal<ByteArrayOutputStream> cachedOutputStream = new ThreadLocal<ByteArrayOutputStream>() {
 
 		@Override
     protected ByteArrayOutputStream initialValue() {
@@ -52,7 +52,7 @@ public class Serialization {
     }
 	};
 	
-	ThreadLocal<DataInputBuffer> cachedInputStream = new ThreadLocal<DataInputBuffer>() {
+	private ThreadLocal<DataInputBuffer> cachedInputStream = new ThreadLocal<DataInputBuffer>() {
 
 		@Override
     protected DataInputBuffer initialValue() {

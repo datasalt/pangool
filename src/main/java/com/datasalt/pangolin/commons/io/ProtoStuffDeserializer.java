@@ -35,7 +35,7 @@ public class ProtoStuffDeserializer<T extends Schema> implements Deserializer<T>
   	this.tClass = tClass;
   }
   
-	static ThreadLocal<LinkedBuffer> threadLocalBuffer = new ThreadLocal<LinkedBuffer>() {
+	private static ThreadLocal<LinkedBuffer> threadLocalBuffer = new ThreadLocal<LinkedBuffer>() {
 
 		LinkedBuffer buffer = LinkedBuffer.allocate(512);
 

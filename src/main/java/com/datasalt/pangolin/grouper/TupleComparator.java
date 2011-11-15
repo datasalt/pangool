@@ -33,16 +33,20 @@ public class TupleComparator extends WritableComparator implements Configurable{
 	private Configuration conf;
 	private Schema schema;
 	
-	protected TupleComparator(Class<? extends WritableComparable> keyClass) {
+	public TupleComparator(){
 		super(Tuple.class);
 	}
 	
+	public TupleComparator(Class<? extends WritableComparable> keyClass) {
+		super(Tuple.class);
+	}
+	
+	
+	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		try {
-			int length1 = readVInt(b1, s1);
-			int length2 = readVInt(b2, s2);
-			int offset1 = WritableUtils.decodeVIntSize(b1[s1])+s1;
-			int offset2 = WritableUtils.decodeVIntSize(b2[s2])+s2;
+			int offset1=s1;
+			int offset2=s2;
 			for (Field field : schema.getFields()){
 				Class type = field.getType();
 				SortCriteria sort = field.getSortCriteria();
@@ -54,8 +58,8 @@ public class TupleComparator extends WritableComparator implements Configurable{
 					} else if (value1 < value2 ){
 						return (sort == SortCriteria.ASC) ? -1 : 1;
 					}
-					offset1 += Integer.SIZE; 
-					offset2 += Integer.SIZE; 
+					offset1 += Integer.SIZE/8; 
+					offset2 += Integer.SIZE/8; 
 				} else if (type == Long.class){
 					long value1 = readLong(b1,offset1);
 					long value2 = readLong(b2,offset2);
@@ -64,8 +68,8 @@ public class TupleComparator extends WritableComparator implements Configurable{
 					} else if (value1 < value2 ){
 						return (sort == SortCriteria.ASC) ? -1 : 1;
 					}
-					offset1 += Long.SIZE; 
-					offset2 += Long.SIZE; 
+					offset1 += Long.SIZE/8; 
+					offset2 += Long.SIZE/8; 
 				} else if (type == VIntWritable.class){
 					int value1 = readVInt(b1,offset1);
 					int value2 = readVInt(b2,offset2);
@@ -95,8 +99,8 @@ public class TupleComparator extends WritableComparator implements Configurable{
 					} else if (value1 < value2 ){
 						return (sort == SortCriteria.ASC) ? -1 : 1;
 					}
-					offset1 += Float.SIZE;
-					offset2 += Float.SIZE; 
+					offset1 += Float.SIZE/8;
+					offset2 += Float.SIZE/8; 
 					
 				} else if (type == String.class){
 					int strLength1 = readVInt(b1,offset1);
@@ -127,4 +131,10 @@ public class TupleComparator extends WritableComparator implements Configurable{
 			this.schema = Grouper.getSchema(conf);
 		}
 	}
+	
+	static {
+		WritableComparator.define(Tuple.class, new TupleComparator());
+	}
+	
+	
 }

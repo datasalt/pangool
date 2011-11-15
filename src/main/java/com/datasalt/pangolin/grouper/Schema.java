@@ -62,20 +62,35 @@ public class Schema {
 	}
 	
 	private static final Map<String,Class> strToClazz=new HashMap<String,Class>();
-	private static final Map<Class,String> clazzToStr;
+	private static final Map<Class,String> clazzToStr=new HashMap<Class,String>();
 	
 	
 	static {
 		strToClazz.put("int",Integer.class);
-		strToClazz.put("vint", VIntWritable.class);
-		strToClazz.put("long",Long.class);
-		strToClazz.put("vlong",VLongWritable.class);
-		strToClazz.put("float",Float.class);
-		strToClazz.put("double",Double.class);
-		strToClazz.put("string",String.class);
-		strToClazz.put("boolean",Boolean.class);
+		clazzToStr.put(Integer.class,"int");
 		
-		clazzToStr = CommonUtils.invertMap(strToClazz);
+		strToClazz.put("vint", VIntWritable.class);
+		clazzToStr.put(VIntWritable.class,"vint");
+		
+		strToClazz.put("long",Long.class);
+		clazzToStr.put(Long.class,"long");
+		
+		strToClazz.put("vlong",VLongWritable.class);
+		clazzToStr.put(VLongWritable.class,"vlong");
+		
+		strToClazz.put("float",Float.class);
+		clazzToStr.put(Float.class,"float");
+		
+		strToClazz.put("double",Double.class);
+		clazzToStr.put(Double.class,"double");
+		
+		strToClazz.put("string",String.class);
+		clazzToStr.put(String.class,"string");
+		
+		strToClazz.put("boolean",Boolean.class);
+		clazzToStr.put(Boolean.class,"boolean");
+		
+		//clazzToStr = CommonUtils.invertMap(strToClazz);
 	}
 	
 	private Field[] fields;
@@ -137,6 +152,9 @@ public class Schema {
 	}
 
 	public static Schema parse(String serialized) {
+		if (serialized == null || serialized.isEmpty()){
+			return null;
+		}
 		String[] fieldsStr = serialized.split(",");
 		List<Field> fields = new ArrayList<Field>(fieldsStr.length);
 		for (String field : fieldsStr) {

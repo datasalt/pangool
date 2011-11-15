@@ -19,11 +19,12 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.BinaryComparable;
-import org.apache.hadoop.io.DataInputBuffer;
-import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableComparable;
@@ -31,6 +32,7 @@ import org.apache.hadoop.io.WritableUtils;
 import org.apache.thrift.TBase;
 
 import com.datasalt.pangolin.grouper.Schema.Field;
+import com.sun.istack.internal.NotNull;
 
 /**
  * TODO
@@ -38,108 +40,113 @@ import com.datasalt.pangolin.grouper.Schema.Field;
  * @author epalace
  * 
  */
-public class Tuple extends BinaryComparable implements WritableComparable<BinaryComparable>,Configurable {
-
-	private DataOutputBuffer dob = new DataOutputBuffer();
-	private DataInputBuffer dib = new DataInputBuffer();
-	private Buffer buf = new Buffer();
-	
-	private Comparable[] objects;
+public class Tuple implements WritableComparable<Tuple>,Configurable {
+	private Configuration conf;
+	private Comparable[] objects= new Comparable[0];
 	private Schema schema;
+	private Text text = new Text();
 
 	public Tuple() {
-		
 	}
 
-	public void setSchema(Schema schema) {
+	public void setSchema(@Nonnull Schema schema) {
 		this.schema = schema;
 		// TODO this should erase previous state ?
-		if (this.objects.length != schema.getFields().length) {
+		if (this.objects == null || this.objects.length != schema.getFields().length) {
 			this.objects = new Comparable[schema.getFields().length];
+			populateObjects();
+		}
+	}
+	
+	private void populateObjects(){
+		for (int i=0; i < schema.getFields().length ; i++){
+			Class type = schema.getFields()[i].getType();
+			if (type == Integer.class || type == VIntWritable.class){
+				objects[i]=0;
+			} else if (type == Long.class || type == VLongWritable.class){
+				objects[i]=0l;
+			} else if(type == String.class){
+				objects[i]="";
+			} else if(type == Boolean.class){
+				objects[i]=true;
+			} else if(type == Float.class){
+				objects[i]=0.f;
+			} else if(type == Double.class){
+				objects[i]=0.0;
+			} else {
+				//TODO what to do here?
+			}
 		}
 	}
 
-	public void setField(String fieldName, Comparable value) {
+	public void setField(@Nonnull String fieldName,@Nonnull Comparable value) {
 		int index = this.schema.getIndexByFieldName(fieldName);
 		//TODO check that index is valid
 		objects[index] = value;
 	}
 
-	public void setField(int index, Comparable value) {
+	public void setField(@Nonnegative int index,@Nonnull Comparable value) {
 		this.objects[index] = value;
-	}
-
-	private void serializeFieldsToBuffer() throws IOException {
-		dob.reset();
-		for (int numField = 0; numField < schema.getFields().length; numField++) {
-			Class fieldType = schema.getFields()[numField].getType();
-			if (fieldType == Integer.class) {
-				WritableUtils.writeVInt(dob, (Integer) objects[numField]);
-			} else if (fieldType == Long.class) {
-				WritableUtils.writeVLong(dob, (Long) objects[numField]);
-			} else if (fieldType == Double.class) {
-				dob.writeDouble((Double) objects[numField]);
-			} else if (fieldType == Float.class) {
-				dob.writeFloat((Float) objects[numField]);
-			} else if (fieldType == String.class) {
-				dob.writeUTF((String) objects[numField]);
-			} else {
-				throw new RuntimeException("Not implemented fieldType : " + fieldType); // TODO
-																																								// output
-																																								// correct
-																																								// exception
-			}
-		}
-	}
-
-	private void deserializeBufferToFields() throws IOException {
-		int i=0;
-		for (Field field : schema.getFields()) {
-			
-			Class fieldType = field.getType();
-			if (fieldType == VIntWritable.class) {
-				setField(i, WritableUtils.readVInt(dib));
-			} else if (fieldType == VLongWritable.class) {
-				setField(i, WritableUtils.readVLong(dib));
-			} else if (fieldType == Double.class) {
-				setField(i, dib.readDouble());
-			} else if (fieldType == Float.class) {
-				setField(i, dib.readFloat());
-			} else if (fieldType == String.class) {
-				setField(i, dib.readUTF()); // TODO use Text ?
-			} else if (fieldType == TBase.class) { // TODO improve this .
-				// TODO ..
-
-			} else {
-				// TODO
-				throw new RuntimeException("Not implemented fieldType :  " + fieldType);
-			}
-			i++;
-		}
 	}
 
 	@Override
 	public void write(DataOutput output) throws IOException {
-		// TODO this can be cached
-		//serializeFieldsToBuffer(); //maybe it's already serialized
-		int size = dob.getLength();
-		WritableUtils.writeVInt(output, size);
-		output.write(dob.getData(),0,size);
-		
+		for (int numField = 0; numField < schema.getFields().length; numField++) {
+			Class fieldType = schema.getFields()[numField].getType();
+			if (fieldType == VIntWritable.class) {
+				WritableUtils.writeVInt(output, (Integer) objects[numField]);
+			} else if (fieldType == VLongWritable.class) {
+				WritableUtils.writeVLong(output, (Long) objects[numField]);
+			} else if (fieldType == Integer.class){ 
+			  output.writeInt((Integer)objects[numField]);
+			} else if (fieldType == Long.class){
+				output.writeLong((Long)objects[numField]);
+			} else if (fieldType == Double.class) {
+				output.writeDouble((Double) objects[numField]);
+			} else if (fieldType == Float.class) {
+				output.writeFloat((Float) objects[numField]);
+			} else if (fieldType == String.class) {
+				text.set((String)objects[numField]);
+				text.write(output);
+			} else {
+				//TODO output correct exception 
+				throw new RuntimeException("Not implemented fieldType : " + fieldType); 
+			}
+		}
 	}
 
 	@Override
 	public void readFields(DataInput input) throws IOException {
-		int size = WritableUtils.readVInt(input);
-		buf.setSize(size);
-		input.readFully(buf.getBytes(), 0,size);
-		dib.reset(buf.getBytes(),size);
-		
+		for (int i =0 ; i < schema.getFields().length ; i++) {
+			Class fieldType = schema.getFields()[i].getType();
+			if (fieldType == VIntWritable.class) {
+				setField(i, WritableUtils.readVInt(input));
+			} else if (fieldType == VLongWritable.class) {
+				setField(i, WritableUtils.readVLong(input));
+			} else if (fieldType == Integer.class){
+				setField(i,input.readInt());
+			} else if (fieldType == Long.class){
+				setField(i,input.readLong());
+			}	else if (fieldType == Double.class) {
+				setField(i, input.readDouble());
+			} else if (fieldType == Float.class) {
+				setField(i, input.readFloat());
+			} else if (fieldType == String.class) {
+				text.readFields(input);
+				setField(i, text.toString());
+			} else if (fieldType == TBase.class) { // TODO improve this .
+				// TODO ..
+				throw new RuntimeException("Not implemented yet fieldType:" + fieldType);
+			} else {
+				// TODO
+				throw new RuntimeException("Not implemented fieldType :  " + fieldType);
+			}
+		}
 	}
-
-	public void set(Tuple tuple) {
+	
+	public void set(@Nonnull Tuple tuple) {
 		this.schema = tuple.schema;
-		//TODO what to do in case of not being serialize to objects
+		
 		if (objects == null || objects.length != schema.getFields().length) {
 			objects = new Comparable[schema.getFields().length];
 		}
@@ -156,7 +163,7 @@ public class Tuple extends BinaryComparable implements WritableComparable<Binary
 	 * @param levels
 	 * @return
 	 */
-	public static int compareLevels(Tuple tuple1, Tuple tuple2, int levels) {
+	public static int compareLevels(@Nonnull Tuple tuple1,@Nonnull Tuple tuple2, int levels) {
 		for (int i = 0; i < levels; i++) {
 			int comparison = tuple1.objects[i].compareTo((tuple2.objects[i]));
 			if (comparison != 0) {
@@ -166,7 +173,7 @@ public class Tuple extends BinaryComparable implements WritableComparable<Binary
 		return 0;
 	}
 
-	public int partialHashCode(int[] fieldsIndexes) {
+	public int partialHashCode(@Nonnull int[] fieldsIndexes) {
 		int result = 0;
 		for (int fieldIndex : fieldsIndexes) {
 			result = result * 31 + objects[fieldIndex].hashCode();
@@ -176,28 +183,44 @@ public class Tuple extends BinaryComparable implements WritableComparable<Binary
 	}
 
 	@Override
-	public byte[] getBytes() {
-		//TODO serialize first
-		return buf.getBytes();
-	}
-
-	@Override
-	public int getLength() {
-		//TODO serialize first
-		return buf.getLength();
-	}
-
-	@Override
   public Configuration getConf() {
-	  // TODO Auto-generated method stub
-	  return null;
+		return this.conf;
   }
 
 	@Override
   public void setConf(Configuration conf) {
-	  System.out.println("Tuple llamando setConf" + conf);
+		if (conf != null){
+			this.conf = conf;
+			setSchema(Grouper.getSchema(this.conf));
+		}
 	  
   }
 
+	@Override
+  public int compareTo(@Nonnull Tuple that) {
+		if (!this.schema.equals(that.schema)){
+			throw new RuntimeException("Schemas are different");
+		}
+		
+		for (int i= 0 ; i < this.objects.length ; i++){
+			int comparison = this.objects[i].compareTo(that.objects[i]);
+			if (comparison != 0){
+				return comparison;
+			}
+		}
+		return 0;
+  }
 	
+	@Override
+	public String toString(){
+		if (this.objects == null || this.objects.length == 0){
+			return "(empty)";
+		}
+		StringBuilder b = new StringBuilder(); //TODO not optimized
+		b.append(this.objects[0]);
+		for (int i=1 ; i < this.objects.length ; i++){
+			b.append(",").append(this.objects[i]);
+		}
+		return b.toString();
+	}
 }
