@@ -33,12 +33,16 @@ public class Test {
 		private byte[] bytes = new byte[8];
 		@Override
 		public void setup(Context context) throws IOException, InterruptedException{
-			  super.setup(context);
-      this.schema = Grouper.getSchema(context.getConfiguration());
-      outputKey = ReflectionUtils.newInstance(Tuple.class,context.getConfiguration());
-      random = new Random();
-      TupleComparator comp = (TupleComparator)WritableComparator.get(Tuple.class);
-      comp.setConf(context.getConfiguration());
+			super.setup(context);
+			try {
+				this.schema = Grouper.getSchema(context.getConfiguration());
+				outputKey = ReflectionUtils.newInstance(Tuple.class, context.getConfiguration());
+				random = new Random();
+				TupleSortComparator comp = (TupleSortComparator) WritableComparator.get(Tuple.class);
+				comp.setConf(context.getConfiguration());
+			} catch(GrouperException e) {
+				throw new RuntimeException(e);
+			}
       
 			
 		}
@@ -106,8 +110,9 @@ public class Test {
 		
 		Configuration conf = new Configuration();
 		conf.set(Grouper.CONF_SCHEMA,"name:string,userId:vint,age:vlong");
-		conf.set(Grouper.CONF_FIELDS_GROUP,"userId");
-		TupleComparator blabla = new TupleComparator(); //in order to load static block
+		conf.set(Grouper.CONF_MIN_GROUP,"userId");
+		//conf.set(Grouper.CONF_MAX_GROUP,"userId,")
+		TupleSortComparator blabla = new TupleSortComparator(); //in order to load static block
 		Job job = new Job(conf);
 		job.setMapperClass(Mappy.class);
 		job.setReducerClass(Red.class);
@@ -115,7 +120,7 @@ public class Test {
 		job.setOutputFormatClass(TextOutputFormat.class);
 		job.setMapOutputKeyClass(Tuple.class);
 		job.setMapOutputValueClass(NullWritable.class);
-		job.setGroupingComparatorClass(TupleComparator.class);
+		job.setGroupingComparatorClass(TupleSortComparator.class);
 		job.setPartitionerClass(TuplePartitioner.class);
 		FileInputFormat.addInputPath(job,new Path("caca.txt"));
 		Path output = new Path("cacuza");

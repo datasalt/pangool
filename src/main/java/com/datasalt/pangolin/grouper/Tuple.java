@@ -19,8 +19,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import javax.annotation.Nonnegative;
-import javax.annotation.Nonnull;
+
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
@@ -30,9 +29,6 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.thrift.TBase;
-
-import com.datasalt.pangolin.grouper.Schema.Field;
-import com.sun.istack.internal.NotNull;
 
 /**
  * TODO
@@ -49,7 +45,12 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 	public Tuple() {
 	}
 
-	public void setSchema(@Nonnull Schema schema) {
+	
+	public Comparable get(int index){
+		return objects[index];
+	}
+	
+	public void setSchema(Schema schema) {
 		this.schema = schema;
 		// TODO this should erase previous state ?
 		if (this.objects == null || this.objects.length != schema.getFields().length) {
@@ -78,14 +79,24 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 			}
 		}
 	}
-
-	public void setField(@Nonnull String fieldName,@Nonnull Comparable value) {
+	
+	
+//	public void setInt(String fieldName,int n){
+//		int index = this.schema.getIndexByFieldName(fieldName);
+//		setInt(index,n);
+//	}
+//	
+//	public void setInt(int index,int value){
+//		objects[index]=value;
+//	}
+	
+	public void setField(String fieldName,Comparable value) {
 		int index = this.schema.getIndexByFieldName(fieldName);
 		//TODO check that index is valid
 		objects[index] = value;
 	}
 
-	public void setField(@Nonnegative int index,@Nonnull Comparable value) {
+	public void setField(int index,Comparable value) {
 		this.objects[index] = value;
 	}
 
@@ -144,7 +155,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		}
 	}
 	
-	public void set(@Nonnull Tuple tuple) {
+	public void set(Tuple tuple) {
 		this.schema = tuple.schema;
 		
 		if (objects == null || objects.length != schema.getFields().length) {
@@ -163,7 +174,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 	 * @param levels
 	 * @return
 	 */
-	public static int compareLevels(@Nonnull Tuple tuple1,@Nonnull Tuple tuple2, int levels) {
+	public static int compareLevels(Tuple tuple1,Tuple tuple2, int levels) {
 		for (int i = 0; i < levels; i++) {
 			int comparison = tuple1.objects[i].compareTo((tuple2.objects[i]));
 			if (comparison != 0) {
@@ -173,7 +184,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		return 0;
 	}
 
-	public int partialHashCode(@Nonnull int[] fieldsIndexes) {
+	public int partialHashCode(int[] fieldsIndexes) {
 		int result = 0;
 		for (int fieldIndex : fieldsIndexes) {
 			result = result * 31 + objects[fieldIndex].hashCode();
@@ -191,13 +202,17 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
   public void setConf(Configuration conf) {
 		if (conf != null){
 			this.conf = conf;
-			setSchema(Grouper.getSchema(this.conf));
+			try {
+	      setSchema(Grouper.getSchema(this.conf));
+      } catch(GrouperException e) {
+	      throw new RuntimeException(e);
+      }
 		}
 	  
   }
 
 	@Override
-  public int compareTo(@Nonnull Tuple that) {
+  public int compareTo(Tuple that) {
 		if (!this.schema.equals(that.schema)){
 			throw new RuntimeException("Schemas are different");
 		}
@@ -216,11 +231,12 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		if (this.objects == null || this.objects.length == 0){
 			return "(empty)";
 		}
-		StringBuilder b = new StringBuilder(); //TODO not optimized
+		StringBuilder b = new StringBuilder("{"); //TODO not optimized
 		b.append(this.objects[0]);
 		for (int i=1 ; i < this.objects.length ; i++){
 			b.append(",").append(this.objects[i]);
 		}
+		b.append("}");
 		return b.toString();
 	}
 }

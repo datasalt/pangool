@@ -23,28 +23,31 @@ import java.util.Map;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 
-import com.datasalt.pangolin.commons.CommonUtils;
-
+/**
+ * 
+ * @author epalace
+ *
+ */
 public class Schema {
 	
 	public static class Field {
-		public static enum SortCriteria {
-			ASC,DESC
-		}
+//		public static enum SortCriteria {
+//			ASC,DESC
+//		}
 		private String name;
 		private Class type;
-		private SortCriteria sortCriteria;
+		//private SortCriteria sortCriteria;
 		
 		public Field(String name,Class clazz){
 			this.name = name;
 			this.type = clazz;
-			this.sortCriteria = SortCriteria.ASC;
+			//this.sortCriteria = SortCriteria.ASC;
 		}
 		
 		public Field(String name,Class clazz,SortCriteria sort){
 			this.name = name;
 			this.type = clazz;
-			this.sortCriteria = sort;
+			//this.sortCriteria = sort;
 		}
 		
 		
@@ -56,9 +59,9 @@ public class Schema {
 			return name;
 		}
 		
-		public SortCriteria getSortCriteria(){
-			return sortCriteria;
-		}
+//		public SortCriteria getSortCriteria(){
+//			return sortCriteria;
+//		}
 	}
 	
 	private static final Map<String,Class> strToClazz=new HashMap<String,Class>();
@@ -151,7 +154,7 @@ public class Schema {
 		return serialize();
 	}
 
-	public static Schema parse(String serialized) {
+	public static Schema parse(String serialized) throws GrouperException {
 		if (serialized == null || serialized.isEmpty()){
 			return null;
 		}
@@ -159,8 +162,11 @@ public class Schema {
 		List<Field> fields = new ArrayList<Field>(fieldsStr.length);
 		for (String field : fieldsStr) {
 			String[] nameType = field.split(":");
-			String name = nameType[0];
-			String type = nameType[1];
+			if (nameType.length != 2){
+				throw new GrouperException("Incorrect schema " +  serialized);
+			}
+			String name = nameType[0].trim();
+			String type = nameType[1].trim();
 			fields.add(new Field(name,strToClass(type)));
 		}
 		Field[] fieldsArray = new Field[fields.size()];

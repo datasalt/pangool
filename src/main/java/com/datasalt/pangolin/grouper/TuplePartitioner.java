@@ -42,17 +42,21 @@ public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements
 
 	@Override
 	public void setConf(Configuration conf) {
+		try{
 		if (conf != null){
 			this.conf = conf;
 			String schemaString = conf.get(Grouper.CONF_SCHEMA);
 			this.schema = Schema.parse(schemaString);
 		}
 		
-		String fieldsGroupStr = conf.get(Grouper.CONF_FIELDS_GROUP);
+		String fieldsGroupStr = conf.get(Grouper.CONF_MIN_GROUP);
 		String[] fieldsGroup = fieldsGroupStr.split(",");
 		groupFieldsIndexes = new int[fieldsGroup.length];
 		for (int i=0 ; i < fieldsGroup.length;i++){
 			groupFieldsIndexes[i] = schema.getIndexByFieldName(fieldsGroup[i]);
+		}
+		} catch(GrouperException e){
+			throw new RuntimeException(e);
 		}
 	}
 }

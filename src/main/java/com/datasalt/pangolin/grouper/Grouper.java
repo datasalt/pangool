@@ -16,10 +16,12 @@
 package com.datasalt.pangolin.grouper;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.InputFormat;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.OutputFormat;
 
 
 
@@ -31,88 +33,108 @@ import org.apache.hadoop.io.NullWritable;
 public class Grouper {
 
 	public static final String CONF_SORT_CRITERIA = "grouper.sort.criteria";
-	public static final String CONF_FIELDS_GROUP = "grouper.group.fields";
+	public static final String CONF_MIN_GROUP = "grouper.min_group";
+	public static final String CONF_MAX_GROUP= "grouper.max_group";
 	public static final String CONF_SCHEMA = "grouper.schema";
 	
+	//private Job job;
+	private Configuration conf;
+	private Schema schema;
+	private Class<? extends GrouperReducer> reducerClass;
+	private Class<? extends GrouperMapper> mapperClass; //TODO change this to multiinput
+	private Class<? extends InputFormat> inputFormat;
+	private Class<? extends OutputFormat> outputFormat;
+	private Class<?> outputKeyClass,outputValueClass;
+	private String sortCriteria;
 	
-	/**
-	 * TODO
-	 * @author epalace
-	 *
-	 * @param <KEY_OUT>
-	 * @param <VALUE_OUT>
-	 */
-	public static abstract class Reducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<Tuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
-
-	    	//private int currentLevel=0;
-	    	private Tuple previousKey=null;
-	    	//private Tuple.Prefix currentPrefix = null;
-	    	private int maxLevels=0;
-	    	
-	  
-
-		@Override
-		public final void reduce(Tuple key, Iterable<NullWritable> values, Context context) throws IOException {
-			Iterator<NullWritable> iterator = values.iterator();
-			while (iterator.hasNext()){
-				iterator.next();
-				//AvroKey<String> avroKey = new AvroKey<String>();
-				
-				Tuple currentKey = context.getCurrentKey();
-				if (previousKey == null){
-					for (int i = 0 ; i < maxLevels; i++){
-						//onOpenGroup(context,null); //TODO bad
-					}
-					onElement(currentKey,context);
-					previousKey = new Tuple();
-					previousKey.set(currentKey);
-					
-					
-				} else {
-					int levelMismatch = Tuple.compareLevels(currentKey,previousKey,maxLevels);
-					int numClosingGroups = maxLevels -levelMismatch;
-					for (int i = 0 ; i < numClosingGroups ; i++){
-						//onCloseGroup(context,null); //TODO bad
-					}
-					for (int i=0 ; i < numClosingGroups; i++){
-						//onOpenGroup(context,null);
-					}
-					onElement(currentKey, context);
-					previousKey.set(currentKey);
-				}
-			}
-		}
+	private String minGroup,maxGroup;
+	
+	
+	public Grouper(Configuration conf) throws IOException{
+		this.conf = conf;
 		
-		/**
-		 * TODO
-		 * @param context
-		 * @param prefix
-		 */
-		protected abstract void onOpenGroup(Context context);
-
-		/**
-		 * TODO
-		 * @param context
-		 * @param prefix
-		 */
-		protected abstract void onCloseGroup(Context context);
-
-		/**
-		 * TODO
-		 * @param tuple
-		 * @param context
-		 */
-		protected abstract void onElement(Tuple tuple, Context context);
-
 	}
 	
-	public void main(String[] args){
-		
+	public void setSortCriteria(String sortCriteria){
+		this.sortCriteria = sortCriteria;
+	}
+	
+	
+	public void setSchema(Schema schema){
+		this.schema = schema;
+	}
+	
+	public void setMinGroup(String minGroup){
+		this.minGroup = minGroup;
+	}
+	
+	public void setMaxGroup(String maxGroup){
+		this.maxGroup = maxGroup;
 	}
 	
 	
 	
-	public static Schema getSchema(Configuration conf){
+	public void setReducerClass(Class<? extends GrouperReducer> reducerClass){
+		this.reducerClass = reducerClass;
+	}
+	
+	public void setMapperClass(Class<? extends GrouperMapper> mapperClass){
+		this.mapperClass = mapperClass;
+	}
+	
+	public void setInputFormat(Class<? extends InputFormat> inputFormat){
+		this.inputFormat = inputFormat;
+	}
+	
+	public void setOutputFormat(Class<? extends OutputFormat> outputFormat){
+		this.outputFormat = outputFormat;
+	}
+	
+	public void setOutputKeyClass(Class<?> outputKeyClass){
+		this.outputKeyClass = outputKeyClass;
+	}
+	
+	public void setOutputValueClass(Class<?> outputValueClass){
+		this.outputValueClass = outputValueClass;
+	}
+	
+	
+	
+	
+	public Job getJob() throws IOException{
+		this.conf.set(CONF_SCHEMA,schema.serialize());
+		this.conf.set(CONF_MIN_GROUP, minGroup);
+		this.conf.set(CONF_MAX_GROUP,maxGroup);
+		this.conf.set(CONF_SORT_CRITERIA,sortCriteria);
+		
+		
+		new TupleSortComparator();
+		Job job = new Job(conf);
+		job.setInputFormatClass(inputFormat);
+		job.setMapperClass(mapperClass);
+		job.setReducerClass(reducerClass);
+		job.getConfiguration().set(CONF_SCHEMA,schema.serialize());
+		job.getConfiguration().set(CONF_SORT_CRITERIA,sortCriteria);
+		job.setInputFormatClass(inputFormat);
+		job.setOutputFormatClass(outputFormat);
+		job.setMapOutputKeyClass(Tuple.class);
+		job.setMapOutputValueClass(NullWritable.class);
+		job.setPartitionerClass(TuplePartitioner.class);
+		job.setGroupingComparatorClass(TupleGroupComparator.class);
+		job.setSortComparatorClass(TupleSortComparator.class);
+		job.setOutputKeyClass(outputKeyClass);
+		job.setOutputValueClass(outputValueClass);
+		return job;
+	}
+	
+	
+	public static void main(String[] args){
+		
+	}
+	
+	
+	
+	public static Schema getSchema(Configuration conf) throws GrouperException{
 		String schemaStr = conf.get(CONF_SCHEMA);
 		return Schema.parse(schemaStr);
 	}
