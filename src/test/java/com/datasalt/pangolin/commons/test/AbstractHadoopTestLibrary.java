@@ -146,9 +146,9 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 		if (outs.size() == 0) {
 			throw new AssertionError("Empty output " +  output);
 		}
-		System.out.println("Not found in output. KEY: " + key + ", VALUE: " + value);
+		System.err.println("Not found in output. KEY: " + key + ", VALUE: " + value);
 		for(Pair<Object, Object> inOutput: outs) {
-			System.out.println("Output entry -> KEY: " + inOutput.getFirst() + ", VALUE: " + inOutput.getSecond());
+			System.err.println("Output entry -> KEY: " + inOutput.getFirst() + ", VALUE: " + inOutput.getSecond());
 		}		
 		throw new AssertionError("Not found in output -> KEY: " + key + ", VALUE: " + value);
 	}

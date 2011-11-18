@@ -46,26 +46,6 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 	
 	private static class Red extends GrouperReducer<Tuple,NullWritable>{
 
-//		@Override
-//		public void reduce(Tuple key,Iterable<NullWritable> values,Context context) throws IOException,InterruptedException {
-//			System.out.println("Principio reduce");
-//			Iterator<NullWritable> iterator = values.iterator();
-//			while(iterator.hasNext()){
-//				NullWritable value2 = iterator.next();
-//				Tuple tuple1 = context.getCurrentKey();
-//				System.out.println("Tuple 1 " + tuple1);
-////				NullWritable value = context.getCurrentValue();
-////				
-////				Tuple tuple2 = context.getCurrentKey();
-////				System.out.println("Tuple 2" + tuple2);
-//				
-//				
-//			}
-//			System.out.println("Final reduce");
-//			
-//		}
-		
-		
 		@Override
     public void onOpenGroup(int depth,String field,Tuple firstElement, Context context) {
 	    System.out.println("OPEN("+ depth+","+field +"):\t\t" + firstElement);
@@ -77,15 +57,12 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
     }
 		
 		@Override
-		public void onElements(Iterator<Tuple> tuples, Context context) throws IOException,InterruptedException {
-			//System.out.println("start onElements");
-			Iterator<Tuple> iterator = tuples;
+		public void onElements(Iterable<Tuple> tuples, Context context) throws IOException,InterruptedException {
+			Iterator<Tuple> iterator = tuples.iterator();
 			while ( iterator.hasNext()){
 				Tuple tuple = iterator.next();
 				System.out.println("element:\t\t" + tuple);
 			}
-			//System.out.println("end onElements");
-		  
 	  }
 	}
 	

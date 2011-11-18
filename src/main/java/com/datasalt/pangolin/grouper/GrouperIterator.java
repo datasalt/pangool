@@ -20,7 +20,6 @@ import java.util.Iterator;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
-import org.apache.hadoop.mapreduce.Reducer.Context;
 
 /**
  * 
@@ -29,20 +28,14 @@ import org.apache.hadoop.mapreduce.Reducer.Context;
  * @param <OUTPUT_KEY>
  * @param <OUTPUT_VALUE>
  */
-public class GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>{
+public class GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>,Iterable<Tuple>{
 
 	private Iterator<NullWritable> iterator;
 	private ReduceContext<Tuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
 	
-	//private int minIndex,maxIndex;
-	
-	//private Tuple currentTuple;
-	//private Tuple firstTuple;
 	private boolean firstAvailable=false;
 	
-	public GrouperIterator(){
-		
-	}
+	public GrouperIterator(){	}
 	
 	public void setIterator(Iterator<NullWritable> iterator){
 		this.iterator = iterator;
@@ -51,10 +44,6 @@ public class GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>
 	public void setContext(ReduceContext<Tuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
 		this.context = context;
 	}
-	
-//	public void setFirstTuple(Tuple tuple){
-//		this.firstTuple = tuple;
-//	}
 	
 	public void setFirstAvailable(boolean available){
 		this.firstAvailable = available;
@@ -67,23 +56,6 @@ public class GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>
 		} else {
 			return iterator.hasNext();
 		}
-//	  if (!iterator.hasNext()){
-//	  	return false;
-//	  }
-//	  
-//	  iterator.next();Tuple nextTuple = context.getCurrentKey();
-//	  // if nextTuple belongs to same group as previousKey 
-//	  if (partialEquals(currentTuple,nextTuple,minIndex,maxIndex)){
-//	  	//TODO
-//	  	return true;
-//	  	
-//	  } else {
-//	  	return false;
-//	  	
-//	  }
-	  
-	  
-	  
   }
 
 	@Override
@@ -92,7 +64,7 @@ public class GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>
 			firstAvailable = false;
 			return context.getCurrentKey();
 		} else {
-			iterator.next();
+			iterator.next(); //advances one key
 			return context.getCurrentKey();
 		}
   }
@@ -101,10 +73,10 @@ public class GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>
   public void remove() {
 	  iterator.remove();
   }
-	
-	
-	
-	
-	
+
+	@Override
+	public Iterator<Tuple> iterator() {
+		return this;
+	}
 
 }

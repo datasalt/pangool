@@ -32,6 +32,5 @@ public class TupleGroupComparator extends TupleSortComparator{
 	  super.setConf(conf);
 	  String s = conf.get(Grouper.CONF_MAX_GROUP);
 	  groupDepth = s.split(",").length;
-	  System.out.println("Group depth : " + groupDepth);
   }
 }

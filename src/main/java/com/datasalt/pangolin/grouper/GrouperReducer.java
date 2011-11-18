@@ -21,7 +21,6 @@ import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.ReduceContext;
 
 /**
  * TODO
@@ -30,9 +29,9 @@ import org.apache.hadoop.mapreduce.ReduceContext;
  * @param <KEY_OUT>
  * @param <VALUE_OUT>
  */
-public class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<Tuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
+public abstract class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<Tuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
-    	private Tuple previousKey=null;
+    	private Tuple lastElementPreviousGroup=null;
     	private Schema schema;
     	private int minDepth,maxDepth;
     	private GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
@@ -55,120 +54,62 @@ public class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.m
   @SuppressWarnings("unchecked")
   @Override
   public final void run(Context context) throws IOException,InterruptedException {
-  	//super.run(context);
+ // 	super.run(context);
   	
   	setup(context);
-    while (context.nextKey()) {
+  	while (context.nextKey()) {
       reduce(context.getCurrentKey(), context.getValues(), context);
       // If a back up store is used, reset it
-//      ((ReduceContext.ValueIterator)
-//          (context.getValues().iterator())).resetBackupStore();
+  //    ((ReduceContext.ValueIterator
+  //        (context.getValues().iterator())).resetBackupStore();
     }
     
     //close last group
     for (int i=maxDepth; i >=minDepth ; i--){
-			onCloseGroup(i,schema.getFields()[i].getName(),context.getCurrentKey(),context);
+			onCloseGroup(i,schema.getFields()[i].getName(),lastElementPreviousGroup,context);
 		}
-    
-    
     cleanup(context);
   }
   
-	public final void reduce(Tuple key, Iterable<NullWritable> values, Context context) throws IOException,
-	    InterruptedException {
+	public final void reduce(Tuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
 		Iterator<NullWritable> iterator = values.iterator();
+		grouperIterator.setIterator(iterator);
+		iterator.next();
 
-		// boolean firstIteration = true;
-		while(iterator.hasNext()) {
-			grouperIterator.setIterator(iterator);
-			iterator.next();
-			Tuple currentKey = context.getCurrentKey();
-			int indexMismatch;
-			if(previousKey == null) {
-				// FIRST ITERATION
-				indexMismatch = minDepth;
-				previousKey = new Tuple();
-			} else {
-				indexMismatch = indexMismatch(previousKey, currentKey, minDepth, maxDepth);
-				//System.out.println("Index mismatch : " + previousKey + " , " + currentKey + " => " + indexMismatch);
-				for(int i = maxDepth; i >= indexMismatch; i--) {
-					onCloseGroup(i,schema.getFields()[i].getName(), previousKey, context);
-				}
+		int indexMismatch;
+		if (lastElementPreviousGroup == null) {
+			// first iteration
+			indexMismatch = minDepth;
+			lastElementPreviousGroup = new Tuple();
+		} else {
+			indexMismatch = indexMismatch(lastElementPreviousGroup, context.getCurrentKey(), minDepth,maxDepth);
+			for (int i = maxDepth; i >= indexMismatch; i--) {
+				onCloseGroup(i, schema.getFields()[i].getName(), lastElementPreviousGroup, context);
 			}
-
-			for(int i = indexMismatch; i <= maxDepth; i++) {
-				onOpenGroup(i,schema.getFields()[i].getName(),currentKey, context);
-			}
-			grouperIterator.setFirstAvailable(true);
-			onElements(grouperIterator, context);
-			previousKey.set(currentKey);
 		}
+
+		for (int i = indexMismatch; i <= maxDepth; i++) {
+			onOpenGroup(i, schema.getFields()[i].getName(), context.getCurrentKey(),context);
+		}
+
+		// we consumed the first element , so needs to comunicate to iterator
+		grouperIterator.setFirstAvailable(true);
+		onElements(grouperIterator, context);
+
+		// This loop consumes the remaining elements that reduce didn't consume
+		// The aim of this is to correctly set the last element in the next onCloseGroup() call
+		while (iterator.hasNext()) {
+			iterator.next();
+		}
+		lastElementPreviousGroup.set(context.getCurrentKey());
 	}
   
-  
-  
-	//@Override
-//	public final void reduce2(Tuple key, Iterable<NullWritable> values, Context context) throws IOException {
-//		
-//		Iterator<NullWritable> iterator = values.iterator();
-//		while (iterator.hasNext()){
-//			
-//			iterator.next();
-//			
-//			Tuple currentKey = context.getCurrentKey();
-//			if (previousKey == null){
-//				for (int i = 0 ; i < maxLevels; i++){
-//					//onOpenGroup(context,null); //TODO bad
-//				}
-//				//onElement(currentKey,context);
-//				previousKey = new Tuple();
-//				previousKey.set(currentKey);
-//				
-//				
-//			} else {
-//				int levelMismatch = Tuple.compareLevels(currentKey,previousKey,maxLevels);
-//				int numClosingGroups = maxLevels -levelMismatch;
-//				for (int i = 0 ; i < numClosingGroups ; i++){
-//					//onCloseGroup(context,null); //TODO bad
-//				}
-//				for (int i=0 ; i < numClosingGroups; i++){
-//					//onOpenGroup(context,null);
-//				}
-//				//onElement(currentKey, context);
-//				previousKey.set(currentKey);
-//			}
-//		}
-//	}
-	
-	
-	
-	
-	/**
-	 * TODO
-	 * @param context
-	 * @param prefix
-	 */
-	public void onOpenGroup(int depth,String field,Tuple firstElement,Context context) throws IOException,InterruptedException {
-		
-	}
 
-	/**
-	 * TODO
-	 * @param context
-	 * @param prefix
-	 */
-	public void onCloseGroup(int depth,String field,Tuple lastElement,Context context) throws IOException,InterruptedException {
-		
-	}
-
+	public abstract void onOpenGroup(int depth,String field,Tuple firstElement,Context context) throws IOException,InterruptedException;
+	public abstract void onCloseGroup(int depth,String field,Tuple lastElement,Context context) throws IOException,InterruptedException;
+	public abstract void onElements(Iterable<Tuple> tuple, Context context) throws IOException,InterruptedException;
 	
-
-	public void onElements(Iterator<Tuple> tuple, Context context) throws IOException,InterruptedException {
-		
-	  
-  }
-	
-	public static int indexMismatch(Tuple tuple1,Tuple tuple2,int minIndex,int maxIndex){
+	private static int indexMismatch(Tuple tuple1,Tuple tuple2,int minIndex,int maxIndex){
 		for (int i=minIndex ; i <=maxIndex ; i++){
 			if (!tuple1.get(i).equals(tuple2.get(i))){
 				return i;
@@ -178,13 +119,13 @@ public class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.m
 	}
 	
 	
-	public static boolean partialEquals(Tuple tuple1,Tuple tuple2, int minIndex,int maxIndex){
-		for (int i=minIndex ; i <=maxIndex ; i++){
-			if (!tuple1.get(i).equals(tuple2.get(i))){
-				return false;
-			}
-		}
-		return true;
-	}
+//	private static boolean partialEquals(Tuple tuple1,Tuple tuple2, int minIndex,int maxIndex){
+//		for (int i=minIndex ; i <=maxIndex ; i++){
+//			if (!tuple1.get(i).equals(tuple2.get(i))){
+//				return false;
+//			}
+//		}
+//		return true;
+//	}
 
 }
