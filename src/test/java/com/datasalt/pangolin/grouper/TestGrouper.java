@@ -67,13 +67,13 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 		
 		
 		@Override
-    public void onOpenGroup(int depth,Tuple firstElement, Context context) {
-	    System.out.println("OPEN("+ depth +"):\t" + firstElement);
+    public void onOpenGroup(int depth,String field,Tuple firstElement, Context context) {
+	    System.out.println("OPEN("+ depth+","+field +"):\t\t" + firstElement);
     }
 
 		@Override
-    public void onCloseGroup(int depth,Tuple lastElement, Context context) {
-	    System.out.println("CLOSE:("+depth+")\t" + lastElement);
+    public void onCloseGroup(int depth,String field,Tuple lastElement, Context context) {
+	    System.out.println("CLOSE:("+depth+","+field+")\t\t" + lastElement);
     }
 		
 		@Override
@@ -82,7 +82,7 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 			Iterator<Tuple> iterator = tuples;
 			while ( iterator.hasNext()){
 				Tuple tuple = iterator.next();
-				System.out.println("element:\t" + tuple);
+				System.out.println("element:\t\t" + tuple);
 			}
 			//System.out.println("end onElements");
 		  

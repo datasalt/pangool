@@ -41,8 +41,8 @@ public class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.m
   	try{
     Configuration conf = context.getConfiguration();
   	this.schema = Grouper.getSchema(conf);
-  	this.minDepth = conf.get(Grouper.CONF_MIN_GROUP).split(",").length;
-  	this.maxDepth = conf.get(Grouper.CONF_MAX_GROUP).split(",").length;
+  	this.minDepth = conf.get(Grouper.CONF_MIN_GROUP).split(",").length -1;
+  	this.maxDepth = conf.get(Grouper.CONF_MAX_GROUP).split(",").length -1;
   	} catch(GrouperException e){
   		throw new RuntimeException(e);
   	}
@@ -65,8 +65,9 @@ public class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.m
 //          (context.getValues().iterator())).resetBackupStore();
     }
     
+    //close last group
     for (int i=maxDepth; i >=minDepth ; i--){
-			onCloseGroup(i,context.getCurrentKey(),context);
+			onCloseGroup(i,schema.getFields()[i].getName(),context.getCurrentKey(),context);
 		}
     
     
@@ -89,22 +90,19 @@ public class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.m
 				previousKey = new Tuple();
 			} else {
 				indexMismatch = indexMismatch(previousKey, currentKey, minDepth, maxDepth);
+				//System.out.println("Index mismatch : " + previousKey + " , " + currentKey + " => " + indexMismatch);
 				for(int i = maxDepth; i >= indexMismatch; i--) {
-					onCloseGroup(i, context.getCurrentKey(), context);
+					onCloseGroup(i,schema.getFields()[i].getName(), previousKey, context);
 				}
 			}
 
 			for(int i = indexMismatch; i <= maxDepth; i++) {
-				onOpenGroup(i, currentKey, context);
+				onOpenGroup(i,schema.getFields()[i].getName(),currentKey, context);
 			}
 			grouperIterator.setFirstAvailable(true);
 			onElements(grouperIterator, context);
 			previousKey.set(currentKey);
-
-			// onCloseGroup(context.getCurrentKey(),context);
 		}
-		
-		
 	}
   
   
@@ -150,7 +148,7 @@ public class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.m
 	 * @param context
 	 * @param prefix
 	 */
-	public void onOpenGroup(int depth,Tuple firstElement,Context context) throws IOException,InterruptedException {
+	public void onOpenGroup(int depth,String field,Tuple firstElement,Context context) throws IOException,InterruptedException {
 		
 	}
 
@@ -159,7 +157,7 @@ public class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.m
 	 * @param context
 	 * @param prefix
 	 */
-	public void onCloseGroup(int depth,Tuple lastElement,Context context) throws IOException,InterruptedException {
+	public void onCloseGroup(int depth,String field,Tuple lastElement,Context context) throws IOException,InterruptedException {
 		
 	}
 
