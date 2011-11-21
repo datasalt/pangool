@@ -1,3 +1,4 @@
+
 package com.datasalt.pangolin.grouper;
 
 import java.io.IOException;
@@ -16,11 +17,12 @@ import org.junit.Test;
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.grouper.io.Tuple.NoSuchFieldException;
+import com.datasalt.pangolin.grouper.mapred.GrouperCombiner;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducer;
 
 
-public class TestGrouper extends AbstractHadoopTestLibrary{
+public class TestCombiner extends AbstractHadoopTestLibrary{
 
 	private static class Mapy extends GrouperMapper<Text,NullWritable>{
 		
@@ -42,21 +44,23 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 			Tuple outputKey = getTupleToEmit();
 			try {
 				outputKey.setField("country",country);
-				outputKey.setField("age",age);
-				outputKey.setField("name",name);
+				outputKey.setField("age", age);
+				outputKey.setField("name", name);
 				outputKey.setField("height", height);
-				emit(outputKey);
+			emit(outputKey);
 			} catch (NoSuchFieldException e) {
 				throw new RuntimeException(e);
 			}
-			
 		}
 	}
 	
 	private static class Red extends GrouperReducer<Tuple,NullWritable>{
 
+		
+		
 		@Override
     public void onOpenGroup(int depth,String field,Tuple firstElement, Context context) {
+			
 	    System.out.println("OPEN("+ depth+","+field +"):\t\t" + firstElement);
     }
 
@@ -67,13 +71,50 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 		
 		@Override
 		public void onElements(Iterable<Tuple> tuples, Context context) throws IOException,InterruptedException {
+			
 			Iterator<Tuple> iterator = tuples.iterator();
+			if (iterator.hasNext()){
 			while ( iterator.hasNext()){
 				Tuple tuple = iterator.next();
 				System.out.println("element:\t\t" + tuple);
 			}
+			}
+	  
+	}}
+	
+	private static class Combi extends GrouperCombiner{
+
+		private int numFields;
+		
+		public void setup(Context context) throws IOException,InterruptedException {
+			super.setup(context);
+			numFields = getSchema().getFields().length;
+			
+		}
+		
+		@Override
+    public void onOpenGroup(int depth,String field,Tuple firstElement, Context context) throws IOException,InterruptedException  {
+			
+	    System.out.println("COMBI OPEN("+ depth+","+field +"):\t\t" + firstElement);
+	    //emit(firstElement);
+		}
+
+		@Override
+    public void onCloseGroup(int depth,String field,Tuple lastElement, Context context) {
+	    System.out.println("COMBI CLOSE:("+depth+","+field+")\t\t" + lastElement);
+    }
+		
+		@Override
+		public void onElements(Iterable<Tuple> tuples, Context context) throws IOException,InterruptedException {
+			Iterator<Tuple> iterator = tuples.iterator();
+			if (iterator.hasNext()){
+				emit(iterator.next());
+			}
 	  }
 	}
+	
+	
+	
 	
 	
 	@Test
@@ -97,7 +138,7 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 		grouper.setSortCriteria("country ASC,age ASC");
 		grouper.setMinGroup("country");
 		grouper.setMaxGroup("country,age,name");
-		
+		grouper.setCombinerClass(Combi.class);
 		grouper.setOutputKeyClass(Tuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
 		

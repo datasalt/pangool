@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangolin.grouper;
+package com.datasalt.pangolin.grouper.io;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
@@ -21,10 +21,12 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.log4j.Logger;
 
+import com.datasalt.pangolin.grouper.Constants;
+import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangolin.grouper.Schema;
+
 public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements Configurable{
 
-	private static Logger log = Logger.getLogger(TuplePartitioner.class);
-	
 	private Configuration conf;
 	private Schema schema;
 	private int[] groupFieldsIndexes;
@@ -45,11 +47,10 @@ public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements
 		try{
 		if (conf != null){
 			this.conf = conf;
-			String schemaString = conf.get(Grouper.CONF_SCHEMA);
-			this.schema = Schema.parse(schemaString);
+			this.schema = Schema.parse(conf);
 		}
 		
-		String fieldsGroupStr = conf.get(Grouper.CONF_MIN_GROUP);
+		String fieldsGroupStr = conf.get(Constants.CONF_MIN_GROUP);
 		String[] fieldsGroup = fieldsGroupStr.split(",");
 		groupFieldsIndexes = new int[fieldsGroup.length];
 		for (int i=0 ; i < fieldsGroup.length;i++){

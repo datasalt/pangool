@@ -27,9 +27,9 @@ import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
 import com.datasalt.pangolin.grouper.io.TuplePartitioner;
 import com.datasalt.pangolin.grouper.io.TupleSortComparator;
+import com.datasalt.pangolin.grouper.mapred.GrouperCombiner;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
-import com.datasalt.pangolin.grouper.mapred.SimpleGrouperCombiner;
-import com.datasalt.pangolin.grouper.mapred.SimpleGrouperReducer;
+import com.datasalt.pangolin.grouper.mapred.GrouperReducer;
 
 
 
@@ -38,23 +38,26 @@ import com.datasalt.pangolin.grouper.mapred.SimpleGrouperReducer;
  * @author epalace
  *
  */
-public class Grouper {
+public class GrouperWithRollup {
 
 	
+	
+	//private Job job;
 	private Configuration conf;
 	private Schema schema;
-	private Class<? extends SimpleGrouperReducer> reducerClass;
+	private Class<? extends GrouperReducer> reducerClass;
 	private Class<? extends GrouperMapper> mapperClass; //TODO change this to multiinput
 	private Class<? extends InputFormat> inputFormat;
 	private Class<? extends OutputFormat> outputFormat;
-	private Class<? extends SimpleGrouperCombiner> combinerClass;
+	private Class<? extends GrouperCombiner> combinerClass;
+	private Class<?> jarByClass;
 	private Class<?> outputKeyClass,outputValueClass;
 	private String sortCriteria;
 	
-	private String group;
+	private String minGroup,maxGroup;
 	
 	
-	public Grouper(Configuration conf) throws IOException{
+	public GrouperWithRollup(Configuration conf) throws IOException{
 		this.conf = conf;
 		
 	}
@@ -63,25 +66,30 @@ public class Grouper {
 		this.sortCriteria = sortCriteria;
 	}
 	
+	public void setJarByClass(Class<?> clazz){
+		this.jarByClass = clazz;
+	}
+	
 	
 	public void setSchema(Schema schema){
 		this.schema = schema;
 	}
 	
-	public void setGroup(String group){
-		this.group = group;
-		
+	public void setMinGroup(String minGroup){
+		this.minGroup = minGroup;
+	}
+	
+	public void setMaxGroup(String maxGroup){
+		this.maxGroup = maxGroup;
 	}
 	
 	
 	
-	
-	
-	public void setReducerClass(Class<? extends SimpleGrouperReducer> reducerClass){
+	public void setReducerClass(Class<? extends GrouperReducer> reducerClass){
 		this.reducerClass = reducerClass;
 	}
 	
-	public void setCombinerClass(Class<? extends SimpleGrouperCombiner> combinerClass){
+	public void setCombinerClass(Class<? extends GrouperCombiner> combinerClass){
 		this.combinerClass = combinerClass;
 	}
 	
@@ -110,8 +118,8 @@ public class Grouper {
 	
 	public Job getJob() throws IOException{
 		this.conf.set(Schema.CONF_SCHEMA,schema.serialize());
-		this.conf.set(Constants.CONF_MIN_GROUP, group);
-		this.conf.set(Constants.CONF_MAX_GROUP,group);
+		this.conf.set(Constants.CONF_MIN_GROUP, minGroup);
+		this.conf.set(Constants.CONF_MAX_GROUP,maxGroup);
 		this.conf.set(SortCriteria.CONF_SORT_CRITERIA,sortCriteria);
 		
 		
@@ -123,9 +131,9 @@ public class Grouper {
 			job.setCombinerClass(combinerClass);
 		}
 		job.setReducerClass(reducerClass);
-		job.getConfiguration().set(Schema.CONF_SCHEMA,schema.serialize());
-		job.getConfiguration().set(SortCriteria.CONF_SORT_CRITERIA,sortCriteria);
 		job.setInputFormatClass(inputFormat);
+		job.setJarByClass((jarByClass!=null) ? jarByClass : reducerClass);
+		
 		job.setOutputFormatClass(outputFormat);
 		job.setMapOutputKeyClass(Tuple.class);
 		job.setMapOutputValueClass(NullWritable.class);
@@ -136,5 +144,15 @@ public class Grouper {
 		job.setOutputValueClass(outputValueClass);
 		return job;
 	}
+	
+	
+	public static void main(String[] args){
+		
+	}
+	
+	
+	
+	
+	
 
 }

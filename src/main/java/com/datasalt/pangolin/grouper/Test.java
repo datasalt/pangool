@@ -11,7 +11,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-import org.junit.Test;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.Tuple;
@@ -20,7 +20,7 @@ import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducer;
 
 
-public class TestGrouper extends AbstractHadoopTestLibrary{
+public class Test extends AbstractHadoopTestLibrary {
 
 	private static class Mapy extends GrouperMapper<Text,NullWritable>{
 		
@@ -33,6 +33,7 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 		
 		@Override
 		public void map(Text key,NullWritable value,Context context) throws IOException,InterruptedException{
+			try{
 			String[] tokens = key.toString().split("\\s+");
 			String country = tokens[0];
 			Integer age = Integer.parseInt(tokens[1]);
@@ -40,43 +41,45 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 			Integer height = Integer.parseInt(tokens[3]);
 			
 			Tuple outputKey = getTupleToEmit();
-			try {
-				outputKey.setField("country",country);
-				outputKey.setField("age",age);
-				outputKey.setField("name",name);
-				outputKey.setField("height", height);
-				emit(outputKey);
-			} catch (NoSuchFieldException e) {
+			outputKey.setField("country",country);
+			outputKey.setField("age",age);
+			outputKey.setField("name",name);
+			outputKey.setField("height", height);
+			emit(outputKey);
+			} catch(NoSuchFieldException e){
 				throw new RuntimeException(e);
 			}
-			
 		}
 	}
 	
-	private static class Red extends GrouperReducer<Tuple,NullWritable>{
+	private static class Red extends GrouperReducer<Text,NullWritable>{
 
 		@Override
-    public void onOpenGroup(int depth,String field,Tuple firstElement, Context context) {
-	    System.out.println("OPEN("+ depth+","+field +"):\t\t" + firstElement);
+    public void onOpenGroup(int depth,String field,Tuple firstElement, Context context) throws IOException,InterruptedException{
+			Text text = new Text("OPEN("+ depth+","+field +"):\t\t" + firstElement);
+	    context.write(text,NullWritable.get());
     }
 
 		@Override
-    public void onCloseGroup(int depth,String field,Tuple lastElement, Context context) {
-	    System.out.println("CLOSE:("+depth+","+field+")\t\t" + lastElement);
+    public void onCloseGroup(int depth,String field,Tuple lastElement, Context context) throws IOException,InterruptedException {
+	    Text text = new Text("CLOSE:("+depth+","+field+")\t\t" + lastElement);
+			context.write(text,NullWritable.get());
     }
 		
 		@Override
 		public void onElements(Iterable<Tuple> tuples, Context context) throws IOException,InterruptedException {
 			Iterator<Tuple> iterator = tuples.iterator();
+			Text text = new Text();
 			while ( iterator.hasNext()){
 				Tuple tuple = iterator.next();
-				System.out.println("element:\t\t" + tuple);
+				text.set("element:\t\t" + tuple);
+				context.write(text,NullWritable.get());
 			}
 	  }
 	}
 	
 	
-	@Test
+	
 	public void test() throws IOException, InterruptedException, ClassNotFoundException, GrouperException{
 		
 		withInput("input",new Text("ES 20 listo 250"));
@@ -89,7 +92,7 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 		
 		GrouperWithRollup grouper = new GrouperWithRollup(getConf());
 		grouper.setInputFormat(SequenceFileInputFormat.class);
-		grouper.setOutputFormat(SequenceFileOutputFormat.class);
+		grouper.setOutputFormat(TextOutputFormat.class);
 		grouper.setMapperClass(Mapy.class);
 		grouper.setReducerClass(Red.class);
 		
@@ -103,9 +106,17 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 		
 		
 		Job job = grouper.getJob();
+		job.setNumReduceTasks(2);
 		FileInputFormat.setInputPaths(job,new Path("input"));
 		FileOutputFormat.setOutputPath(job, new Path("output"));
 		
 		assertRun(job);
 	}
+	
+	public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException, GrouperException{
+		Test test = new Test();
+		test.initHadoop();
+		test.test();
+	}
+	
 }

@@ -21,21 +21,30 @@ import java.util.Iterator;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 
+import com.datasalt.pangolin.grouper.io.Tuple;
+
 /**
+ * Iterator used in {@link GrouperWithRollup} and {@link Grouper}. Basically it translates an {@link Iterable}<NullWritable> to {@link Iterable}<Tuple>. 
+ * In order to do so, it handles the @{ReduceContext} and uses @{ReduceContext.getCurrentKey()} to obtain the key in 
+ * every iteration.
  * 
+ * See {@link Iterable} and {@link Tuple}
+ *  
  * @author epalace
- *
- * @param <OUTPUT_KEY>
- * @param <OUTPUT_VALUE>
+ * 
  */
-public class GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>,Iterable<Tuple>{
+public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>,Iterable<Tuple>{
 
 	private Iterator<NullWritable> iterator;
 	private ReduceContext<Tuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
 	
-	private boolean firstAvailable=false;
+	/*
+	 *  used to mark that the first element from iterable was already consumed, so in next iteration don't call iterator.next().
+	 *  Instead of this reuse the currentKey in context.getCurrentKey()
+	 */
+	private boolean firstTupleConsumed=false;
 	
-	public GrouperIterator(){	}
+	public TupleIterator(){	}
 	
 	public void setIterator(Iterator<NullWritable> iterator){
 		this.iterator = iterator;
@@ -45,13 +54,20 @@ public class GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>
 		this.context = context;
 	}
 	
-	public void setFirstAvailable(boolean available){
-		this.firstAvailable = available;
+	
+	/**
+	 *  This is used to mark that the first element from iterable was already consumed, so in next iteration don't call iterator.next().
+	 *  Instead of this reuse the currentKey in context.getCurrentKey(). 
+	 *  This method is usually called before {@link GrouperWithRollup.onElements()}
+	 */
+	
+	public void setFirstTupleConsumed(boolean available){
+		this.firstTupleConsumed = available;
 	}
 	
 	@Override
   public boolean hasNext() {
-		if (firstAvailable){
+		if (firstTupleConsumed){
 			return true;
 		} else {
 			return iterator.hasNext();
@@ -60,8 +76,8 @@ public class GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>
 
 	@Override
   public Tuple next() {
-		if (firstAvailable){
-			firstAvailable = false;
+		if (firstTupleConsumed){
+			firstTupleConsumed = false;
 			return context.getCurrentKey();
 		} else {
 			iterator.next(); //advances one key
@@ -71,7 +87,11 @@ public class GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>
 
 	@Override
   public void remove() {
-	  iterator.remove();
+		if (firstTupleConsumed){
+			firstTupleConsumed = false;
+		} else {
+			iterator.remove();
+		}
   }
 
 	@Override

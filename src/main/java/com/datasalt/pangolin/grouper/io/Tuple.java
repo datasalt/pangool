@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangolin.grouper;
+package com.datasalt.pangolin.grouper.io;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
-
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
@@ -28,10 +26,12 @@ import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableUtils;
-import org.apache.thrift.TBase;
+
+import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangolin.grouper.Schema;
 
 /**
- * TODO
+ * This is the main serializable {@link WritableComparable} object used in {@link Grouper}. It's configured by a 
  * 
  * @author epalace
  * 
@@ -53,10 +53,9 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 	public void setSchema(Schema schema) {
 		this.schema = schema;
 		// TODO this should erase previous state ?
-		if (this.objects == null || this.objects.length != schema.getFields().length) {
-			this.objects = new Comparable[schema.getFields().length];
-			populateObjects();
-		}
+		this.objects = new Comparable[schema.getFields().length];
+		populateObjects();
+		
 	}
 	
 	private void populateObjects(){
@@ -74,26 +73,27 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 				objects[i]=0.f;
 			} else if(type == Double.class){
 				objects[i]=0.0;
-			} else {
-				//TODO what to do here?
+			} else if(type == Boolean.class){
+				objects[i] = false;
 			}
 		}
 	}
 	
 	
-//	public void setInt(String fieldName,int n){
-//		int index = this.schema.getIndexByFieldName(fieldName);
-//		setInt(index,n);
-//	}
-//	
-//	public void setInt(int index,int value){
-//		objects[index]=value;
-//	}
+	public static class NoSuchFieldException extends GrouperException {
+		public NoSuchFieldException(String s,Throwable e) {
+			super(s,e);
+		}
+	}
 	
-	public void setField(String fieldName,Comparable value) {
+
+	public void setField(String fieldName,Comparable value) throws NoSuchFieldException {
 		int index = this.schema.getIndexByFieldName(fieldName);
-		//TODO check that index is valid
+		try{
 		objects[index] = value;
+		} catch(IndexOutOfBoundsException e){
+			throw new NoSuchFieldException("Field \"" + fieldName + "\" not in schema",e);
+		}
 	}
 
 	public void setField(int index,Comparable value) {
@@ -119,6 +119,8 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 			} else if (fieldType == String.class) {
 				text.set((String)objects[numField]);
 				text.write(output);
+			}	else if (fieldType == Boolean.class) {
+				output.writeBoolean((Boolean)objects[numField]);
 			} else {
 				//TODO output correct exception 
 				throw new RuntimeException("Not implemented fieldType : " + fieldType); 
@@ -129,7 +131,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 	@Override
 	public void readFields(DataInput input) throws IOException {
 		for (int i =0 ; i < schema.getFields().length ; i++) {
-			Class fieldType = schema.getFields()[i].getType();
+			Class<?> fieldType = schema.getFields()[i].getType();
 			if (fieldType == VIntWritable.class) {
 				setField(i, WritableUtils.readVInt(input));
 			} else if (fieldType == VLongWritable.class) {
@@ -145,11 +147,9 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 			} else if (fieldType == String.class) {
 				text.readFields(input);
 				setField(i, text.toString());
-			} else if (fieldType == TBase.class) { // TODO improve this .
-				// TODO ..
-				throw new RuntimeException("Not implemented yet fieldType:" + fieldType);
+			} else if (fieldType == Boolean.class) {
+				setField(i,input.readBoolean());
 			} else {
-				// TODO
 				throw new RuntimeException("Not implemented fieldType :  " + fieldType);
 			}
 		}
@@ -166,30 +166,11 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		}
 	}
 
-	/**
-	 * returns the level where they mismatch. Returns 0 if equals
-	 * 
-	 * @param tuple1
-	 * @param tuple2
-	 * @param levels
-	 * @return
-	 */
-	public static int compareLevels(Tuple tuple1,Tuple tuple2, int levels) {
-		for (int i = 0; i < levels; i++) {
-			int comparison = tuple1.objects[i].compareTo((tuple2.objects[i]));
-			if (comparison != 0) {
-				return i;
-			}
-		}
-		return 0;
-	}
-
-	public int partialHashCode(int[] fieldsIndexes) {
+		public int partialHashCode(int[] fieldsIndexes) {
 		int result = 0;
 		for (int fieldIndex : fieldsIndexes) {
 			result = result * 31 + objects[fieldIndex].hashCode();
 		}
-
 		return result & Integer.MAX_VALUE;
 	}
 
@@ -198,12 +179,15 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		return this.conf;
   }
 
+	/**
+	 * This method is used automatically in Hadoop in reducer step, when it instanciates the keys/values for first time.
+	 */
 	@Override
   public void setConf(Configuration conf) {
 		if (conf != null){
 			this.conf = conf;
 			try {
-	      setSchema(Grouper.getSchema(this.conf));
+	      setSchema(Schema.parse(this.conf));
       } catch(GrouperException e) {
 	      throw new RuntimeException(e);
       }
@@ -225,6 +209,15 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		}
 		return 0;
   }
+	
+	@Override
+	public boolean equals(Object tuple2){
+		if (!(tuple2 instanceof Tuple)){
+			return false;
+		}
+		return this.toString().equals(tuple2.toString());
+	}
+	
 	
 	@Override
 	public String toString(){

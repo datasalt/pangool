@@ -19,15 +19,15 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.8.2</version>
-      <scope>test</scope>
+      <!--scope>test</scope-->
     </dependency>
     
     
-    <dependency>
+    <!--dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro-mapred</artifactId>
       <version>1.6.0</version>
-    </dependency>
+    </dependency-->
     
     
    <!-- 
@@ -144,6 +144,7 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
       <version>0.20.2-cdh3u2</version>
+      <scope>provided</scope>
     </dependency>
     
 <!--    <dependency>
@@ -442,6 +443,29 @@
           </execution>
         </executions>
       </plugin>
+    <plugin>
+      <artifactId>maven-assembly-plugin</artifactId>
+      <version>2.2.1</version>
+      <configuration>
+        <descriptors>
+          <descriptor>src/main/assembly/hadoop-job.xml</descriptor>
+        </descriptors>
+        <archive>
+          <manifest>
+            <mainClass>com.datasalt.pangolin.grouper.Test</mainClass>
+          </manifest>
+        </archive>
+      </configuration>
+      <executions>
+        <execution>
+          <id>make-assembly</id>
+          <phase>package</phase>
+          <goals>
+            <goal>single</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
   </plugins>
  </build>
  

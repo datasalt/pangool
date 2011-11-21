@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.grouper;
+package com.datasalt.pangolin.grouper.io;
 
 import org.apache.hadoop.conf.Configuration;
 
+import com.datasalt.pangolin.grouper.Constants;
+
+/**
+ * 
+ * @author epalace
+ *
+ */
 public class TupleGroupComparator extends TupleSortComparator{
 
 	private int groupDepth;
@@ -30,7 +37,7 @@ public class TupleGroupComparator extends TupleSortComparator{
 	@Override
   public void setConf(Configuration conf) {
 	  super.setConf(conf);
-	  String s = conf.get(Grouper.CONF_MAX_GROUP);
+	  String s = conf.get(Constants.CONF_MAX_GROUP);
 	  groupDepth = s.split(",").length;
   }
 }

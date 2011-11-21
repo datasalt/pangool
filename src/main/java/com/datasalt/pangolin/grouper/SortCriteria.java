@@ -21,14 +21,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
+
 /**
+ * 
+ * SortCriteria specifies how the {@link Tuple} fields will be sorted by {@link TupleSortComparator}.
+ * Basically it's a list of fields with a sort descriptor (scending or descending order).For example: "name asc,age desc"
+ * The sort criteria needs to match the {@link Schema} fields ordering, so in any case the {@link SortCriteria} must be a prefix from {@link Schema} 
  * 
  * @author epalace
  *
  */
 public class SortCriteria  {
+	
+	public static final String CONF_SORT_CRITERIA = "datasalt.grouper.sort.criteria";
+	
 	public static enum Sort {
-		ASC,DESC
+		ASC, //ASCENDING ORDER
+		DESC //DESCENDING ORDER
 	}
 	
 	private SortCriteria(Map<String,Sort> fields,String[] namesOrdered){
@@ -46,6 +56,9 @@ public class SortCriteria  {
 		return namesOrdered;
 	}
 	
+	public static SortCriteria parse(Configuration conf) throws GrouperException{
+		return parse(conf.get(CONF_SORT_CRITERIA));
+	}
 	
 	public static SortCriteria parse(String sortCriteria) throws GrouperException {
 		Map<String,Sort> fields = new HashMap<String,Sort>();

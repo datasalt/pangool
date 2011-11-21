@@ -20,38 +20,37 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 
 /**
  * 
+ * Schema specifies which fields (name and types) a {@link Tuple} will contain.
+ * 
  * @author epalace
  *
  */
 public class Schema {
+	public static final String CONF_SCHEMA = "datasalt.grouper.schema";
+	
 	
 	public static class Field {
-//		public static enum SortCriteria {
-//			ASC,DESC
-//		}
 		private String name;
-		private Class type;
-		//private SortCriteria sortCriteria;
+		private Class<?> type;
 		
-		public Field(String name,Class clazz){
+		public Field(String name,Class<?> clazz){
 			this.name = name;
 			this.type = clazz;
-			//this.sortCriteria = SortCriteria.ASC;
 		}
 		
-		public Field(String name,Class clazz,SortCriteria sort){
+		public Field(String name,Class<?> clazz,SortCriteria sort){
 			this.name = name;
 			this.type = clazz;
-			//this.sortCriteria = sort;
 		}
 		
 		
-		public Class getType(){
+		public Class<?> getType(){
 			return type;
 		}
 		
@@ -59,13 +58,10 @@ public class Schema {
 			return name;
 		}
 		
-//		public SortCriteria getSortCriteria(){
-//			return sortCriteria;
-//		}
 	}
 	
-	private static final Map<String,Class> strToClazz=new HashMap<String,Class>();
-	private static final Map<Class,String> clazzToStr=new HashMap<Class,String>();
+	private static final Map<String,Class<?>> strToClazz=new HashMap<String,Class<?>>();
+	private static final Map<Class<?>,String> clazzToStr=new HashMap<Class<?>,String>();
 	
 	
 	static {
@@ -93,24 +89,15 @@ public class Schema {
 		strToClazz.put("boolean",Boolean.class);
 		clazzToStr.put(Boolean.class,"boolean");
 		
-		//clazzToStr = CommonUtils.invertMap(strToClazz);
 	}
 	
 	private Field[] fields;
 	
-	
-	
-	/**
-	 * TODO
-	 * 
-	 * @param str
-	 * @return
-	 */
-	public static Class strToClass(String str) {
+	public static Class<?> strToClass(String str) {
 		return strToClazz.get(str);
 	}
 	
-	public static String classToStr(Class clazz) {
+	public static String classToStr(Class<?> clazz) {
 		return clazzToStr.get(clazz);
 	}
 	
@@ -134,12 +121,11 @@ public class Schema {
 	public String serialize() {
 		StringBuilder b = new StringBuilder();
 		String fieldName = fields[0].name;
-		Class fieldType = fields[0].type;
+		Class<?> fieldType = fields[0].type;
 		b.append(fieldName).append(":").append(classToStr(fieldType));
 		for (int i = 1 ; i < fields.length ; i++){
 			fieldName = fields[i].name;
 			fieldType = fields[i].type;
-			//TODO add sort criteria
 			b.append(",").append(fieldName).append(":").append(classToStr(fieldType));
 		}
 		return b.toString();
@@ -149,7 +135,7 @@ public class Schema {
 		return indexByFieldName.get(name);
 	}
 	
-	
+	@Override
 	public String toString(){
 		return serialize();
 	}
@@ -173,6 +159,15 @@ public class Schema {
 		fields.toArray(fieldsArray);
 		return new Schema(fieldsArray);
 	}
-
-
+	
+	/**
+	 * Parses serialized schema from configuration {@link Configuration}
+	 * @param conf
+	 * @return
+	 * @throws GrouperException
+	 */
+	public static Schema parse(Configuration conf) throws GrouperException{
+		String schemaStr = conf.get(Schema.CONF_SCHEMA);
+		return Schema.parse(schemaStr);
+	}
 }

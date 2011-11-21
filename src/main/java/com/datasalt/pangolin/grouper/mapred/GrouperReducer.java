@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.grouper;
+package com.datasalt.pangolin.grouper.mapred;
 
 import java.io.IOException;
 import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+
+import com.datasalt.pangolin.grouper.Constants;
+import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangolin.grouper.TupleIterator;
+import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.io.Tuple;
 
 /**
  * TODO
@@ -34,34 +40,39 @@ public abstract class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache
     	private Tuple lastElementPreviousGroup=null;
     	private Schema schema;
     	private int minDepth,maxDepth;
-    	private GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
+    	private TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
+    	private Context context;
+    	//private NullWritable outputValue=NullWritable.get();
+    	
+    	protected Schema getSchema(){
+    		return schema;
+    	}
+    	
     	
   public void setup(Context context) throws IOException,InterruptedException {
   	try{
     Configuration conf = context.getConfiguration();
-  	this.schema = Grouper.getSchema(conf);
-  	this.minDepth = conf.get(Grouper.CONF_MIN_GROUP).split(",").length -1;
-  	this.maxDepth = conf.get(Grouper.CONF_MAX_GROUP).split(",").length -1;
+  	this.schema = Schema.parse(conf);
+  	this.minDepth = conf.get(Constants.CONF_MIN_GROUP).split(",").length -1;
+  	this.maxDepth = conf.get(Constants.CONF_MAX_GROUP).split(",").length -1;
   	} catch(GrouperException e){
   		throw new RuntimeException(e);
   	}
   	
-  	this.grouperIterator = new GrouperIterator<OUTPUT_KEY,OUTPUT_VALUE>();
+  	this.grouperIterator = new TupleIterator<OUTPUT_KEY,OUTPUT_VALUE>();
   	this.grouperIterator.setContext(context);
+  	this.context = context;
   }
 
   
   @SuppressWarnings("unchecked")
   @Override
   public final void run(Context context) throws IOException,InterruptedException {
- // 	super.run(context);
-  	
+
   	setup(context);
   	while (context.nextKey()) {
       reduce(context.getCurrentKey(), context.getValues(), context);
-      // If a back up store is used, reset it
-  //    ((ReduceContext.ValueIterator
-  //        (context.getValues().iterator())).resetBackupStore();
+      //TODO look if this matches super.run() implementation
     }
     
     //close last group
@@ -93,7 +104,7 @@ public abstract class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache
 		}
 
 		// we consumed the first element , so needs to comunicate to iterator
-		grouperIterator.setFirstAvailable(true);
+		grouperIterator.setFirstTupleConsumed(true);
 		onElements(grouperIterator, context);
 
 		// This loop consumes the remaining elements that reduce didn't consume
@@ -117,15 +128,4 @@ public abstract class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache
 		}
 		return -1;
 	}
-	
-	
-//	private static boolean partialEquals(Tuple tuple1,Tuple tuple2, int minIndex,int maxIndex){
-//		for (int i=minIndex ; i <=maxIndex ; i++){
-//			if (!tuple1.get(i).equals(tuple2.get(i))){
-//				return false;
-//			}
-//		}
-//		return true;
-//	}
-
 }

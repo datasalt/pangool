@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.grouper;
+package com.datasalt.pangolin.grouper.mapred;
 
 import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.mapreduce.Mapper;
+
+import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.TupleSortComparator;
 
 /**
  * 
@@ -39,8 +44,9 @@ public class GrouperMapper<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT
 	@Override
 	public void setup(Context context) throws IOException,InterruptedException {
 		try{
-		Schema schema = Grouper.getSchema(context.getConfiguration());
+		Schema schema = Schema.parse(context.getConfiguration());
 		outputKey.setSchema(schema);
+		//binary comparator is configured with schema and sort criteria
 		((TupleSortComparator)WritableComparator.get(Tuple.class)).setConf(context.getConfiguration());
 		this.context = context;
 		} catch(GrouperException e){

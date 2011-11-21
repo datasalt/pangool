@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangolin.grouper;
+package com.datasalt.pangolin.grouper.io;
 
 import java.io.IOException;
 
@@ -24,12 +24,18 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
 
+import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.Schema.Field;
+import com.datasalt.pangolin.grouper.SortCriteria;
 import com.datasalt.pangolin.grouper.SortCriteria.Sort;
+
 /**
  * 
+ * Binary comparator for {@link Tuple} objects.
+ * 
  * @author epalace
- *
+ * 
  */
 public class TupleSortComparator extends WritableComparator implements Configurable {
 
@@ -41,11 +47,18 @@ public class TupleSortComparator extends WritableComparator implements Configura
 		super(Tuple.class);
 	}
 
+	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		int maxDepth = sortCriteria.getFieldNames().length;
 		return compare(maxDepth, b1, s1, l1, b2, s2, l2);
 	}
 
+	/**
+	 * Compares {@link Tuple} objects serialized in binary up to a maximum depth specified in <b>maxFieldsCompared</b> 
+	 * 
+	 * @param maxFieldsCompared
+	 * 
+	 */
 	public int compare(int maxFieldsCompared, byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 
 		try {
@@ -116,6 +129,14 @@ public class TupleSortComparator extends WritableComparator implements Configura
 					}
 					offset1 += WritableUtils.decodeVIntSize(b1[offset1]) + strLength1;
 					offset2 += WritableUtils.decodeVIntSize(b2[offset2]) + strLength2;
+				} else if(type == Boolean.class) {
+					byte value1 = b1[offset1++];
+					byte value2 = b2[offset2++];
+					if(value1 > value2) {
+						return (sort == Sort.ASC) ? 1 : -1;
+					} else if(value1 < value2) {
+						return (sort == Sort.ASC) ? -1 : 1;
+					}
 				}
 			}
 			return 0; // equals
@@ -134,9 +155,9 @@ public class TupleSortComparator extends WritableComparator implements Configura
 		try {
 			if(conf != null) {
 				this.conf = conf;
-				this.schema = Grouper.getSchema(conf);
+				this.schema = Schema.parse(conf);
 				try {
-					this.sortCriteria = SortCriteria.parse(this.conf.get(Grouper.CONF_SORT_CRITERIA));
+					this.sortCriteria = SortCriteria.parse(conf);
 				} catch(GrouperException e) {
 					throw new RuntimeException(e);
 				}
@@ -145,9 +166,9 @@ public class TupleSortComparator extends WritableComparator implements Configura
 			throw new RuntimeException(e);
 		}
 	}
-
+	
 	static {
+		// statically added in register
 		WritableComparator.define(Tuple.class, new TupleSortComparator());
 	}
-
 }

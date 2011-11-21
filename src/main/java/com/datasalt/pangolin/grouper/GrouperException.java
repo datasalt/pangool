@@ -16,6 +16,11 @@
 
 package com.datasalt.pangolin.grouper;
 
+/**
+ * Base class for exceptions in Grouper
+ * @author epalace
+ *
+ */
 public class GrouperException extends Exception {
 	
 	
