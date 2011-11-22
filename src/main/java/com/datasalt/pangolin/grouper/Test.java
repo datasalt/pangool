@@ -17,7 +17,7 @@ import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.grouper.io.Tuple.NoSuchFieldException;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
-import com.datasalt.pangolin.grouper.mapred.GrouperReducer;
+import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
 
 
 public class Test extends AbstractHadoopTestLibrary {
@@ -52,7 +52,7 @@ public class Test extends AbstractHadoopTestLibrary {
 		}
 	}
 	
-	private static class Red extends GrouperReducer<Text,NullWritable>{
+	private static class Red extends GrouperWithRollupReducer<Text,NullWritable>{
 
 		@Override
     public void onOpenGroup(int depth,String field,Tuple firstElement, Context context) throws IOException,InterruptedException{

@@ -17,6 +17,9 @@
  */
 package org.apache.hadoop.contrib.serialization.thrift;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
@@ -33,16 +36,29 @@ import org.apache.thrift.TBase;
  */
 @SuppressWarnings("rawtypes")
 public class ThriftSerialization implements Serialization<TBase> {
-
+	
+	private Map<Class<TBase>,Deserializer<TBase>> deserCache = new HashMap<Class<TBase>,Deserializer<TBase>>();
+	//private Map<Class<TBase>,Serializer<TBase>> serCache = new HashMap<Class<TBase>,Serializer<TBase>>();
+	private Serializer<TBase> ser;
+	
+	
   public boolean accept(Class<?> c) {
     return TBase.class.isAssignableFrom(c);
   }
 
   public Deserializer<TBase> getDeserializer(Class<TBase> c) {
-    return new ThriftDeserializer<TBase>(c);
+  	Deserializer<TBase> deser = deserCache.get(c);
+  	if (deser == null){
+  		deser = new ThriftDeserializer<TBase>(c);
+  		deserCache.put(c,deser);
+  	}
+    return deser;
   }
 
   public Serializer<TBase> getSerializer(Class<TBase> c) {
-    return new ThriftSerializer();
+  	if (ser == null){
+     ser =  new ThriftSerializer();
+  	}
+    return ser;
   }
 }

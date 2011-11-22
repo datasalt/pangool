@@ -28,7 +28,7 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.Schema.Field;
 import com.datasalt.pangolin.grouper.SortCriteria;
-import com.datasalt.pangolin.grouper.SortCriteria.Sort;
+import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 
 /**
  * 
@@ -53,6 +53,19 @@ public class TupleSortComparator extends WritableComparator implements Configura
 		return compare(maxDepth, b1, s1, l1, b2, s2, l2);
 	}
 
+	public void setSchema(Schema schema){
+		this.schema = schema;
+	}
+	
+	public void setSortCriteria(SortCriteria sortCriteria) throws GrouperException{
+		if (this.schema == null){
+			throw new GrouperException("Schema not set");
+		}
+		
+		this.sortCriteria = sortCriteria;
+	}
+	
+	
 	/**
 	 * Compares {@link Tuple} objects serialized in binary up to a maximum depth specified in <b>maxFieldsCompared</b> 
 	 * 
@@ -67,14 +80,14 @@ public class TupleSortComparator extends WritableComparator implements Configura
 			for(int depth = 0; depth < maxFieldsCompared; depth++) {
 				Field field = schema.getFields()[depth];
 				Class type = field.getType();
-				Sort sort = sortCriteria.getSortByFieldName(field.getName());
+				SortOrder sort = sortCriteria.getSortByFieldName(field.getName());
 				if(type == Integer.class) {
 					int value1 = readInt(b1, offset1);
 					int value2 = readInt(b2, offset2);
 					if(value1 > value2) {
-						return (sort == Sort.ASC) ? 1 : -1;
+						return (sort == SortOrder.ASCENDING) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == Sort.ASC) ? -1 : 1;
+						return (sort == SortOrder.ASCENDING) ? -1 : 1;
 					}
 					offset1 += Integer.SIZE / 8;
 					offset2 += Integer.SIZE / 8;
@@ -82,9 +95,9 @@ public class TupleSortComparator extends WritableComparator implements Configura
 					long value1 = readLong(b1, offset1);
 					long value2 = readLong(b2, offset2);
 					if(value1 > value2) {
-						return (sort == Sort.ASC) ? 1 : -1;
+						return (sort == SortOrder.ASCENDING) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == Sort.ASC) ? -1 : 1;
+						return (sort == SortOrder.ASCENDING) ? -1 : 1;
 					}
 					offset1 += Long.SIZE / 8;
 					offset2 += Long.SIZE / 8;
@@ -92,9 +105,9 @@ public class TupleSortComparator extends WritableComparator implements Configura
 					int value1 = readVInt(b1, offset1);
 					int value2 = readVInt(b2, offset2);
 					if(value1 > value2) {
-						return (sort == Sort.ASC) ? 1 : -1;
+						return (sort == SortOrder.ASCENDING) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == Sort.ASC) ? -1 : 1;
+						return (sort == SortOrder.ASCENDING) ? -1 : 1;
 					}
 					offset1 += WritableUtils.decodeVIntSize(b1[offset1]);
 					offset2 += WritableUtils.decodeVIntSize(b2[offset2]);
@@ -103,9 +116,9 @@ public class TupleSortComparator extends WritableComparator implements Configura
 					long value1 = readVLong(b1, offset1);
 					long value2 = readVLong(b2, offset2);
 					if(value1 > value2) {
-						return (sort == Sort.ASC) ? 1 : -1;
+						return (sort == SortOrder.ASCENDING) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == Sort.ASC) ? -1 : 1;
+						return (sort == SortOrder.ASCENDING) ? -1 : 1;
 					}
 					offset1 += WritableUtils.decodeVIntSize(b1[offset1]);
 					offset2 += WritableUtils.decodeVIntSize(b2[offset2]);
@@ -113,9 +126,9 @@ public class TupleSortComparator extends WritableComparator implements Configura
 					float value1 = readFloat(b1, offset1);
 					float value2 = readFloat(b2, offset2);
 					if(value1 > value2) {
-						return (sort == Sort.ASC) ? 1 : -1;
+						return (sort == SortOrder.ASCENDING) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == Sort.ASC) ? -1 : 1;
+						return (sort == SortOrder.ASCENDING) ? -1 : 1;
 					}
 					offset1 += Float.SIZE / 8;
 					offset2 += Float.SIZE / 8;
@@ -125,7 +138,7 @@ public class TupleSortComparator extends WritableComparator implements Configura
 					int strLength2 = readVInt(b2, offset2);
 					int comparison = compareBytes(b1, offset1, strLength1, b2, offset2, strLength2);
 					if(comparison != 0) {
-						return (sort == Sort.ASC) ? comparison : (-comparison);
+						return (sort == SortOrder.ASCENDING) ? comparison : (-comparison);
 					}
 					offset1 += WritableUtils.decodeVIntSize(b1[offset1]) + strLength1;
 					offset2 += WritableUtils.decodeVIntSize(b2[offset2]) + strLength2;
@@ -133,10 +146,21 @@ public class TupleSortComparator extends WritableComparator implements Configura
 					byte value1 = b1[offset1++];
 					byte value2 = b2[offset2++];
 					if(value1 > value2) {
-						return (sort == Sort.ASC) ? 1 : -1;
+						return (sort == SortOrder.ASCENDING) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == Sort.ASC) ? -1 : 1;
+						return (sort == SortOrder.ASCENDING) ? -1 : 1;
 					}
+				} else {
+					//The rest of types using compareBytes
+					int strLength1 = readVInt(b1, offset1);
+					int strLength2 = readVInt(b2, offset2);
+					int comparison = compareBytes(b1, offset1, strLength1, b2, offset2, strLength2);
+					if(comparison != 0) {
+						return (sort == SortOrder.ASCENDING) ? comparison : (-comparison);
+					}
+					offset1 += WritableUtils.decodeVIntSize(b1[offset1]) + strLength1;
+					offset2 += WritableUtils.decodeVIntSize(b2[offset2]) + strLength2;
+					
 				}
 			}
 			return 0; // equals
@@ -155,9 +179,9 @@ public class TupleSortComparator extends WritableComparator implements Configura
 		try {
 			if(conf != null) {
 				this.conf = conf;
-				this.schema = Schema.parse(conf);
+				setSchema(Schema.parse(conf));
 				try {
-					this.sortCriteria = SortCriteria.parse(conf);
+					setSortCriteria(SortCriteria.parse(conf));
 				} catch(GrouperException e) {
 					throw new RuntimeException(e);
 				}

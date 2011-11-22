@@ -16,12 +16,13 @@
 
 package com.datasalt.pangolin.io;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.DataInputBuffer;
+import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
@@ -44,13 +45,13 @@ public class Serialization {
 	}
 	
 	// only one byte array per thread, to make it thread safe and efficient
-	private ThreadLocal<ByteArrayOutputStream> cachedOutputStream = new ThreadLocal<ByteArrayOutputStream>() {
-
-		@Override
-    protected ByteArrayOutputStream initialValue() {
-			return new ByteArrayOutputStream();
-    }
-	};
+//	private ThreadLocal<DataOutputBuffer> cachedOutputStream = new ThreadLocal<DataOutputBuffer>() {
+//
+//		@Override
+//    protected DataOutputBuffer initialValue() {
+//			return new DataOutputBuffer();
+//    }
+//	};
 	
 	private ThreadLocal<DataInputBuffer> cachedInputStream = new ThreadLocal<DataInputBuffer>() {
 
@@ -60,14 +61,15 @@ public class Serialization {
     }
 	};
 	
-	public byte[] ser(Object datum) throws IOException {
+	public int ser(Object datum,DataOutputBuffer output) throws IOException {
     Serializer ser = serialization.getSerializer(datum.getClass());
-    ByteArrayOutputStream baOs = cachedOutputStream.get();
-    baOs.reset();
-		ser.open(baOs);
+    //DataOutputBuffer baOs = cachedOutputStream.get();
+    //output.wr
+    //output.reset(); //THIS SHOULD BE DONE OUTSIDE
+		ser.open(output);
 		ser.serialize(datum);
 		ser.close();
-		return baOs.toByteArray();
+		return output.getLength();
 		
 	}
 	
@@ -85,4 +87,13 @@ public class Serialization {
 		baIs.close();
     return (T)obj;
 	}
+	
+	public <T> T deser(Object obj,InputStream in) throws IOException {
+		Deserializer deSer = serialization.getDeserializer(obj.getClass());
+		deSer.open(in);
+		obj = deSer.deserialize(obj);
+		deSer.close();
+		return (T)obj;
+	}
+	
 }

@@ -1,7 +1,4 @@
-package snippet;
-
-public class Snippet {
-	namespace java net.peerindex.pisae.thrift.test
+namespace java com.datasalt.pangolin.thrift.test
 	
 	struct A {
 	
@@ -22,5 +19,5 @@ public class Snippet {
 		10: i32 number,
 		20: i64 longNumber
 	}
-}
+  
 

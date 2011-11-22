@@ -47,6 +47,7 @@ public class GrouperMapper<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT
 		Schema schema = Schema.parse(context.getConfiguration());
 		outputKey.setSchema(schema);
 		//binary comparator is configured with schema and sort criteria
+		//VERY TRICKY!!!
 		((TupleSortComparator)WritableComparator.get(Tuple.class)).setConf(context.getConfiguration());
 		this.context = context;
 		} catch(GrouperException e){

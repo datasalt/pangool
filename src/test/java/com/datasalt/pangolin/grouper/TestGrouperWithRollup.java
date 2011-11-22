@@ -17,10 +17,10 @@ import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.grouper.io.Tuple.NoSuchFieldException;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
-import com.datasalt.pangolin.grouper.mapred.SimpleGrouperReducer;
+import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
 
 
-public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
+public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 
 	private static class Mapy extends GrouperMapper<Text,NullWritable>{
 		
@@ -40,29 +40,39 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 			Integer height = Integer.parseInt(tokens[3]);
 			
 			Tuple outputKey = getTupleToEmit();
-			try{
-			outputKey.setField("country",country);
-			outputKey.setField("age",age);
-			outputKey.setField("name",name);
-			outputKey.setField("height", height);
-			emit(outputKey);
-			} catch(NoSuchFieldException e){
+			try {
+				outputKey.setField("country",country);
+				outputKey.setField("age",age);
+				outputKey.setField("name",name);
+				outputKey.setField("height", height);
+				emit(outputKey);
+			} catch (NoSuchFieldException e) {
 				throw new RuntimeException(e);
 			}
+			
 		}
 	}
 	
-	private static class Red extends SimpleGrouperReducer<Tuple,NullWritable>{
+	private static class Red extends GrouperWithRollupReducer<Tuple,NullWritable>{
 
 		@Override
-		public void elements(Iterable<Tuple> values,Context context)
-				throws IOException, InterruptedException {
-			StringBuilder b = new StringBuilder();
-			for (Tuple value : values){
-				b.append(value.toString()).append(",");
+    public void onOpenGroup(int depth,String field,Tuple firstElement, Context context) {
+	    System.out.println("OPEN("+ depth+","+field +"):\t\t" + firstElement);
+    }
+
+		@Override
+    public void onCloseGroup(int depth,String field,Tuple lastElement, Context context) {
+	    System.out.println("CLOSE:("+depth+","+field+")\t\t" + lastElement);
+    }
+		
+		@Override
+		public void onElements(Iterable<Tuple> tuples, Context context) throws IOException,InterruptedException {
+			Iterator<Tuple> iterator = tuples.iterator();
+			while ( iterator.hasNext()){
+				Tuple tuple = iterator.next();
+				System.out.println("element:\t\t" + tuple);
 			}
-			System.out.println("ELEMENTS:"+b.toString());
-		}
+	  }
 	}
 	
 	
@@ -77,15 +87,16 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		withInput("input",new Text("US 16 listo 160"));
 		withInput("input",new Text("XE 20 listo 230"));
 		
-		Grouper grouper = new Grouper(getConf());
+		GrouperWithRollup grouper = new GrouperWithRollup(getConf());
 		grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
 		grouper.setMapperClass(Mapy.class);
 		grouper.setReducerClass(Red.class);
 		
 		grouper.setSchema(Schema.parse("country:string , age:vint , name:string,height:int"));
-		grouper.setSortCriteria("country DESC,age ASC,name asc,height desc");
-		grouper.setGroup("country,age");
+		grouper.setSortCriteria("country ASC,age ASC");
+		grouper.setMinGroup("country");
+		grouper.setMaxGroup("country,age,name");
 		
 		grouper.setOutputKeyClass(Tuple.class);
 		grouper.setOutputValueClass(NullWritable.class);

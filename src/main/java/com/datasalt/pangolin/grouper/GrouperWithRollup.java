@@ -29,7 +29,7 @@ import com.datasalt.pangolin.grouper.io.TuplePartitioner;
 import com.datasalt.pangolin.grouper.io.TupleSortComparator;
 import com.datasalt.pangolin.grouper.mapred.GrouperCombiner;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
-import com.datasalt.pangolin.grouper.mapred.GrouperReducer;
+import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
 
 
 
@@ -45,7 +45,7 @@ public class GrouperWithRollup {
 	//private Job job;
 	private Configuration conf;
 	private Schema schema;
-	private Class<? extends GrouperReducer> reducerClass;
+	private Class<? extends GrouperWithRollupReducer> reducerClass;
 	private Class<? extends GrouperMapper> mapperClass; //TODO change this to multiinput
 	private Class<? extends InputFormat> inputFormat;
 	private Class<? extends OutputFormat> outputFormat;
@@ -85,7 +85,7 @@ public class GrouperWithRollup {
 	
 	
 	
-	public void setReducerClass(Class<? extends GrouperReducer> reducerClass){
+	public void setReducerClass(Class<? extends GrouperWithRollupReducer> reducerClass){
 		this.reducerClass = reducerClass;
 	}
 	

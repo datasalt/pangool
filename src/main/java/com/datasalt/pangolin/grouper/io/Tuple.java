@@ -16,19 +16,28 @@
 package com.datasalt.pangolin.grouper.io;
 
 import java.io.DataInput;
+import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import javax.annotation.Nonnull;
+
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.contrib.serialization.thrift.ThriftSerialization;
+import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableUtils;
+import org.apache.hadoop.util.ReflectionUtils;
+import org.apache.thrift.TBase;
 
+import com.datasalt.pangolin.commons.Buffer;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.io.Serialization;
 
 /**
  * This is the main serializable {@link WritableComparable} object used in {@link Grouper}. It's configured by a 
@@ -37,20 +46,29 @@ import com.datasalt.pangolin.grouper.Schema;
  * 
  */
 public class Tuple implements WritableComparable<Tuple>,Configurable {
+	//private ThriftSerialization thriftSerialization = 
 	private Configuration conf;
 	private Comparable[] objects= new Comparable[0];
+	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
+	private Buffer tmpInputBuffer = new Buffer();
+	private Serialization serialization;
+	//private ThriftSerialization thriftSerialization = new ThriftSerialization();
 	private Schema schema;
 	private Text text = new Text();
 
 	public Tuple() {
 	}
 
+	public void setSerialization(Serialization ser){
+		this.serialization = ser;
+	}
+	
 	
 	public Comparable get(int index){
 		return objects[index];
 	}
 	
-	public void setSchema(Schema schema) {
+	public void setSchema(@Nonnull Schema schema) {
 		this.schema = schema;
 		// TODO this should erase previous state ?
 		this.objects = new Comparable[schema.getFields().length];
@@ -75,6 +93,8 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 				objects[i]=0.0;
 			} else if(type == Boolean.class){
 				objects[i] = false;
+			} else {
+				objects[i] = (Comparable)ReflectionUtils.newInstance(type, conf);
 			}
 		}
 	}
@@ -83,6 +103,15 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 	public static class NoSuchFieldException extends GrouperException {
 		public NoSuchFieldException(String s,Throwable e) {
 			super(s,e);
+		}
+	}
+	
+	public Object getField(String fieldName) throws NoSuchFieldException {
+		int index = this.schema.getIndexByFieldName(fieldName);
+		try{
+			return objects[index];
+		} catch(IndexOutOfBoundsException e){
+			throw new NoSuchFieldException("Field \"" + fieldName + "\" not in schema",e);
 		}
 	}
 	
@@ -122,8 +151,14 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 			}	else if (fieldType == Boolean.class) {
 				output.writeBoolean((Boolean)objects[numField]);
 			} else {
+			//} else if ( TBase.class.isAssignableFrom(fieldType)){
+				//TODO should we use serialization from Hadoop here or directly Thrift serializer
+				tmpOutputBuffer.reset();
+				int size = serialization.ser(objects[numField],tmpOutputBuffer);
+				WritableUtils.writeVInt(output,size);
+				output.write(tmpOutputBuffer.getData(),0,size);
 				//TODO output correct exception 
-				throw new RuntimeException("Not implemented fieldType : " + fieldType); 
+				//throw new RuntimeException("Not implemented fieldType : " + fieldType); 
 			}
 		}
 	}
@@ -150,7 +185,17 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 			} else if (fieldType == Boolean.class) {
 				setField(i,input.readBoolean());
 			} else {
-				throw new RuntimeException("Not implemented fieldType :  " + fieldType);
+			//} else if ( TBase.class.isAssignableFrom(fieldType)){
+				int size =WritableUtils.readVInt(input);
+				tmpInputBuffer.setSize(size);
+				//tmpInputBuffer.setSize(0);
+				input.readFully(tmpInputBuffer.getBytes(),0,size);
+				
+				//serialization.deser(objects[i],(DataInputStream) input);
+				serialization.deser(objects[i],tmpInputBuffer.getBytes(),0,size);
+				
+			//} else {
+			//	throw new RuntimeException("Not implemented fieldType :  " + fieldType);
 			}
 		}
 	}
@@ -187,8 +232,14 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		if (conf != null){
 			this.conf = conf;
 			try {
-	      setSchema(Schema.parse(this.conf));
+				Schema schema =Schema.parse(this.conf);
+				if (schema != null){
+					setSchema(schema);
+				}
+	      this.serialization = new Serialization(conf);
       } catch(GrouperException e) {
+	      throw new RuntimeException(e);
+      } catch(IOException e) {
 	      throw new RuntimeException(e);
       }
 		}

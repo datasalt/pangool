@@ -16,13 +16,12 @@
 
 package com.datasalt.pangolin.grouper;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Assert;
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
-import com.datasalt.pangolin.grouper.SortCriteria.Sort;
+import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 
 public class TestSortCriteria {
 
@@ -33,9 +32,9 @@ public class TestSortCriteria {
 		String[] fieldNames = criteria.getFieldNames();
 		assertEquals(2,fieldNames.length);
 		assertEquals("name",fieldNames[0]);
-		assertEquals(Sort.ASC,criteria.getSortByFieldName("name"));
+		assertEquals(SortOrder.ASCENDING,criteria.getSortByFieldName("name"));
 		assertEquals("caca",fieldNames[1]);
-		assertEquals(Sort.DESC,criteria.getSortByFieldName("caca"));
+		assertEquals(SortOrder.DESCENDING,criteria.getSortByFieldName("caca"));
 		
 		
 		try{

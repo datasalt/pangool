@@ -35,7 +35,7 @@ import com.datasalt.pangolin.grouper.io.Tuple;
  * @param <KEY_OUT>
  * @param <VALUE_OUT>
  */
-public abstract class GrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<Tuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
+public abstract class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<Tuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
     	private Tuple lastElementPreviousGroup=null;
     	private Schema schema;

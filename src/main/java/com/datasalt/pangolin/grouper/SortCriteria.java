@@ -36,19 +36,19 @@ public class SortCriteria  {
 	
 	public static final String CONF_SORT_CRITERIA = "datasalt.grouper.sort.criteria";
 	
-	public static enum Sort {
-		ASC, //ASCENDING ORDER
-		DESC //DESCENDING ORDER
+	public static enum SortOrder {
+		ASCENDING, 
+		DESCENDING
 	}
 	
-	private SortCriteria(Map<String,Sort> fields,String[] namesOrdered){
+	private SortCriteria(Map<String,SortOrder> fields,String[] namesOrdered){
 		this.fields = fields;
 		this.namesOrdered = namesOrdered;
 	}
-	private Map<String,Sort> fields;
+	private Map<String,SortOrder> fields;
 	private String[] namesOrdered;
 	
-	public Sort getSortByFieldName(String name){
+	public SortOrder getSortByFieldName(String name){
 		return fields.get(name);
 	}
 	
@@ -61,7 +61,7 @@ public class SortCriteria  {
 	}
 	
 	public static SortCriteria parse(String sortCriteria) throws GrouperException {
-		Map<String,Sort> fields = new HashMap<String,Sort>();
+		Map<String,SortOrder> fields = new HashMap<String,SortOrder>();
 		List<String> namesOrdered = new ArrayList<String>();
 		String[] tokens = sortCriteria.split(",");
 		for (String token : tokens){
@@ -75,9 +75,9 @@ public class SortCriteria  {
 			}
 			
 			if ("ASC".equals(nameSort[1].toUpperCase())){
-				fields.put(name,Sort.ASC);
+				fields.put(name,SortOrder.ASCENDING);
 			} else if("DESC".equals(nameSort[1].toUpperCase())){
-				fields.put(name,Sort.DESC);
+				fields.put(name,SortOrder.DESCENDING);
 			} else {
 				throw new GrouperException ("Invalid sortingCriteria " + nameSort[1] + " in " + sortCriteria);
 			}
@@ -96,7 +96,7 @@ public class SortCriteria  {
 		}
 		StringBuilder b = new StringBuilder();
 		String name = namesOrdered[0];
-		Sort sort = fields.get(name);
+		SortOrder sort = fields.get(name);
 		b.append(name).append(" ").append(sort);
 		for (int i=1 ; i < namesOrdered.length; i++){
 			name = namesOrdered[i];

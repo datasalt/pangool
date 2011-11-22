@@ -52,7 +52,7 @@ public class ProtoStuffDeserializer<T extends Schema> implements Deserializer<T>
 
   @Override
   public T deserialize(T t) throws IOException {
-  	t = t == null ? newInstance() : t;
+  	t = (t == null) ? newInstance() : t;
 		LinkedBuffer buff = threadLocalBuffer.get();
 		ProtobufIOUtil.mergeDelimitedFrom(in, t, t, buff);
 		buff.clear();

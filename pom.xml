@@ -466,13 +466,36 @@
         </execution>
       </executions>
     </plugin>
+     <!-- In order to add aditional source folders -->
+   <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.1</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/contrib/java</source>
+                <source>target/test/generated-thrift/java/gen-javabean</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    
+    
   </plugins>
  </build>
  
  
  <profiles>
-<!--
-    <profile>
+ 
+ <profile>
       <id>profile-buildthrift</id>
       <activation>
         <file>
@@ -489,15 +512,15 @@
                 <phase>generate-sources</phase>
                 <configuration>
                   <tasks>
-                    <mkdir dir="src/test/generated-thrift/java/" />
-                    <exec executable="/usr/local/bin/thrift">-->
-			    <!--  <arg value="--> <!--gen" />-->
-     <!--                 <arg value="java:beans"/>
+                    <mkdir dir="target/test/generated-thrift/java/" />
+                    <exec executable="/usr/local/bin/thrift">
+                      <arg value="--gen" />
+                      <arg value="java:beans"/>
                       <arg value="-o"/>
-                      <arg value="src/test/generated-thrift/java/"/>
+                      <arg value="target/test/generated-thrift/java/"/>
                       <arg value="src/test/resources/pangolin-test.thrift"/>
                     </exec>
-                   --> <!--  
+                    <!--  
                     <delete>
                       <fileset dir="src/main/java/com/joelpm/generated" includes="**/*"/>
                     </delete>
@@ -506,7 +529,7 @@
                     <copy todir="src/main/java/com/joelpm/generated">
                       <fileset dir="target/generated-sources/gen-javabean/com/joelpm/generated"/>
                     </copy>-->
-                    <!--
+                    
                   </tasks>
                 </configuration>
                 <goals>
@@ -517,7 +540,9 @@
           </plugin>
         </plugins>
       </build>
-    </profile>-->
+    </profile>
+ 
+
   </profiles>
  
   

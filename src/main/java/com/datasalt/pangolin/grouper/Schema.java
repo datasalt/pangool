@@ -93,8 +93,12 @@ public class Schema {
 	
 	private Field[] fields;
 	
-	public static Class<?> strToClass(String str) {
-		return strToClazz.get(str);
+	public static Class<?> strToClass(String str) throws ClassNotFoundException {
+		Class<?> clazz =strToClazz.get(str); 
+		if (clazz == null){
+			clazz = Class.forName(str);
+		}
+		return clazz;
 	}
 	
 	public static String classToStr(Class<?> clazz) {
@@ -141,6 +145,7 @@ public class Schema {
 	}
 
 	public static Schema parse(String serialized) throws GrouperException {
+		try{
 		if (serialized == null || serialized.isEmpty()){
 			return null;
 		}
@@ -158,6 +163,9 @@ public class Schema {
 		Field[] fieldsArray = new Field[fields.size()];
 		fields.toArray(fieldsArray);
 		return new Schema(fieldsArray);
+		} catch(ClassNotFoundException e){
+			throw new GrouperException(e);
+		}
 	}
 	
 	/**

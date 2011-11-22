@@ -19,7 +19,6 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Partitioner;
-import org.apache.log4j.Logger;
 
 import com.datasalt.pangolin.grouper.Constants;
 import com.datasalt.pangolin.grouper.GrouperException;
@@ -32,6 +31,8 @@ import com.datasalt.pangolin.grouper.Schema;
  */
 public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements Configurable{
 
+	public static final String CONF_PARTITIONER_FIELDS ="datasalt.grouper.partitioner_fields";
+	
 	private Configuration conf;
 	private Schema schema;
 	private int[] groupFieldsIndexes;
@@ -55,7 +56,8 @@ public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements
 			this.schema = Schema.parse(conf);
 		}
 		
-		String fieldsGroupStr = conf.get(Constants.CONF_MIN_GROUP);
+		String fieldsGroupStr = conf.get(CONF_PARTITIONER_FIELDS);
+		//TODO what to do here if null
 		String[] fieldsGroup = fieldsGroupStr.split(",");
 		groupFieldsIndexes = new int[fieldsGroup.length];
 		for (int i=0 ; i < fieldsGroup.length;i++){
