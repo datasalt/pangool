@@ -27,17 +27,17 @@ import com.datasalt.pangolin.grouper.Constants;
  */
 public class TupleGroupComparator extends TupleSortComparator{
 
-	private int groupDepth;
+	private int numFieldsCompared;
 	
 	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-		return compare(groupDepth,b1,s1,l1,b2,s2,l2);
+		return compare(numFieldsCompared,b1,s1,l1,b2,s2,l2);
 	}
 
 	@Override
   public void setConf(Configuration conf) {
 	  super.setConf(conf);
 	  String s = conf.get(Constants.CONF_MAX_GROUP);
-	  groupDepth = s.split(",").length;
+	  numFieldsCompared = s.split(",").length;
   }
 }

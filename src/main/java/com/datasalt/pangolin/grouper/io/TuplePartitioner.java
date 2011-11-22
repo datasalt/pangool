@@ -25,6 +25,11 @@ import com.datasalt.pangolin.grouper.Constants;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 
+/**
+ * 
+ * @author epalace
+ *
+ */
 public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements Configurable{
 
 	private Configuration conf;
