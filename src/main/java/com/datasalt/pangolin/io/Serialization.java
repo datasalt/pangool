@@ -18,6 +18,7 @@ package com.datasalt.pangolin.io;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.BytesWritable;
@@ -61,15 +62,17 @@ public class Serialization {
     }
 	};
 	
-	public int ser(Object datum,DataOutputBuffer output) throws IOException {
+	public void ser(Object datum,OutputStream output) throws IOException {
     Serializer ser = serialization.getSerializer(datum.getClass());
     //DataOutputBuffer baOs = cachedOutputStream.get();
     //output.wr
     //output.reset(); //THIS SHOULD BE DONE OUTSIDE
+    
 		ser.open(output);
 		ser.serialize(datum);
+		//output.
 		ser.close();
-		return output.getLength();
+		//return output.getLength();
 		
 	}
 	

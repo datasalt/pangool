@@ -154,9 +154,9 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 			//} else if ( TBase.class.isAssignableFrom(fieldType)){
 				//TODO should we use serialization from Hadoop here or directly Thrift serializer
 				tmpOutputBuffer.reset();
-				int size = serialization.ser(objects[numField],tmpOutputBuffer);
-				WritableUtils.writeVInt(output,size);
-				output.write(tmpOutputBuffer.getData(),0,size);
+				serialization.ser(objects[numField],tmpOutputBuffer);
+				WritableUtils.writeVInt(output,tmpOutputBuffer.getLength());
+				output.write(tmpOutputBuffer.getData(),0,tmpOutputBuffer.getLength());
 				//TODO output correct exception 
 				//throw new RuntimeException("Not implemented fieldType : " + fieldType); 
 			}

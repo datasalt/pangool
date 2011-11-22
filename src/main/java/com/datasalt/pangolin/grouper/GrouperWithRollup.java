@@ -53,6 +53,7 @@ public class GrouperWithRollup {
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass,outputValueClass;
 	private String sortCriteria;
+	private String partitionerFields;
 	
 	private String minGroup,maxGroup;
 	
@@ -83,7 +84,9 @@ public class GrouperWithRollup {
 		this.maxGroup = maxGroup;
 	}
 	
-	
+	public void setPartitionerFields(String partitionerFields){
+		this.partitionerFields = partitionerFields;
+	}
 	
 	public void setReducerClass(Class<? extends GrouperWithRollupReducer> reducerClass){
 		this.reducerClass = reducerClass;
@@ -121,6 +124,7 @@ public class GrouperWithRollup {
 		this.conf.set(Constants.CONF_MIN_GROUP, minGroup);
 		this.conf.set(Constants.CONF_MAX_GROUP,maxGroup);
 		this.conf.set(SortCriteria.CONF_SORT_CRITERIA,sortCriteria);
+		this.conf.set(TuplePartitioner.CONF_PARTITIONER_FIELDS,(partitionerFields != null) ? partitionerFields :  minGroup);
 		
 		
 		new TupleSortComparator();

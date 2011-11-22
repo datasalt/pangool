@@ -51,7 +51,8 @@ public class Grouper {
 	private Class<?> outputKeyClass,outputValueClass;
 	private String sortCriteria;
 	
-	private String group;
+	private String groupFields;
+	private String partitionerFields;
 	
 	
 	public Grouper(Configuration conf) throws IOException{
@@ -69,12 +70,14 @@ public class Grouper {
 	}
 	
 	public void setGroup(String group){
-		this.group = group;
+		this.groupFields = group;
 		
 	}
 	
 	
-	
+	public void setPartitionFields(String fields){
+		this.partitionerFields = fields;
+	}
 	
 	
 	public void setReducerClass(Class<? extends SimpleGrouperReducer> reducerClass){
@@ -110,9 +113,10 @@ public class Grouper {
 	
 	public Job getJob() throws IOException{
 		this.conf.set(Schema.CONF_SCHEMA,schema.serialize());
-		this.conf.set(Constants.CONF_MIN_GROUP, group);
-		this.conf.set(Constants.CONF_MAX_GROUP,group);
+		this.conf.set(Constants.CONF_MIN_GROUP, groupFields);
+		this.conf.set(Constants.CONF_MAX_GROUP,groupFields);
 		this.conf.set(SortCriteria.CONF_SORT_CRITERIA,sortCriteria);
+		this.conf.set(TuplePartitioner.CONF_PARTITIONER_FIELDS,(partitionerFields != null) ? partitionerFields :  groupFields);
 		
 		
 		new TupleSortComparator();
