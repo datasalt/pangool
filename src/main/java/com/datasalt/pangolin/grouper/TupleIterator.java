@@ -40,7 +40,6 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>,I
 	
 	/*
 	 *  used to mark that the first element from iterable was already consumed, so in next iteration don't call iterator.next().
-	 *  Instead of this reuse the currentKey in context.getCurrentKey()
 	 */
 	private boolean firstTupleConsumed=false;
 	

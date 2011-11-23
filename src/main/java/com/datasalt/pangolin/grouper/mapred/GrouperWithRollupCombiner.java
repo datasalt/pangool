@@ -10,7 +10,7 @@ import com.datasalt.pangolin.grouper.io.TupleSortComparator;
 
 
 
-public abstract class GrouperCombiner extends GrouperWithRollupReducer<Tuple,NullWritable>{
+public abstract class GrouperWithRollupCombiner extends GrouperWithRollupReducer<Tuple,NullWritable>{
 	
 	private Context context;
 	private NullWritable outputValue = NullWritable.get();

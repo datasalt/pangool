@@ -1,3 +1,19 @@
+/**
+ * Copyright [2011] [Datasalt Systems S.L.]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.datasalt.pangolin.grouper;
 
 import java.io.IOException;
@@ -79,13 +95,13 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	@Test
 	public void test() throws IOException, InterruptedException, ClassNotFoundException, GrouperException{
 		
-		withInput("input",new Text("ES 20 listo 250"));
-		withInput("input",new Text("US 14 perro 180"));
-		withInput("input",new Text("US 14 perro 170"));
-		withInput("input",new Text("US 14 beber 202"));
-		withInput("input",new Text("US 15 jauja 160"));
-		withInput("input",new Text("US 16 listo 160"));
-		withInput("input",new Text("XE 20 listo 230"));
+		withInput("input",writable("ES 20 listo 250"));
+		withInput("input",writable("US 14 perro 180"));
+		withInput("input",writable("US 14 perro 170"));
+		withInput("input",writable("US 14 beber 202"));
+		withInput("input",writable("US 15 jauja 160"));
+		withInput("input",writable("US 16 listo 160"));
+		withInput("input",writable("XE 20 listo 230"));
 		
 		GrouperWithRollup grouper = new GrouperWithRollup(getConf());
 		grouper.setInputFormat(SequenceFileInputFormat.class);
@@ -93,8 +109,8 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		grouper.setMapperClass(Mapy.class);
 		grouper.setReducerClass(Red.class);
 		
-		grouper.setSchema(Schema.parse("country:string , age:vint , name:string,height:int"));
-		grouper.setSortCriteria("country ASC,age ASC");
+		grouper.setSchema(Schema.parse("country:string,age:vint,name:string,height:int"));
+		grouper.setSortCriteria("country DESC,age DESC");
 		grouper.setMinGroup("country");
 		grouper.setMaxGroup("country,age,name");
 		

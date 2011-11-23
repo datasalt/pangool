@@ -80,10 +80,10 @@ public class Serialization {
 	  return (T)deser(obj,writable.getBytes(),0,writable.getLength());
 	}
 	
-	public <T> T deser(Object obj, byte[] datum, int offset, int length) throws IOException {
+	public <T> T deser(Object obj, byte[] array, int offset, int length) throws IOException {
 	  Deserializer deSer = serialization.getDeserializer(obj.getClass());
 		DataInputBuffer baIs = cachedInputStream.get();
-		baIs.reset(datum, length);
+		baIs.reset(array, offset,length);
 		deSer.open(baIs);
 		obj = deSer.deserialize(obj);
 		deSer.close();

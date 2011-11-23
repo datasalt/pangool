@@ -130,7 +130,11 @@ public class Schema {
 		for (int i = 1 ; i < fields.length ; i++){
 			fieldName = fields[i].name;
 			fieldType = fields[i].type;
-			b.append(",").append(fieldName).append(":").append(classToStr(fieldType));
+			String clazzStr = classToStr(fieldType);
+			if (clazzStr == null){
+				clazzStr = fieldType.getName();
+			}
+			b.append(",").append(fieldName).append(":").append(clazzStr);
 		}
 		return b.toString();
 	}
@@ -178,4 +182,9 @@ public class Schema {
 		String schemaStr = conf.get(Schema.CONF_SCHEMA);
 		return Schema.parse(schemaStr);
 	}
+	
+	public static void setInConfig(Schema schema,Configuration conf){
+		conf.set(CONF_SCHEMA,schema.serialize());
+	}
+	
 }

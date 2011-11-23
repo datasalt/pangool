@@ -27,7 +27,7 @@ import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
 import com.datasalt.pangolin.grouper.io.TuplePartitioner;
 import com.datasalt.pangolin.grouper.io.TupleSortComparator;
-import com.datasalt.pangolin.grouper.mapred.GrouperCombiner;
+import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupCombiner;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
 import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
 
@@ -49,7 +49,7 @@ public class GrouperWithRollup {
 	private Class<? extends GrouperMapper> mapperClass; //TODO change this to multiinput
 	private Class<? extends InputFormat> inputFormat;
 	private Class<? extends OutputFormat> outputFormat;
-	private Class<? extends GrouperCombiner> combinerClass;
+	private Class<? extends GrouperWithRollupCombiner> combinerClass;
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass,outputValueClass;
 	private String sortCriteria;
@@ -92,7 +92,7 @@ public class GrouperWithRollup {
 		this.reducerClass = reducerClass;
 	}
 	
-	public void setCombinerClass(Class<? extends GrouperCombiner> combinerClass){
+	public void setCombinerClass(Class<? extends GrouperWithRollupCombiner> combinerClass){
 		this.combinerClass = combinerClass;
 	}
 	

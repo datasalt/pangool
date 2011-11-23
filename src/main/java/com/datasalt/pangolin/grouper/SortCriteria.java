@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.RawComparator;
 
 /**
  * 
@@ -36,73 +37,134 @@ public class SortCriteria  {
 	
 	public static final String CONF_SORT_CRITERIA = "datasalt.grouper.sort.criteria";
 	
+	public static class SortElement {
+		
+		private SortElement(String name,SortOrder sortOrder,Class<? extends RawComparator> comparator){
+			this.fieldName = name;
+			this.sortOrder = sortOrder;
+			this.comparator = comparator;
+		}
+		
+		private String fieldName;
+		private SortOrder sortOrder;
+		private Class<? extends RawComparator> comparator;
+		public String getName(){
+			return fieldName;
+		}
+		
+		public SortOrder getSortOrder(){
+			return sortOrder;
+		}
+		
+		public Class<? extends RawComparator> getComparator(){
+			return comparator;
+		}
+	}
+	
 	public static enum SortOrder {
-		ASCENDING, 
-		DESCENDING
+		ASCENDING("asc"), 
+		DESCENDING("desc");
+		
+		private String abr;
+		private SortOrder(String abr){
+			this.abr=abr;
+		}
+		public String getAbreviation(){
+			return abr;
+		}
+		
 	}
 	
-	private SortCriteria(Map<String,SortOrder> fields,String[] namesOrdered){
-		this.fields = fields;
-		this.namesOrdered = namesOrdered;
+	private SortCriteria(SortElement[] sortElements){
+		this.sortElements = sortElements;
+		for (SortElement sortElement : sortElements){
+			this.sortElementsByName.put(sortElement.fieldName, sortElement);
+		}
+		
 	}
-	private Map<String,SortOrder> fields;
-	private String[] namesOrdered;
+
+	private SortElement[] sortElements;
+	private Map<String,SortElement> sortElementsByName=new HashMap<String,SortElement>();
 	
-	public SortOrder getSortByFieldName(String name){
-		return fields.get(name);
+	public SortElement getSortElementByFieldName(String name){
+		return sortElementsByName.get(name.toLowerCase());
 	}
 	
-	public String[] getFieldNames(){
-		return namesOrdered;
+	public SortElement[] getSortElements(){
+		return sortElements;
 	}
+	
 	
 	public static SortCriteria parse(Configuration conf) throws GrouperException{
 		return parse(conf.get(CONF_SORT_CRITERIA));
 	}
 	
 	public static SortCriteria parse(String sortCriteria) throws GrouperException {
-		Map<String,SortOrder> fields = new HashMap<String,SortOrder>();
-		List<String> namesOrdered = new ArrayList<String>();
+		List<SortElement> sortElements = new ArrayList<SortElement>();
+		List<String> fields = new ArrayList<String>();
 		String[] tokens = sortCriteria.split(",");
 		for (String token : tokens){
+			
 			String[] nameSort = token.trim().split("\\s+");
-			if (nameSort.length != 2){
+			if (nameSort.length < 2 || nameSort.length > 4){
 				throw new GrouperException("Invalid sortCriteria format : " + sortCriteria);
 			}
 			String name = nameSort[0].toLowerCase();
-			if (fields.containsKey(name)){
+			if (fields.contains(name)){
 				throw new GrouperException("Invalid sortCriteria .Repeated field " + name);
 			}
+			fields.add(name);
+			int offset=0;
+			Class<? extends RawComparator> comparator = null;
+			try{
+			if ("using".equals(nameSort[1].toLowerCase())){
+				comparator = (Class<? extends RawComparator<?>>)Class.forName(nameSort[2]);
+				offset=2;
+			}
+			} catch(ClassNotFoundException e){
+				throw new GrouperException("Class not found : " + nameSort[2],e);
+			}
 			
-			if ("ASC".equals(nameSort[1].toUpperCase())){
-				fields.put(name,SortOrder.ASCENDING);
-			} else if("DESC".equals(nameSort[1].toUpperCase())){
-				fields.put(name,SortOrder.DESCENDING);
+			SortOrder sortOrder;
+			if ("ASC".equals(nameSort[1+offset].toUpperCase())){
+				sortOrder = SortOrder.ASCENDING;
+			} else if("DESC".equals(nameSort[1+offset].toUpperCase())){
+				sortOrder = SortOrder.DESCENDING;
 			} else {
 				throw new GrouperException ("Invalid sortingCriteria " + nameSort[1] + " in " + sortCriteria);
 			}
-			namesOrdered.add(name);
 			
+			SortElement sortElement = new SortElement(name,sortOrder,comparator);
+			sortElements.add(sortElement);
 		}
-		String[] array = new String[namesOrdered.size()];
-		namesOrdered.toArray(array);
-		return new SortCriteria(fields,array);
+
+		SortElement[] array = new SortElement[sortElements.size()];
+		sortElements.toArray(array);
+		return new SortCriteria(array);
 	}
 	
 	@Override
 	public String toString(){
-		if (namesOrdered == null || namesOrdered.length == 0){
-			return "";
-		}
+		
 		StringBuilder b = new StringBuilder();
-		String name = namesOrdered[0];
-		SortOrder sort = fields.get(name);
-		b.append(name).append(" ").append(sort);
-		for (int i=1 ; i < namesOrdered.length; i++){
-			name = namesOrdered[i];
-			sort = fields.get(name);
-			b.append(",").append(name).append(" ").append(sort);
+		
+		for (int i=0 ; i < sortElements.length; i++){
+			if (i!=0){
+			  b.append(",");
+			}
+			SortElement sortElement = sortElements[i];
+			b.append(sortElement.getName());
+			Class<?> comparator = sortElement.getComparator();
+			if (comparator != null){
+				b.append(" using ").append(comparator.getName());
+			}
+			b.append(" ").append(sortElement.getSortOrder().getAbreviation());
 		}
 		return b.toString();
 	}
+	
+	public static void setInConfig(SortCriteria criteria,Configuration conf){
+		conf.set(CONF_SORT_CRITERIA, criteria.toString());
+	}
+	
 }
