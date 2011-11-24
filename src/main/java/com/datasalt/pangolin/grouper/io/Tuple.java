@@ -46,13 +46,11 @@ import com.datasalt.pangolin.io.Serialization;
  * 
  */
 public class Tuple implements WritableComparable<Tuple>,Configurable {
-	//private ThriftSerialization thriftSerialization = 
 	private Configuration conf;
-	private Comparable[] objects= new Comparable[0];
+	private Object[] objects= new Object[0];
 	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 	private Buffer tmpInputBuffer = new Buffer();
 	private Serialization serialization;
-	//private ThriftSerialization thriftSerialization = new ThriftSerialization();
 	private Schema schema;
 	private Text text = new Text();
 
@@ -64,13 +62,12 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 	}
 	
 	
-	public Comparable get(int index){
+	public Object get(int index){
 		return objects[index];
 	}
 	
 	public void setSchema(@Nonnull Schema schema) {
 		this.schema = schema;
-		// TODO this should erase previous state ?
 		this.objects = new Comparable[schema.getFields().length];
 		populateObjects();
 		
@@ -94,13 +91,15 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 			} else if(type == Boolean.class){
 				objects[i] = false;
 			} else {
-				objects[i] = (Comparable)ReflectionUtils.newInstance(type, conf);
+				objects[i] = ReflectionUtils.newInstance(type, conf);
 			}
 		}
 	}
 	
 	
 	public static class NoSuchFieldException extends GrouperException {
+    private static final long serialVersionUID = 1L;
+
 		public NoSuchFieldException(String s,Throwable e) {
 			super(s,e);
 		}
@@ -116,7 +115,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 	}
 	
 
-	public void setField(String fieldName,Comparable value) throws NoSuchFieldException {
+	public void setField(String fieldName,Object value) throws NoSuchFieldException {
 		int index = this.schema.getIndexByFieldName(fieldName);
 		try{
 		objects[index] = value;
@@ -125,7 +124,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		}
 	}
 
-	public void setField(int index,Comparable value) {
+	public void setField(int index,Object value) {
 		this.objects[index] = value;
 	}
 
@@ -151,14 +150,15 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 			}	else if (fieldType == Boolean.class) {
 				output.writeBoolean((Boolean)objects[numField]);
 			} else {
-			//} else if ( TBase.class.isAssignableFrom(fieldType)){
-				//TODO should we use serialization from Hadoop here or directly Thrift serializer
-				tmpOutputBuffer.reset();
-				serialization.ser(objects[numField],tmpOutputBuffer);
-				WritableUtils.writeVInt(output,tmpOutputBuffer.getLength());
-				output.write(tmpOutputBuffer.getData(),0,tmpOutputBuffer.getLength());
-				//TODO output correct exception 
-				//throw new RuntimeException("Not implemented fieldType : " + fieldType); 
+				Object object = objects[numField];
+				if (object == null){
+					WritableUtils.writeVInt(output,0);
+				} else {
+					tmpOutputBuffer.reset();
+					serialization.ser(objects[numField],tmpOutputBuffer);
+					WritableUtils.writeVInt(output,tmpOutputBuffer.getLength());
+					output.write(tmpOutputBuffer.getData(),0,tmpOutputBuffer.getLength());
+				}
 			}
 		}
 	}
@@ -185,17 +185,12 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 			} else if (fieldType == Boolean.class) {
 				setField(i,input.readBoolean());
 			} else {
-			//} else if ( TBase.class.isAssignableFrom(fieldType)){
 				int size =WritableUtils.readVInt(input);
-				tmpInputBuffer.setSize(size);
-				//tmpInputBuffer.setSize(0);
-				input.readFully(tmpInputBuffer.getBytes(),0,size);
-				
-				//serialization.deser(objects[i],(DataInputStream) input);
-				serialization.deser(objects[i],tmpInputBuffer.getBytes(),0,size);
-				
-			//} else {
-			//	throw new RuntimeException("Not implemented fieldType :  " + fieldType);
+				if (size != 0){
+					tmpInputBuffer.setSize(size);
+					input.readFully(tmpInputBuffer.getBytes(),0,size);
+					serialization.deser(objects[i],tmpInputBuffer.getBytes(),0,size);
+				}
 			}
 		}
 	}
@@ -253,10 +248,14 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		}
 		
 		for (int i= 0 ; i < this.objects.length ; i++){
-			int comparison = this.objects[i].compareTo(that.objects[i]);
-			if (comparison != 0){
-				return comparison;
+			Object object = objects[i];
+			if (object instanceof Comparable){
+				int comparison = ((Comparable)this.objects[i]).compareTo(that.objects[i]);
+				if (comparison != 0){
+					return comparison;
+				}
 			}
+			
 		}
 		return 0;
   }

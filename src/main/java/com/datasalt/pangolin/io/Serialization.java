@@ -21,9 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.DataInputBuffer;
-import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
@@ -64,21 +62,43 @@ public class Serialization {
 	
 	public void ser(Object datum,OutputStream output) throws IOException {
     Serializer ser = serialization.getSerializer(datum.getClass());
-    //DataOutputBuffer baOs = cachedOutputStream.get();
-    //output.wr
-    //output.reset(); //THIS SHOULD BE DONE OUTSIDE
-    
 		ser.open(output);
 		ser.serialize(datum);
-		//output.
 		ser.close();
-		//return output.getLength();
-		
 	}
 	
+	public <T> T deser(Object obj,InputStream in) throws IOException {
+		Deserializer deSer = serialization.getDeserializer(obj.getClass());
+		deSer.open(in);
+		obj = deSer.deserialize(obj);
+		deSer.close();
+		return (T)obj;
+	}
+	
+//	public <T> T deser(Class clazz,InputStream in) throws IOException {
+//		Deserializer deSer = serialization.getDeserializer(clazz);
+//		deSer.open(in);
+//		Object obj = deSer.deserialize(clazz);
+//		deSer.close();
+//		return (T)obj;
+//	}
+	
+	/*
 	public <T> T deser(Object obj, BytesWritable writable) throws IOException {
 	  return (T)deser(obj,writable.getBytes(),0,writable.getLength());
-	}
+	}*/
+	
+//	public <T> T deser(Class clazz, byte[] array, int offset, int length) throws IOException {
+//		Deserializer deSer = serialization.getDeserializer(clazz);
+//		DataInputBuffer baIs = cachedInputStream.get();
+//		baIs.reset(array, offset,length);
+//		deSer.open(baIs);
+//		Object obj = deSer.deserialize(null);
+//		deSer.close();
+//		baIs.close();
+//    return (T)obj;
+//	}
+		
 	
 	public <T> T deser(Object obj, byte[] array, int offset, int length) throws IOException {
 	  Deserializer deSer = serialization.getDeserializer(obj.getClass());
@@ -91,12 +111,7 @@ public class Serialization {
     return (T)obj;
 	}
 	
-	public <T> T deser(Object obj,InputStream in) throws IOException {
-		Deserializer deSer = serialization.getDeserializer(obj.getClass());
-		deSer.open(in);
-		obj = deSer.deserialize(obj);
-		deSer.close();
-		return (T)obj;
-	}
-	
+//	public <T> T deser(Object obj, byte[] array) throws IOException {
+//		return deser(obj,array,0,array.length);
+//	}
 }

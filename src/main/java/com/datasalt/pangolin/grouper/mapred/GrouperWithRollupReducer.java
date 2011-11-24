@@ -41,8 +41,6 @@ public abstract class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends 
     	private Schema schema;
     	private int minDepth,maxDepth;
     	private TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
-    	private Context context;
-    	//private NullWritable outputValue=NullWritable.get();
     	
     	protected Schema getSchema(){
     		return schema;
@@ -61,11 +59,8 @@ public abstract class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends 
   	
   	this.grouperIterator = new TupleIterator<OUTPUT_KEY,OUTPUT_VALUE>();
   	this.grouperIterator.setContext(context);
-  	this.context = context;
   }
 
-  
-  @SuppressWarnings("unchecked")
   @Override
   public final void run(Context context) throws IOException,InterruptedException {
 
