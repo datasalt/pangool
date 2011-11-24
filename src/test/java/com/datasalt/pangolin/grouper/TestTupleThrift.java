@@ -26,7 +26,7 @@ import org.apache.hadoop.io.DataOutputBuffer;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
-import com.datasalt.pangolin.grouper.Schema.Field;
+import com.datasalt.pangolin.grouper.FieldsDescription.Field;
 import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.thrift.test.A;
 
@@ -46,7 +46,7 @@ public class TestTupleThrift extends AbstractHadoopTestLibrary{
 		
 		Tuple tuple = new Tuple();
 		tuple.setConf(getConf());
-		Schema schema = Schema.parse("name :string,age:int,risas : " +a.getClass().getName());
+		FieldsDescription schema = FieldsDescription.parse("name :string,age:int,risas : " +a.getClass().getName());
 		tuple.setSchema(schema);
 		tuple.setField("name","eric");
 		tuple.setField("age",15);

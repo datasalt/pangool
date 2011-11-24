@@ -16,12 +16,16 @@
 package com.datasalt.pangolin.grouper;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 
 import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
@@ -42,14 +46,18 @@ public class Grouper {
 
 	
 	private Configuration conf;
-	private Schema schema;
 	private Class<? extends SimpleGrouperReducer> reducerClass;
-	private Class<? extends GrouperMapper> mapperClass; //TODO change this to multiinput
-	private Class<? extends InputFormat> inputFormat;
+	private Map<Integer,Class<? extends GrouperMapper>> mapperClassBySource=new HashMap<Integer,Class<? extends GrouperMapper>>();
+	private Map<Integer,Class<? extends InputFormat>> inputFormatBySource=new HashMap<Integer,Class<? extends InputFormat>>();
+	private Map<Integer,FieldsDescription> fieldsDescriptionBySource=new HashMap<Integer,FieldsDescription>();
+	private Map<Integer,Path> pathBySource = new HashMap<Integer,Path>();
+	
+	
 	private Class<? extends OutputFormat> outputFormat;
 	private Class<? extends SimpleGrouperCombiner> combinerClass;
+	
 	private Class<?> outputKeyClass,outputValueClass;
-	private String sortCriteria;
+	private SortCriteria sortCriteria;
 	
 	private String groupFields;
 	private String partitionerFields;
@@ -60,25 +68,26 @@ public class Grouper {
 		
 	}
 	
-	public void setSortCriteria(String sortCriteria){
-		this.sortCriteria = sortCriteria;
+	public void setInput(int id,Path path,Class<? extends InputFormat> inputFormatClass,Class<? extends GrouperMapper> mapperClass,String fieldDescription) throws GrouperException{
+		FieldsDescription fieldsDescription = FieldsDescription.parse(fieldDescription);
+		mapperClassBySource.put(id,mapperClass);
+		inputFormatBySource.put(id,inputFormatClass);
+		fieldsDescriptionBySource.put(id,fieldsDescription);
+		pathBySource.put(id,path);
 	}
 	
 	
-	public void setSchema(Schema schema){
-		this.schema = schema;
+	public void setSortCriteria(String sortCriteria) throws GrouperException{
+		this.sortCriteria = SortCriteria.parse(sortCriteria);
 	}
 	
 	public void setGroup(String group){
 		this.groupFields = group;
-		
 	}
-	
 	
 	public void setPartitionFields(String fields){
 		this.partitionerFields = fields;
 	}
-	
 	
 	public void setReducerClass(Class<? extends SimpleGrouperReducer> reducerClass){
 		this.reducerClass = reducerClass;
@@ -86,14 +95,6 @@ public class Grouper {
 	
 	public void setCombinerClass(Class<? extends SimpleGrouperCombiner> combinerClass){
 		this.combinerClass = combinerClass;
-	}
-	
-	public void setMapperClass(Class<? extends GrouperMapper> mapperClass){
-		this.mapperClass = mapperClass;
-	}
-	
-	public void setInputFormat(Class<? extends InputFormat> inputFormat){
-		this.inputFormat = inputFormat;
 	}
 	
 	public void setOutputFormat(Class<? extends OutputFormat> outputFormat){
@@ -108,28 +109,27 @@ public class Grouper {
 		this.outputValueClass = outputValueClass;
 	}
 	
-	
-	
-	
-	public Job getJob() throws IOException{
-		this.conf.set(Schema.CONF_SCHEMA,schema.serialize());
-		this.conf.set(Constants.CONF_MIN_GROUP, groupFields);
-		this.conf.set(Constants.CONF_MAX_GROUP,groupFields);
-		this.conf.set(SortCriteria.CONF_SORT_CRITERIA,sortCriteria);
-		this.conf.set(TuplePartitioner.CONF_PARTITIONER_FIELDS,(partitionerFields != null) ? partitionerFields :  groupFields);
-		
+	public Job getJob() throws IOException,GrouperException {
 		
 		new TupleSortComparator();
+		Schema schema = new Schema(fieldsDescriptionBySource,sortCriteria);
 		Job job = new Job(conf);
-		job.setInputFormatClass(inputFormat);
-		job.setMapperClass(mapperClass);
+		for (Integer sourceId : inputFormatBySource.keySet()){
+			Class<? extends InputFormat> inputFormat = inputFormatBySource.get(sourceId);
+			Class<? extends GrouperMapper> mapper = mapperClassBySource.get(sourceId);
+			Path path = pathBySource.get(sourceId);
+			MultipleInputs.addInputPath(job, path, inputFormat,mapper);
+		}
+		
 		if (combinerClass != null){
 			job.setCombinerClass(combinerClass);
 		}
 		job.setReducerClass(reducerClass);
-		job.getConfiguration().set(Schema.CONF_SCHEMA,schema.serialize());
-		job.getConfiguration().set(SortCriteria.CONF_SORT_CRITERIA,sortCriteria);
-		job.setInputFormatClass(inputFormat);
+		job.getConfiguration().set(FieldsDescription.CONF_SCHEMA,schema.toJson());
+		job.getConfiguration().set(SortCriteria.CONF_SORT_CRITERIA,sortCriteria.toString());
+		job.getConfiguration().set(Constants.CONF_MAX_GROUP,groupFields);
+		job.getConfiguration().set(Constants.CONF_MIN_GROUP,groupFields);
+		job.getConfiguration().set(TuplePartitioner.CONF_PARTITIONER_FIELDS,(partitionerFields != null) ? partitionerFields :  groupFields);
 		job.setOutputFormatClass(outputFormat);
 		job.setMapOutputKeyClass(Tuple.class);
 		job.setMapOutputValueClass(NullWritable.class);

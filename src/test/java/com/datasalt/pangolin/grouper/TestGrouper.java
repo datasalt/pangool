@@ -94,12 +94,10 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 		withInput("input",new Text("XE 20 listo 230"));
 		
 		Grouper grouper = new Grouper(getConf());
-		grouper.setInputFormat(SequenceFileInputFormat.class);
+		grouper.setInput(0,new Path("input"),SequenceFileInputFormat.class,Mapy.class, "country:string,age:vint,name:string,height:int");
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		grouper.setMapperClass(Mapy.class);
 		grouper.setReducerClass(Red.class);
 		
-		grouper.setSchema(Schema.parse("country:string , age:vint , name:string,height:int"));
 		grouper.setSortCriteria("country DESC,age ASC,name asc,height desc");
 		grouper.setGroup("country,age");
 		

@@ -104,7 +104,7 @@
     </dependency>          
     
      <!-- Jackson: fast JSON ser/de -->
-   <!--
+   
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-asl</artifactId>
@@ -134,7 +134,7 @@
       <artifactId>jackson-mapper-lgpl</artifactId>
       <version>1.7.3</version>
     </dependency>  
-    -->
+    
     
     
     

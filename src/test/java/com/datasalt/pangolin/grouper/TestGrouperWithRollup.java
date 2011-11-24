@@ -109,7 +109,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		grouper.setMapperClass(Mapy.class);
 		grouper.setReducerClass(Red.class);
 		
-		grouper.setSchema(Schema.parse("country:string,age:vint,name:string,height:int"));
+		grouper.setSchema(FieldsDescription.parse("country:string,age:vint,name:string,height:int"));
 		grouper.setSortCriteria("country DESC,age DESC");
 		grouper.setMinGroup("country");
 		grouper.setMaxGroup("country,age,name");

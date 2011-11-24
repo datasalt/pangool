@@ -100,8 +100,8 @@ public class TestTupleComparator extends AbstractHadoopTestLibrary{
 		a2.setUrl("2");
 		
 		Configuration conf=getConf();
-		Schema schema = Schema.parse("name:string,age:int,risas:" + a1.getClass().getName());
-		Schema.setInConfig(schema, conf);
+		FieldsDescription schema = FieldsDescription.parse("name:string,age:int,risas:" + a1.getClass().getName());
+		FieldsDescription.setInConfig(schema, conf);
 		SortCriteria sortCriteria = SortCriteria.parse("name desc,age asc,risas using " + Comparator1.class.getName() +  " desc");
 		SortCriteria.setInConfig(sortCriteria, conf);
 		

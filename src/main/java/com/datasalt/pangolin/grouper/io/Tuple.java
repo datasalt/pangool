@@ -36,7 +36,7 @@ import org.apache.thrift.TBase;
 
 import com.datasalt.pangolin.commons.Buffer;
 import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.io.Serialization;
 
 /**
@@ -51,7 +51,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 	private Buffer tmpInputBuffer = new Buffer();
 	private Serialization serialization;
-	private Schema schema;
+	private FieldsDescription schema;
 	private Text text = new Text();
 
 	public Tuple() {
@@ -66,7 +66,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		return objects[index];
 	}
 	
-	public void setSchema(@Nonnull Schema schema) {
+	public void setSchema(@Nonnull FieldsDescription schema) {
 		this.schema = schema;
 		this.objects = new Comparable[schema.getFields().length];
 		populateObjects();
@@ -227,7 +227,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		if (conf != null){
 			this.conf = conf;
 			try {
-				Schema schema =Schema.parse(this.conf);
+				FieldsDescription schema =FieldsDescription.parse(this.conf);
 				if (schema != null){
 					setSchema(schema);
 				}

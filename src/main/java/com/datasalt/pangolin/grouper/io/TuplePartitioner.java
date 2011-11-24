@@ -22,7 +22,7 @@ import org.apache.hadoop.mapreduce.Partitioner;
 
 import com.datasalt.pangolin.grouper.Constants;
 import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.FieldsDescription;
 
 /**
  * 
@@ -34,7 +34,7 @@ public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements
 	public static final String CONF_PARTITIONER_FIELDS ="datasalt.grouper.partitioner_fields";
 	
 	private Configuration conf;
-	private Schema schema;
+	private FieldsDescription schema;
 	private int[] groupFieldsIndexes;
 	
 	@Override
@@ -53,7 +53,7 @@ public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements
 		try{
 		if (conf != null){
 			this.conf = conf;
-			this.schema = Schema.parse(conf);
+			this.schema = FieldsDescription.parse(conf);
 		}
 		
 		String fieldsGroupStr = conf.get(CONF_PARTITIONER_FIELDS);

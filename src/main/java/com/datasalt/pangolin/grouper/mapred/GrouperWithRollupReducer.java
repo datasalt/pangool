@@ -25,7 +25,7 @@ import org.apache.hadoop.io.NullWritable;
 import com.datasalt.pangolin.grouper.Constants;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.TupleIterator;
-import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.io.Tuple;
 
 /**
@@ -38,11 +38,11 @@ import com.datasalt.pangolin.grouper.io.Tuple;
 public abstract class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<Tuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
     	private Tuple lastElementPreviousGroup=null;
-    	private Schema schema;
+    	private FieldsDescription schema;
     	private int minDepth,maxDepth;
     	private TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
     	
-    	protected Schema getSchema(){
+    	protected FieldsDescription getSchema(){
     		return schema;
     	}
     	
@@ -50,7 +50,7 @@ public abstract class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends 
   public void setup(Context context) throws IOException,InterruptedException {
   	try{
     Configuration conf = context.getConfiguration();
-  	this.schema = Schema.parse(conf);
+  	this.schema = FieldsDescription.parse(conf);
   	this.minDepth = conf.get(Constants.CONF_MIN_GROUP).split(",").length -1;
   	this.maxDepth = conf.get(Constants.CONF_MAX_GROUP).split(",").length -1;
   	} catch(GrouperException e){

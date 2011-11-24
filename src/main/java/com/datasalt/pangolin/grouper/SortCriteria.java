@@ -28,7 +28,7 @@ import org.apache.hadoop.io.RawComparator;
  * 
  * SortCriteria specifies how the {@link Tuple} fields will be sorted by {@link TupleSortComparator}.
  * Basically it's a list of fields with a sort descriptor (scending or descending order).For example: "name asc,age desc"
- * The sort criteria needs to match the {@link Schema} fields ordering, so in any case the {@link SortCriteria} must be a prefix from {@link Schema} 
+ * The sort criteria needs to match the {@link FieldsDescription} fields ordering, so in any case the {@link SortCriteria} must be a prefix from {@link FieldsDescription} 
  * 
  * @author epalace
  *
@@ -37,6 +37,22 @@ public class SortCriteria  {
 	
 	public static final String CONF_SORT_CRITERIA = "datasalt.grouper.sort.criteria";
 	
+	public SortCriteria(){
+		
+	}
+	
+	public Map<String, SortElement> getSortElementsByName() {
+  	return sortElementsByName;
+  }
+
+	public void setSortElementsByName(Map<String, SortElement> sortElementsByName) {
+  	this.sortElementsByName = sortElementsByName;
+  }
+
+	public void setSortElements(SortElement[] sortElements) {
+  	this.sortElements = sortElements;
+  }
+
 	public static class SortElement {
 		
 		private SortElement(String name,SortOrder sortOrder,Class<? extends RawComparator> comparator){
@@ -45,6 +61,26 @@ public class SortCriteria  {
 			this.comparator = comparator;
 		}
 		
+		public SortElement(){
+			
+		}
+		
+		public String getFieldName() {
+    	return fieldName;
+    }
+
+		public void setFieldName(String fieldName) {
+    	this.fieldName = fieldName;
+    }
+
+		public void setSortOrder(SortOrder sortOrder) {
+    	this.sortOrder = sortOrder;
+    }
+
+		public void setComparator(Class<? extends RawComparator> comparator) {
+    	this.comparator = comparator;
+    }
+
 		private String fieldName;
 		private SortOrder sortOrder;
 		private Class<? extends RawComparator> comparator;

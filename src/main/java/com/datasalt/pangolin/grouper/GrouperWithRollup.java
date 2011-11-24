@@ -44,7 +44,7 @@ public class GrouperWithRollup {
 	
 	//private Job job;
 	private Configuration conf;
-	private Schema schema;
+	private FieldsDescription schema;
 	private Class<? extends GrouperWithRollupReducer> reducerClass;
 	private Class<? extends GrouperMapper> mapperClass; //TODO change this to multiinput
 	private Class<? extends InputFormat> inputFormat;
@@ -72,7 +72,7 @@ public class GrouperWithRollup {
 	}
 	
 	
-	public void setSchema(Schema schema){
+	public void setSchema(FieldsDescription schema){
 		this.schema = schema;
 	}
 	
@@ -120,7 +120,7 @@ public class GrouperWithRollup {
 	
 	
 	public Job getJob() throws IOException{
-		this.conf.set(Schema.CONF_SCHEMA,schema.serialize());
+		this.conf.set(FieldsDescription.CONF_SCHEMA,schema.serialize());
 		this.conf.set(Constants.CONF_MIN_GROUP, minGroup);
 		this.conf.set(Constants.CONF_MAX_GROUP,maxGroup);
 		this.conf.set(SortCriteria.CONF_SORT_CRITERIA,sortCriteria);
