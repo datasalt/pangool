@@ -29,4 +29,14 @@ public class TestSchema extends AbstractBaseTest{
 		System.out.println(schema2);
 		
 	}
+	
+	@Test
+	public void testNotMatchingTypes()  throws GrouperException {
+		
+//		String format = "SOURCE t1: { user_id : int , name : string }\n"+
+//										"SOURCE t2: { id:int, name : string}\n"
+//		
+//		Schema.parse("")
+		
+	}
 }

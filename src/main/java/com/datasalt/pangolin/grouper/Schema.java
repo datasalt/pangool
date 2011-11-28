@@ -1,6 +1,7 @@
 package com.datasalt.pangolin.grouper;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Map;
 
 import org.codehaus.jackson.JsonGenerationException;
@@ -22,11 +23,10 @@ public class Schema {
   	return sortCriteria;
   }
 
-
 	private Map<Integer,FieldsDescription> fieldsDescriptionBySource;
 	private SortCriteria sortCriteria;
 	
-	public Schema(Map<Integer,FieldsDescription> fieldsDescriptionBySource,SortCriteria sortCriteria) throws GrouperException{
+	Schema(Map<Integer,FieldsDescription> fieldsDescriptionBySource,SortCriteria sortCriteria) throws GrouperException{
 		this.fieldsDescriptionBySource = fieldsDescriptionBySource;
 		this.sortCriteria = sortCriteria;
 		check();
@@ -66,6 +66,13 @@ public class Schema {
 		
 	}
 	
+	public static Schema parse(String format) throws ParseException{
+		String[] lines = format.split("\n+"); //non empty lines
+		//String line
+		//TODO
+		return null;
+	}
+	
 	
 	@Override
 	public String toString(){
@@ -75,6 +82,4 @@ public class Schema {
 			throw new RuntimeException(e);
 		}
 	}
-	
-
 }
