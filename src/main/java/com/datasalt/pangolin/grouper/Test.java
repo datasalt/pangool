@@ -8,7 +8,9 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -107,7 +109,13 @@ public class Test extends AbstractHadoopTestLibrary {
 		
 		Job job = grouper.getJob();
 		job.setNumReduceTasks(2);
-		FileInputFormat.setInputPaths(job,new Path("input"));
+		MultipleInputs.addInputPath(job, new Path("input*"),SequenceFileInputFormat.class, Mapy.class);
+		MultipleInputs.addInputPath(job, new Path("input"),SequenceFileInputFormat.class, Mapy.class);
+		
+		System.out.println("Formats:"+job.getConfiguration().get("mapred.input.dir.formats"));
+		System.out.println("Mappers:"+job.getConfiguration().get("mapred.input.dir.mappers"));
+		
+		
 		FileOutputFormat.setOutputPath(job, new Path("output"));
 		
 		assertRun(job);

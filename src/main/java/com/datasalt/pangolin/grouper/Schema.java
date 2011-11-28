@@ -1,15 +1,12 @@
 package com.datasalt.pangolin.grouper;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 
 import com.datasalt.pangolin.grouper.FieldsDescription.Field;
 import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
@@ -20,17 +17,11 @@ public class Schema {
   	return fieldsDescriptionBySource;
   }
 
-	public void setFieldsDescriptionBySource(Map<Integer, FieldsDescription> fieldsDescriptionBySource) {
-  	this.fieldsDescriptionBySource = fieldsDescriptionBySource;
-  }
 
 	public SortCriteria getSortCriteria() {
   	return sortCriteria;
   }
 
-	public void setSortCriteria(SortCriteria sortCriteria) {
-  	this.sortCriteria = sortCriteria;
-  }
 
 	private Map<Integer,FieldsDescription> fieldsDescriptionBySource;
 	private SortCriteria sortCriteria;
@@ -41,9 +32,6 @@ public class Schema {
 		check();
 	}
 	
-	public Schema(){
-		
-	}
 	
 	
 	private void check() throws GrouperException {

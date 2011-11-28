@@ -35,9 +35,7 @@ public class FieldsDescription {
 	public static final String CONF_SCHEMA = "datasalt.grouper.schema";
 	
 	
-	public FieldsDescription(){
-		
-	}
+	
 	
 	public static class Field {
 		private String name;
@@ -57,19 +55,10 @@ public class FieldsDescription {
 			this.type = clazz;
 		}
 		
-		
 		public Class<?> getType(){
 			return type;
 		}
 		
-		public void setName(String name) {
-    	this.name = name;
-    }
-
-		public void setType(Class<?> type) {
-    	this.type = type;
-    }
-
 		public String getName(){
 			return name;
 		}
