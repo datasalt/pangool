@@ -108,15 +108,15 @@ public class TestTupleComparator extends AbstractHadoopTestLibrary{
 		TupleSortComparator comp = new TupleSortComparator();
 		comp.setConf(conf);
 		
-		Tuple tuple1 = new Tuple();
-		tuple1.setSchema(schema);
+		Tuple tuple1 = new Tuple(schema);
+		//tuple1.setSchema(schema);
 		tuple1.setSerialization(getSer());
-		tuple1.setField("risas",a1);
+		tuple1.setThriftObject("risas",a1);
 		
-		Tuple tuple2 = new Tuple();
+		Tuple tuple2 = new Tuple(schema);
 		tuple2.setSchema(schema);
 		tuple2.setSerialization(getSer());
-		tuple2.setField("risas",a1);
+		tuple2.setThriftObject("risas",a1);
 		
 		assertEquals(0,compareInBinary(comp,tuple1,tuple2));
 	}

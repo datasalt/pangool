@@ -10,20 +10,23 @@ import com.datasalt.pangolin.grouper.io.TupleSortComparator;
 
 
 
-public abstract class GrouperWithRollupCombiner extends GrouperWithRollupReducer<Tuple,NullWritable>{
+public class GrouperWithRollupCombiner extends GrouperWithRollupReducer<Tuple,NullWritable>{
 	
-	private Context context;
-	private NullWritable outputValue = NullWritable.get();
+//	private Context context;
+//	private NullWritable outputValue = NullWritable.get();
+//	
+	private GrouperReducerHandler<Tuple,NullWritable> handler;
+	
 	
 	@Override
 	public void setup(Context context) throws IOException,InterruptedException {
 		super.setup(context);
-		this.context = context;
+	//	this.context = context;
 		((TupleSortComparator)WritableComparator.get(Tuple.class)).setConf(context.getConfiguration());
 	}
 	
-	protected void emit(Tuple tuple) throws IOException,InterruptedException {
-		context.write(tuple,outputValue);
-	}
+//	protected void emit(Tuple tuple) throws IOException,InterruptedException {
+//		context.write(tuple,outputValue);
+//	}
 
 }

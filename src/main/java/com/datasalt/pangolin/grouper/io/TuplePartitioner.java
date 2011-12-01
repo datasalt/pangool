@@ -23,6 +23,7 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import com.datasalt.pangolin.grouper.Constants;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.io.Tuple.NoSuchFieldException;
 
 /**
  * 
@@ -34,13 +35,17 @@ public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements
 	public static final String CONF_PARTITIONER_FIELDS ="datasalt.grouper.partitioner_fields";
 	
 	private Configuration conf;
-	private FieldsDescription schema;
-	private int[] groupFieldsIndexes;
+	//private FieldsDescription schema;
+	private String[] groupFields;
 	
 	@Override
 	public int getPartition(Tuple key, NullWritable value, int numPartitions) {
-		int result =  key.partialHashCode(groupFieldsIndexes) % numPartitions;
+		try{
+		int result =  key.partialHashCode(groupFields) % numPartitions;
 		return result;
+		} catch(NoSuchFieldException e){
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -50,21 +55,18 @@ public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements
 
 	@Override
 	public void setConf(Configuration conf) {
-		try{
+		//try{
 		if (conf != null){
 			this.conf = conf;
-			this.schema = FieldsDescription.parse(conf);
+			//this.schema = FieldsDescription.parse(conf);
 		}
 		
 		String fieldsGroupStr = conf.get(CONF_PARTITIONER_FIELDS);
 		//TODO what to do here if null
-		String[] fieldsGroup = fieldsGroupStr.split(",");
-		groupFieldsIndexes = new int[fieldsGroup.length];
-		for (int i=0 ; i < fieldsGroup.length;i++){
-			groupFieldsIndexes[i] = schema.getIndexByFieldName(fieldsGroup[i]);
-		}
-		} catch(GrouperException e){
-			throw new RuntimeException(e);
-		}
+		groupFields = fieldsGroupStr.split(",");
+		
+//		} catch(GrouperException e){
+//			throw new RuntimeException(e);
+//		}
 	}
 }

@@ -21,12 +21,15 @@ import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.grouper.Constants;
 import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangolin.grouper.GrouperWithRollup;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.Tuple.NoSuchFieldException;
 
 /**
  * TODO
@@ -35,18 +38,19 @@ import com.datasalt.pangolin.grouper.io.Tuple;
  * @param <KEY_OUT>
  * @param <VALUE_OUT>
  */
-public abstract class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<Tuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
+public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<Tuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
     	private Tuple lastElementPreviousGroup=null;
     	private FieldsDescription schema;
     	private int minDepth,maxDepth;
     	private TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
+    	private GrouperReducerHandler<OUTPUT_KEY,OUTPUT_VALUE> handler;
     	
     	protected FieldsDescription getSchema(){
     		return schema;
     	}
     	
-    	
+  @Override  	
   public void setup(Context context) throws IOException,InterruptedException {
   	try{
     Configuration conf = context.getConfiguration();
@@ -59,7 +63,19 @@ public abstract class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends 
   	
   	this.grouperIterator = new TupleIterator<OUTPUT_KEY,OUTPUT_VALUE>();
   	this.grouperIterator.setContext(context);
+  	
+  	Configuration conf = context.getConfiguration();
+		Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(GrouperWithRollup.CONF_MAPPER_HANDLER,null,GrouperReducerHandler.class); 
+		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
+		handler.setup(context);
+  	
+  	
   }
+  
+  public void cleanup(Context context) throws IOException,InterruptedException {
+  	handler.cleanup(context);
+  }
+  
 
   @Override
   public final void run(Context context) throws IOException,InterruptedException {
@@ -72,11 +88,13 @@ public abstract class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends 
     
     //close last group
     for (int i=maxDepth; i >=minDepth ; i--){
-			onCloseGroup(i,schema.getFields()[i].getName(),lastElementPreviousGroup,context);
+			handler.onCloseGroup(i,schema.getFields()[i].getName(),lastElementPreviousGroup);
 		}
     cleanup(context);
   }
   
+  
+  @Override
 	public final void reduce(Tuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
 		Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
@@ -86,41 +104,43 @@ public abstract class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends 
 		if (lastElementPreviousGroup == null) {
 			// first iteration
 			indexMismatch = minDepth;
-			lastElementPreviousGroup = new Tuple();
+			lastElementPreviousGroup = new Tuple(schema);
 		} else {
 			indexMismatch = indexMismatch(lastElementPreviousGroup, context.getCurrentKey(), minDepth,maxDepth);
 			for (int i = maxDepth; i >= indexMismatch; i--) {
-				onCloseGroup(i, schema.getFields()[i].getName(), lastElementPreviousGroup, context);
+				handler.onCloseGroup(i, schema.getFields()[i].getName(), lastElementPreviousGroup);
 			}
 		}
 
 		for (int i = indexMismatch; i <= maxDepth; i++) {
-			onOpenGroup(i, schema.getFields()[i].getName(), context.getCurrentKey(),context);
+			handler.onOpenGroup(i, schema.getFields()[i].getName(), context.getCurrentKey());
 		}
 
 		// we consumed the first element , so needs to comunicate to iterator
 		grouperIterator.setFirstTupleConsumed(true);
-		onElements(grouperIterator, context);
+		handler.onGroupElements(grouperIterator);
 
 		// This loop consumes the remaining elements that reduce didn't consume
 		// The aim of this is to correctly set the last element in the next onCloseGroup() call
 		while (iterator.hasNext()) {
 			iterator.next();
 		}
-		lastElementPreviousGroup.set(context.getCurrentKey());
+		lastElementPreviousGroup.deepCopyFrom(context.getCurrentKey());
 	}
   
 
-	public abstract void onOpenGroup(int depth,String field,Tuple firstElement,Context context) throws IOException,InterruptedException;
-	public abstract void onCloseGroup(int depth,String field,Tuple lastElement,Context context) throws IOException,InterruptedException;
-	public abstract void onElements(Iterable<Tuple> tuple, Context context) throws IOException,InterruptedException;
 	
-	private static int indexMismatch(Tuple tuple1,Tuple tuple2,int minIndex,int maxIndex){
-		for (int i=minIndex ; i <=maxIndex ; i++){
-			if (!tuple1.get(i).equals(tuple2.get(i))){
-				return i;
+	private int indexMismatch(Tuple tuple1,Tuple tuple2,int minIndex,int maxIndex){
+		try {
+			for(int i = minIndex; i <= maxIndex; i++) {
+				String fieldName = schema.getFields()[i].getName();
+				if(!tuple1.getObject(fieldName).equals(tuple2.getObject(fieldName))) {
+					return i;
+				}
 			}
-		}
-		return -1;
+			return -1;
+		} catch(NoSuchFieldException e) {
+			throw new RuntimeException(e);
+    }
 	}
 }

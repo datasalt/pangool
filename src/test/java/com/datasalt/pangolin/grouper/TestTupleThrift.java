@@ -43,21 +43,20 @@ public class TestTupleThrift extends AbstractHadoopTestLibrary{
 		A a = new A();
 		a.setId("guay");
 		a.setUrl("www.ewrwe");
-		
-		Tuple tuple = new Tuple();
-		tuple.setConf(getConf());
 		FieldsDescription schema = FieldsDescription.parse("name :string,age:int,risas : " +a.getClass().getName());
-		tuple.setSchema(schema);
-		tuple.setField("name","eric");
-		tuple.setField("age",15);
-		tuple.setField("risas",a);
+		
+		Tuple tuple = new Tuple(schema);
+		tuple.setConf(getConf());
+		tuple.setString("name","eric");
+		tuple.setInt("age",15);
+		tuple.setThriftObject("risas",a);
 		DataOutputBuffer output = new DataOutputBuffer();
 		tuple.write(output);
 		System.out.println("Serialized tuple " + tuple + " : " + output.getLength() + " bytes");
 		
-		Tuple tuple2 = new Tuple();
+		Tuple tuple2 = new Tuple(schema);
 		tuple2.setConf(getConf());
-		tuple2.setSchema(schema);
+		//tuple2.setSchema(schema);
 		
 		DataInputBuffer input = new DataInputBuffer();
 		input.reset(output.getData(),output.getLength());
@@ -65,7 +64,7 @@ public class TestTupleThrift extends AbstractHadoopTestLibrary{
 		
 		for (Field field : schema.getFields()){
 			String fieldName = field.getName();
-			assertEquals(tuple.getField(fieldName),tuple2.getField(fieldName));
+			assertEquals(tuple.getObject(fieldName),tuple2.getObject(fieldName));
 		}
 		
 		System.out.println("Deserialized tuple " + tuple2);

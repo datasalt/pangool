@@ -23,6 +23,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -33,34 +34,45 @@ import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.grouper.io.Tuple.NoSuchFieldException;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
+import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
+import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
 
 
 public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 
-	private static class Mapy extends GrouperMapper<Text,NullWritable>{
+	private static class Mapy extends GrouperMapperHandler<Text,NullWritable>{
 		
+		private Tuple outputKey;
 		
 		@Override
-		public void setup(Context context) throws IOException,InterruptedException {
+		public void setup(Mapper.Context context) throws IOException,InterruptedException {
 			super.setup(context);
+			
+			try {
+	      FieldsDescription schema = FieldsDescription.parse(context.getConfiguration());
+	      outputKey = new Tuple(schema);
+      } catch(GrouperException e) {
+	      throw new RuntimeException(e);
+      }
 		}
 		
 		
 		@Override
-		public void map(Text key,NullWritable value,Context context) throws IOException,InterruptedException{
+		public void map(Text key,NullWritable value) throws IOException,InterruptedException{
 			String[] tokens = key.toString().split("\\s+");
 			String country = tokens[0];
 			Integer age = Integer.parseInt(tokens[1]);
 			String name = tokens[2];
 			Integer height = Integer.parseInt(tokens[3]);
 			
-			Tuple outputKey = getTupleToEmit();
+			
 			try {
-				outputKey.setField("country",country);
-				outputKey.setField("age",age);
-				outputKey.setField("name",name);
-				outputKey.setField("height", height);
+				outputKey.setString("country",country);
+				outputKey.setInt("age",age);
+				outputKey.setString("name",name);
+				outputKey.setInt("height", height);
+				System.out.println(outputKey.toString());
 				emit(outputKey);
 			} catch (NoSuchFieldException e) {
 				throw new RuntimeException(e);
@@ -69,20 +81,20 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		}
 	}
 	
-	private static class Red extends GrouperWithRollupReducer<Tuple,NullWritable>{
+	private static class Red extends GrouperReducerHandler<Tuple,NullWritable>{
 
 		@Override
-    public void onOpenGroup(int depth,String field,Tuple firstElement, Context context) {
+    public void onOpenGroup(int depth,String field,Tuple firstElement) {
 	    System.out.println("OPEN("+ depth+","+field +"):\t\t" + firstElement);
     }
 
 		@Override
-    public void onCloseGroup(int depth,String field,Tuple lastElement, Context context) {
+    public void onCloseGroup(int depth,String field,Tuple lastElement) {
 	    System.out.println("CLOSE:("+depth+","+field+")\t\t" + lastElement);
     }
 		
 		@Override
-		public void onElements(Iterable<Tuple> tuples, Context context) throws IOException,InterruptedException {
+		public void onGroupElements(Iterable<Tuple> tuples) throws IOException,InterruptedException {
 			Iterator<Tuple> iterator = tuples.iterator();
 			while ( iterator.hasNext()){
 				Tuple tuple = iterator.next();
@@ -106,8 +118,8 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		GrouperWithRollup grouper = new GrouperWithRollup(getConf());
 		grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		grouper.setMapperClass(Mapy.class);
-		grouper.setReducerClass(Red.class);
+		grouper.setMapperHandler(Mapy.class);
+		grouper.setReducerHandler(Red.class);
 		
 		grouper.setSchema(FieldsDescription.parse("country:string,age:vint,name:string,height:int"));
 		grouper.setSortCriteria("country DESC,age DESC");

@@ -126,6 +126,11 @@ public class FieldsDescription {
 	public Field[] getFields(){
 		return fields;
 	}
+	
+	public Field getField(int i){
+		return fields[i];
+	}
+	
 
 	public String serialize() {
 		StringBuilder b = new StringBuilder();
@@ -144,7 +149,11 @@ public class FieldsDescription {
 		return b.toString();
 	}
 	
-	public int getIndexByFieldName(String name){
+	public boolean containsFieldName(String fieldName){
+		return indexByFieldName.containsKey(fieldName);
+	}
+	
+	public int indexByFieldName(String name){
 		return indexByFieldName.get(name);
 	}
 	

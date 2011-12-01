@@ -21,8 +21,10 @@ import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangolin.grouper.GrouperWithRollup;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.io.Tuple;
@@ -39,12 +41,15 @@ public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.
     	private FieldsDescription schema;
     	private TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
     	
-    	protected FieldsDescription getSchema(){
-    		return schema;
-    	}
+    	private GrouperReducerHandler<OUTPUT_KEY,OUTPUT_VALUE> handler;
+//    	
+//    	protected FieldsDescription getSchema(){
+//    		return schema;
+//    	}
     	
     	
   public void setup(Context context) throws IOException,InterruptedException {
+  	super.setup(context);
   	try{
     Configuration conf = context.getConfiguration();
   	this.schema = FieldsDescription.parse(conf);
@@ -55,20 +60,32 @@ public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.
   	this.grouperIterator = new TupleIterator<OUTPUT_KEY,OUTPUT_VALUE>();
   	this.grouperIterator.setContext(context);
   	
+  	Configuration conf = context.getConfiguration();
+		Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(GrouperWithRollup.CONF_MAPPER_HANDLER,null,GrouperReducerHandler.class); 
+		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
+		handler.setup(context);
+  	
   }
+  @Override
+  public void cleanup(Context context) throws IOException,InterruptedException {
+  	super.cleanup(context);
+  	handler.cleanup(context);
+  }
+  
 
   @Override
   public final void run(Context context) throws IOException,InterruptedException {
   	super.run(context);
   }
   
+  @Override
 	public final void reduce(Tuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
 		Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
-		elements(grouperIterator,context);
+		handler.onGroupElements(grouperIterator);
 		
 	}
   
-	public abstract void elements(Iterable<Tuple> values,Context context) throws IOException,InterruptedException;
+	//public abstract void elements(Iterable<Tuple> values,Context context) throws IOException,InterruptedException;
 
 }
