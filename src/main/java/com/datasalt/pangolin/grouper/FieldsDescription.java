@@ -127,6 +127,11 @@ public class FieldsDescription {
 		return fields;
 	}
 	
+	public Field getField(String fieldName){
+		int index=indexByFieldName(fieldName);
+		return fields[index];
+	}
+	
 	public Field getField(int i){
 		return fields[i];
 	}

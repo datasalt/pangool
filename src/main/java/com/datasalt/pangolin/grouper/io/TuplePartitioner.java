@@ -23,7 +23,7 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import com.datasalt.pangolin.grouper.Constants;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.FieldsDescription;
-import com.datasalt.pangolin.grouper.io.Tuple.NoSuchFieldException;
+import com.datasalt.pangolin.grouper.io.Tuple.InvalidFieldException;
 
 /**
  * 
@@ -43,7 +43,7 @@ public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements
 		try{
 		int result =  key.partialHashCode(groupFields) % numPartitions;
 		return result;
-		} catch(NoSuchFieldException e){
+		} catch(InvalidFieldException e){
 			throw new RuntimeException(e);
 		}
 	}

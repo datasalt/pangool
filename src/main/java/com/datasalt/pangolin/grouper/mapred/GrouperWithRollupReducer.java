@@ -29,7 +29,7 @@ import com.datasalt.pangolin.grouper.GrouperWithRollup;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.Tuple.NoSuchFieldException;
+import com.datasalt.pangolin.grouper.io.Tuple.InvalidFieldException;
 
 /**
  * TODO
@@ -139,7 +139,7 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
 				}
 			}
 			return -1;
-		} catch(NoSuchFieldException e) {
+		} catch(InvalidFieldException e) {
 			throw new RuntimeException(e);
     }
 	}

@@ -32,7 +32,7 @@ import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.Tuple.NoSuchFieldException;
+import com.datasalt.pangolin.grouper.io.Tuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
@@ -65,7 +65,7 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 			outputKey.setString("name",name);
 			outputKey.setInt("height", height);
 			emit(outputKey);
-			} catch(NoSuchFieldException e){
+			} catch(InvalidFieldException e){
 				throw new RuntimeException(e);
 			}
 		}

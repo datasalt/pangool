@@ -32,7 +32,7 @@ import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.Tuple.NoSuchFieldException;
+import com.datasalt.pangolin.grouper.io.Tuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
@@ -74,7 +74,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 				outputKey.setInt("height", height);
 				System.out.println(outputKey.toString());
 				emit(outputKey);
-			} catch (NoSuchFieldException e) {
+			} catch (InvalidFieldException e) {
 				throw new RuntimeException(e);
 			}
 			

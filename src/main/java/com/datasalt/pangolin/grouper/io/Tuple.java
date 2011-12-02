@@ -18,6 +18,9 @@ package com.datasalt.pangolin.grouper.io;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,6 +42,7 @@ import org.apache.thrift.TBase;
 import com.datasalt.pangolin.commons.Buffer;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.FieldsDescription.Field;
+import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.io.Serialization;
@@ -64,7 +68,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 	}
 	
 	public Tuple(@Nonnull FieldsDescription schema){
-		this.schema = schema;
+		setSchema(schema);
 	}
 
 	public FieldsDescription getSchema(){
@@ -88,9 +92,9 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 	}
 	
 	private void populateObjects(){
-		for (int i=0; i < schema.getFields().length ; i++){
-			Class type = schema.getFields()[i].getType();
-			String name = schema.getFields()[i].getName();
+		for (Field field : schema.getFields()){
+			Class type = field.getType();
+			String name = field.getName();
 			if (type == Integer.class || type == VIntWritable.class){
 				objects.put(name,0);
 			} else if (type == Long.class || type == VLongWritable.class){
@@ -103,37 +107,52 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 				objects.put(name,0.f);
 			} else if(type == Double.class){
 				objects.put(name,0.0);
+			} else if(type.isEnum()){
+        try {
+	        Enum firstEnum = getEnumValueOf(type,0);
+					objects.put(name,firstEnum);
+        } catch(Exception e) { } 
 			} else {
 				Object object = ReflectionUtils.newInstance(type, conf);
 				objects.put(name,object);
+				nullObjects.add(name);
 			}
 		}
 	}
+	
+	private Enum getEnumValueOf(Class enumClass,int ordinal) throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException{
+    Method method = enumClass.getMethod("values",null);
+    Object values = method.invoke(null);
+		return (Enum)Array.get(values,ordinal);
+	}
+	
 	
 	/**
 	 * Thrown when a field is not present in schema
 	 * 
 	 *
 	 */
-	public static class NoSuchFieldException extends GrouperException {
+	public static class InvalidFieldException extends GrouperException {
     private static final long serialVersionUID = 1L;
 
-		public NoSuchFieldException(String s,Throwable e) {
+		public InvalidFieldException(String s,Throwable e) {
 			super(s,e);
 		}
 		
-		public NoSuchFieldException(String s) {
+		public InvalidFieldException(String s) {
 			super(s);
 		}
 		
-		public NoSuchFieldException(Throwable e) {
+		public InvalidFieldException(Throwable e) {
 			super(e);
 		}
 	}
 	
-	private Object getField(String fieldName) throws NoSuchFieldException {
+		
+	
+	private Object getField(String fieldName) throws InvalidFieldException {
 		if (!this.schema.containsFieldName(fieldName)){
-			throw new NoSuchFieldException("Field " + fieldName + " not in schema");
+			throw new InvalidFieldException("Field " + fieldName + " not in schema");
 		}
 		
 		if (nullObjects.contains(fieldName)){
@@ -143,10 +162,12 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		}
 	}
 	
-	private void setField(String fieldName,Object value) throws NoSuchFieldException {
+	private void setField(String fieldName,Object value) throws InvalidFieldException {
 		if (!this.schema.containsFieldName(fieldName)){
-			throw new NoSuchFieldException("Field \"" + fieldName + "\" not in schema");
+			throw new InvalidFieldException("Field \"" + fieldName + "\" not in schema");
 		}
+		
+		checkValidValueForField(fieldName,value);
 		
 		if (value == null){
 			nullObjects.add(fieldName);
@@ -156,62 +177,100 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 		}
 	}
 	
+	private void checkValidValueForField(String fieldName,Object value)  throws InvalidFieldException {
+		Class<?> expectedType = this.schema.getField(fieldName).getType();
+		if (value instanceof Integer){
+			checkNonNull(fieldName, value);
+			
+		} else  if (value instanceof Long){
+			checkNonNull(fieldName,value);
+		} else if (value instanceof String){
+			checkNonNull(fieldName,value);
+		} else if (value instanceof Float){
+			checkNonNull(fieldName,value);
+		} else if (value instanceof Double){
+			checkNonNull(fieldName,value);
+		} else if (value instanceof Boolean){
+			checkNonNull(fieldName,value);
+		} else if (value.getClass().isEnum()){
+			
+		} else {
+			
+		}
+		
+	}
+	
+	private void checkNonNull(String fieldName,Object value) throws InvalidFieldException {
+		if (value == null){
+			throw new InvalidFieldException("Field " + fieldName + " can't be null");
+		}
+	}
 	
 	
-	public int getInt(String fieldName) throws NoSuchFieldException {
+	
+	
+	public int getInt(String fieldName) throws InvalidFieldException {
 		return (Integer)getField(fieldName);
 	}
 	
-	public long getLong(String fieldName) throws NoSuchFieldException {
+	public long getLong(String fieldName) throws InvalidFieldException {
 		return (Long)getField(fieldName);
 	}
 	
-	public float getFloat(String fieldName) throws NoSuchFieldException {
+	public float getFloat(String fieldName) throws InvalidFieldException {
 		return (Float)getField(fieldName);
 	}
 	
-	public double getDouble(String fieldName) throws NoSuchFieldException {
+	public double getDouble(String fieldName) throws InvalidFieldException {
 		return (Double)getField(fieldName);
 	}
 	
-	public String getString(String fieldName) throws NoSuchFieldException {
+	public String getString(String fieldName) throws InvalidFieldException {
 		return (String)getField(fieldName);
 	}
 	
-	public Object getObject(String fieldName) throws NoSuchFieldException {
+	public Object getObject(String fieldName) throws InvalidFieldException {
 		return getField(fieldName);
 	}
 	
+	public Enum<? extends Enum<?>> getEnum(String fieldName) throws InvalidFieldException {
+		return (Enum<? extends Enum<?>>)getField(fieldName);
+	}
 	
-	public void setInt(String fieldName, int value) throws NoSuchFieldException {
+	
+	public void setEnum(String fieldName, Enum<? extends Enum<?>> value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
-	public void setString(String fieldName,String value) throws NoSuchFieldException {
+	public void setInt(String fieldName, int value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
-	public void setLong(String fieldName,long value) throws NoSuchFieldException {
+	public void setString(String fieldName,String value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
-	public void setFloat(String fieldName,float value) throws NoSuchFieldException {
+	public void setLong(String fieldName,long value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
-	public void setDouble(String fieldName,double value) throws NoSuchFieldException {
+	public void setFloat(String fieldName,float value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
-	public void setBoolean(String fieldName,boolean value) throws NoSuchFieldException {
+	public void setDouble(String fieldName,double value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
-	public void setObject(String fieldName,Object object) throws NoSuchFieldException {
+	public void setBoolean(String fieldName,boolean value) throws InvalidFieldException {
+		setField(fieldName,value);
+	}
+	
+	public void setObject(String fieldName,Object object) throws InvalidFieldException {
 		setField(fieldName,object);
 	}
 	
-	public void setThriftObject(String fieldName,TBase value) throws NoSuchFieldException{
+	public void setThriftObject(String fieldName,TBase value) throws InvalidFieldException{
 		setField(fieldName,value);
 	}
 	
@@ -219,27 +278,31 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 
 	@Override
 	public void write(DataOutput output) throws IOException {
-		for (int numField = 0; numField < schema.getFields().length; numField++) {
-			Class fieldType = schema.getFields()[numField].getType();
+		for (Field field : schema.getFields()) {
+			String fieldName = field.getName();
+			Class<?> fieldType = field.getType();
 			if (fieldType == VIntWritable.class) {
-				WritableUtils.writeVInt(output, (Integer) objects.get(numField));
+				WritableUtils.writeVInt(output, (Integer) objects.get(fieldName));
 			} else if (fieldType == VLongWritable.class) {
-				WritableUtils.writeVLong(output, (Long) objects.get(numField));
+				WritableUtils.writeVLong(output, (Long) objects.get(fieldName));
 			} else if (fieldType == Integer.class){ 
-			  output.writeInt((Integer)objects.get(numField));
+			  output.writeInt((Integer)objects.get(fieldName));
 			} else if (fieldType == Long.class){
-				output.writeLong((Long)objects.get(numField));
+				output.writeLong((Long)objects.get(fieldName));
 			} else if (fieldType == Double.class) {
-				output.writeDouble((Double) objects.get(numField));
+				output.writeDouble((Double) objects.get(fieldName));
 			} else if (fieldType == Float.class) {
-				output.writeFloat((Float) objects.get(numField));
+				output.writeFloat((Float) objects.get(fieldName));
 			} else if (fieldType == String.class) {
-				text.set((String)objects.get(numField));
+				text.set((String)objects.get(fieldName));
 				text.write(output);
 			}	else if (fieldType == Boolean.class) {
-				output.writeBoolean((Boolean)objects.get(numField));
+				output.writeBoolean((Boolean)objects.get(fieldName));
+			} else if (fieldType.isEnum()){
+				Enum e = (Enum)objects.get(fieldName);
+				WritableUtils.writeVInt(output,e.ordinal());
 			} else {
-				Object object = objects.get(numField);
+				Object object = objects.get(fieldName);
 				if (object == null){
 					WritableUtils.writeVInt(output,0);
 				} else {
@@ -274,14 +337,24 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 				objects.put(name, text.toString());
 			} else if (fieldType == Boolean.class) {
 				objects.put(name, input.readBoolean());
+			} else if (fieldType.isEnum()){
+				int ordinal = WritableUtils.readVInt(input);
+				try{
+					Enum element = getEnumValueOf(fieldType, ordinal);
+					objects.put(name,element);
+				} catch (Exception e){
+					throw new RuntimeException(e);
+				}
 			} else {
 				int size =WritableUtils.readVInt(input);
 				if (size != 0){
 					tmpInputBuffer.setSize(size);
 					input.readFully(tmpInputBuffer.getBytes(),0,size);
-					serialization.deser(objects.get(name),tmpInputBuffer.getBytes(),0,size);
+					Object ob = serialization.deser(objects.get(name),tmpInputBuffer.getBytes(),0,size);
+					this.objects.put(name, ob);
+					nullObjects.remove(name);
 				} else {
-					// TODO this should mark as null the object, but keeping the cached instance.
+					nullObjects.add(name);
 				}
 			}
 		}
@@ -296,7 +369,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 				setField(fieldName, tuple.getField(fieldName));
 
 			}
-		} catch(NoSuchFieldException e) {
+		} catch(InvalidFieldException e) {
 			// shouldn't occur
 			throw new RuntimeException(e);
 		}
@@ -306,9 +379,9 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 	 * Calculates a combinated hashCode using the specified fields.
 	 * @param fields
 	 * @return
-	 * @throws NoSuchFieldException
+	 * @throws InvalidFieldException
 	 */
-	public int partialHashCode(String[] fields) throws NoSuchFieldException {
+	public int partialHashCode(String[] fields) throws InvalidFieldException {
 		int result = 0;
 		for(String fieldName : fields) {
 			Object object = getField(fieldName);
@@ -369,7 +442,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 			}
 		}
 		return 0;
-		} catch(NoSuchFieldException e){
+		} catch(InvalidFieldException e){
 			throw new RuntimeException(e);
 		}
   }
@@ -409,7 +482,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 				}
 			}
 			return true;
-		} catch(NoSuchFieldException e) {
+		} catch(InvalidFieldException e) {
 			return false;
 		}
 	}
@@ -421,6 +494,7 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 			StringBuilder b = new StringBuilder("{"); // TODO not optimized,should be cached
 			boolean first = true;
 			for(Field field : schema.getFields()) {
+				
 				String fieldName = field.getName();
 				Object element = getField(fieldName);
 				if(!first) {
@@ -429,11 +503,11 @@ public class Tuple implements WritableComparable<Tuple>,Configurable {
 					first = false;
 				}
 				String st = (element == null) ? "null" : element.toString();
-				b.append(fieldName).append(":").append(st);
+				b.append("\"").append(fieldName).append("\"").append(":").append(st);
 			}
 			b.append("}");
 			return b.toString();
-		} catch(NoSuchFieldException e) {
+		} catch(InvalidFieldException e) {
 			throw new RuntimeException(e);
 		}
 	}
