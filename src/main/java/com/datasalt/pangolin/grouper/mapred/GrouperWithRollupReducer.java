@@ -43,6 +43,7 @@ import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
 public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<DoubleBufferedTuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
     	//private DoubleBufferedTuple lastElementPreviousGroup=null;
+		 	private boolean firstIteration=true;
     	private FieldsDescription schema;
     	private int minDepth,maxDepth;
     	private TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
@@ -81,9 +82,11 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
 
   @Override
   public final void run(Context context) throws IOException,InterruptedException {
-
+  	
   	setup(context);
+  	firstIteration=true;
   	while (context.nextKey()) {
+  		
       reduce(context.getCurrentKey(), context.getValues(), context);
       //TODO look if this matches super.run() implementation
     }
@@ -104,9 +107,10 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
 		DoubleBufferedTuple currentKey = context.getCurrentKey();
 		Tuple previousKey = currentKey.getPreviousTuple();
 		int indexMismatch;
-		if (previousKey == null) {
+		if (firstIteration) {
 			// first iteration
 			indexMismatch = minDepth;
+			firstIteration=false;
 		} else {
 			indexMismatch = indexMismatch(previousKey,currentKey , minDepth,maxDepth);
 			for (int i = maxDepth; i >= indexMismatch; i--) {
@@ -115,7 +119,7 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
 		}
 
 		for (int i = indexMismatch; i <= maxDepth; i++) {
-			handler.onOpenGroup(i, schema.getFields()[i].getName(), context.getCurrentKey());
+			handler.onOpenGroup(i, schema.getFields()[i].getName(), currentKey);
 		}
 
 		// we consumed the first element , so needs to comunicate to iterator

@@ -22,23 +22,22 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
-import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangolin.grouper.io.DoubleBufferedTuple;
-import com.datasalt.pangolin.grouper.io.TupleImpl;
 import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
 import com.datasalt.pangolin.grouper.io.TuplePartitioner;
 import com.datasalt.pangolin.grouper.io.TupleSortComparator;
+import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupCombiner;
-import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
 import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
 
 
 
 /**
- * TODO
+ * GrouperWithRollup is mainly a factory for creating MapReduce jobs that need to use 
+ * TODO doc
  * @author epalace
  *
  */

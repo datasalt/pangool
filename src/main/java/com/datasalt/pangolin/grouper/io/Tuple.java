@@ -7,11 +7,18 @@ import org.apache.thrift.TBase;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
 
+/**
+ * This is the common interface shared by {@link TupleImpl} and {@link DoubleBufferedTuple}
+ * @author epalace
+ *
+ */
 public interface Tuple extends WritableComparable<Tuple>,Configurable{
 	
 	public FieldsDescription getSchema();
 	
 	public int partialHashCode(String[] fields) throws InvalidFieldException;
+	
+	public void setSchema(FieldsDescription schema);
 	
 	
 	//GETTERS

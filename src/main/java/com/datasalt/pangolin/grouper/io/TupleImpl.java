@@ -18,8 +18,6 @@ package com.datasalt.pangolin.grouper.io;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,13 +26,11 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
-import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.thrift.TBase;
@@ -42,13 +38,12 @@ import org.apache.thrift.TBase;
 import com.datasalt.pangolin.commons.Buffer;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.FieldsDescription.Field;
-import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
-import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.io.Serialization;
 
 /**
- * This is the main serializable {@link WritableComparable} object used in {@link Grouper}. It's configured by a 
+ * This is the basic implementation of {@link Tuple}. It's in charge of the implementation of type-checking and raw-element 
+ * serialization/deserialization defined in {@link WritableComparable}
  * 
  * @author epalace
  * 
@@ -56,21 +51,31 @@ import com.datasalt.pangolin.io.Serialization;
 public class TupleImpl implements Tuple {
 	private Configuration conf;
 	
-	private Map<String,Object> objects = new HashMap<String,Object>();
+	private Map<String,Object> tupleElements = new HashMap<String,Object>();
 	private Set<String> nullObjects = new HashSet<String>();
 	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 	private Buffer tmpInputBuffer = new Buffer();
 	private Serialization serialization;
 	private FieldsDescription schema;
 	private Text text = new Text();
-
-	private TupleImpl() {
+	
+	@SuppressWarnings("rawtypes")
+  private Map<String,Enum[]> cachedEnums = new HashMap<String,Enum[]>();
+	
+	
+	
+	/**
+	 * Hadoop can use this using ReflectionUtils.newInstance
+	 */
+	@SuppressWarnings("unused")
+  private TupleImpl() {
 	}
 	
 	public TupleImpl(@Nonnull FieldsDescription schema){
 		setSchema(schema);
 	}
 
+	@Override
 	public FieldsDescription getSchema(){
 		return schema;
 	}
@@ -80,52 +85,67 @@ public class TupleImpl implements Tuple {
 	}
 	
 	public void clear(){
-		this.objects.clear();
+		this.tupleElements.clear();
 		this.nullObjects.clear();
 		populateObjects();
 	}
 	
 	
+	/**
+	 * Caches the values from the enum fields. This is done for efficiency since uses reflection. 
+	 * 
+	 */
+	private void cacheEnums(FieldsDescription schema) {
+		try {
+			for(Field field : schema.getFields()) {
+				Class<?> type = field.getType();
+				if(type.isEnum()) {
+					Method method = type.getMethod("values", null);
+					Object values = method.invoke(null);
+					cachedEnums.put(field.getName(),(Enum[])values);
+				}
+
+			}
+		} catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+	
+	@Override
 	public void setSchema(@Nonnull FieldsDescription schema) {
 		this.schema = schema;
+		this.cachedEnums.clear();
+		cacheEnums(schema);
 		clear();
 	}
 	
 	private void populateObjects(){
 		for (Field field : schema.getFields()){
-			Class type = field.getType();
-			String name = field.getName();
-			if (type == Integer.class || type == VIntWritable.class){
-				objects.put(name,0);
-			} else if (type == Long.class || type == VLongWritable.class){
-				objects.put(name,0l);
-			} else if(type == String.class){
-				objects.put(name,"");
-			} else if(type == Boolean.class){
-				objects.put(name,false);
-			} else if(type == Float.class){
-				objects.put(name,0.f);
-			} else if(type == Double.class){
-				objects.put(name,0.0);
-			} else if(type.isEnum()){
-        try {
-	        Enum firstEnum = getEnumValueOf(type,0);
-					objects.put(name,firstEnum);
-        } catch(Exception e) { } 
+			Class fieldType = field.getType();
+			String fieldName = field.getName();
+			if (fieldType == Integer.class || fieldType == VIntWritable.class){
+				tupleElements.put(fieldName,0);
+			} else if (fieldType == Long.class || fieldType == VLongWritable.class){
+				tupleElements.put(fieldName,0l);
+			} else if(fieldType == String.class){
+				tupleElements.put(fieldName,"");
+			} else if(fieldType == Boolean.class){
+				tupleElements.put(fieldName,false);
+			} else if(fieldType == Float.class){
+				tupleElements.put(fieldName,0.f);
+			} else if(fieldType == Double.class){
+				tupleElements.put(fieldName,0.0);
+			} else if(fieldType.isEnum()){
+        Enum[] enums = cachedEnums.get(fieldName);
+        tupleElements.put(fieldName,enums[0]);
 			} else {
-				Object object = ReflectionUtils.newInstance(type, conf);
-				objects.put(name,object);
-				nullObjects.add(name);
+				Object object = ReflectionUtils.newInstance(fieldType, conf);
+				tupleElements.put(fieldName,object);
+				nullObjects.add(fieldName);
 			}
 		}
 	}
-	
-	private Enum getEnumValueOf(Class enumClass,int ordinal) throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException{
-    Method method = enumClass.getMethod("values",null);
-    Object values = method.invoke(null);
-		return (Enum)Array.get(values,ordinal);
-	}
-	
 	
 	/**
 	 * Thrown when a field is not present in schema
@@ -158,7 +178,7 @@ public class TupleImpl implements Tuple {
 		if (nullObjects.contains(fieldName)){
 			return null;
 		} else {
-			return objects.get(fieldName);
+			return tupleElements.get(fieldName);
 		}
 	}
 	
@@ -173,7 +193,7 @@ public class TupleImpl implements Tuple {
 			nullObjects.add(fieldName);
 		} else {
 			nullObjects.remove(fieldName);
-			objects.put(fieldName,value);
+			tupleElements.put(fieldName,value);
 		}
 	}
 	
@@ -206,29 +226,33 @@ public class TupleImpl implements Tuple {
 		}
 	}
 	
-	
-	
-	
+	@Override
 	public int getInt(String fieldName) throws InvalidFieldException {
 		return (Integer)getField(fieldName);
 	}
 	
+	@Override
 	public long getLong(String fieldName) throws InvalidFieldException {
 		return (Long)getField(fieldName);
 	}
 	
+	
+	@Override
 	public float getFloat(String fieldName) throws InvalidFieldException {
 		return (Float)getField(fieldName);
 	}
 	
+	@Override
 	public double getDouble(String fieldName) throws InvalidFieldException {
 		return (Double)getField(fieldName);
 	}
 	
+	@Override
 	public String getString(String fieldName) throws InvalidFieldException {
 		return (String)getField(fieldName);
 	}
 	
+	@Override
 	public Object getObject(String fieldName) throws InvalidFieldException {
 		return getField(fieldName);
 	}
@@ -237,39 +261,47 @@ public class TupleImpl implements Tuple {
 		return (Enum<? extends Enum<?>>)getField(fieldName);
 	}
 	
-	
+	@Override
 	public void setEnum(String fieldName, Enum<? extends Enum<?>> value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
+	@Override
 	public void setInt(String fieldName, int value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
+	@Override
 	public void setString(String fieldName,String value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
+	@Override
 	public void setLong(String fieldName,long value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
+	@Override
 	public void setFloat(String fieldName,float value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
+	@Override
 	public void setDouble(String fieldName,double value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
+	@Override
 	public void setBoolean(String fieldName,boolean value) throws InvalidFieldException {
 		setField(fieldName,value);
 	}
 	
+	@Override
 	public void setObject(String fieldName,Object object) throws InvalidFieldException {
 		setField(fieldName,object);
 	}
 	
+	@Override
 	public void setThriftObject(String fieldName,TBase value) throws InvalidFieldException{
 		setField(fieldName,value);
 	}
@@ -282,27 +314,27 @@ public class TupleImpl implements Tuple {
 			String fieldName = field.getName();
 			Class<?> fieldType = field.getType();
 			if (fieldType == VIntWritable.class) {
-				WritableUtils.writeVInt(output, (Integer) objects.get(fieldName));
+				WritableUtils.writeVInt(output, (Integer) tupleElements.get(fieldName));
 			} else if (fieldType == VLongWritable.class) {
-				WritableUtils.writeVLong(output, (Long) objects.get(fieldName));
+				WritableUtils.writeVLong(output, (Long) tupleElements.get(fieldName));
 			} else if (fieldType == Integer.class){ 
-			  output.writeInt((Integer)objects.get(fieldName));
+			  output.writeInt((Integer)tupleElements.get(fieldName));
 			} else if (fieldType == Long.class){
-				output.writeLong((Long)objects.get(fieldName));
+				output.writeLong((Long)tupleElements.get(fieldName));
 			} else if (fieldType == Double.class) {
-				output.writeDouble((Double) objects.get(fieldName));
+				output.writeDouble((Double) tupleElements.get(fieldName));
 			} else if (fieldType == Float.class) {
-				output.writeFloat((Float) objects.get(fieldName));
+				output.writeFloat((Float) tupleElements.get(fieldName));
 			} else if (fieldType == String.class) {
-				text.set((String)objects.get(fieldName));
+				text.set((String)tupleElements.get(fieldName));
 				text.write(output);
 			}	else if (fieldType == Boolean.class) {
-				output.writeBoolean((Boolean)objects.get(fieldName));
+				output.writeBoolean((Boolean)tupleElements.get(fieldName));
 			} else if (fieldType.isEnum()){
-				Enum e = (Enum)objects.get(fieldName);
+				Enum e = (Enum)tupleElements.get(fieldName);
 				WritableUtils.writeVInt(output,e.ordinal());
 			} else {
-				Object object = objects.get(fieldName);
+				Object object = tupleElements.get(fieldName);
 				if (object == null){
 					WritableUtils.writeVInt(output,0);
 				} else {
@@ -321,28 +353,31 @@ public class TupleImpl implements Tuple {
 			Class<?> fieldType = schema.getFields()[i].getType();
 			String name = schema.getFields()[i].getName();
 			if (fieldType == VIntWritable.class) {
-				objects.put(name,WritableUtils.readVInt(input));
+				tupleElements.put(name,WritableUtils.readVInt(input));
 			} else if (fieldType == VLongWritable.class) {
-				objects.put(name,WritableUtils.readVLong(input));
+				tupleElements.put(name,WritableUtils.readVLong(input));
 			} else if (fieldType == Integer.class){
-				objects.put(name,input.readInt());
+				tupleElements.put(name,input.readInt());
 			} else if (fieldType == Long.class){
-				objects.put(name, input.readLong());
+				tupleElements.put(name, input.readLong());
 			}	else if (fieldType == Double.class) {
-				objects.put(name, input.readDouble());
+				tupleElements.put(name, input.readDouble());
 			} else if (fieldType == Float.class) {
-				objects.put(name, input.readFloat());
+				tupleElements.put(name, input.readFloat());
 			} else if (fieldType == String.class) {
 				text.readFields(input);
-				objects.put(name, text.toString());
+				tupleElements.put(name, text.toString());
 			} else if (fieldType == Boolean.class) {
-				objects.put(name, input.readBoolean());
+				tupleElements.put(name, input.readBoolean());
 			} else if (fieldType.isEnum()){
 				int ordinal = WritableUtils.readVInt(input);
 				try{
-					Enum element = getEnumValueOf(fieldType, ordinal);
-					objects.put(name,element);
-				} catch (Exception e){
+					Enum[] enums = cachedEnums.get(name);
+					if (enums == null){
+						throw new IOException("Field "+ name + " is not a enum type");
+					}
+					tupleElements.put(name,enums[ordinal]);
+				} catch (ArrayIndexOutOfBoundsException e){
 					throw new RuntimeException(e);
 				}
 			} else {
@@ -350,8 +385,8 @@ public class TupleImpl implements Tuple {
 				if (size != 0){
 					tmpInputBuffer.setSize(size);
 					input.readFully(tmpInputBuffer.getBytes(),0,size);
-					Object ob = serialization.deser(objects.get(name),tmpInputBuffer.getBytes(),0,size);
-					this.objects.put(name, ob);
+					Object ob = serialization.deser(tupleElements.get(name),tmpInputBuffer.getBytes(),0,size);
+					this.tupleElements.put(name, ob);
 					nullObjects.remove(name);
 				} else {
 					nullObjects.add(name);
@@ -360,20 +395,20 @@ public class TupleImpl implements Tuple {
 		}
 	}
 	
-	public void deepCopyFrom(TupleImpl tuple) {
-		setSchema(tuple.getSchema());
-		try{
-			for(Field field : schema.getFields()) {
-				String fieldName = field.getName();
-				// TODO make deep copy !!!!
-				setField(fieldName, tuple.getField(fieldName));
-
-			}
-		} catch(InvalidFieldException e) {
-			// shouldn't occur
-			throw new RuntimeException(e);
-		}
-	}
+//	public void deepCopyFrom(TupleImpl tuple) {
+//		setSchema(tuple.getSchema());
+//		try{
+//			for(Field field : schema.getFields()) {
+//				String fieldName = field.getName();
+//				// TODO make deep copy !!!!
+//				setField(fieldName, tuple.getField(fieldName));
+//
+//			}
+//		} catch(InvalidFieldException e) {
+//			// shouldn't occur
+//			throw new RuntimeException(e);
+//		}
+//	}
 
 	/**
 	 * Calculates a combinated hashCode using the specified fields.
@@ -381,6 +416,7 @@ public class TupleImpl implements Tuple {
 	 * @return
 	 * @throws InvalidFieldException
 	 */
+	@Override
 	public int partialHashCode(String[] fields) throws InvalidFieldException {
 		int result = 0;
 		for(String fieldName : fields) {
@@ -447,7 +483,7 @@ public class TupleImpl implements Tuple {
 		}
   }
 	
-	private int compareObjects(Object element1, Object element2 ){
+	private static int compareObjects(Object element1, Object element2 ){
 
 		if (element1 == null){
 			return (element2 == null) ? 0 : -1;
