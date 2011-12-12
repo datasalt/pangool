@@ -27,7 +27,7 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.GrouperWithRollup;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.FieldsDescription;
-import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.TupleImpl;
 
 /**
  * TODO
@@ -36,7 +36,7 @@ import com.datasalt.pangolin.grouper.io.Tuple;
  * @param <KEY_OUT>
  * @param <VALUE_OUT>
  */
-public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<Tuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
+public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<TupleImpl, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
     	private FieldsDescription schema;
     	private TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
@@ -79,7 +79,7 @@ public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.
   }
   
   @Override
-	public final void reduce(Tuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
+	public final void reduce(TupleImpl key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
 		Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
 		handler.onGroupElements(grouperIterator);

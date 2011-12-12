@@ -24,7 +24,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.Reducer;
 
-import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.DoubleBufferedTuple;
+import com.datasalt.pangolin.grouper.io.TupleImpl;
 import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
 import com.datasalt.pangolin.grouper.io.TuplePartitioner;
 import com.datasalt.pangolin.grouper.io.TupleSortComparator;
@@ -148,7 +149,7 @@ public class GrouperWithRollup {
 		job.setJarByClass((jarByClass!=null) ? jarByClass : reducerHandler);
 		
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(Tuple.class);
+		job.setMapOutputKeyClass(DoubleBufferedTuple.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(TuplePartitioner.class);
 		job.setGroupingComparatorClass(TupleGroupComparator.class);

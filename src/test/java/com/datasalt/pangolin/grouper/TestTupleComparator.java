@@ -27,7 +27,7 @@ import org.apache.hadoop.io.RawComparator;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
-import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.TupleImpl;
 import com.datasalt.pangolin.grouper.io.TupleSortComparator;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.thrift.test.A;
@@ -108,12 +108,12 @@ public class TestTupleComparator extends AbstractHadoopTestLibrary{
 		TupleSortComparator comp = new TupleSortComparator();
 		comp.setConf(conf);
 		
-		Tuple tuple1 = new Tuple(schema);
+		TupleImpl tuple1 = new TupleImpl(schema);
 		//tuple1.setSchema(schema);
 		tuple1.setSerialization(getSer());
 		tuple1.setThriftObject("risas",a1);
 		
-		Tuple tuple2 = new Tuple(schema);
+		TupleImpl tuple2 = new TupleImpl(schema);
 		tuple2.setSchema(schema);
 		tuple2.setSerialization(getSer());
 		tuple2.setThriftObject("risas",a1);
@@ -121,7 +121,7 @@ public class TestTupleComparator extends AbstractHadoopTestLibrary{
 		assertEquals(0,compareInBinary(comp,tuple1,tuple2));
 	}
 	
-	private int compareInBinary(RawComparator<?> comp,Tuple tuple1,Tuple tuple2) throws IOException{
+	private int compareInBinary(RawComparator<?> comp,TupleImpl tuple1,TupleImpl tuple2) throws IOException{
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		tuple1.write(buffer1);
 		DataOutputBuffer buffer2 = new DataOutputBuffer();

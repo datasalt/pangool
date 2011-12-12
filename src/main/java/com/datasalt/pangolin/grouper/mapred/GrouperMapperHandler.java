@@ -7,6 +7,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.TupleImpl;
 
 public abstract class GrouperMapperHandler<INPUT_KEY,INPUT_VALUE> {
 	

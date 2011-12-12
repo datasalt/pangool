@@ -22,13 +22,14 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 
 import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.TupleImpl;
 
 /**
  * Iterator used in {@link GrouperWithRollup} and {@link Grouper}. Basically it translates an {@link Iterable}<NullWritable> to {@link Iterable}<Tuple>. 
  * In order to do so, it handles the @{ReduceContext} and uses @{ReduceContext.getCurrentKey()} to obtain the key in 
  * every iteration.
  * 
- * See {@link Iterable} and {@link Tuple}
+ * See {@link Iterable} and {@link TupleImpl}
  *  
  * @author epalace
  * 
@@ -36,7 +37,7 @@ import com.datasalt.pangolin.grouper.io.Tuple;
 public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>,Iterable<Tuple>{
 
 	private Iterator<NullWritable> iterator;
-	private ReduceContext<Tuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
+	private ReduceContext<? extends Tuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
 	
 	/*
 	 *  used to mark that the first element from iterable was already consumed, so in next iteration don't call iterator.next().
@@ -49,7 +50,7 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>,I
 		this.iterator = iterator;
 	}
 	
-	public void setContext(ReduceContext<Tuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
+	public void setContext(ReduceContext<? extends Tuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
 		this.context = context;
 	}
 	

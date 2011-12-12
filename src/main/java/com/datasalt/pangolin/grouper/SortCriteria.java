@@ -26,7 +26,7 @@ import org.apache.hadoop.io.RawComparator;
 
 /**
  * 
- * SortCriteria specifies how the {@link Tuple} fields will be sorted by {@link TupleSortComparator}.
+ * SortCriteria specifies how the {@link TupleImpl} fields will be sorted by {@link TupleSortComparator}.
  * Basically it's a list of fields with a sort descriptor (scending or descending order).For example: "name asc,age desc"
  * The sort criteria needs to match the {@link FieldsDescription} fields ordering, so in any case the {@link SortCriteria} must be a prefix from {@link FieldsDescription} 
  * 

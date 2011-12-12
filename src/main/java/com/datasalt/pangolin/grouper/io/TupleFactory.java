@@ -12,8 +12,8 @@ public class TupleFactory {
 		this.schema = schema;
 	}
 
-	public Tuple createTuple(){
-		Tuple tuple = ReflectionUtils.newInstance(Tuple.class, null);
+	public TupleImpl createTuple(){
+		TupleImpl tuple = ReflectionUtils.newInstance(TupleImpl.class, null);
 		tuple.setSchema(schema);
 		return tuple;
 	}

@@ -26,7 +26,7 @@ import org.apache.hadoop.io.VLongWritable;
 
 /**
  * 
- * Schema specifies which fields (name and types) a {@link Tuple} will contain.
+ * Schema specifies which fields (name and types) a {@link TupleImpl} will contain.
  * 
  * @author epalace
  *

@@ -15,7 +15,8 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.Tuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.TupleImpl;
+import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
 
@@ -25,7 +26,7 @@ public class Test extends AbstractHadoopTestLibrary {
 	private static class Mapy extends GrouperMapperHandler<Text,NullWritable>{
 		
 		//private Configuration conf;
-		private Tuple outputKey;
+		private TupleImpl outputKey;
 		@Override
 		public void setup(Mapper.Context context) throws IOException,InterruptedException {
 			super.setup(context);
@@ -109,7 +110,7 @@ public class Test extends AbstractHadoopTestLibrary {
 		grouper.setMinGroup("country");
 		grouper.setMaxGroup("country,age,name");
 		
-		grouper.setOutputKeyClass(Tuple.class);
+		grouper.setOutputKeyClass(TupleImpl.class);
 		grouper.setOutputValueClass(NullWritable.class);
 		
 		

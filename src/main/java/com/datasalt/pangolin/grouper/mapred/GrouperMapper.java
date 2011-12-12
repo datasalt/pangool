@@ -26,6 +26,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.grouper.GrouperWithRollup;
 import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.TupleImpl;
 
 /**
  * 

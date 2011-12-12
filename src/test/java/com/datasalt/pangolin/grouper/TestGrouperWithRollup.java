@@ -31,8 +31,10 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangolin.grouper.io.DoubleBufferedTuple;
 import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.Tuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.TupleImpl;
+import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
@@ -51,7 +53,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 			
 			try {
 	      FieldsDescription schema = FieldsDescription.parse(context.getConfiguration());
-	      outputKey = new Tuple(schema);
+	      outputKey = new DoubleBufferedTuple(schema);
       } catch(GrouperException e) {
 	      throw new RuntimeException(e);
       }
@@ -122,11 +124,11 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		grouper.setReducerHandler(Red.class);
 		
 		grouper.setSchema(FieldsDescription.parse("country:string,age:vint,name:string,height:int"));
-		grouper.setSortCriteria("country DESC,age DESC");
+		grouper.setSortCriteria("country ASC,age ASC");
 		grouper.setMinGroup("country");
 		grouper.setMaxGroup("country,age,name");
 		
-		grouper.setOutputKeyClass(Tuple.class);
+		grouper.setOutputKeyClass(DoubleBufferedTuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
 		
 		

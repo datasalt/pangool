@@ -27,7 +27,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 
-import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.TupleImpl;
 import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
 import com.datasalt.pangolin.grouper.io.TuplePartitioner;
 import com.datasalt.pangolin.grouper.io.TupleSortComparator;
@@ -131,7 +131,7 @@ public class Grouper {
 		job.getConfiguration().set(Constants.CONF_MIN_GROUP,groupFields);
 		job.getConfiguration().set(TuplePartitioner.CONF_PARTITIONER_FIELDS,(partitionerFields != null) ? partitionerFields :  groupFields);
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(Tuple.class);
+		job.setMapOutputKeyClass(TupleImpl.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(TuplePartitioner.class);
 		job.setGroupingComparatorClass(TupleGroupComparator.class);

@@ -32,7 +32,8 @@ import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.Tuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.TupleImpl;
+import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
@@ -43,7 +44,7 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 
 	private static class Mapy extends GrouperMapperHandler<Text,NullWritable>{
 		
-		private Tuple outputKey;
+		private TupleImpl outputKey;
 		
 		@Override
 		public void setup(Mapper.Context context) throws IOException,InterruptedException {

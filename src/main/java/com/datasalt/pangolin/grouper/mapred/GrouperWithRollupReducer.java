@@ -28,8 +28,10 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.GrouperWithRollup;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.io.DoubleBufferedTuple;
 import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.Tuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.TupleImpl;
+import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
 
 /**
  * TODO
@@ -38,9 +40,9 @@ import com.datasalt.pangolin.grouper.io.Tuple.InvalidFieldException;
  * @param <KEY_OUT>
  * @param <VALUE_OUT>
  */
-public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<Tuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
+public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<DoubleBufferedTuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
-    	private Tuple lastElementPreviousGroup=null;
+    	//private DoubleBufferedTuple lastElementPreviousGroup=null;
     	private FieldsDescription schema;
     	private int minDepth,maxDepth;
     	private TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
@@ -65,7 +67,7 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
   	this.grouperIterator.setContext(context);
   	
   	Configuration conf = context.getConfiguration();
-		Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(GrouperWithRollup.CONF_MAPPER_HANDLER,null,GrouperReducerHandler.class); 
+		Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(GrouperWithRollup.CONF_REDUCER_HANDLER,null,GrouperReducerHandler.class); 
 		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
 		handler.setup(context);
   	
@@ -88,27 +90,27 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
     
     //close last group
     for (int i=maxDepth; i >=minDepth ; i--){
-			handler.onCloseGroup(i,schema.getFields()[i].getName(),lastElementPreviousGroup);
+			handler.onCloseGroup(i,schema.getFields()[i].getName(),context.getCurrentKey());
 		}
     cleanup(context);
   }
   
   
   @Override
-	public final void reduce(Tuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
+	public final void reduce(DoubleBufferedTuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
 		Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
 		iterator.next();
-
+		DoubleBufferedTuple currentKey = context.getCurrentKey();
+		Tuple previousKey = currentKey.getPreviousTuple();
 		int indexMismatch;
-		if (lastElementPreviousGroup == null) {
+		if (previousKey == null) {
 			// first iteration
 			indexMismatch = minDepth;
-			lastElementPreviousGroup = new Tuple(schema);
 		} else {
-			indexMismatch = indexMismatch(lastElementPreviousGroup, context.getCurrentKey(), minDepth,maxDepth);
+			indexMismatch = indexMismatch(previousKey,currentKey , minDepth,maxDepth);
 			for (int i = maxDepth; i >= indexMismatch; i--) {
-				handler.onCloseGroup(i, schema.getFields()[i].getName(), lastElementPreviousGroup);
+				handler.onCloseGroup(i, schema.getFields()[i].getName(), previousKey);
 			}
 		}
 
@@ -125,7 +127,7 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
 		while (iterator.hasNext()) {
 			iterator.next();
 		}
-		lastElementPreviousGroup.deepCopyFrom(context.getCurrentKey());
+		//lastElementPreviousGroup.deepCopyFrom(context.getCurrentKey());
 	}
   
 
