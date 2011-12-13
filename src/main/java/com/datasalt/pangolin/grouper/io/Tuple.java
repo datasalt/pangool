@@ -8,8 +8,12 @@ import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
 
 /**
- * This is the common interface shared by {@link TupleImpl} and {@link DoubleBufferedTuple}
- * @author epalace
+ * This is the common interface implemented by {@link TupleImpl} and {@link DoubleBufferedTuple}.
+ * A Tuple is basically a hadoop-serializable object containing fields according to the schema defined in 
+ * {@link FieldsDescription}. Tuples are used in intermediate {@link org.apache.hadoop.mapreduce.Mapper}
+ * outputs in {@link Grouper} and {@link GrouperWithRollup}
+ * 
+ * @author eric
  *
  */
 public interface Tuple extends WritableComparable<Tuple>,Configurable{
@@ -21,7 +25,7 @@ public interface Tuple extends WritableComparable<Tuple>,Configurable{
 	public void setSchema(FieldsDescription schema);
 	
 	
-	//GETTERS
+	//Getters
 	
 	public int getInt(String fieldName) throws InvalidFieldException;
 	
@@ -39,7 +43,7 @@ public interface Tuple extends WritableComparable<Tuple>,Configurable{
 	
 	
 	
-	//SETTERS
+	//Setters
 	
 	public void setEnum(String fieldName, Enum<? extends Enum<?>> value) throws InvalidFieldException;
 	

@@ -42,8 +42,8 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.io.Serialization;
 
 /**
- * This is the basic implementation of {@link Tuple}. It's in charge of the implementation of type-checking and raw-element 
- * serialization/deserialization defined in {@link WritableComparable}
+ * This is the basic implementation of {@link Tuple}. It implements the type-checking and raw fields 
+ * serialization/deserialization.
  * 
  * @author epalace
  * 
