@@ -29,6 +29,7 @@ import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
  */
 public class DoubleBufferedTuple implements Tuple {
 
+	private int numDeserialized=0;
 	private FieldsDescription schema;
 	private Configuration conf;
 	private TupleImpl previousTuple, currentTuple;
@@ -54,6 +55,7 @@ public class DoubleBufferedTuple implements Tuple {
 
 	@Override
 	public void readFields(DataInput in) throws IOException {
+		System.out.println("Deserializing tuple " + ++numDeserialized);
 		// swapping double buffering
 		TupleImpl tmpTuple = previousTuple;
 		previousTuple = currentTuple;
@@ -205,5 +207,10 @@ public class DoubleBufferedTuple implements Tuple {
 	public void setSchema(FieldsDescription schema) {
 		currentTuple.setSchema(schema);
 	}
+
+	@Override
+  public String toString(int minFieldIndex, int maxFieldIndex) throws InvalidFieldException {
+	  return currentTuple.toString(minFieldIndex,maxFieldIndex);
+  }
 
 }

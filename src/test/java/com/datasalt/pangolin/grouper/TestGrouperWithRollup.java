@@ -110,12 +110,12 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		public void onGroupElements(Iterable<Tuple> tuples) throws IOException,InterruptedException {
 			Iterator<Tuple> iterator = tuples.iterator();
 			outputKey.set("ELEMENT");
-			while ( iterator.hasNext()){
-				Tuple tuple = iterator.next();
-				outputValue.set(tuple.toString());
-				context.write(outputKey,outputValue);
-		    System.out.println(outputKey +" => " + outputValue);
-			}
+			//while ( iterator.hasNext()){
+//				Tuple tuple = iterator.next();
+//				outputValue.set(tuple.toString());
+//				context.write(outputKey,outputValue);
+//		    System.out.println(outputKey +" => " + outputValue);
+			//}
 	  }
 	}
 	

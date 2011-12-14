@@ -77,12 +77,18 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 	private static class IdentityRed extends GrouperReducerHandler<Text,Text>{
 
 		private Reducer<? extends Tuple,NullWritable,Text,Text>.Context context;
-		private Text outputKey = new Text();
-		private Text outputValue = new Text();
+//		private Text outputKey = new Text();
+//		private Text outputValue = new Text();
+		private int [] count,distinctCount;
+		private int minDepth=0;
+		private int maxDepth=2;
 		
 		@Override
 		public void setup(Reducer<? extends Tuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
 			this.context = context;
+			count = new int[3];
+			distinctCount = new int[3];
+			
 		}
 		
 		@Override
@@ -92,31 +98,44 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		
 		@Override
     public void onOpenGroup(int depth,String field,Tuple firstElement) throws IOException, InterruptedException {
-			outputKey.set("OPEN "+ depth);
-			outputValue.set(firstElement.toString());
-	    context.write(outputKey, outputValue);
-	    System.out.println(outputKey +" => " + outputValue);
+			count[depth] = 0;
+			distinctCount[depth]=0;
+			
     }
 
 		@Override
     public void onCloseGroup(int depth,String field,Tuple lastElement) throws IOException, InterruptedException {
-			outputKey.set("CLOSE "+ depth);
-			outputValue.set(lastElement.toString());
-	    context.write(outputKey, outputValue);
-	    System.out.println(outputKey +" => " + outputValue);
+			try {
+				String tupleStr = lastElement.toString(0, depth);
+				String output =  tupleStr +  " => count:" + count[depth];
+				if (depth < maxDepth){
+					//distinctCount is not set in highest depth
+					output += " distinctCount:"+ distinctCount[depth];
+				}
+				System.out.println(output);
+				if(depth > minDepth) {
+					//we can't output data below minDepth.
+					count[depth - 1] += count[depth];
+					distinctCount[depth - 1]++;
+				}
+			} catch(InvalidFieldException e) {
+				throw new RuntimeException(e);
+			}
     }
 		
 		@Override
 		public void onGroupElements(Iterable<Tuple> tuples) throws IOException,InterruptedException {
 			Iterator<Tuple> iterator = tuples.iterator();
-			outputKey.set("ELEMENT");
-			while ( iterator.hasNext()){
-				Tuple tuple = iterator.next();
-				outputValue.set(tuple.toString());
-				context.write(outputKey,outputValue);
-		    System.out.println(outputKey +" => " + outputValue);
+
+			try {
+				while(iterator.hasNext()) {
+					Tuple tuple = iterator.next();
+					count[maxDepth] += tuple.getInt("count");
+				}
+			} catch(InvalidFieldException e) {
+				throw new RuntimeException(e);
 			}
-	  }
+		}
 	}
 	
 	

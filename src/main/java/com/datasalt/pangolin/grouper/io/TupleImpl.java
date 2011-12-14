@@ -527,10 +527,19 @@ public class TupleImpl implements Tuple {
 	@Override
 	public String toString() {
 		try {
+		return toString(0,schema.getFields().length-1);
+		} catch(InvalidFieldException e){
+			throw new RuntimeException(e);
+		}
+	}
+	
+	
+	public String toString(int minFieldIndex,int maxFieldIndex) throws InvalidFieldException{
+		
 			StringBuilder b = new StringBuilder("{"); // TODO not optimized,should be cached
 			boolean first = true;
-			for(Field field : schema.getFields()) {
-				
+			for(int index = minFieldIndex ; index <=maxFieldIndex ; index++) {
+				Field field = schema.getField(index);
 				String fieldName = field.getName();
 				Object element = getField(fieldName);
 				if(!first) {
@@ -551,8 +560,7 @@ public class TupleImpl implements Tuple {
 			}
 			b.append("}");
 			return b.toString();
-		} catch(InvalidFieldException e) {
-			throw new RuntimeException(e);
-		}
-	}
+		} 
+		
+	
 }
