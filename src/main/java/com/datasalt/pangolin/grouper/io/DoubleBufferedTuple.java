@@ -18,9 +18,10 @@ import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
 /**
  * 
  * This implementation of {@link Tuple} allows to mantain two {@link TupleImpl} instances in a double-buffered fashion.
- * That is, when the @{link readFields()} method is called , the last previous state is kept and then the new current 
- * instance is updated 
+ * That is, when the {@link #readFields(DataInput)} method is called , the last previous state is kept and then the new current 
+ * instance is updated.
  * 
+ *  
  * Since this double buffered mechanism avoids cloning or deep copying instances ,allows efficient comparison between
  * tuples performed in {@link GrouperWithRollupReducer}.
  * 
@@ -29,7 +30,6 @@ import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
  */
 public class DoubleBufferedTuple implements Tuple {
 
-	private int numDeserialized=0;
 	private FieldsDescription schema;
 	private Configuration conf;
 	private TupleImpl previousTuple, currentTuple;
@@ -53,9 +53,11 @@ public class DoubleBufferedTuple implements Tuple {
 
 	}
 
+	/**
+	 * This is where the double-buffer swapping is performed.
+	 */
 	@Override
 	public void readFields(DataInput in) throws IOException {
-		System.out.println("Deserializing tuple " + ++numDeserialized);
 		// swapping double buffering
 		TupleImpl tmpTuple = previousTuple;
 		previousTuple = currentTuple;
@@ -194,7 +196,7 @@ public class DoubleBufferedTuple implements Tuple {
 	}
 
 	@Override
-	public void setThriftObject(String fieldName, TBase value) throws InvalidFieldException {
+	public void setThriftObject(String fieldName,TBase<?,?> value) throws InvalidFieldException {
 		currentTuple.setThriftObject(fieldName, value);
 	}
 

@@ -82,15 +82,11 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
 
   @Override
   public final void run(Context context) throws IOException,InterruptedException {
-  	
   	setup(context);
   	firstIteration=true;
-  	System.out.println("About to context.nextKey()");
   	while (context.nextKey()) {
-  		
       reduce(context.getCurrentKey(), context.getValues(), context);
       //TODO look if this matches super.run() implementation
-      System.out.println("About to context.nextKey()");
     }
     
     //close last group
@@ -103,10 +99,8 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
   
   @Override
 	public final void reduce(DoubleBufferedTuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
-  	System.out.println("REDUCE");
-		Iterator<NullWritable> iterator = values.iterator();
+ 	Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
-		System.out.println("Iterator next");
 		iterator.next();
 		DoubleBufferedTuple currentKey = context.getCurrentKey();
 		Tuple previousKey = currentKey.getPreviousTuple();
@@ -133,11 +127,8 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
 		// This loop consumes the remaining elements that reduce didn't consume
 		// The aim of this is to correctly set the last element in the next onCloseGroup() call
 		while (iterator.hasNext()) {
-			System.out.println("Skipping next values TONTAMENTE");
-			System.out.println("Iterator next");
 			iterator.next();
 		}
-		//lastElementPreviousGroup.deepCopyFrom(context.getCurrentKey());
 	}
   
 

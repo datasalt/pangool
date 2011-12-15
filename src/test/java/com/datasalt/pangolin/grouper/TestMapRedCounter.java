@@ -21,7 +21,6 @@ import java.util.Iterator;
 
 import junit.framework.Assert;
 
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
@@ -47,16 +46,14 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 
 	private static class Mapy extends GrouperMapperHandler<Text,NullWritable>{
 		
-		//private Tuple outputKey;
 		private FieldsDescription schema;
 		
-		@Override
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+    @Override
 		public void setup(Mapper.Context context) throws IOException,InterruptedException {
 			super.setup(context);
-			
 			try {
 	      this.schema = FieldsDescription.parse(context.getConfiguration());
-	      //outputKey = new DoubleBufferedTuple(schema);
       } catch(GrouperException e) {
 	      throw new RuntimeException(e);
       }
@@ -77,18 +74,19 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 	private static class IdentityRed extends GrouperReducerHandler<Text,Text>{
 
 		private Reducer<? extends Tuple,NullWritable,Text,Text>.Context context;
-//		private Text outputKey = new Text();
-//		private Text outputValue = new Text();
 		private int [] count,distinctCount;
-		private int minDepth=0;
-		private int maxDepth=2;
+		private int minDepth;
+		private int maxDepth;
 		
 		@Override
 		public void setup(Reducer<? extends Tuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
-			this.context = context;
-			count = new int[3];
-			distinctCount = new int[3];
-			
+				String minGroup = context.getConfiguration().get(Constants.CONF_MIN_GROUP);
+				String maxGroup = context.getConfiguration().get(Constants.CONF_MAX_GROUP);
+				minDepth = minGroup.split(",").length-1;
+				maxDepth = maxGroup.split(",").length-1;
+	      this.context = context;
+				count = new int[maxDepth+1];
+				distinctCount = new int[maxDepth+1];
 		}
 		
 		@Override
@@ -201,8 +199,9 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		
 		Job job = grouper.getJob();
 		job.setNumReduceTasks(1);
-		Path outputPath = new Path("output");
+		
 		Path inputPath = new Path("input");
+		Path outputPath = new Path("output");
 		FileInputFormat.setInputPaths(job,inputPath);
 		FileOutputFormat.setOutputPath(job, outputPath);
 		

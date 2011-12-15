@@ -61,7 +61,7 @@ public interface Tuple extends WritableComparable<Tuple>,Configurable{
 	
 	public void setObject(String fieldName,Object object) throws InvalidFieldException;
 	
-	public void setThriftObject(String fieldName,TBase value) throws InvalidFieldException;
+	public void setThriftObject(String fieldName,TBase<?, ?> value) throws InvalidFieldException;
 	
 
 	public String toString(int minFieldIndex,int maxFieldIndex) throws InvalidFieldException;
