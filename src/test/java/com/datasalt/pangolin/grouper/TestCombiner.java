@@ -33,6 +33,7 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangolin.grouper.io.DoubleBufferedTuple;
 import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.grouper.io.TupleImpl;
 import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
@@ -155,22 +156,23 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		withInput("input",new Text("US 16 listo 160"));
 		withInput("input",new Text("XE 20 listo 230"));
 		
-		GrouperWithRollup grouper = new GrouperWithRollup(getConf());
+		Grouper grouper = new Grouper(getConf());
 		grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
 		grouper.setMapperHandler(Mapy.class);
 		grouper.setReducerHandler(Red.class);
 		
 		grouper.setSchema(FieldsDescription.parse("country:string , age:vint , name:string,height:int"));
-		grouper.setSortCriteria("country ASC,age ASC");
-		grouper.setMinGroup("country");
-		grouper.setMaxGroup("country,age,name");
+		SortCriteria sortCriteria = SortCriteria.parse("country ASC,age ASC");
+		grouper.setSortCriteria(sortCriteria);
+		grouper.setRollupBaseGroupFields("country");
+		grouper.setGroupFields("country","age","name");
 		grouper.setCombinerHandler(Combi.class);
-		grouper.setOutputKeyClass(TupleImpl.class);
+		grouper.setOutputKeyClass(DoubleBufferedTuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
 		
 		
-		Job job = grouper.getJob();
+		Job job = grouper.createJob();
 		FileInputFormat.setInputPaths(job,new Path("input"));
 		FileOutputFormat.setOutputPath(job, new Path("output"));
 		

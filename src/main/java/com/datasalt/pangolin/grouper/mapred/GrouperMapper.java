@@ -24,7 +24,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.ReflectionUtils;
 
 
-import com.datasalt.pangolin.grouper.GrouperWithRollup;
+import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.grouper.io.TupleImpl;
 
@@ -57,7 +57,7 @@ public class GrouperMapper<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT
 //		}
 		
 		Configuration conf = context.getConfiguration();
-		Class<? extends GrouperMapperHandler> handlerClass = conf.getClass(GrouperWithRollup.CONF_MAPPER_HANDLER,null,GrouperMapperHandler.class); 
+		Class<? extends GrouperMapperHandler> handlerClass = conf.getClass(Grouper.CONF_MAPPER_HANDLER,null,GrouperMapperHandler.class); 
 		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
 		handler.setContext(context);
 		handler.setup(context);

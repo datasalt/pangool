@@ -23,27 +23,30 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangolin.grouper.Constants;
-import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.GrouperWithRollup;
-import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangolin.grouper.Grouper;
+import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.io.DoubleBufferedTuple;
 import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.TupleImpl;
+import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
 import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.TuplePartitioner;
 
 /**
- * TODO
- * @author epalace
+ * 
+ * This {@link Reducer} implements a similar functionality than {@link SimpleGrouperReducer} but adding a Rollup feature.
+ * 
+ * 
+ * 
+ * @author eric
  *
  * @param <KEY_OUT>
  * @param <VALUE_OUT>
  */
 public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<DoubleBufferedTuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
-    	//private DoubleBufferedTuple lastElementPreviousGroup=null;
-		 	private boolean firstIteration=true;
+    	private boolean firstIteration=true;
     	private FieldsDescription schema;
     	private int minDepth,maxDepth;
     	private TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
@@ -53,13 +56,15 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
     		return schema;
     	}
     	
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override  	
   public void setup(Context context) throws IOException,InterruptedException {
   	try{
     Configuration conf = context.getConfiguration();
   	this.schema = FieldsDescription.parse(conf);
-  	this.minDepth = conf.get(Constants.CONF_MIN_GROUP).split(",").length -1;
-  	this.maxDepth = conf.get(Constants.CONF_MAX_GROUP).split(",").length -1;
+  	this.maxDepth = conf.get(TupleGroupComparator.CONF_GROUP_COMPARATOR_FIELDS).split(",").length -1;
+  	String confPartitioner = conf.get(TuplePartitioner.CONF_PARTITIONER_FIELDS);
+  	this.minDepth = confPartitioner.split(",").length -1;
   	} catch(GrouperException e){
   		throw new RuntimeException(e);
   	}
@@ -68,7 +73,7 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
   	this.grouperIterator.setContext(context);
   	
   	Configuration conf = context.getConfiguration();
-		Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(GrouperWithRollup.CONF_REDUCER_HANDLER,null,GrouperReducerHandler.class); 
+		Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(Grouper.CONF_REDUCER_HANDLER,null,GrouperReducerHandler.class); 
 		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
 		handler.setup(context);
   	
@@ -103,13 +108,12 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
 		grouperIterator.setIterator(iterator);
 		iterator.next();
 		DoubleBufferedTuple currentKey = context.getCurrentKey();
-		Tuple previousKey = currentKey.getPreviousTuple();
 		int indexMismatch;
 		if (firstIteration) {
-			// first iteration
 			indexMismatch = minDepth;
 			firstIteration=false;
 		} else {
+			Tuple previousKey = currentKey.getPreviousTuple();
 			indexMismatch = indexMismatch(previousKey,currentKey , minDepth,maxDepth);
 			for (int i = maxDepth; i >= indexMismatch; i--) {
 				handler.onCloseGroup(i, schema.getFields()[i].getName(), previousKey);
@@ -125,17 +129,21 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
 		handler.onGroupElements(grouperIterator);
 
 		// This loop consumes the remaining elements that reduce didn't consume
-		// The aim of this is to correctly set the last element in the next onCloseGroup() call
+		// The goal of this is to correctly set the last element in the next onCloseGroup() call
 		while (iterator.hasNext()) {
 			iterator.next();
 		}
 	}
   
 
-	
-	private int indexMismatch(Tuple tuple1,Tuple tuple2,int minIndex,int maxIndex){
+	/**
+	 * Compares sequentially the fields from two tuples and returns which field they differ. 
+	 * 
+	 * @return
+	 */
+	private int indexMismatch(Tuple tuple1,Tuple tuple2,int minFieldIndex,int maxFieldIndex){
 		try {
-			for(int i = minIndex; i <= maxIndex; i++) {
+			for(int i = minFieldIndex; i <= maxFieldIndex; i++) {
 				String fieldName = schema.getFields()[i].getName();
 				if(!tuple1.getObject(fieldName).equals(tuple2.getObject(fieldName))) {
 					return i;

@@ -22,16 +22,16 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 
 import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.TupleImpl;
 
 /**
- * Iterator used in {@link GrouperWithRollup} and {@link Grouper}. Basically it translates an {@link Iterable}<NullWritable> to {@link Iterable}<Tuple>. 
- * In order to do so, it handles the @{ReduceContext} and uses @{ReduceContext.getCurrentKey()} to obtain the key in 
+ * Iterator used in {@link Grouper} and {@link Grouper}. Basically it translates an {@link Iterable} containing 
+ * {@link NullWritable} objects to one that contains {@link Tuple} ones. 
+ * In order to do so, it handles the {@link ReduceContext} and uses {@link ReduceContext#getCurrentKey()} to obtain the key in 
  * every iteration.
  * 
- * See {@link Iterable} and {@link TupleImpl}
+ * See {@link Iterable} and {@link Tuple}
  *  
- * @author epalace
+ * @author eric
  * 
  */
 public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>,Iterable<Tuple>{
@@ -39,8 +39,9 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>,I
 	private Iterator<NullWritable> iterator;
 	private ReduceContext<? extends Tuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
 	
-	/*
-	 *  used to mark that the first element from iterable was already consumed, so in next iteration don't call iterator.next().
+	/**
+	 *  used to mark that the first element from the {@link Iterator} was already consumed.
+	 *  This prevents calling iterator.next() twice for the first element.
 	 */
 	private boolean firstTupleConsumed=false;
 	
@@ -57,8 +58,9 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Tuple>,I
 	
 	/**
 	 *  This is used to mark that the first element from iterable was already consumed, so in next iteration don't call iterator.next().
-	 *  Instead of this reuse the currentKey in context.getCurrentKey(). 
-	 *  This method is usually called before {@link GrouperWithRollup.onElements()}
+	 *  Instead of this reuse the currentKey in {@link ReduceContext#getCurrentKey()} 
+	 *  
+	 *  This method is usually called before {@link Grouper#onElements()}
 	 */
 	
 	public void setFirstTupleConsumed(boolean available){

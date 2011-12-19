@@ -24,7 +24,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.GrouperWithRollup;
+import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.io.TupleImpl;
@@ -61,7 +61,7 @@ public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.
   	this.grouperIterator.setContext(context);
   	
   	Configuration conf = context.getConfiguration();
-		Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(GrouperWithRollup.CONF_MAPPER_HANDLER,null,GrouperReducerHandler.class); 
+		Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(Grouper.CONF_MAPPER_HANDLER,null,GrouperReducerHandler.class); 
 		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
 		handler.setup(context);
   	

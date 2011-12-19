@@ -71,7 +71,7 @@ public class TupleImpl implements Tuple {
   private TupleImpl() {
 	}
 	
-	public TupleImpl(@Nonnull FieldsDescription schema){
+	TupleImpl(@Nonnull FieldsDescription schema){
 		setSchema(schema);
 	}
 

@@ -32,23 +32,28 @@ import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.TupleImpl;
+import com.datasalt.pangolin.grouper.io.TupleFactory;
 import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
-import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
-import com.datasalt.pangolin.grouper.mapred.SimpleGrouperReducer;
 
 
 public class TestGrouper extends AbstractHadoopTestLibrary{
 
 	private static class Mapy extends GrouperMapperHandler<Text,NullWritable>{
 		
-		private TupleImpl outputKey;
+		private Tuple outputKey;
 		
 		@Override
 		public void setup(Mapper.Context context) throws IOException,InterruptedException {
 			super.setup(context);
+			FieldsDescription schema;
+      try {
+	      schema = FieldsDescription.parse(context.getConfiguration());
+      } catch(GrouperException e) {
+	      throw new RuntimeException(e);
+      }
+			outputKey = TupleFactory.createTuple(schema);
 		}
 		
 		
@@ -108,33 +113,37 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 	}
 	
 	
-//	@Test
-//	public void test() throws IOException, InterruptedException, ClassNotFoundException, GrouperException{
-//		
-//		withInput("input",new Text("ES 20 listo 250"));
-//		withInput("input",new Text("US 14 perro 180"));
-//		withInput("input",new Text("US 14 perro 170"));
-//		withInput("input",new Text("US 14 beber 202"));
-//		withInput("input",new Text("US 15 jauja 160"));
-//		withInput("input",new Text("US 16 listo 160"));
-//		withInput("input",new Text("XE 20 listo 230"));
-//		
-//		Grouper grouper = new Grouper(getConf());
-//		grouper.setInput(0,new Path("input"),SequenceFileInputFormat.class,Mapy.class, "country:string,age:vint,name:string,height:int");
-//		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-//		grouper.setReducerClass(Red.class);
-//		
-//		grouper.setSortCriteria("country DESC,age ASC,name asc,height desc");
-//		grouper.setGroup("country,age");
-//		
-//		grouper.setOutputKeyClass(Tuple.class);
-//		grouper.setOutputValueClass(NullWritable.class);
-//		
-//		
-//		Job job = grouper.getJob();
-//		FileInputFormat.setInputPaths(job,new Path("input"));
-//		FileOutputFormat.setOutputPath(job, new Path("output"));
-//		
-//		assertRun(job);
-//	}
+	@Test
+	public void test() throws IOException, InterruptedException, ClassNotFoundException, GrouperException{
+		
+		withInput("input",new Text("ES 20 listo 250"));
+		withInput("input",new Text("US 14 perro 180"));
+		withInput("input",new Text("US 14 perro 170"));
+		withInput("input",new Text("US 14 beber 202"));
+		withInput("input",new Text("US 15 jauja 160"));
+		withInput("input",new Text("US 16 listo 160"));
+		withInput("input",new Text("XE 20 listo 230"));
+		
+		Grouper grouper = new Grouper(getConf());
+		FieldsDescription schema = FieldsDescription.parse("country:string, age:vint, name:string, height:long");
+		grouper.setSchema(schema);
+		grouper.setInputFormat(SequenceFileInputFormat.class);
+		grouper.setMapperHandler(Mapy.class);
+		grouper.setOutputFormat(SequenceFileOutputFormat.class);
+		grouper.setReducerHandler(Red.class);
+		
+		SortCriteria sortCriteria = SortCriteria.parse("country DESC,age ASC,name asc,height desc");
+		grouper.setSortCriteria(sortCriteria);
+		grouper.setGroupFields("country","age");
+		
+		grouper.setOutputKeyClass(Tuple.class);
+		grouper.setOutputValueClass(NullWritable.class);
+		
+		
+		Job job = grouper.createJob();
+		FileInputFormat.setInputPaths(job,new Path("input"));
+		FileOutputFormat.setOutputPath(job, new Path("output"));
+		
+		assertRun(job);
+	}
 }

@@ -36,8 +36,8 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
-import com.datasalt.pangolin.grouper.io.DoubleBufferedTuple;
 import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.TupleFactory;
 import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
@@ -56,7 +56,6 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 			
 			try {
 	      this.schema = FieldsDescription.parse(context.getConfiguration());
-	      //outputKey = new DoubleBufferedTuple(schema);
       } catch(GrouperException e) {
 	      throw new RuntimeException(e);
       }
@@ -110,18 +109,18 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		public void onGroupElements(Iterable<Tuple> tuples) throws IOException,InterruptedException {
 			Iterator<Tuple> iterator = tuples.iterator();
 			outputKey.set("ELEMENT");
-			//while ( iterator.hasNext()){
-//				Tuple tuple = iterator.next();
-//				outputValue.set(tuple.toString());
-//				context.write(outputKey,outputValue);
-//		    System.out.println(outputKey +" => " + outputValue);
-			//}
+			while ( iterator.hasNext()){
+				Tuple tuple = iterator.next();
+				outputValue.set(tuple.toString());
+				context.write(outputKey,outputValue);
+		    System.out.println(outputKey +" => " + outputValue);
+			}
 	  }
 	}
 	
 	
-	private static DoubleBufferedTuple createTuple(String text,FieldsDescription schema) throws InvalidFieldException{
-		DoubleBufferedTuple tuple = new DoubleBufferedTuple(schema);
+	private static Tuple createTuple(String text,FieldsDescription schema) throws InvalidFieldException{
+		Tuple tuple = TupleFactory.createTuple(schema);
 		String[] tokens = text.split("\\s+");
 		String country = tokens[0];
 		Integer age = Integer.parseInt(tokens[1]);
@@ -156,22 +155,23 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 			tuples[i++]=createTuple(inputElement, schema);
 		}
 		
-		GrouperWithRollup grouper = new GrouperWithRollup(getConf());
+		Grouper grouper = new Grouper(getConf());
 		grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
 		grouper.setMapperHandler(Mapy.class);
 		grouper.setReducerHandler(IdentityRed.class);
 		
 		grouper.setSchema(schema);
-		grouper.setSortCriteria("country ASC,age ASC");
-		grouper.setMinGroup("country");
-		grouper.setMaxGroup("country,age,name");
+		SortCriteria sortCriteria = SortCriteria.parse("country ASC,age ASC");
+		grouper.setSortCriteria(sortCriteria);
+		grouper.setRollupBaseGroupFields("country");
+		grouper.setGroupFields("country","age","name");
 		
 		grouper.setOutputKeyClass(Text.class);
 		grouper.setOutputValueClass(Text.class);
 		
 		
-		Job job = grouper.getJob();
+		Job job = grouper.createJob();
 		job.setNumReduceTasks(1);
 		Path outputPath = new Path("output");
 		Path inputPath = new Path("input");
@@ -235,7 +235,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	
 	/**
 	 * 
-	 * Checks that {@link GrouperWithRollup} calls properly {@link GrouperReducerHandler.onOpenGroup}, 
+	 * Checks that {@link Grouper} calls properly {@link GrouperReducerHandler.onOpenGroup}, 
 	 * {@link GrouperReducerHandler.onCloseGroup} and {@link GrouperReducerHandler.onGroupElements} and checks that the elements (tuples) passed are coherent. 
 	 * This method assumes an specific output from the {@link GrouperReducerHandler}. The output needs to be a Text,Text for key and value
 	 * This will be the format used : 

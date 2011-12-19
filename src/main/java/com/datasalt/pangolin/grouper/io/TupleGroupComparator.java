@@ -19,6 +19,7 @@ package com.datasalt.pangolin.grouper.io;
 import org.apache.hadoop.conf.Configuration;
 
 import com.datasalt.pangolin.grouper.Constants;
+import com.datasalt.pangolin.grouper.Grouper;
 
 /**
  * 
@@ -28,6 +29,7 @@ import com.datasalt.pangolin.grouper.Constants;
 public class TupleGroupComparator extends TupleSortComparator{
 
 	private int numFieldsCompared;
+	public static final String CONF_GROUP_COMPARATOR_FIELDS = "datasalt.pangolin.grouper.group_comparator.fields";
 	
 	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
@@ -37,7 +39,7 @@ public class TupleGroupComparator extends TupleSortComparator{
 	@Override
   public void setConf(Configuration conf) {
 	  super.setConf(conf);
-	  String s = conf.get(Constants.CONF_MAX_GROUP);
+	  String s = conf.get(CONF_GROUP_COMPARATOR_FIELDS); //TODO this should change
 	  numFieldsCompared = s.split(",").length;
   }
 }

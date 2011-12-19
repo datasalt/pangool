@@ -41,7 +41,7 @@ public class DoubleBufferedTuple implements Tuple {
 		currentTuple = ReflectionUtils.newInstance(TupleImpl.class, null);
 	}
 
-	public DoubleBufferedTuple(FieldsDescription schema) {
+	DoubleBufferedTuple(@Nonnull FieldsDescription schema) {
 		this.schema = schema;
 		currentTuple = new TupleImpl(schema);
 		previousTuple = new TupleImpl(schema);

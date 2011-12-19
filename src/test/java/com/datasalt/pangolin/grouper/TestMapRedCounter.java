@@ -21,6 +21,7 @@ import java.util.Iterator;
 
 import junit.framework.Assert;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
@@ -35,9 +36,11 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
-import com.datasalt.pangolin.grouper.io.DoubleBufferedTuple;
 import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.TupleFactory;
+import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
 import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.TuplePartitioner;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
 
@@ -80,13 +83,14 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		
 		@Override
 		public void setup(Reducer<? extends Tuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
-				String minGroup = context.getConfiguration().get(Constants.CONF_MIN_GROUP);
-				String maxGroup = context.getConfiguration().get(Constants.CONF_MAX_GROUP);
-				minDepth = minGroup.split(",").length-1;
-				maxDepth = maxGroup.split(",").length-1;
-	      this.context = context;
-				count = new int[maxDepth+1];
-				distinctCount = new int[maxDepth+1];
+			Configuration conf = context.getConfiguration();	
+			String minGroup = conf.get(TuplePartitioner.CONF_PARTITIONER_FIELDS);
+			String maxGroup = conf.get(TupleGroupComparator.CONF_GROUP_COMPARATOR_FIELDS);
+			minDepth = minGroup.split(",").length - 1;
+			maxDepth = maxGroup.split(",").length - 1;
+			this.context = context;
+			count = new int[maxDepth + 1];
+			distinctCount = new int[maxDepth + 1];
 		}
 		
 		@Override
@@ -137,8 +141,8 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 	}
 	
 	
-	private static DoubleBufferedTuple createTuple(String text,FieldsDescription schema) throws InvalidFieldException{
-		DoubleBufferedTuple tuple = new DoubleBufferedTuple(schema);
+	private static Tuple createTuple(String text,FieldsDescription schema) throws InvalidFieldException{
+		Tuple tuple = TupleFactory.createTuple(schema);
 		String[] tokens = text.split(",");
 		String user = tokens[0];
 		Integer day = Integer.parseInt(tokens[1]);
@@ -176,28 +180,28 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		};
 		
 		FieldsDescription schema = FieldsDescription.parse("user:string,day:vint,url:string,count:vint");
-		int i=0; 
+		
 		for (String inputElement : inputElements){
 			withInput("input",writable(inputElement));
-
 		}
 		
-		GrouperWithRollup grouper = new GrouperWithRollup(getConf());
+		Grouper grouper = new Grouper(getConf());
 		grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
 		grouper.setMapperHandler(Mapy.class);
 		grouper.setReducerHandler(IdentityRed.class);
 		
 		grouper.setSchema(schema);
-		grouper.setSortCriteria("user ASC,day ASC,url ASC");
-		grouper.setMinGroup("user");
-		grouper.setMaxGroup("user,day,url");
+		SortCriteria sortCriteria = SortCriteria.parse("user ASC,day ASC,url ASC");
+		grouper.setSortCriteria(sortCriteria);
+		grouper.setRollupBaseGroupFields("user");
+		grouper.setGroupFields("user","day","url");
 		
 		grouper.setOutputKeyClass(Text.class);
 		grouper.setOutputValueClass(Text.class);
 		
 		
-		Job job = grouper.getJob();
+		Job job = grouper.createJob();
 		job.setNumReduceTasks(1);
 		
 		Path inputPath = new Path("input");
@@ -208,11 +212,6 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		assertRun(job);
 		
 	}
-	
-	
-	
-	
-	
 	
 	private void assertOutput(SequenceFile.Reader reader,String expectedKey,Tuple expectedValue) throws IOException{
 		Text actualKey=new Text();

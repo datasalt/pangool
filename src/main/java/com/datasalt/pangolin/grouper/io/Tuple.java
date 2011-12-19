@@ -11,7 +11,7 @@ import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
  * This is the common interface implemented by {@link TupleImpl} and {@link DoubleBufferedTuple}.
  * A Tuple is basically a hadoop-serializable object containing fields according to the schema defined in 
  * {@link FieldsDescription}. Tuples are used in intermediate {@link org.apache.hadoop.mapreduce.Mapper}
- * outputs in {@link Grouper} and {@link GrouperWithRollup}
+ * outputs in {@link Grouper} and {@link Grouper}
  * 
  * @author eric
  *
