@@ -11,7 +11,7 @@ import org.junit.Test;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
-import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.BaseTuple.InvalidFieldException;
 import com.datasalt.pangolin.thrift.test.A;
 
 public class TestTuple {
@@ -40,7 +40,7 @@ public class TestTuple {
 	@Test
 	public void testTupleStorage() throws GrouperException{
 		Random random = new Random();
-		TupleImpl tuple = new TupleImpl(schema);
+		BaseTuple tuple = new BaseTuple(schema);
 		
 		System.out.println(tuple.toString());
 		
@@ -192,7 +192,7 @@ public class TestTuple {
 	 */
 	public void testPrimitivesNonnull() throws GrouperException {
 
-		TupleImpl tuple = new TupleImpl(schema);
+		BaseTuple tuple = new BaseTuple(schema);
 
 		try {
 			tuple.setObject("user_id", null);

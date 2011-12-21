@@ -19,7 +19,6 @@ package com.datasalt.pangolin.grouper;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -33,22 +32,19 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
-import com.datasalt.pangolin.grouper.io.DoubleBufferedTuple;
 import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.TupleImpl;
-import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.ITuple;
+import com.datasalt.pangolin.grouper.io.BaseTuple;
+import com.datasalt.pangolin.grouper.io.BaseTuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
-import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupCombiner;
-import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
-import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
 
 
 public class TestCombiner extends AbstractHadoopTestLibrary{
 
 	private static class Mapy extends GrouperMapperHandler<Text,NullWritable>{
 		
-		private TupleImpl outputKey;
+		private Tuple outputKey;
 		@Override
 		public void setup(Mapper.Context context) throws IOException,InterruptedException {
 			super.setup(context);
@@ -68,7 +64,6 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 			String name = tokens[2];
 			int height = Integer.parseInt(tokens[3]);
 			
-			
 			try {
 				outputKey.setString("country",country);
 				outputKey.setInt("age", age);
@@ -82,35 +77,35 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		
 	}
 	
-	private static class Red extends GrouperReducerHandler<Tuple,NullWritable>{
+	private static class Red extends GrouperReducerHandler<ITuple,NullWritable>{
 
 		
 		
 		@Override
-    public void onOpenGroup(int depth,String field,Tuple firstElement) {
+    public void onOpenGroup(int depth,String field,ITuple firstElement) {
 			
 	    System.out.println("OPEN("+ depth+","+field +"):\t\t" + firstElement);
     }
 
 		@Override
-    public void onCloseGroup(int depth,String field,Tuple lastElement) {
+    public void onCloseGroup(int depth,String field,ITuple lastElement) {
 	    System.out.println("CLOSE:("+depth+","+field+")\t\t" + lastElement);
     }
 		
 		@Override
-		public void onGroupElements(Iterable<Tuple> tuples) throws IOException,InterruptedException {
+		public void onGroupElements(Iterable<ITuple> tuples) throws IOException,InterruptedException {
 			
-			Iterator<Tuple> iterator = tuples.iterator();
+			Iterator<ITuple> iterator = tuples.iterator();
 			if (iterator.hasNext()){
 			while ( iterator.hasNext()){
-				Tuple tuple = iterator.next();
+				ITuple tuple = iterator.next();
 				System.out.println("element:\t\t" + tuple);
 			}
 			}
 	  
 	}}
 	
-	private static class Combi extends GrouperReducerHandler<Tuple,NullWritable>{
+	private static class Combi extends GrouperReducerHandler<ITuple,NullWritable>{
 
 		private int numFields;
 		
@@ -121,29 +116,23 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		}
 		
 		@Override
-    public void onOpenGroup(int depth,String field,Tuple firstElement) throws IOException,InterruptedException  {
+    public void onOpenGroup(int depth,String field,ITuple firstElement) throws IOException,InterruptedException  {
 			
 	    System.out.println("COMBI OPEN("+ depth+","+field +"):\t\t" + firstElement);
 	    //emit(firstElement);
 		}
 
 		@Override
-    public void onCloseGroup(int depth,String field,Tuple lastElement) {
+    public void onCloseGroup(int depth,String field,ITuple lastElement) {
 	    System.out.println("COMBI CLOSE:("+depth+","+field+")\t\t" + lastElement);
     }
 
 		@Override
-    public void onGroupElements(Iterable<Tuple> tuples) throws IOException, InterruptedException {
+    public void onGroupElements(Iterable<ITuple> tuples) throws IOException, InterruptedException {
 	    // TODO Auto-generated method stub
 	    
     }
-		
-		
 	}
-	
-	
-	
-	
 	
 	@Test
 	public void test() throws IOException, InterruptedException, ClassNotFoundException, GrouperException{
@@ -168,7 +157,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		grouper.setRollupBaseGroupFields("country");
 		grouper.setGroupFields("country","age","name");
 		grouper.setCombinerHandler(Combi.class);
-		grouper.setOutputKeyClass(DoubleBufferedTuple.class);
+		grouper.setOutputKeyClass(Tuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
 		
 		

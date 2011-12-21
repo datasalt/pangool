@@ -27,34 +27,31 @@ import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.TupleIterator;
-import com.datasalt.pangolin.grouper.io.DoubleBufferedTuple;
 import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.ITuple;
 import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
-import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.BaseTuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.TuplePartitioner;
 
 /**
  * 
  * This {@link Reducer} implements a similar functionality than {@link SimpleGrouperReducer} but adding a Rollup feature.
  * 
- * 
- * 
  * @author eric
  *
- * @param <KEY_OUT>
- * @param <VALUE_OUT>
- */
-public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<DoubleBufferedTuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
-    	private boolean firstIteration=true;
-    	private FieldsDescription schema;
-    	private int minDepth,maxDepth;
-    	private TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
-    	private GrouperReducerHandler<OUTPUT_KEY,OUTPUT_VALUE> handler;
-    	
-    	protected FieldsDescription getSchema(){
-    		return schema;
-    	}
+ */
+public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
+
+	private boolean firstIteration = true;
+	private FieldsDescription schema;
+	private int minDepth, maxDepth;
+	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
+	private GrouperReducerHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
+
+	protected FieldsDescription getSchema() {
+		return schema;
+	}
     	
   @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override  	
@@ -103,17 +100,17 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
   
   
   @Override
-	public final void reduce(DoubleBufferedTuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
+	public final void reduce(ITuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
  	Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
 		iterator.next();
-		DoubleBufferedTuple currentKey = context.getCurrentKey();
+		Tuple currentKey = (Tuple)context.getCurrentKey();
 		int indexMismatch;
 		if (firstIteration) {
 			indexMismatch = minDepth;
 			firstIteration=false;
 		} else {
-			Tuple previousKey = currentKey.getPreviousTuple();
+			ITuple previousKey = currentKey.getPreviousTuple();
 			indexMismatch = indexMismatch(previousKey,currentKey , minDepth,maxDepth);
 			for (int i = maxDepth; i >= indexMismatch; i--) {
 				handler.onCloseGroup(i, schema.getFields()[i].getName(), previousKey);
@@ -141,7 +138,7 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
 	 * 
 	 * @return
 	 */
-	private int indexMismatch(Tuple tuple1,Tuple tuple2,int minFieldIndex,int maxFieldIndex){
+	private int indexMismatch(ITuple tuple1,ITuple tuple2,int minFieldIndex,int maxFieldIndex){
 		try {
 			for(int i = minFieldIndex; i <= maxFieldIndex; i++) {
 				String fieldName = schema.getFields()[i].getName();

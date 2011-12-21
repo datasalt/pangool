@@ -21,47 +21,43 @@ import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.FieldsDescription;
-import com.datasalt.pangolin.grouper.io.TupleImpl;
+import com.datasalt.pangolin.grouper.io.ITuple;
 
 /**
  * TODO
- * @author epalace
+ * @author eric
  *
  * @param <KEY_OUT>
  * @param <VALUE_OUT>
  */
-public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<TupleImpl, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
+public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
-    	private FieldsDescription schema;
-    	private TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> grouperIterator;
-    	
-    	private GrouperReducerHandler<OUTPUT_KEY,OUTPUT_VALUE> handler;
-//    	
-//    	protected FieldsDescription getSchema(){
-//    		return schema;
-//    	}
-    	
-    	
+	private FieldsDescription schema;
+	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
+	private GrouperReducerHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
+
+  @SuppressWarnings({"unchecked","rawtypes"})
   public void setup(Context context) throws IOException,InterruptedException {
-  	super.setup(context);
-  	try{
-    Configuration conf = context.getConfiguration();
-  	this.schema = FieldsDescription.parse(conf);
-  	} catch(GrouperException e){
-  		throw new RuntimeException(e);
-  	}
+		super.setup(context);
+		try {
+			Configuration conf = context.getConfiguration();
+			this.schema = FieldsDescription.parse(conf);
+		} catch(GrouperException e) {
+			throw new RuntimeException(e);
+		}
   	
   	this.grouperIterator = new TupleIterator<OUTPUT_KEY,OUTPUT_VALUE>();
   	this.grouperIterator.setContext(context);
   	
   	Configuration conf = context.getConfiguration();
-		Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(Grouper.CONF_MAPPER_HANDLER,null,GrouperReducerHandler.class); 
+    Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(Grouper.CONF_REDUCER_HANDLER,null,GrouperReducerHandler.class); 
 		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
 		handler.setup(context);
   	
@@ -79,13 +75,11 @@ public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.
   }
   
   @Override
-	public final void reduce(TupleImpl key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
+	public final void reduce(ITuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
 		Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
 		handler.onGroupElements(grouperIterator);
 		
 	}
   
-	//public abstract void elements(Iterable<Tuple> values,Context context) throws IOException,InterruptedException;
-
 }

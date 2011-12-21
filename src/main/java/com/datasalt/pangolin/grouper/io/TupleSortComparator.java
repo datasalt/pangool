@@ -37,7 +37,7 @@ import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 
 /**
  * 
- * Binary comparator for {@link TupleImpl} objects.
+ * Binary comparator for {@link Tuple} objects.
  * 
  * @author epalace
  * 
@@ -50,7 +50,7 @@ public class TupleSortComparator extends WritableComparator implements Configura
 	private Map<Class,RawComparator> instancedComparators;
 
 	public TupleSortComparator() {
-		super(TupleImpl.class);
+		super(Tuple.class);
 	}
 
 	@Override
@@ -220,6 +220,6 @@ public class TupleSortComparator extends WritableComparator implements Configura
 	
 	static {
 		// statically added in register
-		WritableComparator.define(TupleImpl.class, new TupleSortComparator());
+		WritableComparator.define(Tuple.class, new TupleSortComparator());
 	}
 }

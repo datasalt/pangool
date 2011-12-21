@@ -36,9 +36,10 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangolin.grouper.io.ITuple;
 import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.grouper.io.TupleFactory;
-import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.BaseTuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
 
@@ -75,22 +76,22 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	
 	private static class IdentityRed extends GrouperReducerHandler<Text,Text>{
 
-		private Reducer<? extends Tuple,NullWritable,Text,Text>.Context context;
+		private Reducer<? extends ITuple,NullWritable,Text,Text>.Context context;
 		private Text outputKey = new Text();
 		private Text outputValue = new Text();
 		
 		@Override
-		public void setup(Reducer<? extends Tuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
+		public void setup(Reducer<ITuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
 			this.context = context;
 		}
 		
 		@Override
-		public void cleanup(Reducer<? extends Tuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
+		public void cleanup(Reducer<ITuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
 			
 		}
 		
 		@Override
-    public void onOpenGroup(int depth,String field,Tuple firstElement) throws IOException, InterruptedException {
+    public void onOpenGroup(int depth,String field,ITuple firstElement) throws IOException, InterruptedException {
 			outputKey.set("OPEN "+ depth);
 			outputValue.set(firstElement.toString());
 	    context.write(outputKey, outputValue);
@@ -98,7 +99,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
     }
 
 		@Override
-    public void onCloseGroup(int depth,String field,Tuple lastElement) throws IOException, InterruptedException {
+    public void onCloseGroup(int depth,String field,ITuple lastElement) throws IOException, InterruptedException {
 			outputKey.set("CLOSE "+ depth);
 			outputValue.set(lastElement.toString());
 	    context.write(outputKey, outputValue);
@@ -106,11 +107,11 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
     }
 		
 		@Override
-		public void onGroupElements(Iterable<Tuple> tuples) throws IOException,InterruptedException {
-			Iterator<Tuple> iterator = tuples.iterator();
+		public void onGroupElements(Iterable<ITuple> tuples) throws IOException,InterruptedException {
+			Iterator<ITuple> iterator = tuples.iterator();
 			outputKey.set("ELEMENT");
 			while ( iterator.hasNext()){
-				Tuple tuple = iterator.next();
+				ITuple tuple = iterator.next();
 				outputValue.set(tuple.toString());
 				context.write(outputKey,outputValue);
 		    System.out.println(outputKey +" => " + outputValue);
@@ -147,7 +148,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 				"XE 20 listo 230"
 		};
 		
-		Tuple[] tuples = new Tuple[inputElements.length];
+		ITuple[] tuples = new ITuple[inputElements.length];
 		FieldsDescription schema = FieldsDescription.parse("country:string,age:vint,name:string,height:int");
 		int i=0; 
 		for (String inputElement : inputElements){
@@ -311,7 +312,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	
 	
 	
-	private void assertOutput(SequenceFile.Reader reader,String expectedKey,Tuple expectedValue) throws IOException{
+	private void assertOutput(SequenceFile.Reader reader,String expectedKey,ITuple expectedValue) throws IOException{
 		Text actualKey=new Text();
 		Text actualValue = new Text();
 		reader.next(actualKey, actualValue);

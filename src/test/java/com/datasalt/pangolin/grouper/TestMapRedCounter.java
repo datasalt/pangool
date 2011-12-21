@@ -36,10 +36,11 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangolin.grouper.io.ITuple;
 import com.datasalt.pangolin.grouper.io.Tuple;
 import com.datasalt.pangolin.grouper.io.TupleFactory;
 import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
-import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.BaseTuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.TuplePartitioner;
 import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
 import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
@@ -76,13 +77,13 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 	
 	private static class IdentityRed extends GrouperReducerHandler<Text,Text>{
 
-		private Reducer<? extends Tuple,NullWritable,Text,Text>.Context context;
+		private Reducer<? extends ITuple,NullWritable,Text,Text>.Context context;
 		private int [] count,distinctCount;
 		private int minDepth;
 		private int maxDepth;
 		
 		@Override
-		public void setup(Reducer<? extends Tuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
+		public void setup(Reducer<ITuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
 			Configuration conf = context.getConfiguration();	
 			String minGroup = conf.get(TuplePartitioner.CONF_PARTITIONER_FIELDS);
 			String maxGroup = conf.get(TupleGroupComparator.CONF_GROUP_COMPARATOR_FIELDS);
@@ -94,19 +95,19 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		}
 		
 		@Override
-		public void cleanup(Reducer<? extends Tuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
+		public void cleanup(Reducer<ITuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
 			
 		}
 		
 		@Override
-    public void onOpenGroup(int depth,String field,Tuple firstElement) throws IOException, InterruptedException {
+    public void onOpenGroup(int depth,String field,ITuple firstElement) throws IOException, InterruptedException {
 			count[depth] = 0;
 			distinctCount[depth]=0;
 			
     }
 
 		@Override
-    public void onCloseGroup(int depth,String field,Tuple lastElement) throws IOException, InterruptedException {
+    public void onCloseGroup(int depth,String field,ITuple lastElement) throws IOException, InterruptedException {
 			try {
 				String tupleStr = lastElement.toString(0, depth);
 				String output =  tupleStr +  " => count:" + count[depth];
@@ -126,12 +127,12 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
     }
 		
 		@Override
-		public void onGroupElements(Iterable<Tuple> tuples) throws IOException,InterruptedException {
-			Iterator<Tuple> iterator = tuples.iterator();
+		public void onGroupElements(Iterable<ITuple> tuples) throws IOException,InterruptedException {
+			Iterator<ITuple> iterator = tuples.iterator();
 
 			try {
 				while(iterator.hasNext()) {
-					Tuple tuple = iterator.next();
+					ITuple tuple = iterator.next();
 					count[maxDepth] += tuple.getInt("count");
 				}
 			} catch(InvalidFieldException e) {
@@ -213,7 +214,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		
 	}
 	
-	private void assertOutput(SequenceFile.Reader reader,String expectedKey,Tuple expectedValue) throws IOException{
+	private void assertOutput(SequenceFile.Reader reader,String expectedKey,ITuple expectedValue) throws IOException{
 		Text actualKey=new Text();
 		Text actualValue = new Text();
 		reader.next(actualKey, actualValue);

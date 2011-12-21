@@ -3,27 +3,25 @@ package com.datasalt.pangolin.grouper.mapred;
 import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.WritableComparator;
 
-import com.datasalt.pangolin.grouper.io.TupleImpl;
-import com.datasalt.pangolin.grouper.io.TupleSortComparator;
+import com.datasalt.pangolin.grouper.io.ITuple;
 
 
 
-public abstract class SimpleGrouperCombiner extends SimpleGrouperReducer<TupleImpl,NullWritable>{
+public abstract class SimpleGrouperCombiner extends SimpleGrouperReducer<ITuple,NullWritable>{
 	
-	private Context context;
-	private NullWritable outputValue = NullWritable.get();
+	//private Context context;
+	//private NullWritable outputValue = NullWritable.get();
 	
 	@Override
 	public void setup(Context context) throws IOException,InterruptedException {
 		super.setup(context);
-		this.context = context;
-		((TupleSortComparator)WritableComparator.get(TupleImpl.class)).setConf(context.getConfiguration());
+		//this.context = context;
+		
 	}
 	
-	protected void emit(TupleImpl tuple) throws IOException,InterruptedException {
-		context.write(tuple,outputValue);
-	}
+//	protected void emit(ITuple tuple) throws IOException,InterruptedException {
+//		context.write(tuple,outputValue);
+//	}
 
 }
