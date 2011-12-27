@@ -19,24 +19,10 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.8.2</version>
-      <!--scope>test</scope-->
+      <scope>test</scope>
     </dependency>
     
     
-    <!--dependency>
-      <groupId>org.apache.avro</groupId>
-      <artifactId>avro-mapred</artifactId>
-      <version>1.6.0</version>
-    </dependency-->
-    
-    
-   <!-- 
-   <dependency>
-      <groupId>org.javatuples</groupId>
-      <artifactId>javatuples</artifactId>
-      <version>1.2</version>
-    </dependency>
-    -->
    
     <!-- Mockito for mocking in unit testing -->
 <!--
@@ -74,20 +60,6 @@
       <artifactId>log4j</artifactId>
       <version>1.2.16</version>
     </dependency>
-<!--    
-    <dependency>
-      <groupId>com.ning</groupId>
-      <artifactId>async-http-client</artifactId>
-      <version>1.6.4</version>
-    </dependency>
--->
-    <!--  
-    <dependency>
-      <groupId>net.peerindex</groupId>
-      <artifactId>libthrift</artifactId>
-      <version>0.6.1-snapshot</version>
-    </dependency>          
-    -->
     <dependency>
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
@@ -140,109 +112,23 @@
     
     
       <!-- Cloudera's CDH3 Hadoop -->
-     <dependency>
+     <!--dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
       <version>0.20.2-cdh3u2</version>
       <scope>provided</scope>
-    </dependency>
-    
-<!--    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
-      <version>0.20.205.0</version>
-    </dependency>-->
-    
-    <!-- <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
-      <version>0.21</version>
-    </dependency>-->
-      
-      
-    <!-- MRUnit for Hadoop Unit Testing -->
-   <!-- 
+    </dependency-->
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-mrunit</artifactId>
-      <version>0.20.2-cdh3u0</version>
-    </dependency>
--->
-    <!-- Azkaban commons -->
-   <!-- 
-    <dependency>
-      <groupId>net.peerindex.azkaban</groupId>
-      <artifactId>azkaban-common</artifactId>
-      <version>1.0</version>
-    </dependency>  
--->
-
-<!--
-    <dependency>
-      <groupId>org.htmlparser</groupId>
-      <artifactId>htmlparser</artifactId>
-      <version>2.1</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>net.htmlparser.jericho</groupId>
-      <artifactId>jericho-html</artifactId>
-      <version>3.2</version>
-    </dependency>
-    -->
-    <!-- CSV Reader / Writer -->
-    <!--
-    <dependency>
-      <groupId>net.sf.opencsv</groupId>
-      <artifactId>opencsv</artifactId>
-      <version>2.3</version>
-    </dependency>
-    -->
-    <!-- Twitter4J -->
-   <!-- 
-   <dependency>
-      <groupId>org.twitter4j</groupId>
-      <artifactId>twitter4j-async</artifactId>
-      <version>2.2.3</version>
-    </dependency>
-    
-    -->
+	<groupId>org.apache.hadoop</groupId>
+	<artifactId>hadoop-core</artifactId>
+	<version>0.20.205.0</version>
+     </dependency>   
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-io</artifactId>
       <version>1.3.2</version>
     </dependency>
     
-    
-    
-    <!-- HttpClient 4 -->
-   <!-- 
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.1.2</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore</artifactId>
-      <version>4.1.3</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore-nio</artifactId>
-      <version>4.1.3</version>
-    </dependency>
-      -->
- <!--   <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-      <version>1.6.2</version>
-    </dependency>
-    -->
-    
-    <!-- Protocol buffers better API -->
     
     <dependency>
       <groupId>com.dyuproject.protostuff</groupId>
@@ -273,61 +159,10 @@
       <artifactId>solr-core</artifactId>
       <version>3.3.0</version>
     </dependency>
-<!--
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-core</artifactId>
-      <version>1.4</version>
-    </dependency>
-    -->
-    
-    
-    <!--dependency org="org.apache.solr" name="solr" rev="3.3.0"/-->
-    <!--dependency org="org.apache.solr" name="solr-common" rev="3.3.0"/-->
-    
-    <!-- Wonderdog (ElasticSearch Hadoop) -->
-    <!--dependency org="com.infochimps.elasticsearch" name="wonderdog" rev="1.0-SNAPSHOT"/-->
-    <!-- <dependency org="org.elasticsearch" name="elasticsearch" rev="0.16.0"/> -->
-<!--
-    <dependency>
-      <groupId>org.apache.velocity</groupId>
-      <artifactId>velocity-tools</artifactId>
-      <version>1.3</version>
-    </dependency>
--->
-  
-
-  <!-- 
-    <dependency>
-      <groupId>com.ml</groupId>
-      <artifactId>libsvm</artifactId>
-      <version>2.89</version>
-    </dependency>
-
-    <dependency>
-      <groupId>de.bwaldvogel</groupId>
-      <artifactId>liblinear</artifactId>
-      <version>1.8</version>
-    </dependency>
-    -->
-    
-    <!-- <dependency org="com.ml" name="liblinear" rev="1.33" /> -->
-    
   </dependencies>
   
   <repositories>
-<!--
-	  <repository>
-	      <id>central</id>
-	      <name>Maven Repository Switchboard</name>
-	      <layout>default</layout>
-	      <url>http://repo1.maven.org/maven2</url>
-	      <snapshots>
-	        <enabled>false</enabled>
-	      </snapshots>
-	    </repository>
--->	  
-   <repository>
+   <!--repository>
       <id>cloudera</id>
       <name>Cloudera Releases</name>
       <url>https://repository.cloudera.com/content/repositories/releases</url>
@@ -338,7 +173,7 @@
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-    </repository>
+    </repository-->
     
     <!-- 
     <repository>
@@ -354,57 +189,6 @@
     </repository>
     -->
 
-<!--
-    <repository>
-      <id>nexus-public</id>
-      <name>Nexus public</name>
-      <url>http://nexus.viewsflow.com/nexus/content/groups/public/</url>
-      
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    
-    
-    <repository>
-      <id>nexus-thirdparty</id>
-      <name>Nexus Thirdparty</name>
-      <url>http://nexus.viewsflow.com/nexus/content/repositories/thirdparty/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    
-    <repository>
-      <id>nexus-releases</id>
-      <name>Nexus Releases</name>
-      <url>http://nexus.viewsflow.com/nexus/content/repositories/releases/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    
-    <repository>
-      <id>nexus-snapshots</id>
-      <name>Nexus Snapshots</name>
-      <url>http://nexus.viewsflow.com/nexus/content/repositories/snapshots/</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
--->
   </repositories>
   
   
@@ -520,15 +304,7 @@
                       <arg value="target/test/generated-thrift/java/"/>
                       <arg value="src/test/resources/pangolin-test.thrift"/>
                     </exec>
-                    <!--  
-                    <delete>
-                      <fileset dir="src/main/java/com/joelpm/generated" includes="**/*"/>
-                    </delete>
-                    -->
-                    <!-- 
-                    <copy todir="src/main/java/com/joelpm/generated">
-                      <fileset dir="target/generated-sources/gen-javabean/com/joelpm/generated"/>
-                    </copy>-->
+                    
                     
                   </tasks>
                 </configuration>
@@ -544,6 +320,17 @@
  
 
   </profiles>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.8</version>
+        <configuration>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
  
   
 </project>

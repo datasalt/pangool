@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.grouper.io;
+package com.datasalt.pangolin.grouper.io.tuple;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,13 +27,14 @@ import org.junit.Test;
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.FieldsDescription.Field;
+import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.thrift.test.A;
 
 
 /**
  * 
- * @author epalace
+ * @author eric
  *
  */
 public class TestTupleThrift extends AbstractHadoopTestLibrary{

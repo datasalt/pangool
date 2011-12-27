@@ -14,40 +14,42 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.grouper.mapred;
+package com.datasalt.pangolin.grouper.mapreduce;
 
 import java.io.IOException;
 import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.grouper.FieldsDescription;
-import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Grouper;
+import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.TupleIterator;
-import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.ITuple;
-import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
-import com.datasalt.pangolin.grouper.io.BaseTuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.io.TuplePartitioner;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.TupleGroupComparator;
+import com.datasalt.pangolin.grouper.io.tuple.TuplePartitioner;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
 /**
  * 
- * This {@link Reducer} implements a similar functionality than {@link SimpleGrouperReducer} but adding a Rollup feature.
+ * This {@link Reducer} implements a similar functionality than {@link SimpleReducer} but adding a Rollup feature.
  * 
  * @author eric
  *
 
  */
-public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apache.hadoop.mapreduce.Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
+public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
 	private boolean firstIteration = true;
 	private FieldsDescription schema;
 	private int minDepth, maxDepth;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
-	private GrouperReducerHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
+	private ReducerHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
 	protected FieldsDescription getSchema() {
 		return schema;
@@ -70,15 +72,15 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
   	this.grouperIterator.setContext(context);
   	
   	Configuration conf = context.getConfiguration();
-		Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(Grouper.CONF_REDUCER_HANDLER,null,GrouperReducerHandler.class); 
+		Class<? extends ReducerHandler> handlerClass = conf.getClass(Grouper.CONF_REDUCER_HANDLER,null,ReducerHandler.class); 
 		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
-		handler.setup(context);
+		handler.setup(schema,context);
   	
   	
   }
   
   public void cleanup(Context context) throws IOException,InterruptedException {
-  	handler.cleanup(context);
+  	handler.cleanup(schema,context);
   }
   
 
@@ -93,7 +95,7 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
     
     //close last group
     for (int i=maxDepth; i >=minDepth ; i--){
-			handler.onCloseGroup(i,schema.getFields()[i].getName(),context.getCurrentKey());
+			handler.onCloseGroup(i,schema.getFields()[i].getName(),context.getCurrentKey(),context);
 		}
     cleanup(context);
   }
@@ -113,17 +115,17 @@ public class GrouperWithRollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends org.apach
 			ITuple previousKey = currentKey.getPreviousTuple();
 			indexMismatch = indexMismatch(previousKey,currentKey , minDepth,maxDepth);
 			for (int i = maxDepth; i >= indexMismatch; i--) {
-				handler.onCloseGroup(i, schema.getFields()[i].getName(), previousKey);
+				handler.onCloseGroup(i, schema.getFields()[i].getName(), previousKey,context);
 			}
 		}
 
 		for (int i = indexMismatch; i <= maxDepth; i++) {
-			handler.onOpenGroup(i, schema.getFields()[i].getName(), currentKey);
+			handler.onOpenGroup(i, schema.getFields()[i].getName(), currentKey,context);
 		}
 
 		// we consumed the first element , so needs to comunicate to iterator
 		grouperIterator.setFirstTupleConsumed(true);
-		handler.onGroupElements(grouperIterator);
+		handler.onGroupElements(grouperIterator,context);
 
 		// This loop consumes the remaining elements that reduce didn't consume
 		// The goal of this is to correctly set the last element in the next onCloseGroup() call

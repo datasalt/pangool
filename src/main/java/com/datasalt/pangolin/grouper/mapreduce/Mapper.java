@@ -14,48 +14,57 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.grouper.mapred;
+package com.datasalt.pangolin.grouper.mapreduce;
 
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.ReflectionUtils;
 
+import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.Grouper;
-import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
 
 /**
- * 
+ * TODO doc
  * @author eric
  *
-
  */
-public class GrouperMapper<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
+public class Mapper<INPUT_KEY,INPUT_VALUE> extends org.apache.hadoop.mapreduce.Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
 	
 
-	private GrouperMapperHandler<INPUT_KEY,INPUT_VALUE> handler;
+	private MapperHandler<INPUT_KEY,INPUT_VALUE> handler;
+	private FieldsDescription schema;
 	
-	@Override
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+  @Override
 	public void setup(Context context) throws IOException,InterruptedException {
-		Configuration conf = context.getConfiguration();
-		Class<? extends GrouperMapperHandler> handlerClass = conf.getClass(Grouper.CONF_MAPPER_HANDLER,null,GrouperMapperHandler.class); 
-		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
-		handler.setContext(context);
-		handler.setup(context);
+		try {
+			Configuration conf = context.getConfiguration();
+			Class<? extends MapperHandler> handlerClass = conf.getClass(Grouper.CONF_INPUT_HANDLER, null, MapperHandler.class);
+			this.handler = ReflectionUtils.newInstance(handlerClass, conf);
+
+			this.schema = FieldsDescription.parse(conf);
+			//Tuple outputTuple = TupleFactory.createTuple(schema);
+			handler.setup(schema,context);
+		} catch(GrouperException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 
 	@Override
 	public void cleanup(Context context) throws IOException,InterruptedException {
-		handler.cleanup(context);
+		handler.cleanup(schema,context);
 	}
 	
 	
 	@Override
 	public void map(INPUT_KEY key, INPUT_VALUE value,Context context) throws IOException,InterruptedException {
-		handler.map(key, value);
+		handler.map(key, value,context);
 	}
 
 }

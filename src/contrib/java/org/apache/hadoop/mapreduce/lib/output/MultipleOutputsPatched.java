@@ -174,7 +174,9 @@ public class MultipleOutputsPatched<KEYOUT, VALUEOUT> {
    * @throws IllegalArgumentException if the output name is not valid.
    */
   private static void checkBaseOutputPath(String outputPath) {
-    if (outputPath.equals(FileOutputFormat.PART)) {
+  	//TODO this was patched in order to not use Cloudera distro
+  	//if (outputPath.equals(FileOutputFormat.PART))
+    if (outputPath.equals("part")) {
       throw new IllegalArgumentException("output name cannot be 'part'");
     }
   }

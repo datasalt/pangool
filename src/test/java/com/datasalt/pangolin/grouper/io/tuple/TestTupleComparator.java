@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.grouper.io;
+package com.datasalt.pangolin.grouper.io.tuple;
 
 import static org.junit.Assert.assertEquals;
 
@@ -30,6 +30,9 @@ import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria;
+import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.grouper.io.tuple.TupleSortComparator;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.thrift.test.A;
 

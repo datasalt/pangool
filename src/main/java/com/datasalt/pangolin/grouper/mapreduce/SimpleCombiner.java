@@ -13,28 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.datasalt.pangolin.grouper.mapreduce;
 
-package com.datasalt.pangolin.grouper;
+import java.io.IOException;
 
-/**
- * Base class for exceptions in Grouper
- * @author eric
- *
- */
-public class GrouperException extends Exception {
+import org.apache.hadoop.io.NullWritable;
+
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+
+
+
+public abstract class SimpleCombiner extends SimpleReducer<ITuple,NullWritable>{
 	
 	
-  private static final long serialVersionUID = 1L;
-
-	public GrouperException(Throwable e){
-		super(e);
-	}
-	
-	public GrouperException(String message,Throwable e){
-		super(message,e);
+	@Override
+	public void setup(Context context) throws IOException,InterruptedException {
+		super.setup(context);
+		//this.context = context;
+		
 	}
 
-	public GrouperException(String message){
-		super(message);
-	}
+
 }

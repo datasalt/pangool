@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.grouper.mapred;
+package com.datasalt.pangolin.grouper.mapreduce;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -28,20 +28,19 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.FieldsDescription;
-import com.datasalt.pangolin.grouper.io.ITuple;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
 /**
  * TODO
  * @author eric
  *
- * @param <KEY_OUT>
- * @param <VALUE_OUT>
  */
-public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
+public abstract class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
 	private FieldsDescription schema;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
-	private GrouperReducerHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
+	private ReducerHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
   @SuppressWarnings({"unchecked","rawtypes"})
   public void setup(Context context) throws IOException,InterruptedException {
@@ -57,15 +56,15 @@ public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Redu
   	this.grouperIterator.setContext(context);
   	
   	Configuration conf = context.getConfiguration();
-    Class<? extends GrouperReducerHandler> handlerClass = conf.getClass(Grouper.CONF_REDUCER_HANDLER,null,GrouperReducerHandler.class); 
+    Class<? extends ReducerHandler> handlerClass = conf.getClass(Grouper.CONF_REDUCER_HANDLER,null,ReducerHandler.class); 
 		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
-		handler.setup(context);
+		handler.setup(schema,context);
   	
   }
   @Override
   public void cleanup(Context context) throws IOException,InterruptedException {
   	super.cleanup(context);
-  	handler.cleanup(context);
+  	handler.cleanup(schema,context);
   }
   
 
@@ -78,7 +77,7 @@ public abstract class SimpleGrouperReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Redu
 	public final void reduce(ITuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
 		Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
-		handler.onGroupElements(grouperIterator);
+		handler.onGroupElements(grouperIterator,context);
 		
 	}
   

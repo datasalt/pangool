@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangolin.grouper.io;
+package com.datasalt.pangolin.grouper.io.tuple;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -37,9 +37,9 @@ import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 
 /**
  * 
- * Binary comparator for {@link Tuple} objects.
+ * Binary comparator for {@link ITuple} objects.
  * 
- * @author epalace
+ * @author eric
  * 
  */
 public class TupleSortComparator extends WritableComparator implements Configurable {
@@ -81,7 +81,7 @@ public class TupleSortComparator extends WritableComparator implements Configura
 	
 	
 	/**
-	 * Compares {@link TupleImpl} objects serialized in binary up to a maximum depth specified in <b>maxFieldsCompared</b> 
+	 * Compares {@link ITuple} objects serialized in binary up to a maximum depth specified in <b>maxFieldsCompared</b> 
 	 * 
 	 * @param maxFieldsCompared
 	 * 

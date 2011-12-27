@@ -13,11 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.datasalt.pangolin.grouper.mapreduce;
 
-/**
- * The sub-package "joiner" contains a generic Multi-type Joiner that can be used to implement Map/Reduce Jobs that read
- * input data from several data sources and need to join them in the Reducer according to some grouping.
- **/
-package com.datasalt.pangolin.mapred;
+import java.io.IOException;
+
+import org.apache.hadoop.io.NullWritable;
+
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 
 
+
+public class RollupCombiner extends RollupReducer<Tuple,NullWritable>{
+	
+	@Override
+	public void setup(Context context) throws IOException,InterruptedException {
+		super.setup(context);
+
+	}
+	
+	@Override
+	public void cleanup(Context context) throws IOException,InterruptedException {
+		super.cleanup(context);
+	}
+	
+	
+}

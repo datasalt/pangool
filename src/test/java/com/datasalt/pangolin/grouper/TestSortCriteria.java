@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
-import com.datasalt.pangolin.grouper.io.TupleSortComparator;
+import com.datasalt.pangolin.grouper.io.tuple.TupleSortComparator;
 
 public class TestSortCriteria {
 

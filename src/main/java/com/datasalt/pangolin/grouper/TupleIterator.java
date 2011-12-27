@@ -20,14 +20,16 @@ import java.util.Iterator;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
+import org.apache.hadoop.mapreduce.Reducer.Context;
 
-import com.datasalt.pangolin.grouper.io.ITuple;
-import com.datasalt.pangolin.grouper.io.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
+import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
 /**
- * Iterator used in {@link Grouper} and {@link Grouper}. Basically it translates an {@link Iterable} containing 
+ * Iterator used in {@link Grouper},specially in {@link RollupReducer}. Basically it translates an {@link Iterable} containing 
  * {@link NullWritable} objects to one that contains {@link ITuple} ones. 
- * In order to do so, it handles the {@link ReduceContext} and uses {@link ReduceContext#getCurrentKey()} to obtain the key in 
+ * In order to do so it handles the {@link ReduceContext} and uses {@link ReduceContext#getCurrentKey()} to obtain the key in 
  * every iteration.
  * 
  * See {@link Iterable} and {@link ITuple}
@@ -42,7 +44,7 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>,
 	
 	/**
 	 *  used to mark that the first element from the {@link Iterator} was already consumed.
-	 *  This prevents calling iterator.next() twice for the first element.
+	 *  This prevents calling {@link Iterator#next()} twice for the first element.
 	 */
 	private boolean firstTupleConsumed=false;
 	
@@ -61,7 +63,7 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>,
 	 *  This is used to mark that the first element from iterable was already consumed, so in next iteration don't call iterator.next().
 	 *  Instead of this reuse the currentKey in {@link ReduceContext#getCurrentKey()} 
 	 *  
-	 *  This method is usually called before {@link Grouper#onElements()}
+	 *  This method is usually called before {@link ReducerHandler#onGroupElements(Iterable,Context)}
 	 */
 	
 	public void setFirstTupleConsumed(boolean available){

@@ -1,4 +1,19 @@
-package com.datasalt.pangolin.grouper.io;
+/**
+ * Copyright [2011] [Datasalt Systems S.L.]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.datasalt.pangolin.grouper.io.tuple;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -12,8 +27,7 @@ import org.apache.thrift.TBase;
 
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.io.BaseTuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
+import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
 
 /**
  * 
@@ -23,7 +37,7 @@ import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
  * 
  *  
  * Since this double buffered mechanism avoids cloning or deep copying instances ,allows efficient comparison between
- * tuples performed in {@link GrouperWithRollupReducer}.
+ * tuples performed in {@link RollupReducer}.
  * 
  * @author eric
  * 
@@ -141,12 +155,21 @@ public class Tuple implements ITuple {
 	public Object getObject(String fieldName) throws InvalidFieldException {
 		return currentTuple.getObject(fieldName);
 	}
+	
+	@Override
+  public <T> T getObject(Class<T> clazz, String fieldName) throws InvalidFieldException {
+	  return currentTuple.getObject(clazz,fieldName);
+  }
 
 	@Override
 	public Enum<? extends Enum<?>> getEnum(String fieldName) throws InvalidFieldException {
 		return getEnum(fieldName);
 	}
 
+	
+	//set enums
+	
+	
 	@Override
 	public void setEnum(String fieldName, Enum<? extends Enum<?>> value) throws InvalidFieldException {
 		currentTuple.setEnum(fieldName, value);
@@ -199,6 +222,12 @@ public class Tuple implements ITuple {
 	public void setThriftObject(String fieldName,TBase<?,?> value) throws InvalidFieldException {
 		currentTuple.setThriftObject(fieldName, value);
 	}
+	
+	@Override
+  public <T> void setObject(Class<T> valueType, String fieldName, T value) throws InvalidFieldException {
+	  currentTuple.setObject(valueType,fieldName,value);
+  }
+	
 
 	@Override
 	public String toString() {
@@ -214,5 +243,9 @@ public class Tuple implements ITuple {
   public String toString(int minFieldIndex, int maxFieldIndex) throws InvalidFieldException {
 	  return currentTuple.toString(minFieldIndex,maxFieldIndex);
   }
+
+	
+
+	
 
 }

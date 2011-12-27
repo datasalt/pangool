@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.datasalt.pangolin.grouper.io.tuple.TupleSortComparator;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
@@ -29,7 +31,8 @@ import org.apache.hadoop.io.RawComparator;
  * SortCriteria specifies how the {@link ITuple} fields will be sorted by {@link TupleSortComparator}.
  * Basically it contains a list of fields with a sort descriptor {@link SortOrder} (ascending or descending order).
  * For example: "name asc,age desc"
- * The sort criteria needs to match the {@link FieldsDescription} fields ordering, so in any case the {@link SortCriteria} must be a prefix from {@link FieldsDescription} 
+ * The sort criteria needs to match the {@link FieldsDescription} fields ordering, so in any case the {@link SortCriteria} must 
+ * be a prefix from {@link FieldsDescription} 
  * TODO : this can change in the future
  * 
  * 

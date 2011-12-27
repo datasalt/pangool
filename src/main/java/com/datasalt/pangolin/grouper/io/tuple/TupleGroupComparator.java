@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.grouper.io;
+package com.datasalt.pangolin.grouper.io.tuple;
 
 import org.apache.hadoop.conf.Configuration;
 
-import com.datasalt.pangolin.grouper.Constants;
-import com.datasalt.pangolin.grouper.Grouper;
-
 /**
  * 
- * @author epalace
+ * @author eric
  *
  */
 public class TupleGroupComparator extends TupleSortComparator{

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangolin.grouper.io;
+package com.datasalt.pangolin.grouper.io.tuple;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -45,7 +45,7 @@ import com.datasalt.pangolin.io.Serialization;
  * This is the basic implementation of {@link ITuple}. It implements the type-checking and raw fields 
  * serialization/deserialization.
  * 
- * @author epalace
+ * @author eric
  * 
  */
 public class BaseTuple implements ITuple {
@@ -147,26 +147,7 @@ public class BaseTuple implements ITuple {
 		}
 	}
 	
-	/**
-	 * Thrown when a field is not present in schema
-	 * 
-	 *
-	 */
-	public static class InvalidFieldException extends GrouperException {
-    private static final long serialVersionUID = 1L;
-
-		public InvalidFieldException(String s,Throwable e) {
-			super(s,e);
-		}
-		
-		public InvalidFieldException(String s) {
-			super(s);
-		}
-		
-		public InvalidFieldException(Throwable e) {
-			super(e);
-		}
-	}
+	
 	
 		
 	
@@ -197,10 +178,33 @@ public class BaseTuple implements ITuple {
 		}
 	}
 	
+	private void checkType(String fieldName,Object value,Class ... expectedClasses) throws InvalidFieldException {
+		for (Class expectedClass : expectedClasses){
+			if (value.getClass() == expectedClass){
+				return;
+			}
+		}
+		
+		String concatedClasses=expectedClasses[0].toString();
+		for (int i=1 ; i < expectedClasses.length ; i++){
+			concatedClasses += "," + expectedClasses[i].toString();
+		}
+		
+		throw new InvalidFieldException("Value " + value + " for field " + fieldName + " doesn't match expected types :" + concatedClasses);
+	}
+	
 	private void checkValidValueForField(String fieldName,Object value)  throws InvalidFieldException {
 		Class<?> expectedType = this.schema.getField(fieldName).getType();
-		if (value instanceof Integer){
+		
+		if (expectedType == Integer.class || expectedType == VIntWritable.class){
 			checkNonNull(fieldName, value);
+			checkType(fieldName,value,Integer.class);
+		} else if (expectedType == Long.class || expectedType == VLongWritable.class){
+			//checkNonNull(fieldName,value);
+			//checkType(fieldName,value,)
+		}
+		
+		if (value instanceof Integer){
 			
 		} else  if (value instanceof Long){
 			checkNonNull(fieldName,value);
@@ -213,7 +217,7 @@ public class BaseTuple implements ITuple {
 		} else if (value instanceof Boolean){
 			checkNonNull(fieldName,value);
 		} else if (value.getClass().isEnum()){
-			
+			checkNonNull(fieldName,value);
 		} else {
 			
 		}
@@ -257,8 +261,8 @@ public class BaseTuple implements ITuple {
 		return getField(fieldName);
 	}
 	
-	public Enum<? extends Enum<?>> getEnum(String fieldName) throws InvalidFieldException {
-		return (Enum<? extends Enum<?>>)getField(fieldName);
+	public Enum<?> getEnum(String fieldName) throws InvalidFieldException {
+		return (Enum<?>)getField(fieldName);
 	}
 	
 	@Override
@@ -306,6 +310,15 @@ public class BaseTuple implements ITuple {
 		setField(fieldName,value);
 	}
 	
+	@Override
+  public <T> T getObject(Class<T> clazz, String fieldName) throws InvalidFieldException {
+	  return (T) getField(fieldName);
+  }
+
+	@Override
+  public <T> void setObject(Class<T> valueType, String fieldName, T value) throws InvalidFieldException {
+	  setField(fieldName,value);
+  }
 	
 
 	@Override
@@ -313,25 +326,27 @@ public class BaseTuple implements ITuple {
 		for (Field field : schema.getFields()) {
 			String fieldName = field.getName();
 			Class<?> fieldType = field.getType();
+			Object element = tupleElements.get(fieldName);
+			try{
 			if (fieldType == VIntWritable.class) {
-				WritableUtils.writeVInt(output, (Integer) tupleElements.get(fieldName));
+				WritableUtils.writeVInt(output, (Integer) element);
 			} else if (fieldType == VLongWritable.class) {
-				WritableUtils.writeVLong(output, (Long) tupleElements.get(fieldName));
+				WritableUtils.writeVLong(output, (Long) element);
 			} else if (fieldType == Integer.class){ 
-			  output.writeInt((Integer)tupleElements.get(fieldName));
+			  output.writeInt((Integer)element);
 			} else if (fieldType == Long.class){
-				output.writeLong((Long)tupleElements.get(fieldName));
+				output.writeLong((Long)element);
 			} else if (fieldType == Double.class) {
-				output.writeDouble((Double) tupleElements.get(fieldName));
+				output.writeDouble((Double) element);
 			} else if (fieldType == Float.class) {
-				output.writeFloat((Float) tupleElements.get(fieldName));
+				output.writeFloat((Float) element);
 			} else if (fieldType == String.class) {
-				text.set((String)tupleElements.get(fieldName));
+				text.set((String)element);
 				text.write(output);
 			}	else if (fieldType == Boolean.class) {
-				output.writeBoolean((Boolean)tupleElements.get(fieldName));
+				output.writeBoolean((Boolean)element);
 			} else if (fieldType.isEnum()){
-				Enum e = (Enum)tupleElements.get(fieldName);
+				Enum<?> e = (Enum<?>)element;
 				WritableUtils.writeVInt(output,e.ordinal());
 			} else {
 				Object object = tupleElements.get(fieldName);
@@ -343,6 +358,9 @@ public class BaseTuple implements ITuple {
 					WritableUtils.writeVInt(output,tmpOutputBuffer.getLength());
 					output.write(tmpOutputBuffer.getData(),0,tmpOutputBuffer.getLength());
 				}
+			}} catch(ClassCastException e){
+				throw new IOException("Field '" + fieldName  + "' contains '" + element + 
+						"' which is " + element.getClass().getName() + ".The expected type is " + fieldType.getName());
 			}
 		}
 	}
@@ -372,7 +390,7 @@ public class BaseTuple implements ITuple {
 			} else if (fieldType.isEnum()){
 				int ordinal = WritableUtils.readVInt(input);
 				try{
-					Enum[] enums = cachedEnums.get(name);
+					Enum<?>[] enums = cachedEnums.get(name);
 					if (enums == null){
 						throw new IOException("Field "+ name + " is not a enum type");
 					}
@@ -413,7 +431,6 @@ public class BaseTuple implements ITuple {
 	/**
 	 * Calculates a combinated hashCode using the specified fields.
 	 * @param fields
-	 * @return
 	 * @throws InvalidFieldException
 	 */
 	@Override
@@ -560,7 +577,7 @@ public class BaseTuple implements ITuple {
 			}
 			b.append("}");
 			return b.toString();
-		} 
-		
+		}
+
 	
 }

@@ -36,54 +36,51 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
-import com.datasalt.pangolin.grouper.io.ITuple;
-import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.TupleFactory;
-import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
-import com.datasalt.pangolin.grouper.io.BaseTuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.io.TuplePartitioner;
-import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
-import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
+import com.datasalt.pangolin.grouper.io.tuple.TupleGroupComparator;
+import com.datasalt.pangolin.grouper.io.tuple.TuplePartitioner;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
+import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
 
 public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 
-	private static class Mapy extends GrouperMapperHandler<Text,NullWritable>{
+	private static class Mapy extends MapperHandler<Text,NullWritable>{
 		
 		private FieldsDescription schema;
+		//private Tuple outputTuple;
 		
 		@SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-		public void setup(Mapper.Context context) throws IOException,InterruptedException {
-			super.setup(context);
-			try {
-	      this.schema = FieldsDescription.parse(context.getConfiguration());
-      } catch(GrouperException e) {
-	      throw new RuntimeException(e);
-      }
+		public void setup(FieldsDescription schema,Mapper.Context context) throws IOException,InterruptedException {
+			this.schema = schema;
+			
 		}
 		
 		
 		@Override
-		public void map(Text key,NullWritable value) throws IOException,InterruptedException{
+		public void map(Text key,NullWritable value,Mapper.Context context) throws IOException,InterruptedException{
 			try {
 				Tuple outputKey = createTuple(key.toString(), schema);
-				emit(outputKey);
+				emit(outputKey,context);
 			} catch (InvalidFieldException e) {
 				throw new RuntimeException(e);
 			}
 		}
 	}
 	
-	private static class IdentityRed extends GrouperReducerHandler<Text,Text>{
+	private static class IdentityRed extends ReducerHandler<Text,Text>{
 
-		private Reducer<? extends ITuple,NullWritable,Text,Text>.Context context;
+		private Reducer.Context context;
 		private int [] count,distinctCount;
 		private int minDepth;
 		private int maxDepth;
 		
 		@Override
-		public void setup(Reducer<ITuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
+		public void setup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
 			Configuration conf = context.getConfiguration();	
 			String minGroup = conf.get(TuplePartitioner.CONF_PARTITIONER_FIELDS);
 			String maxGroup = conf.get(TupleGroupComparator.CONF_GROUP_COMPARATOR_FIELDS);
@@ -95,19 +92,19 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		}
 		
 		@Override
-		public void cleanup(Reducer<ITuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
+		public void cleanup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
 			
 		}
 		
 		@Override
-    public void onOpenGroup(int depth,String field,ITuple firstElement) throws IOException, InterruptedException {
+    public void onOpenGroup(int depth,String field,ITuple firstElement,Reducer.Context context) throws IOException, InterruptedException {
 			count[depth] = 0;
 			distinctCount[depth]=0;
 			
     }
 
 		@Override
-    public void onCloseGroup(int depth,String field,ITuple lastElement) throws IOException, InterruptedException {
+    public void onCloseGroup(int depth,String field,ITuple lastElement,Reducer.Context context) throws IOException, InterruptedException {
 			try {
 				String tupleStr = lastElement.toString(0, depth);
 				String output =  tupleStr +  " => count:" + count[depth];
@@ -127,7 +124,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
     }
 		
 		@Override
-		public void onGroupElements(Iterable<ITuple> tuples) throws IOException,InterruptedException {
+		public void onGroupElements(Iterable<ITuple> tuples,Reducer.Context context) throws IOException,InterruptedException {
 			Iterator<ITuple> iterator = tuples.iterator();
 
 			try {
