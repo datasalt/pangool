@@ -24,11 +24,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+
 /**
  * 
- * Schema specifies which fields (name and types) a {@link TupleImpl} will contain.
+ * {@link FieldsDescription} specifies which fields (name and types) a {@link ITuple} will contain.
  * 
- * @author epalace
+ * @author eric
  *
  */
 public class FieldsDescription {

@@ -36,61 +36,59 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
-import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.TupleFactory;
-import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
-import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
-import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
+import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
 
 public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 
-	private static class Mapy extends GrouperMapperHandler<Text,NullWritable>{
+	private static class Mapy extends MapperHandler<Text,NullWritable>{
 		
-		//private Tuple outputKey;
+
 		private FieldsDescription schema;
 		
-		@Override
-		public void setup(Mapper.Context context) throws IOException,InterruptedException {
-			super.setup(context);
+		@SuppressWarnings("rawtypes")
+    @Override
+		public void setup(FieldsDescription schema,Mapper.Context context) throws IOException,InterruptedException {
+			this.schema = schema;
 			
-			try {
-	      this.schema = FieldsDescription.parse(context.getConfiguration());
-      } catch(GrouperException e) {
-	      throw new RuntimeException(e);
-      }
+			
 		}
 		
 		
 		@Override
-		public void map(Text key,NullWritable value) throws IOException,InterruptedException{
+		public void map(Text key,NullWritable value,Mapper.Context context) throws IOException,InterruptedException{
 			try {
 				Tuple outputKey = createTuple(key.toString(), schema);
-				emit(outputKey);
+				emit(outputKey,context);
 			} catch (InvalidFieldException e) {
 				throw new RuntimeException(e);
 			}
 		}
 	}
 	
-	private static class IdentityRed extends GrouperReducerHandler<Text,Text>{
+	private static class IdentityRed extends ReducerHandler<Text,Text>{
 
-		private Reducer<? extends Tuple,NullWritable,Text,Text>.Context context;
+		//private Reducer.Context context;
 		private Text outputKey = new Text();
 		private Text outputValue = new Text();
 		
 		@Override
-		public void setup(Reducer<? extends Tuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
-			this.context = context;
+		public void setup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
+			//this.context = context;
 		}
 		
 		@Override
-		public void cleanup(Reducer<? extends Tuple,NullWritable,Text,Text>.Context context) throws IOException,InterruptedException {
+		public void cleanup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
 			
 		}
 		
 		@Override
-    public void onOpenGroup(int depth,String field,Tuple firstElement) throws IOException, InterruptedException {
+    public void onOpenGroup(int depth,String field,ITuple firstElement,Reducer.Context context) throws IOException, InterruptedException {
 			outputKey.set("OPEN "+ depth);
 			outputValue.set(firstElement.toString());
 	    context.write(outputKey, outputValue);
@@ -98,7 +96,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
     }
 
 		@Override
-    public void onCloseGroup(int depth,String field,Tuple lastElement) throws IOException, InterruptedException {
+    public void onCloseGroup(int depth,String field,ITuple lastElement,Reducer.Context context) throws IOException, InterruptedException {
 			outputKey.set("CLOSE "+ depth);
 			outputValue.set(lastElement.toString());
 	    context.write(outputKey, outputValue);
@@ -106,11 +104,11 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
     }
 		
 		@Override
-		public void onGroupElements(Iterable<Tuple> tuples) throws IOException,InterruptedException {
-			Iterator<Tuple> iterator = tuples.iterator();
+		public void onGroupElements(Iterable<ITuple> tuples,Reducer.Context context) throws IOException,InterruptedException {
+			Iterator<ITuple> iterator = tuples.iterator();
 			outputKey.set("ELEMENT");
 			while ( iterator.hasNext()){
-				Tuple tuple = iterator.next();
+				ITuple tuple = iterator.next();
 				outputValue.set(tuple.toString());
 				context.write(outputKey,outputValue);
 		    System.out.println(outputKey +" => " + outputValue);
@@ -147,7 +145,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 				"XE 20 listo 230"
 		};
 		
-		Tuple[] tuples = new Tuple[inputElements.length];
+		ITuple[] tuples = new ITuple[inputElements.length];
 		FieldsDescription schema = FieldsDescription.parse("country:string,age:vint,name:string,height:int");
 		int i=0; 
 		for (String inputElement : inputElements){
@@ -235,9 +233,9 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	
 	/**
 	 * 
-	 * Checks that {@link Grouper} calls properly {@link GrouperReducerHandler.onOpenGroup}, 
-	 * {@link GrouperReducerHandler.onCloseGroup} and {@link GrouperReducerHandler.onGroupElements} and checks that the elements (tuples) passed are coherent. 
-	 * This method assumes an specific output from the {@link GrouperReducerHandler}. The output needs to be a Text,Text for key and value
+	 * Checks that {@link Grouper} calls properly {@link ReducerHandler#onOpenGroup}, 
+	 * {@link ReducerHandler#onCloseGroup} and {@link ReducerHandler#onGroupElements} and checks that the elements (tuples) passed are coherent. 
+	 * This method assumes an specific output from the {@link ReducerHandler}. The output needs to be a Text,Text for key and value
 	 * This will be the format used : 
 	 * key("OPEN depth"), value("serialized value")
 	 * key("CLOSE depth"), value("serialized value")
@@ -311,7 +309,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	
 	
 	
-	private void assertOutput(SequenceFile.Reader reader,String expectedKey,Tuple expectedValue) throws IOException{
+	private void assertOutput(SequenceFile.Reader reader,String expectedKey,ITuple expectedValue) throws IOException{
 		Text actualKey=new Text();
 		Text actualValue = new Text();
 		reader.next(actualKey, actualValue);

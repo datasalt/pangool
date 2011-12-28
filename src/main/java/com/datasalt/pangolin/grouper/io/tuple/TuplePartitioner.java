@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangolin.grouper.io;
+package com.datasalt.pangolin.grouper.io.tuple;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Partitioner;
 
-import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 
 /**
  * 
- * @author epalace
+ * @author eric
  *
  */
 public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements Configurable{

@@ -1,4 +1,19 @@
-package com.datasalt.pangolin.grouper.io;
+/**
+ * Copyright [2011] [Datasalt Systems S.L.]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.datasalt.pangolin.grouper.io.tuple;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -12,39 +27,38 @@ import org.apache.thrift.TBase;
 
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
-import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
+import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
 
 /**
  * 
- * This implementation of {@link Tuple} allows to mantain two {@link TupleImpl} instances in a double-buffered fashion.
+ * This implementation of {@link ITuple} allows to mantain two {@link BaseTuple} instances in a double-buffered fashion.
  * That is, when the {@link #readFields(DataInput)} method is called , the last previous state is kept and then the new current 
  * instance is updated.
  * 
  *  
  * Since this double buffered mechanism avoids cloning or deep copying instances ,allows efficient comparison between
- * tuples performed in {@link GrouperWithRollupReducer}.
+ * tuples performed in {@link RollupReducer}.
  * 
  * @author eric
  * 
  */
-public class DoubleBufferedTuple implements Tuple {
+public class Tuple implements ITuple {
 
 	private FieldsDescription schema;
 	private Configuration conf;
-	private TupleImpl previousTuple, currentTuple;
+	private BaseTuple previousTuple, currentTuple;
 
 	@SuppressWarnings("unused")
-	private DoubleBufferedTuple() {
+	private Tuple() {
 		// this allows to use private construction
-		previousTuple = ReflectionUtils.newInstance(TupleImpl.class, null);
-		currentTuple = ReflectionUtils.newInstance(TupleImpl.class, null);
+		previousTuple = ReflectionUtils.newInstance(BaseTuple.class, null);
+		currentTuple = ReflectionUtils.newInstance(BaseTuple.class, null);
 	}
 
-	DoubleBufferedTuple(@Nonnull FieldsDescription schema) {
+	Tuple(@Nonnull FieldsDescription schema) {
 		this.schema = schema;
-		currentTuple = new TupleImpl(schema);
-		previousTuple = new TupleImpl(schema);
+		currentTuple = new BaseTuple(schema);
+		previousTuple = new BaseTuple(schema);
 	}
 
 	@Override
@@ -59,7 +73,7 @@ public class DoubleBufferedTuple implements Tuple {
 	@Override
 	public void readFields(DataInput in) throws IOException {
 		// swapping double buffering
-		TupleImpl tmpTuple = previousTuple;
+		BaseTuple tmpTuple = previousTuple;
 		previousTuple = currentTuple;
 		currentTuple = tmpTuple;
 
@@ -70,12 +84,12 @@ public class DoubleBufferedTuple implements Tuple {
 	 * It always return a nonnull instance even if readFields never was invoked
 	 *
 	 */
-	public @Nonnull TupleImpl getPreviousTuple() {
+	public @Nonnull BaseTuple getPreviousTuple() {
 		return previousTuple;
 	}
 
 	@Override
-	public int compareTo(Tuple anotherTuple) {
+	public int compareTo(ITuple anotherTuple) {
 		return currentTuple.compareTo(anotherTuple);
 	}
 
@@ -141,12 +155,21 @@ public class DoubleBufferedTuple implements Tuple {
 	public Object getObject(String fieldName) throws InvalidFieldException {
 		return currentTuple.getObject(fieldName);
 	}
+	
+	@Override
+  public <T> T getObject(Class<T> clazz, String fieldName) throws InvalidFieldException {
+	  return currentTuple.getObject(clazz,fieldName);
+  }
 
 	@Override
 	public Enum<? extends Enum<?>> getEnum(String fieldName) throws InvalidFieldException {
 		return getEnum(fieldName);
 	}
 
+	
+	//set enums
+	
+	
 	@Override
 	public void setEnum(String fieldName, Enum<? extends Enum<?>> value) throws InvalidFieldException {
 		currentTuple.setEnum(fieldName, value);
@@ -199,6 +222,12 @@ public class DoubleBufferedTuple implements Tuple {
 	public void setThriftObject(String fieldName,TBase<?,?> value) throws InvalidFieldException {
 		currentTuple.setThriftObject(fieldName, value);
 	}
+	
+	@Override
+  public <T> void setObject(Class<T> valueType, String fieldName, T value) throws InvalidFieldException {
+	  currentTuple.setObject(valueType,fieldName,value);
+  }
+	
 
 	@Override
 	public String toString() {
@@ -214,5 +243,9 @@ public class DoubleBufferedTuple implements Tuple {
   public String toString(int minFieldIndex, int maxFieldIndex) throws InvalidFieldException {
 	  return currentTuple.toString(minFieldIndex,maxFieldIndex);
   }
+
+	
+
+	
 
 }

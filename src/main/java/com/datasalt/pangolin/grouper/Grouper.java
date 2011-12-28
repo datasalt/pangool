@@ -25,17 +25,17 @@ import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 
-import com.datasalt.pangolin.grouper.io.DoubleBufferedTuple;
-import com.datasalt.pangolin.grouper.io.TupleGroupComparator;
-import com.datasalt.pangolin.grouper.io.TuplePartitioner;
-import com.datasalt.pangolin.grouper.io.TupleSortComparator;
-import com.datasalt.pangolin.grouper.mapred.GrouperMapper;
-import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
-import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
-import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupCombiner;
-import com.datasalt.pangolin.grouper.mapred.GrouperWithRollupReducer;
-import com.datasalt.pangolin.grouper.mapred.SimpleGrouperCombiner;
-import com.datasalt.pangolin.grouper.mapred.SimpleGrouperReducer;
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.TupleGroupComparator;
+import com.datasalt.pangolin.grouper.io.tuple.TuplePartitioner;
+import com.datasalt.pangolin.grouper.io.tuple.TupleSortComparator;
+import com.datasalt.pangolin.grouper.mapreduce.Mapper;
+import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
+import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
+import com.datasalt.pangolin.grouper.mapreduce.SimpleCombiner;
+import com.datasalt.pangolin.grouper.mapreduce.SimpleReducer;
+import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
+import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
 
 
@@ -48,18 +48,18 @@ import com.datasalt.pangolin.grouper.mapred.SimpleGrouperReducer;
 @SuppressWarnings("rawtypes")
 public class Grouper {
 
-	public final static String CONF_MAPPER_HANDLER = "datasalt.grouper.mapper_handler";
-	public final static String CONF_REDUCER_HANDLER = "datasalt.grouper.reducer_handler";
+	public final static String CONF_INPUT_HANDLER = "datasalt.grouper.input_handler";
+	public final static String CONF_REDUCER_HANDLER = "datasalt.grouper.output_handler";
 	public final static String CONF_COMBINER_HANDLER = "datasalt.grouper.combiner_handler";
 	
 	private Configuration conf;
 	private FieldsDescription schema;
 	
-  private Class<? extends GrouperReducerHandler> reducerHandler;
-	private Class<? extends GrouperMapperHandler> mapperHandler; //TODO change this to multiinput
+  private Class<? extends ReducerHandler> reducerHandler;
+	private Class<? extends MapperHandler> mapperHandler; //TODO change this to multiinput
 	private Class<? extends InputFormat> inputFormat;
 	private Class<? extends OutputFormat> outputFormat;
-	private Class<? extends GrouperReducerHandler> combinerHandler;
+	private Class<? extends ReducerHandler> combinerHandler;
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass,outputValueClass;
 	private SortCriteria sortCriteria;
@@ -97,15 +97,15 @@ public class Grouper {
 		this.customPartitionerFields = partitionerFields;
 	}
 	
-	public void setReducerHandler(Class<? extends GrouperReducerHandler> reducerClass){
+	public void setReducerHandler(Class<? extends ReducerHandler> reducerClass){
 		this.reducerHandler = reducerClass;
 	}
 	
-	public void setCombinerHandler(Class<? extends GrouperReducerHandler> combinerClass){
+	public void setCombinerHandler(Class<? extends ReducerHandler> combinerClass){
 		this.combinerHandler = combinerClass;
 	}
 	
-	public void setMapperHandler(Class<? extends GrouperMapperHandler> mapperClass){
+	public void setMapperHandler(Class<? extends MapperHandler> mapperClass){
 		this.mapperHandler = mapperClass;
 	}
 	
@@ -143,31 +143,31 @@ public class Grouper {
 		job.getConfiguration().set(SortCriteria.CONF_SORT_CRITERIA,sortCriteria.toString());
 		
 		job.setInputFormatClass(inputFormat);
-		job.setMapperClass(GrouperMapper.class);
-		job.getConfiguration().setClass(CONF_MAPPER_HANDLER,mapperHandler,GrouperMapperHandler.class);
+		job.setMapperClass(Mapper.class);
+		job.getConfiguration().setClass(CONF_INPUT_HANDLER,mapperHandler,MapperHandler.class);
 		
 		if (rollupBaseGroupFields != null){
 			//grouper with rollup
 			String p = (customPartitionerFields != null) ? concat(customPartitionerFields,",") :  concat(rollupBaseGroupFields,",");
 			job.getConfiguration().set(TuplePartitioner.CONF_PARTITIONER_FIELDS,p);
-			job.setReducerClass(GrouperWithRollupReducer.class);
+			job.setReducerClass(RollupReducer.class);
 		} else {
 			// simple grouper
 			String p = (customPartitionerFields != null) ? concat(customPartitionerFields,",") :  concat(groupFields,",");
 			job.getConfiguration().set(TuplePartitioner.CONF_PARTITIONER_FIELDS,p);
-			job.setReducerClass(SimpleGrouperReducer.class);
+			job.setReducerClass(SimpleReducer.class);
 		}
 		
 		if (combinerHandler != null){
-			job.setCombinerClass((rollupBaseGroupFields == null) ? SimpleGrouperCombiner.class : GrouperWithRollupCombiner.class);
-			job.getConfiguration().setClass(CONF_COMBINER_HANDLER,combinerHandler,GrouperReducerHandler.class);
+			job.setCombinerClass((rollupBaseGroupFields == null) ? SimpleCombiner.class : RollupCombiner.class);
+			job.getConfiguration().setClass(CONF_COMBINER_HANDLER,combinerHandler,ReducerHandler.class);
 		}
 		
-		job.getConfiguration().setClass(CONF_REDUCER_HANDLER,reducerHandler,GrouperReducerHandler.class);
+		job.getConfiguration().setClass(CONF_REDUCER_HANDLER,reducerHandler,ReducerHandler.class);
 		job.setInputFormatClass(inputFormat);
 		job.setJarByClass((jarByClass!=null) ? jarByClass : reducerHandler);
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(DoubleBufferedTuple.class);
+		job.setMapOutputKeyClass(Tuple.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(TuplePartitioner.class);
 		job.setGroupingComparatorClass(TupleGroupComparator.class);

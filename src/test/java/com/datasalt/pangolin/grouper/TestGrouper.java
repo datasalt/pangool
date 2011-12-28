@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.datasalt.pangolin.grouper;
 
 import java.io.IOException;
@@ -24,6 +22,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -31,85 +30,68 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
-import com.datasalt.pangolin.grouper.io.Tuple;
-import com.datasalt.pangolin.grouper.io.TupleFactory;
-import com.datasalt.pangolin.grouper.io.TupleImpl.InvalidFieldException;
-import com.datasalt.pangolin.grouper.mapred.GrouperMapperHandler;
-import com.datasalt.pangolin.grouper.mapred.GrouperReducerHandler;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
+import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
+import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
 
 public class TestGrouper extends AbstractHadoopTestLibrary{
 
-	private static class Mapy extends GrouperMapperHandler<Text,NullWritable>{
+	private static class Mapy extends MapperHandler<Text,NullWritable>{
 		
-		private Tuple outputKey;
+		private Tuple outputTuple;
 		
 		@Override
-		public void setup(Mapper.Context context) throws IOException,InterruptedException {
-			super.setup(context);
-			FieldsDescription schema;
-      try {
-	      schema = FieldsDescription.parse(context.getConfiguration());
-      } catch(GrouperException e) {
-	      throw new RuntimeException(e);
-      }
-			outputKey = TupleFactory.createTuple(schema);
+		@SuppressWarnings("rawtypes")
+		public void setup(FieldsDescription schema, Mapper.Context context) throws IOException,InterruptedException {
+			this.outputTuple = TupleFactory.createTuple(schema);
 		}
 		
 		
 		@Override
-		public void map(Text key,NullWritable value) throws IOException,InterruptedException{
+		public void map(Text key,NullWritable value,Mapper.Context context) throws IOException,InterruptedException{
 			String[] tokens = key.toString().split("\\s+");
 			String country = tokens[0];
 			Integer age = Integer.parseInt(tokens[1]);
 			String name = tokens[2];
 			Integer height = Integer.parseInt(tokens[3]);
 			
-			try{
-			outputKey.setString("country",country);
-			outputKey.setInt("age",age);
-			outputKey.setString("name",name);
-			outputKey.setInt("height", height);
-			emit(outputKey);
-			} catch(InvalidFieldException e){
+			try {
+				outputTuple.setString("country", country);
+				outputTuple.setInt("age", age);
+				outputTuple.setString("name", name);
+				outputTuple.setLong("height", height);
+				emit(outputTuple,context);
+			} catch(InvalidFieldException e) {
 				throw new RuntimeException(e);
 			}
 		}
 	}
 	
-	private static class Red extends GrouperReducerHandler<Tuple,NullWritable>{
+	private static class Red extends ReducerHandler<ITuple,NullWritable>{
 
 		@Override
-    public void onOpenGroup(int depth, String field, Tuple firstElement) throws IOException, InterruptedException {
-	    // TODO Auto-generated method stub
+    public void onOpenGroup(int depth, String field, ITuple firstElement,Reducer.Context context) throws IOException, InterruptedException {
 	    
     }
 
 		@Override
-    public void onCloseGroup(int depth, String field, Tuple lastElement) throws IOException, InterruptedException {
-	    // TODO Auto-generated method stub
+    public void onCloseGroup(int depth, String field, ITuple lastElement,Reducer.Context context) throws IOException, InterruptedException {
+	   
 	    
     }
 
 		@Override
-    public void onGroupElements(Iterable<Tuple> values) throws IOException, InterruptedException {
+    public void onGroupElements(Iterable<ITuple> values,Reducer.Context context) throws IOException, InterruptedException {
 			StringBuilder b = new StringBuilder();
-		for (Tuple value : values){
-			b.append(value.toString()).append(",");
-		}
-		System.out.println("ELEMENTS:"+b.toString());
-	
-	    
-    }
-
-//		@Override
-//		public void onGroupElements(Iterable<Tuple> values) throws IOException, InterruptedException {
-//			StringBuilder b = new StringBuilder();
-//			for (Tuple value : values){
-//				b.append(value.toString()).append(",");
-//			}
-//			System.out.println("ELEMENTS:"+b.toString());
-//		}
+			for(ITuple value : values) {
+				b.append(value.toString()).append(",");
+			}
+			System.out.println("ELEMENTS:" + b.toString());
+	  }
 	}
 	
 	
@@ -125,6 +107,7 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 		withInput("input",new Text("XE 20 listo 230"));
 		
 		Grouper grouper = new Grouper(getConf());
+		grouper.setJarByClass(TestGrouper.class);
 		FieldsDescription schema = FieldsDescription.parse("country:string, age:vint, name:string, height:long");
 		grouper.setSchema(schema);
 		grouper.setInputFormat(SequenceFileInputFormat.class);
@@ -136,7 +119,7 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 		grouper.setSortCriteria(sortCriteria);
 		grouper.setGroupFields("country","age");
 		
-		grouper.setOutputKeyClass(Tuple.class);
+		grouper.setOutputKeyClass(ITuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
 		
 		
