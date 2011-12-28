@@ -3,6 +3,7 @@ package com.datasalt.pangolin.commons.test;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.contrib.serialization.thrift.ThriftSerialization;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 
@@ -46,12 +47,14 @@ public abstract class AbstractBaseTest {
 	}
 	
 	private static void configureSerialization(Configuration conf) {
-		// Adding the Thrift serialization
+		
 		String ser = conf.get("io.serializations").trim();
 		if (ser.length() !=0 ) {
 			ser += ",";
 		}
-		ser += "org.apache.hadoop.contrib.serialization.thrift.ThriftSerialization";
+		//Adding the Thrift serialization
+		ser += ThriftSerialization.class.getName();
+		//Protostuff serialization
 		ser += "," + ProtoStuffSerialization.class.getName();
 		conf.set("io.serializations", ser);
 	}

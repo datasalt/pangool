@@ -42,7 +42,7 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.io.Serialization;
 
 /**
- * This is the basic implementation of {@link ITuple}. It implements the type-checking and raw fields 
+ * This is the basic implementation of {@link ITuple}. It implements the type-checking and raw low-level fields 
  * serialization/deserialization.
  * 
  * @author eric
@@ -74,6 +74,19 @@ public class BaseTuple implements ITuple {
 	BaseTuple(@Nonnull FieldsDescription schema){
 		setSchema(schema);
 	}
+	
+	BaseTuple(@Nonnull Configuration conf){
+		try {
+	    FieldsDescription schema = FieldsDescription.parse(conf);
+	    if (schema == null){
+	    	throw new RuntimeException("schema must be set in conf");
+	    }
+    } catch(GrouperException e) {
+	    throw new RuntimeException(e);
+    }
+		setConf(conf);
+	}
+	
 
 	@Override
 	public FieldsDescription getSchema(){
@@ -92,7 +105,7 @@ public class BaseTuple implements ITuple {
 	
 	
 	/**
-	 * Caches the values from the enum fields. This is done for efficiency since uses reflection. 
+	 * Caches the values from the enum fields. This is done just once for efficiency since it uses reflection. 
 	 * 
 	 */
 	private void cacheEnums(FieldsDescription schema) {
@@ -114,6 +127,11 @@ public class BaseTuple implements ITuple {
 	
 	@Override
 	public void setSchema(@Nonnull FieldsDescription schema) {
+		if (this.schema != null){
+			throw new IllegalStateException("Schema already set,not allowed to set it twice");
+		} else if (schema == null){
+			throw new RuntimeException("Schema can't be null");
+		}
 		this.schema = schema;
 		this.cachedEnums.clear();
 		cacheEnums(schema);
@@ -168,7 +186,7 @@ public class BaseTuple implements ITuple {
 			throw new InvalidFieldException("Field \"" + fieldName + "\" not in schema");
 		}
 		
-		checkValidValueForField(fieldName,value);
+		//checkValidValueForField(fieldName,value);
 		
 		if (value == null){
 			nullObjects.add(fieldName);
@@ -320,7 +338,12 @@ public class BaseTuple implements ITuple {
 	  setField(fieldName,value);
   }
 	
-
+	private void throwIOIfNull(Field field) throws IOException{
+		if (nullObjects.contains(field.getName())){
+			throw new IOException("Field '" + field.getName() + "' with type '" + field.getType().getName() + "' can't be serialized as null");
+		}
+	}
+	
 	@Override
 	public void write(DataOutput output) throws IOException {
 		for (Field field : schema.getFields()) {
@@ -329,30 +352,39 @@ public class BaseTuple implements ITuple {
 			Object element = tupleElements.get(fieldName);
 			try{
 			if (fieldType == VIntWritable.class) {
+				throwIOIfNull(field);
 				WritableUtils.writeVInt(output, (Integer) element);
 			} else if (fieldType == VLongWritable.class) {
+				throwIOIfNull(field);
 				WritableUtils.writeVLong(output, (Long) element);
-			} else if (fieldType == Integer.class){ 
+			} else if (fieldType == Integer.class){
+				throwIOIfNull(field);
 			  output.writeInt((Integer)element);
 			} else if (fieldType == Long.class){
+				throwIOIfNull(field);
 				output.writeLong((Long)element);
 			} else if (fieldType == Double.class) {
+				throwIOIfNull(field);
 				output.writeDouble((Double) element);
 			} else if (fieldType == Float.class) {
+				throwIOIfNull(field);
 				output.writeFloat((Float) element);
 			} else if (fieldType == String.class) {
+				throwIOIfNull(field);
 				text.set((String)element);
 				text.write(output);
 			}	else if (fieldType == Boolean.class) {
+				throwIOIfNull(field);
 				output.writeBoolean((Boolean)element);
 			} else if (fieldType.isEnum()){
+				throwIOIfNull(field);
 				Enum<?> e = (Enum<?>)element;
 				WritableUtils.writeVInt(output,e.ordinal());
 			} else {
-				Object object = tupleElements.get(fieldName);
-				if (object == null){
+				if (nullObjects.contains(fieldName)){
 					WritableUtils.writeVInt(output,0);
 				} else {
+					Object object = tupleElements.get(fieldName);
 					tmpOutputBuffer.reset();
 					serialization.ser(object,tmpOutputBuffer);
 					WritableUtils.writeVInt(output,tmpOutputBuffer.getLength());
@@ -459,6 +491,10 @@ public class BaseTuple implements ITuple {
 	 */
 	@Override
   public void setConf(Configuration conf) {
+		if (this.conf != null){
+			//TODO should be so strict ?
+			throw new IllegalStateException("Tuple previously configured.Not allowed to be configured twice");
+		}
 		if (conf != null){
 			this.conf = conf;
 			try {
@@ -504,6 +540,8 @@ public class BaseTuple implements ITuple {
 
 		if (element1 == null){
 			return (element2 == null) ? 0 : -1;
+		} else if (element2 == null){
+			return 1;
 		} else  {
 			if (element1 instanceof Comparable){
 				return ((Comparable) element1).compareTo(element2);
@@ -517,15 +555,15 @@ public class BaseTuple implements ITuple {
 	
 	@Override
 	public boolean equals(Object tuple2){
-		if (!(tuple2 instanceof BaseTuple)){
+		if (!(tuple2 instanceof ITuple)){
 			return false;
 		}
 		
 		try {
 			for(Field field : schema.getFields()) {
 				String fieldName = field.getName();
-				Object thisElement = getField(fieldName);
-				Object thatElement = ((BaseTuple) tuple2).getField(fieldName);
+				Object thisElement = getObject(fieldName);
+				Object thatElement = ((ITuple) tuple2).getObject(fieldName);
 				if (thisElement == null){
 					if (thatElement != null){
 						return false;

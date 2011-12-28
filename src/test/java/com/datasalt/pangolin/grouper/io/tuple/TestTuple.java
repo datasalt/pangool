@@ -2,12 +2,18 @@ package com.datasalt.pangolin.grouper.io.tuple;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.Random;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.DataInputBuffer;
+import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.datasalt.pangolin.commons.test.AbstractBaseTest;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
@@ -15,12 +21,12 @@ import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.thrift.test.A;
 
-public class TestTuple {
+public class TestTuple extends AbstractBaseTest{
 
 	private FieldsDescription schema;
 
 	@Before
-	public void prepare() throws GrouperException {
+	public void prepare2() throws GrouperException, IOException {
 		schema = FieldsDescription.parse(
 				"int_field:int,"+
 				"long_field:long," + 
@@ -32,6 +38,8 @@ public class TestTuple {
 		    "boolean_field:boolean," + 
 		    "enum_field:" + SortOrder.class.getName() + "," +
 		    "thrift_field:" + A.class.getName());
+		
+		FieldsDescription.setInConfig(schema, getConf());
 	}
 
 	enum TestEnum {
@@ -39,26 +47,38 @@ public class TestTuple {
 	};
 	
 	@Test
-	public void testTupleStorage() throws GrouperException{
+	public void testTupleStorage() throws GrouperException, IOException{
+		
+		
 		Random random = new Random();
-		BaseTuple tuple = new BaseTuple(schema);
+		BaseTuple baseTuple = new BaseTuple(getConf()); //needed to pass serialization and schema the same time
+		Tuple doubleBufferedTuple = new Tuple(getConf());
+		ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
 		
-		System.out.println(tuple.toString());
-		
-		{
-			int value = random.nextInt();
-			tuple.setInt("int_field",value);
-			assertEquals(value,tuple.getInt("int_field"));
-			assertEquals(value,tuple.getObject("int_field"));
-			value = random.nextInt();
-			tuple.setObject("int_field",value);
-			assertEquals(value,tuple.getInt("int_field"));
-			assertEquals(value,tuple.getObject("int_field"));
+		for (ITuple tuple : tuples){
+			System.out.println(tuple);
+			//check if they can be serializable with no fields set
+			assertSerializable(tuple);
 		}
 		
-		System.out.println(tuple);
+		for(ITuple tuple : tuples) {
+			int value = random.nextInt();
+			tuple.setInt("int_field", value);
+			assertEquals(value, tuple.getInt("int_field"));
+			assertEquals(value, tuple.getObject("int_field"));
+			value = random.nextInt();
+			tuple.setObject("int_field", value);
+			assertEquals(value, tuple.getInt("int_field"));
+			assertEquals(value, tuple.getObject("int_field"));
+
+			
+			System.out.println(tuple);
+			assertSerializable(tuple);
+		}
 		
-		{
+		
+		
+		for (ITuple tuple : tuples){
 			int value = random.nextInt();
 			tuple.setInt("vint_field",value);
 			assertEquals(value,tuple.getInt("vint_field"));
@@ -67,10 +87,12 @@ public class TestTuple {
 			tuple.setObject("vint_field",value);
 			assertEquals(value,tuple.getInt("vint_field"));
 			assertEquals(value,tuple.getObject("vint_field"));
+			System.out.println(tuple);
+			assertSerializable(tuple);
 		}
-		System.out.println(tuple);
 		
-		{
+		
+		for (ITuple tuple : tuples){
 			long value = random.nextLong();
 			tuple.setLong("long_field",value);
 			assertEquals(value,tuple.getLong("long_field"));
@@ -79,9 +101,11 @@ public class TestTuple {
 			tuple.setObject("long_field",value);
 			assertEquals(value,tuple.getLong("long_field"));
 			assertEquals(value,tuple.getObject("long_field"));
+			System.out.println(tuple);
+			assertSerializable(tuple);
 		}
-		System.out.println(tuple);
-		{
+		
+		for (ITuple tuple : tuples){
 			long value = random.nextLong();
 			tuple.setLong("vlong_field",value);
 			assertEquals(value,tuple.getLong("vlong_field"));
@@ -90,9 +114,10 @@ public class TestTuple {
 			tuple.setObject("vlong_field",value);
 			assertEquals(value,tuple.getLong("vlong_field"));
 			assertEquals(value,tuple.getObject("vlong_field"));
+			System.out.println(tuple);
+			assertSerializable(tuple);
 		}
-		System.out.println(tuple);
-		{
+		for (ITuple tuple : tuples){
 			String value = "caca";
 			tuple.setString("string_field",value);
 			assertEquals(value,tuple.getString("string_field"));
@@ -101,10 +126,12 @@ public class TestTuple {
 			tuple.setObject("string_field",value);
 			assertEquals(value,tuple.getString("string_field"));
 			assertEquals(value,tuple.getObject("string_field"));
+			System.out.println(tuple);
+			assertSerializable(tuple);
+
 		}
-		System.out.println(tuple);
 		
-		{
+		for (ITuple tuple : tuples){
 			float value = random.nextFloat();
 			tuple.setFloat("float_field",value);
 			assertEquals(value,tuple.getFloat("float_field"),1e-10);
@@ -113,9 +140,11 @@ public class TestTuple {
 			tuple.setObject("float_field",value);
 			assertEquals(value,tuple.getFloat("float_field"),1e-10);
 			assertEquals(value,(Float)tuple.getObject("float_field"),1e-10);
+			System.out.println(tuple);
+			assertSerializable(tuple);
+
 		}
-		System.out.println(tuple);
-		{
+		for (ITuple tuple : tuples){
 			double value = random.nextDouble();
 			tuple.setDouble("double_field",value);
 			assertEquals(value,tuple.getDouble("double_field"),1e-10);
@@ -124,13 +153,12 @@ public class TestTuple {
 			tuple.setObject("double_field",value);
 			assertEquals(value,tuple.getDouble("double_field"),1e-10);
 			assertEquals(value,(Double)tuple.getObject("double_field"),1e-10);
+			System.out.println(tuple);
+			assertSerializable(tuple);
 		}
-		System.out.println(tuple);
 		
-		{
-			
+		for (ITuple tuple : tuples){
 			SortOrder value = SortOrder.ASCENDING;
-			
 			tuple.setEnum("enum_field",value);
 			assertEquals(value,tuple.getEnum("enum_field"));
 			assertEquals(value,tuple.getObject("enum_field"));
@@ -144,12 +172,12 @@ public class TestTuple {
 			tuple.setObject("enum_field",value);
 			assertEquals(value,tuple.getEnum("enum_field"));
 			assertEquals(value,tuple.getObject("enum_field"));
+			System.out.println(tuple);
+			assertSerializable(tuple);
+
 		}
 		
-		
-		
-		{
-			
+		for (ITuple tuple : tuples){
 			A value = new A();
 			value.setId("id");
 			tuple.setObject("thrift_field",value);
@@ -160,65 +188,137 @@ public class TestTuple {
 			tuple.setObject("thrift_field",value);
 			assertEquals(value,tuple.getObject("thrift_field"));
 			assertEquals(value.getId(),((A)tuple.getObject("thrift_field")).getId());
-			
+			System.out.println(tuple);
+			assertSerializable(tuple);
 		}
-		System.out.println(tuple);
-		
-		
-		
-		
 		
 		//TODO what should happen when assign an int,short  to a long (automatic conversion(casting) or exception?)
 		//TODO what happens if we retrieve a long using getInt  , or a int using getLong ?
 		
 		//TODO should we convert float to double ?
-		
-		
-		try{
-			//can't assign wrong types
-		  tuple.setString("int_field","caca");
-		  Assert.fail();
-		} catch(InvalidFieldException e){}
-		
-		try {
-			tuple.setObject("string_field", new A());
-		} catch(InvalidFieldException e){}
-		
-		
 	}
+	
+	private void assertSerializable(ITuple tuple) throws IOException{
+		Configuration conf = tuple.getConf();
+		DataOutputBuffer output = new DataOutputBuffer();
+		DataInputBuffer input = new DataInputBuffer();
+	  tuple.write(output);
+    
+	  input.reset(output.getData(),0,output.getLength());
+		ITuple deserializedTuple = new BaseTuple(conf);
+		deserializedTuple.readFields(input);
+		assertEquals(tuple,deserializedTuple);
+	  deserializedTuple = new Tuple(conf);
+	  
+	  input.reset(output.getData(),0,output.getLength());
+		deserializedTuple.readFields(input);
+		assertEquals(tuple,deserializedTuple);
+	}
+	
+	
+	
+	@Test
+	public void testAssingWrongTypes(){
+		
+		//Ituple
+		
+//		try{
+//			//can't assign wrong types
+//		  tuple.setString("int_field","caca");
+//		  Assert.fail();
+//		} catch(InvalidFieldException e){
+//			e.printStackTrace();
+//		}
+//		
+//		try {
+//			tuple.setObject("string_field", new A());
+//		} catch(InvalidFieldException e){
+//			e.printStackTrace();
+//		}
+//		
+//		
+//	}
 
+	}
+		
+	
+	private void assertNotSerializable(ITuple tuple){
+		try{
+		assertSerializable(tuple);
+		Assert.fail();
+		} catch(Exception e){
+			System.out.println(e);
+		}
+	}
+	
 	@Test
 	/**
-	 * Can assign nulls to primitive types
+	 * Can't serialize nulls to primitive types (ints,floats..)
 	 */
-	public void testPrimitivesNonnull() throws GrouperException {
+	public void testPrimitivesNonnull() throws GrouperException, IOException {
 
-		BaseTuple tuple = new BaseTuple(schema);
-
-		try {
-			tuple.setObject("user_id", null);
-			Assert.fail();
-		} catch(GrouperException e) {
+		ITuple baseTuple = new BaseTuple(getConf());
+		ITuple doubleBufferedTuple = new Tuple(getConf());
+		ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
+		
+		for(ITuple tuple : tuples){
+			tuple.setObject("int_field", null);
+			assertNotSerializable(tuple);
+			tuple.setObject("int_field", 3);
+			tuple.setObject("vint_field", null);
+			assertNotSerializable(tuple);
+			tuple.setObject("vint_field", 10);
+			tuple.setObject("long_field", null);
+			assertNotSerializable(tuple);
+			tuple.setObject("long_field", 11l);
+			tuple.setObject("vlong_field", null);
+			assertNotSerializable(tuple);
+			tuple.setObject("vlong_field", 12l);
+			tuple.setObject("double_field", null);
+			assertNotSerializable(tuple);
+			tuple.setObject("double_field", 12.0);
+			tuple.setObject("float_field", null);
+			assertNotSerializable(tuple);
+			tuple.setObject("float_field", 12f);
+			tuple.setObject("boolean_field", null);
+			assertNotSerializable(tuple);
+			tuple.setObject("boolean_field", true);
+			tuple.setObject("enum_field", null);
+			assertNotSerializable(tuple);
+			tuple.setObject("enum_field", SortOrder.ASCENDING);
+			tuple.setObject("string_field", null);
+			assertNotSerializable(tuple);
+			tuple.setObject("string_field", "");
 		}
-
-		try {
-			tuple.setObject("user_id", null);
+		
+	}
+	
+	@Test
+	public void testNullSchema(){
+		ITuple baseTuple = ReflectionUtils.newInstance(BaseTuple.class,null);
+		ITuple doubleBufferedTuple =ReflectionUtils.newInstance(Tuple.class,null);
+		ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
+		
+		for (ITuple tuple : tuples){
+		try{
+			tuple.setSchema(null);
 			Assert.fail();
-		} catch(GrouperException e) {
+		} catch(Exception e){
+			System.out.println(e);
 		}
-
-		try {
-			tuple.setObject("user_id", null);
-			Assert.fail();
-		} catch(GrouperException e) {
 		}
-
-		try {
-			tuple.setObject("user_id", null);
-			Assert.fail();
-		} catch(GrouperException e) {
+		
+		
+		for (ITuple tuple : tuples){
+		tuple.setSchema(schema);
+		try{
+			tuple.setSchema(schema); //can't assign twice an schema 
+		} catch(IllegalStateException e){
+			System.out.println(e);
 		}
-
+		}
+		
+		
 	}
 
 }

@@ -26,7 +26,6 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.thrift.TBase;
 
 import com.datasalt.pangolin.grouper.FieldsDescription;
-import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
 
 /**
@@ -44,8 +43,8 @@ import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
  */
 public class Tuple implements ITuple {
 
-	private FieldsDescription schema;
-	private Configuration conf;
+	//private FieldsDescription schema;
+	//private Configuration conf;
 	private BaseTuple previousTuple, currentTuple;
 
 	@SuppressWarnings("unused")
@@ -56,10 +55,17 @@ public class Tuple implements ITuple {
 	}
 
 	Tuple(@Nonnull FieldsDescription schema) {
-		this.schema = schema;
+		//this.schema = schema;
 		currentTuple = new BaseTuple(schema);
 		previousTuple = new BaseTuple(schema);
 	}
+	
+	Tuple(@Nonnull Configuration conf){
+		currentTuple = new BaseTuple(conf);
+		previousTuple = new BaseTuple(conf);
+	}
+	
+	
 
 	@Override
 	public void write(DataOutput out) throws IOException {
@@ -96,29 +102,29 @@ public class Tuple implements ITuple {
 	@Override
 	public void setConf(Configuration conf) {
 		if(conf != null) {
-			this.conf = conf;
-			try {
-				FieldsDescription schema = FieldsDescription.parse(this.conf);
-				if(schema != null) {
-					this.schema = schema;
-				}
+			//this.conf = conf;
+			//try {
+//				FieldsDescription schema = FieldsDescription.parse(this.conf);
+//				if(schema != null) {
+//					this.schema = schema;
+//				}
 				previousTuple.setConf(conf);
 				currentTuple.setConf(conf);
-			} catch(GrouperException e) {
-				throw new RuntimeException(e);
-			}
+			//} catch(GrouperException e) {
+			//	throw new RuntimeException(e);
+			//}
 		}
 
 	}
 
 	@Override
 	public Configuration getConf() {
-		return conf;
+		return currentTuple.getConf();
 	}
 
 	@Override
 	public FieldsDescription getSchema() {
-		return schema;
+		return currentTuple.getSchema();
 	}
 
 	@Override
@@ -163,7 +169,7 @@ public class Tuple implements ITuple {
 
 	@Override
 	public Enum<? extends Enum<?>> getEnum(String fieldName) throws InvalidFieldException {
-		return getEnum(fieldName);
+		return currentTuple.getEnum(fieldName);
 	}
 
 	
@@ -244,8 +250,8 @@ public class Tuple implements ITuple {
 	  return currentTuple.toString(minFieldIndex,maxFieldIndex);
   }
 
-	
-
-	
-
+	@Override
+	public boolean equals(Object tuple){
+		return currentTuple.equals(tuple);
+	}
 }

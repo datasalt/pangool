@@ -24,6 +24,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
+import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
@@ -53,6 +54,35 @@ public class TupleSortComparator extends WritableComparator implements Configura
 		super(Tuple.class);
 	}
 
+	@Override
+	public int compare(Object w1,Object w2){
+		int fieldsCompared = sortCriteria.getSortElements().length;
+		return compare(fieldsCompared,w1,w2);
+	}
+	
+	public int compare(int maxFieldsCompared,Object w1,Object w2){
+//		ITuple tuple1 = (ITuple)w1;
+//		ITuple tuple2 = (ITuple)w2;
+//		for(int depth = 0; depth < maxFieldsCompared; depth++) {
+//			Field field = schema.getFields()[depth];
+//			String fieldName = field.getName();
+//			Class<?> type = field.getType();
+//			SortElement sortElement = sortCriteria.getSortElementByFieldName(field.getName());
+//			SortOrder sort=SortOrder.ASCENDING; //by default
+//			RawComparator<?> comparator=null;
+//			if(sortElement != null){
+//				sort=sortElement.getSortOrder();
+//				comparator = instancedComparators.get(sortElement.getComparator());
+//			} 
+//			
+//			int comparison = tuple1.getObject(fieldName);
+//			
+//		}
+		//TODO
+		return 0;
+	}
+	
+	
 	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		int fieldsCompared = sortCriteria.getSortElements().length;
