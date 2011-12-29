@@ -14,33 +14,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractBaseTest;
+import com.datasalt.pangolin.grouper.BaseGrouperTest;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
-import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.thrift.test.A;
 
-public class TestTuple extends AbstractBaseTest{
+public class TestTuple extends BaseGrouperTest{
 
-	private FieldsDescription schema;
-
-	@Before
-	public void prepare2() throws GrouperException, IOException {
-		schema = FieldsDescription.parse(
-				"int_field:int,"+
-				"long_field:long," + 
-				"vint_field:vint," + 
-				"vlong_field:vlong," +
-				"float_field:float," +
-				"double_field:double," + 
-		    "string_field:string," + 
-		    "boolean_field:boolean," + 
-		    "enum_field:" + SortOrder.class.getName() + "," +
-		    "thrift_field:" + A.class.getName());
-		
-		FieldsDescription.setInConfig(schema, getConf());
-	}
+	
 
 	enum TestEnum {
 		S,Blabla
@@ -51,7 +33,7 @@ public class TestTuple extends AbstractBaseTest{
 		
 		
 		Random random = new Random();
-		BaseTuple baseTuple = new BaseTuple(getConf()); //needed to pass serialization and schema the same time
+		BaseTuple baseTuple = new BaseTuple(getConf()); //needed to pass serialization and SCHEMA the same time
 		Tuple doubleBufferedTuple = new Tuple(getConf());
 		ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
 		
@@ -294,7 +276,7 @@ public class TestTuple extends AbstractBaseTest{
 	}
 	
 	@Test
-	public void testNullSchema(){
+	public void testNullSchema() throws IOException{
 		ITuple baseTuple = ReflectionUtils.newInstance(BaseTuple.class,null);
 		ITuple doubleBufferedTuple =ReflectionUtils.newInstance(Tuple.class,null);
 		ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
@@ -310,13 +292,27 @@ public class TestTuple extends AbstractBaseTest{
 		
 		
 		for (ITuple tuple : tuples){
-		tuple.setSchema(schema);
+		tuple.setSchema(SCHEMA);
 		try{
-			tuple.setSchema(schema); //can't assign twice an schema 
+			tuple.setSchema(SCHEMA); //can't assign twice an SCHEMA 
 		} catch(IllegalStateException e){
 			System.out.println(e);
 		}
 		}
+		
+		baseTuple = ReflectionUtils.newInstance(BaseTuple.class,null);
+		doubleBufferedTuple =ReflectionUtils.newInstance(Tuple.class,null);
+		tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
+		
+		for (ITuple tuple : tuples){
+			tuple.setSchema(SCHEMA);
+			
+			try{
+				tuple.setConf(getConf()); //can't assign a configuration after SCHEMA set 
+			} catch(IllegalStateException e){
+				System.out.println(e);
+			}
+			}
 		
 		
 	}

@@ -30,8 +30,8 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
-import com.datasalt.pangolin.grouper.io.tuple.TupleGroupComparator;
-import com.datasalt.pangolin.grouper.io.tuple.TuplePartitioner;
+import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
+import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
@@ -61,8 +61,8 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
   	try{
     Configuration conf = context.getConfiguration();
   	this.schema = FieldsDescription.parse(conf);
-  	this.maxDepth = conf.get(TupleGroupComparator.CONF_GROUP_COMPARATOR_FIELDS).split(",").length -1;
-  	String confPartitioner = conf.get(TuplePartitioner.CONF_PARTITIONER_FIELDS);
+  	this.maxDepth = conf.get(GroupComparator.CONF_GROUP_COMPARATOR_FIELDS).split(",").length -1;
+  	String confPartitioner = conf.get(Partitioner.CONF_PARTITIONER_FIELDS);
   	this.minDepth = confPartitioner.split(",").length -1;
   	} catch(GrouperException e){
   		throw new RuntimeException(e);

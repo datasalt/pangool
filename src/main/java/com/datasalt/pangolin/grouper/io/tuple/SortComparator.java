@@ -29,12 +29,13 @@ import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.FieldsDescription.Field;
+import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria;
 import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 
 /**
  * 
@@ -43,43 +44,91 @@ import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
  * @author eric
  * 
  */
-public class TupleSortComparator extends WritableComparator implements Configurable {
+public class SortComparator extends WritableComparator implements Configurable {
 
 	private Configuration conf;
 	private FieldsDescription schema;
 	private SortCriteria sortCriteria;
-	private Map<Class,RawComparator> instancedComparators;
+	@SuppressWarnings("rawtypes")
+  private Map<Class,RawComparator> instancedComparators;
 
-	public TupleSortComparator() {
+	public SortComparator() {
 		super(Tuple.class);
 	}
 
+	public SortCriteria getSortCriteria(){
+		return sortCriteria;
+	}
+	
+	
 	@Override
-	public int compare(Object w1,Object w2){
+	public int compare(Object w1,Object w2) {
+		return compare((WritableComparable)w1,(WritableComparable)w2);
+	}
+	
+	@Override
+	public int compare(WritableComparable w1,WritableComparable w2) {
 		int fieldsCompared = sortCriteria.getSortElements().length;
 		return compare(fieldsCompared,w1,w2);
 	}
 	
-	public int compare(int maxFieldsCompared,Object w1,Object w2){
-//		ITuple tuple1 = (ITuple)w1;
-//		ITuple tuple2 = (ITuple)w2;
-//		for(int depth = 0; depth < maxFieldsCompared; depth++) {
-//			Field field = schema.getFields()[depth];
-//			String fieldName = field.getName();
-//			Class<?> type = field.getType();
-//			SortElement sortElement = sortCriteria.getSortElementByFieldName(field.getName());
-//			SortOrder sort=SortOrder.ASCENDING; //by default
-//			RawComparator<?> comparator=null;
-//			if(sortElement != null){
-//				sort=sortElement.getSortOrder();
-//				comparator = instancedComparators.get(sortElement.getComparator());
-//			} 
-//			
-//			int comparison = tuple1.getObject(fieldName);
-//			
-//		}
-		//TODO
-		return 0;
+	@SuppressWarnings("unchecked")
+  public int compare(int maxFieldsCompared,Object w1,Object w2){
+		try {
+			ITuple tuple1 = (ITuple) w1;
+			ITuple tuple2 = (ITuple) w2;
+			for(int depth = 0; depth < maxFieldsCompared; depth++) {
+				Field field = schema.getField(depth);
+				String fieldName = field.getName();
+				SortElement sortElement = sortCriteria.getSortElementByFieldName(field.getName());
+				SortOrder sort = SortOrder.ASCENDING; // by default
+				@SuppressWarnings("rawtypes")
+        RawComparator comparator = null;
+				if(sortElement != null) {
+					sort = sortElement.getSortOrder();
+					comparator = instancedComparators.get(sortElement.getComparator());
+				} else {
+					throw new RuntimeException("Fatal error : Trying to sort by field '" + fieldName + "' but not present in sortCriteria:" + sortCriteria);
+				}
+				int comparison;
+				if (comparator != null){
+					comparison = comparator.compare(tuple1.getObject(fieldName), tuple2.getObject(fieldName));
+				} else {
+				 comparison = compareObjects(tuple1.getObject(fieldName), tuple2.getObject(fieldName));
+				}
+				if(comparison != 0) {
+					return (sort == SortOrder.ASCENDING) ? comparison : -comparison;
+				}
+			}
+			return 0;
+		} catch(InvalidFieldException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * Compares two objects 
+	 * 
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+  public static int compareObjects(Object element1, Object element2 ){
+
+		if (element1 == null){
+			return (element2 == null) ? 0 : -1;
+		} else if (element2 == null){
+			return 1;
+		} else  {
+			if (element1 instanceof Comparable){
+				return ((Comparable) element1).compareTo(element2);
+			} else if (element2 instanceof Comparable){
+				return -((Comparable)element2).compareTo(element1);
+				
+			} else {
+				//both objects are not Comparable
+				//TODO is this correct? 
+				return 0;
+			}
+		}
 	}
 	
 	
@@ -163,7 +212,7 @@ public class TupleSortComparator extends WritableComparator implements Configura
 					}
 					offset1 += Long.SIZE / 8;
 					offset2 += Long.SIZE / 8;
-				} else if(type == VIntWritable.class) {
+				} else if(type == VIntWritable.class || type.isEnum()) {
 					int value1 = readVInt(b1, offset1);
 					int value2 = readVInt(b2, offset2);
 					if(value1 > value2) {
@@ -200,11 +249,18 @@ public class TupleSortComparator extends WritableComparator implements Configura
 				} else if(type == Boolean.class) {
 					byte value1 = b1[offset1++];
 					byte value2 = b2[offset2++];
+					Boolean boolean1 = (value1 == 0) ? false : true;
+					Boolean boolean2 = (value2 == 0) ? false : true;
+					int comparison = boolean1.compareTo(boolean2);
+					if (comparison != 0){
+						return (sort == SortOrder.ASCENDING) ? comparison : -comparison;
+					}
+					/*
 					if(value1 > value2) {
 						return (sort == SortOrder.ASCENDING) ? 1 : -1;
 					} else if(value1 < value2) {
 						return (sort == SortOrder.ASCENDING) ? -1 : 1;
-					}
+					}*/
 				} else {
 					//String(Text) and the rest of types using compareBytes
 					int length1 = readVInt(b1, offset1);
@@ -250,6 +306,6 @@ public class TupleSortComparator extends WritableComparator implements Configura
 	
 	static {
 		// statically added in register
-		WritableComparator.define(Tuple.class, new TupleSortComparator());
+		WritableComparator.define(Tuple.class, new SortComparator());
 	}
 }

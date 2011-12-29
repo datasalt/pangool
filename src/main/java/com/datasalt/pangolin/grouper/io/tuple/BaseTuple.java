@@ -518,14 +518,14 @@ public class BaseTuple implements ITuple {
 		if (!this.schema.equals(that.getSchema())){
 			//TODO is this necessary ? Too heavy
 			//TODO should Int and VInt treated different ? 
-			throw new RuntimeException("Schemas are different"); 
+			throw new RuntimeException("Schemas are different + "+schema + " <=>" +that.getSchema()); 
 		}
 		
 		for (Field field : this.schema.getFields()){
 			String fieldName = field.getName();
 			Object thisElement = getField(fieldName);
 			Object thatElement = getField(fieldName);
-			int comparison = compareObjects(thisElement,thatElement);
+			int comparison = SortComparator.compareObjects(thisElement,thatElement);
 			if (comparison != 0){
 				return comparison;
 			}
@@ -536,21 +536,7 @@ public class BaseTuple implements ITuple {
 		}
   }
 	
-	private static int compareObjects(Object element1, Object element2 ){
-
-		if (element1 == null){
-			return (element2 == null) ? 0 : -1;
-		} else if (element2 == null){
-			return 1;
-		} else  {
-			if (element1 instanceof Comparable){
-				return ((Comparable) element1).compareTo(element2);
-			} else {
-				//TODO what to do here ? 
-				return 0; //TODO;
-			}
-		}
-	}
+	
 	
 	
 	@Override

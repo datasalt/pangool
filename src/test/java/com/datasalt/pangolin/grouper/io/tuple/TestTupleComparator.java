@@ -19,27 +19,37 @@ package com.datasalt.pangolin.grouper.io.tuple;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
+import org.apache.hadoop.io.VIntWritable;
+import org.apache.hadoop.io.VLongWritable;
+import org.junit.Assert;
 import org.junit.Test;
 
-import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangolin.grouper.BaseGrouperTest;
 import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.FieldsDescription.Field;
+import com.datasalt.pangolin.grouper.FieldsDescriptionBuilder;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria;
-import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.TupleSortComparator;
+import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
+import com.datasalt.pangolin.grouper.SortCriteriaBuilder;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.thrift.test.A;
 
 
-public class TestTupleComparator extends AbstractHadoopTestLibrary{
+public class TestTupleComparator extends BaseGrouperTest{
 	
-	private static class Comparator1 implements RawComparator<com.datasalt.pangolin.thrift.test.A>,Configurable {
+	private static class AComparator implements RawComparator<com.datasalt.pangolin.thrift.test.A>,Configurable {
 
 		private Configuration conf;
 		private Serialization ser;
@@ -47,8 +57,7 @@ public class TestTupleComparator extends AbstractHadoopTestLibrary{
 		private A a1=new A();
 		private A a2=new A();
 		
-		public Comparator1(){
-		}
+		
 
 		@Override
     public int compare(A o1, A o2) {
@@ -56,7 +65,6 @@ public class TestTupleComparator extends AbstractHadoopTestLibrary{
 			if (comparison == 0){
 				comparison = o1.getUrl().compareTo(o2.getUrl());
 			}
-			
 			return comparison;
     }
 
@@ -91,38 +99,95 @@ public class TestTupleComparator extends AbstractHadoopTestLibrary{
 	}
 	
 	
+	private void fillWithRandom(ITuple tuple,int minIndex,int maxIndex){
+		try{
+		Random random = new Random();
+		FieldsDescription fieldsDescription = tuple.getSchema();
+		for (int i=minIndex ; i <= maxIndex ; i++){
+			Field field = fieldsDescription.getField(i);
+			String fieldName = field.getName();
+			Class fieldType = field.getType();
+			if (fieldType == Integer.class || fieldType == VIntWritable.class){
+				tuple.setInt(fieldName, random.nextInt());
+			} else if(fieldType == Long.class || fieldType == VLongWritable.class){
+				tuple.setLong(fieldName,random.nextLong());
+			} else if(fieldType == Boolean.class){
+				tuple.setBoolean(fieldName, random.nextBoolean());
+			} else if (fieldType == Double.class){
+				tuple.setDouble(fieldName, random.nextDouble());
+			} else if (fieldType == Float.class){
+				tuple.setFloat(fieldName, random.nextFloat());
+			} else if (fieldType == String.class){
+				if (random.nextBoolean()){
+					tuple.setString(fieldName,"");
+				} else {
+					tuple.setString(fieldName,random.nextLong()+"");
+				}
+			} else if (fieldType.isEnum()){
+				Method method = fieldType.getMethod("values", null);
+				Enum[] values = (Enum[])method.invoke(null);
+				tuple.setEnum(fieldName, values[random.nextInt(values.length)]);
+			} else {
+				//TODO add more things
+			}
+		}
+		} catch(Exception e){
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private static FieldsDescription permuteSchema(FieldsDescription schema){
+		Field[] fields = schema.getFields();
+		List<Field> permutedFields = Arrays.asList(fields);
+		Collections.shuffle(permutedFields);
+		FieldsDescriptionBuilder builder = new FieldsDescriptionBuilder();
+		for (Field field : permutedFields){
+			try {
+	      builder.addField(field.getName(), field.getType());
+      } catch(InvalidFieldException e) {
+      	throw new RuntimeException(e);
+      }
+		}
+		return builder.createFieldsDescription();
+	}
+	
+	private static SortCriteria createRandomSortCriteria(FieldsDescription schema,int numFields){
+		try {
+		Random random = new Random();
+		SortCriteriaBuilder builder = new SortCriteriaBuilder();
+		for (int i = 0 ; i < numFields ; i++){
+			Field field = schema.getField(i);
+			  builder.addSortElement(field.getName(), random.nextBoolean() ? SortOrder.ASCENDING : SortOrder.DESCENDING);
+		}
+		return builder.createSortCriteria();
+		} catch(InvalidFieldException e) {
+      throw new RuntimeException(e);
+    }
+	}
+	
 	@Test
 	public void test() throws GrouperException, IOException{
-		
-		
-		A a1 = new A();
-		a1.setId("1");
-		a1.setUrl("1");
-		
-		A a2 = new A();
-		a2.setId("1");
-		a2.setUrl("2");
-		
 		Configuration conf=getConf();
-		FieldsDescription schema = FieldsDescription.parse("name:string,age:int,risas:" + a1.getClass().getName());
-		FieldsDescription.setInConfig(schema, conf);
-		SortCriteria sortCriteria = SortCriteria.parse("name desc,age asc,risas using " + Comparator1.class.getName() +  " desc");
-		SortCriteria.setInConfig(sortCriteria, conf);
 		
-		TupleSortComparator comp = new TupleSortComparator();
-		comp.setConf(conf);
 		
-		BaseTuple tuple1 = new BaseTuple(schema);
-		//tuple1.setSchema(schema);
-		tuple1.setSerialization(getSer());
-		tuple1.setThriftObject("risas",a1);
-		
-		BaseTuple tuple2 = new BaseTuple(schema);
-		tuple2.setSchema(schema);
-		tuple2.setSerialization(getSer());
-		tuple2.setThriftObject("risas",a1);
-		
-		assertEquals(0,compareInBinary(comp,tuple1,tuple2));
+		int maxIndex =SCHEMA.getFields().length-1; 
+		int MAX_RANDOMS_PER_INDEX = 100;
+		for (int minIndex= maxIndex ; minIndex>=0 ; minIndex--){
+			SortCriteria sortCriteria = createRandomSortCriteria(SCHEMA,maxIndex+1);
+			SortCriteria.setInConfig(sortCriteria, conf);
+			SortComparator comp = new SortComparator();
+			comp.setConf(conf);
+			System.out.println("Min index : " + minIndex +  " CRITERIA:" + sortCriteria);
+			for (int i= 0 ; i < MAX_RANDOMS_PER_INDEX; i++){
+				ITuple tuple1 = new BaseTuple(getConf());
+				fillWithRandom(tuple1, minIndex, maxIndex);
+				ITuple tuple2 = new BaseTuple(getConf());
+				fillWithRandom(tuple2, minIndex, maxIndex);
+				assertSameComparison(comp, tuple1,tuple2);
+				assertOppositeOrEqualsComparison(comp.compare(tuple1,tuple2),comp.compare(tuple2,tuple1));
+				assertOppositeOrEqualsComparison(compareInBinary(comp,tuple1,tuple2),compareInBinary(comp,tuple2,tuple1));
+			}
+		}
 	}
 	
 	private int compareInBinary(RawComparator<?> comp,ITuple tuple1,ITuple tuple2) throws IOException{
@@ -132,4 +197,24 @@ public class TestTupleComparator extends AbstractHadoopTestLibrary{
 		tuple2.write(buffer2);
 		return comp.compare(buffer1.getData(),0,buffer1.getLength(),buffer2.getData(),0,buffer2.getLength());
 	}
+	
+	private void assertSameComparison(SortComparator comparator,ITuple tuple1,ITuple tuple2) throws IOException{
+		
+		int compObjects = comparator.compare(tuple1,tuple2);
+		int compBinary = compareInBinary(comparator,tuple1,tuple2);
+		if (compObjects > 0 && compBinary <=0 || 
+				compObjects >= 0 && compBinary <0 ||
+				compObjects <=0 && compBinary > 0 ||
+				compObjects <0 && compBinary >= 0){
+			Assert.fail("Not same comparison : Comp objects:'" + compObjects + "' Comp binary:'" + compBinary + "' for tuples:" +
+					"\nTUPLE1:" + tuple1 + "\nTUPLE2:" +tuple2 +  "\nCRITERIA:" + comparator.getSortCriteria());
+		}
+	}
+	
+	private void assertOppositeOrEqualsComparison(int comp1, int comp2){
+		if (comp1 > 0 && comp2 >0 || comp1 <0 && comp2 < 0){
+			Assert.fail("Same comparison : " + comp1 + " , " + comp2 + ".It should be opposite");
+		}
+	}
+	
 }

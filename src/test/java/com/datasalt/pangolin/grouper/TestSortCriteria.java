@@ -23,14 +23,14 @@ import org.junit.Test;
 
 import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
-import com.datasalt.pangolin.grouper.io.tuple.TupleSortComparator;
+import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
 
 public class TestSortCriteria {
 
 	@Test
 	public void test() throws GrouperException{
 		
-		SortCriteria criteria = SortCriteria.parse("name asc , caca using " + TupleSortComparator.class.getName() + " desc");
+		SortCriteria criteria = SortCriteria.parse("name asc , caca using " + SortComparator.class.getName() + " desc");
 		SortElement[] sortElement = criteria.getSortElements();
 		assertEquals(2,sortElement.length);
 		assertEquals("name",sortElement[0].getName());
@@ -39,7 +39,7 @@ public class TestSortCriteria {
 		
 		assertEquals("caca",sortElement[1].getName());
 		assertEquals(SortOrder.DESCENDING,sortElement[1].getSortOrder());
-		assertEquals(TupleSortComparator.class,sortElement[1].getComparator());
+		assertEquals(SortComparator.class,sortElement[1].getComparator());
 		
 		
 		try{

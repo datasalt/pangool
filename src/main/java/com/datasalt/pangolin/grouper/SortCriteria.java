@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.datasalt.pangolin.grouper.io.tuple.TupleSortComparator;
+import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 
 import org.apache.hadoop.conf.Configuration;
@@ -28,7 +28,7 @@ import org.apache.hadoop.io.RawComparator;
 
 /**
  * 
- * SortCriteria specifies how the {@link ITuple} fields will be sorted by {@link TupleSortComparator}.
+ * SortCriteria specifies how the {@link ITuple} fields will be sorted by {@link SortComparator}.
  * Basically it contains a list of fields with a sort descriptor {@link SortOrder} (ascending or descending order).
  * For example: "name asc,age desc"
  * The sort criteria needs to match the {@link FieldsDescription} fields ordering, so in any case the {@link SortCriteria} must 
@@ -43,7 +43,7 @@ public class SortCriteria  {
 	
 	public static final String CONF_SORT_CRITERIA = "datasalt.grouper.sort.criteria";
 	
-	public SortCriteria(){
+	private SortCriteria(){
 		
 	}
 	
@@ -61,15 +61,13 @@ public class SortCriteria  {
 
 	public static class SortElement {
 		
-		private SortElement(String name,SortOrder sortOrder,Class<? extends RawComparator> comparator){
+		public SortElement(String name,SortOrder sortOrder,Class<? extends RawComparator> comparator){
 			this.fieldName = name;
 			this.sortOrder = sortOrder;
 			this.comparator = comparator;
 		}
 		
-		public SortElement(){
-			
-		}
+		
 		
 		public String getFieldName() {
     	return fieldName;
@@ -117,7 +115,7 @@ public class SortCriteria  {
 		
 	}
 	
-	private SortCriteria(SortElement[] sortElements){
+	SortCriteria(SortElement[] sortElements){
 		this.sortElements = sortElements;
 		for (SortElement sortElement : sortElements){
 			this.sortElementsByName.put(sortElement.fieldName, sortElement);

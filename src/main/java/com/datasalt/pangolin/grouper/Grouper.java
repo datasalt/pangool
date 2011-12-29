@@ -26,9 +26,9 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
-import com.datasalt.pangolin.grouper.io.tuple.TupleGroupComparator;
-import com.datasalt.pangolin.grouper.io.tuple.TuplePartitioner;
-import com.datasalt.pangolin.grouper.io.tuple.TupleSortComparator;
+import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
+import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
+import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
 import com.datasalt.pangolin.grouper.mapreduce.Mapper;
 import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
@@ -139,7 +139,7 @@ public class Grouper {
 	public Job createJob() throws IOException{
 		Job job = new Job(conf);
 		job.getConfiguration().set(FieldsDescription.CONF_SCHEMA,schema.serialize());
-		job.getConfiguration().set(TupleGroupComparator.CONF_GROUP_COMPARATOR_FIELDS,concat(groupFields,","));
+		job.getConfiguration().set(GroupComparator.CONF_GROUP_COMPARATOR_FIELDS,concat(groupFields,","));
 		job.getConfiguration().set(SortCriteria.CONF_SORT_CRITERIA,sortCriteria.toString());
 		
 		job.setInputFormatClass(inputFormat);
@@ -149,12 +149,12 @@ public class Grouper {
 		if (rollupBaseGroupFields != null){
 			//grouper with rollup
 			String p = (customPartitionerFields != null) ? concat(customPartitionerFields,",") :  concat(rollupBaseGroupFields,",");
-			job.getConfiguration().set(TuplePartitioner.CONF_PARTITIONER_FIELDS,p);
+			job.getConfiguration().set(Partitioner.CONF_PARTITIONER_FIELDS,p);
 			job.setReducerClass(RollupReducer.class);
 		} else {
 			// simple grouper
 			String p = (customPartitionerFields != null) ? concat(customPartitionerFields,",") :  concat(groupFields,",");
-			job.getConfiguration().set(TuplePartitioner.CONF_PARTITIONER_FIELDS,p);
+			job.getConfiguration().set(Partitioner.CONF_PARTITIONER_FIELDS,p);
 			job.setReducerClass(SimpleReducer.class);
 		}
 		
@@ -169,9 +169,9 @@ public class Grouper {
 		job.setOutputFormatClass(outputFormat);
 		job.setMapOutputKeyClass(Tuple.class);
 		job.setMapOutputValueClass(NullWritable.class);
-		job.setPartitionerClass(TuplePartitioner.class);
-		job.setGroupingComparatorClass(TupleGroupComparator.class);
-		job.setSortComparatorClass(TupleSortComparator.class);
+		job.setPartitionerClass(Partitioner.class);
+		job.setGroupingComparatorClass(GroupComparator.class);
+		job.setSortComparatorClass(SortComparator.class);
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		return job;

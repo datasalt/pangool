@@ -23,7 +23,7 @@ import org.apache.hadoop.conf.Configuration;
  * @author eric
  *
  */
-public class TupleGroupComparator extends TupleSortComparator{
+public class GroupComparator extends SortComparator{
 
 	private int numFieldsCompared;
 	public static final String CONF_GROUP_COMPARATOR_FIELDS = "datasalt.pangolin.grouper.group_comparator.fields";

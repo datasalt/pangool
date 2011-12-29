@@ -18,7 +18,6 @@ package com.datasalt.pangolin.grouper.io.tuple;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.Partitioner;
 
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 
@@ -27,16 +26,15 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
  * @author eric
  *
  */
-public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements Configurable{
+public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<ITuple,NullWritable> implements Configurable{
 
 	public static final String CONF_PARTITIONER_FIELDS ="datasalt.grouper.partitioner_fields";
 	
 	private Configuration conf;
-	//private FieldsDescription schema;
 	private String[] groupFields;
 	
 	@Override
-	public int getPartition(Tuple key, NullWritable value, int numPartitions) {
+	public int getPartition(ITuple key, NullWritable value, int numPartitions) {
 		try{
 		int result =  key.partialHashCode(groupFields) % numPartitions;
 		return result;
@@ -52,18 +50,10 @@ public class TuplePartitioner extends Partitioner<Tuple,NullWritable> implements
 
 	@Override
 	public void setConf(Configuration conf) {
-		//try{
 		if (conf != null){
 			this.conf = conf;
-			//this.schema = FieldsDescription.parse(conf);
+			String fieldsGroupStr = conf.get(CONF_PARTITIONER_FIELDS);
+			groupFields = fieldsGroupStr.split(",");
 		}
-		
-		String fieldsGroupStr = conf.get(CONF_PARTITIONER_FIELDS);
-		//TODO what to do here if null
-		groupFields = fieldsGroupStr.split(",");
-		
-//		} catch(GrouperException e){
-//			throw new RuntimeException(e);
-//		}
 	}
 }

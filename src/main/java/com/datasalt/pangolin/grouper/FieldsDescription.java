@@ -36,9 +36,6 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 public class FieldsDescription {
 	public static final String CONF_SCHEMA = "datasalt.grouper.schema";
 	
-	
-	
-	
 	public static class Field {
 		private String name;
 		private Class<?> type;
@@ -208,4 +205,11 @@ public class FieldsDescription {
 		conf.set(CONF_SCHEMA,schema.serialize());
 	}
 	
+	@Override
+	public boolean equals(Object o){
+		if (o instanceof FieldsDescription ){
+			return toString().equals(o.toString());
+		}
+		return false;
+	}
 }

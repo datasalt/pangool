@@ -39,8 +39,8 @@ import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
-import com.datasalt.pangolin.grouper.io.tuple.TupleGroupComparator;
-import com.datasalt.pangolin.grouper.io.tuple.TuplePartitioner;
+import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
+import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
 import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
@@ -82,8 +82,8 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		@Override
 		public void setup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
 			Configuration conf = context.getConfiguration();	
-			String minGroup = conf.get(TuplePartitioner.CONF_PARTITIONER_FIELDS);
-			String maxGroup = conf.get(TupleGroupComparator.CONF_GROUP_COMPARATOR_FIELDS);
+			String minGroup = conf.get(Partitioner.CONF_PARTITIONER_FIELDS);
+			String maxGroup = conf.get(GroupComparator.CONF_GROUP_COMPARATOR_FIELDS);
 			minDepth = minGroup.split(",").length - 1;
 			maxDepth = maxGroup.split(",").length - 1;
 			this.context = context;
