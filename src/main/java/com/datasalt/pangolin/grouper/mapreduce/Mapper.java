@@ -39,17 +39,19 @@ public class Mapper<INPUT_KEY,INPUT_VALUE> extends org.apache.hadoop.mapreduce.M
 	private MapperHandler<INPUT_KEY,INPUT_VALUE> handler;
 	private FieldsDescription schema;
 	
+	
+	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
 	public void setup(Context context) throws IOException,InterruptedException {
 		try {
 			Configuration conf = context.getConfiguration();
-			Class<? extends MapperHandler> handlerClass = conf.getClass(Grouper.CONF_INPUT_HANDLER, null, MapperHandler.class);
+			Class<? extends MapperHandler> handlerClass = Grouper.getMapperHandler(conf);
 			this.handler = ReflectionUtils.newInstance(handlerClass, conf);
-
 			this.schema = FieldsDescription.parse(conf);
-			//Tuple outputTuple = TupleFactory.createTuple(schema);
+			
 			handler.setup(schema,context);
+			
 		} catch(GrouperException e) {
 			throw new RuntimeException(e);
 		}
@@ -59,6 +61,7 @@ public class Mapper<INPUT_KEY,INPUT_VALUE> extends org.apache.hadoop.mapreduce.M
 	@Override
 	public void cleanup(Context context) throws IOException,InterruptedException {
 		handler.cleanup(schema,context);
+		
 	}
 	
 	

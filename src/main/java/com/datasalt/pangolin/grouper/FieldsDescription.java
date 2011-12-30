@@ -34,7 +34,7 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple;
  *
  */
 public class FieldsDescription {
-	public static final String CONF_SCHEMA = "datasalt.grouper.schema";
+	private static final String CONF_SCHEMA = "datasalt.grouper.schema";
 	
 	public static class Field {
 		private String name;

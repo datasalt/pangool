@@ -24,15 +24,13 @@ import com.datasalt.pangolin.grouper.FieldsDescription;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 
 /**
- * 
+ * TODO doc
  * @author eric
  *
  * 
  */
 public abstract class MapperHandler<INPUT_KEY,INPUT_VALUE> {
-	
-
-	private NullWritable outputValue = NullWritable.get();
+	private NullWritable nullValue = NullWritable.get();
 	
 	
 	public void setup(FieldsDescription schema,Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>.Context context) throws IOException,InterruptedException {
@@ -48,7 +46,7 @@ public abstract class MapperHandler<INPUT_KEY,INPUT_VALUE> {
 	}
 	
 	protected void emit(Tuple tuple,Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>.Context context) throws IOException, InterruptedException{
-		context.write(tuple, outputValue);
+		context.write(tuple, nullValue);
 	}
 	
 }

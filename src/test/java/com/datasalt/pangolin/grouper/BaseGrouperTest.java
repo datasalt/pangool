@@ -8,7 +8,7 @@ import com.datasalt.pangolin.commons.test.AbstractBaseTest;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.thrift.test.A;
 
-public class BaseGrouperTest extends AbstractBaseTest{
+public abstract class BaseGrouperTest extends AbstractBaseTest{
 
 	public static FieldsDescription SCHEMA;
 

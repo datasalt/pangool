@@ -28,7 +28,7 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
  */
 public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<ITuple,NullWritable> implements Configurable{
 
-	public static final String CONF_PARTITIONER_FIELDS ="datasalt.grouper.partitioner_fields";
+	private static final String CONF_PARTITIONER_FIELDS ="datasalt.grouper.partitioner_fields";
 	
 	private Configuration conf;
 	private String[] groupFields;
@@ -56,4 +56,14 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<ITuple,
 			groupFields = fieldsGroupStr.split(",");
 		}
 	}
+	
+	public static void setPartitionerFields(Configuration conf,String[] fields){
+		conf.setStrings(CONF_PARTITIONER_FIELDS, fields);
+	}
+	
+	public static String[] getPartitionerFields(Configuration conf){
+		return conf.getStrings(CONF_PARTITIONER_FIELDS);
+	}
+	
+	
 }

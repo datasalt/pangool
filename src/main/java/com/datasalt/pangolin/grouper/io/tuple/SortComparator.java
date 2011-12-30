@@ -245,7 +245,16 @@ public class SortComparator extends WritableComparator implements Configurable {
 					}
 					offset1 += Float.SIZE / 8;
 					offset2 += Float.SIZE / 8;
-
+				} else if(type == Double.class) {
+					double value1 = readDouble(b1, offset1);
+					double value2 = readDouble(b2, offset2);
+					if(value1 > value2) {
+						return (sort == SortOrder.ASCENDING) ? 1 : -1;
+					} else if(value1 < value2) {
+						return (sort == SortOrder.ASCENDING) ? -1 : 1;
+					}
+					offset1 += Double.SIZE / 8;
+					offset2 += Double.SIZE / 8;
 				} else if(type == Boolean.class) {
 					byte value1 = b1[offset1++];
 					byte value2 = b2[offset2++];

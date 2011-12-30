@@ -36,7 +36,7 @@ import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
  * @author eric
  *
  */
-public abstract class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
+public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
 	private FieldsDescription schema;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
@@ -44,6 +44,7 @@ public abstract class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITu
 
   @SuppressWarnings({"unchecked","rawtypes"})
   public void setup(Context context) throws IOException,InterruptedException {
+  	//System.out.println("SimpleReducer setup");
 		super.setup(context);
 		try {
 			Configuration conf = context.getConfiguration();
@@ -56,8 +57,10 @@ public abstract class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITu
   	this.grouperIterator.setContext(context);
   	
   	Configuration conf = context.getConfiguration();
-    Class<? extends ReducerHandler> handlerClass = conf.getClass(Grouper.CONF_REDUCER_HANDLER,null,ReducerHandler.class); 
+    Class<? extends ReducerHandler> handlerClass = Grouper.getReducerHandler(conf);
+    
 		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
+		
 		handler.setup(schema,context);
   	
   }

@@ -25,10 +25,10 @@ import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.mapreduce.Mapper;
 import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
@@ -48,10 +48,10 @@ import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 @SuppressWarnings("rawtypes")
 public class Grouper {
 
-	public final static String CONF_INPUT_HANDLER = "datasalt.grouper.input_handler";
-	public final static String CONF_REDUCER_HANDLER = "datasalt.grouper.output_handler";
-	public final static String CONF_COMBINER_HANDLER = "datasalt.grouper.combiner_handler";
-	
+	public final static String CONF_MAPPER_HANDLER = "datasalt.grouper.mapper_handler";
+	private final static String CONF_REDUCER_HANDLER = "datasalt.grouper.reducer_handler";
+	private final static String CONF_COMBINER_HANDLER = "datasalt.grouper.combiner_handler";
+
 	private Configuration conf;
 	private FieldsDescription schema;
 	
@@ -64,7 +64,8 @@ public class Grouper {
 	private Class<?> outputKeyClass,outputValueClass;
 	private SortCriteria sortCriteria;
 	private String [] customPartitionerFields;
-	private String [] rollupBaseGroupFields,groupFields;
+	private String [] rollupBaseGroupFields;
+	private String[] groupFields;
 	
 	
 	public Grouper(@Nonnull Configuration conf) throws IOException{
@@ -126,44 +127,44 @@ public class Grouper {
 	}
 	
 	
-	private static String concat(String[] array,String separator){
-		StringBuilder b = new StringBuilder();
-		b.append(array[0]);
-		for (int i=1 ; i < array.length ; i++){
-			b.append(separator).append(array[i]);
-		}
-		
-		return b.toString();
-	}
+//	private static String concat(String[] array,String separator){
+//		StringBuilder b = new StringBuilder();
+//		b.append(array[0]);
+//		for (int i=1 ; i < array.length ; i++){
+//			b.append(separator).append(array[i]);
+//		}
+//		
+//		return b.toString();
+//	}
 	
 	public Job createJob() throws IOException{
 		Job job = new Job(conf);
-		job.getConfiguration().set(FieldsDescription.CONF_SCHEMA,schema.serialize());
-		job.getConfiguration().set(GroupComparator.CONF_GROUP_COMPARATOR_FIELDS,concat(groupFields,","));
-		job.getConfiguration().set(SortCriteria.CONF_SORT_CRITERIA,sortCriteria.toString());
+		FieldsDescription.setInConfig(schema, job.getConfiguration());
+		GroupComparator.setGroupComparatorFields(job.getConfiguration(),groupFields);
+		SortCriteria.setInConfig(sortCriteria, job.getConfiguration());
 		
 		job.setInputFormatClass(inputFormat);
 		job.setMapperClass(Mapper.class);
-		job.getConfiguration().setClass(CONF_INPUT_HANDLER,mapperHandler,MapperHandler.class);
+		Grouper.setMapperHandler(job.getConfiguration(), mapperHandler);
 		
 		if (rollupBaseGroupFields != null){
 			//grouper with rollup
-			String p = (customPartitionerFields != null) ? concat(customPartitionerFields,",") :  concat(rollupBaseGroupFields,",");
-			job.getConfiguration().set(Partitioner.CONF_PARTITIONER_FIELDS,p);
+			String[] partitionerFields = (customPartitionerFields != null) ? customPartitionerFields :  rollupBaseGroupFields;
+			Partitioner.setPartitionerFields(job.getConfiguration(), partitionerFields);
 			job.setReducerClass(RollupReducer.class);
 		} else {
 			// simple grouper
-			String p = (customPartitionerFields != null) ? concat(customPartitionerFields,",") :  concat(groupFields,",");
-			job.getConfiguration().set(Partitioner.CONF_PARTITIONER_FIELDS,p);
+			String[] partitionerFields = (customPartitionerFields != null) ? customPartitionerFields :  groupFields;
+			Partitioner.setPartitionerFields(job.getConfiguration(), partitionerFields);
 			job.setReducerClass(SimpleReducer.class);
 		}
 		
 		if (combinerHandler != null){
+			//TODO this needs to be discussed
 			job.setCombinerClass((rollupBaseGroupFields == null) ? SimpleCombiner.class : RollupCombiner.class);
-			job.getConfiguration().setClass(CONF_COMBINER_HANDLER,combinerHandler,ReducerHandler.class);
+			Grouper.setReducerHandler(job.getConfiguration(), combinerHandler);
 		}
-		
-		job.getConfiguration().setClass(CONF_REDUCER_HANDLER,reducerHandler,ReducerHandler.class);
+		Grouper.setReducerHandler(job.getConfiguration(), reducerHandler);
 		job.setInputFormatClass(inputFormat);
 		job.setJarByClass((jarByClass!=null) ? jarByClass : reducerHandler);
 		job.setOutputFormatClass(outputFormat);
@@ -175,5 +176,34 @@ public class Grouper {
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		return job;
+	}
+	
+	
+	public static void setCombinerHandler(Configuration conf, Class<? extends ReducerHandler> handler) {
+		conf.setClass(CONF_COMBINER_HANDLER,handler,ReducerHandler.class);
+	}
+
+	public static Class<? extends ReducerHandler> getCombinerHandler(Configuration conf) {
+		return (Class<? extends ReducerHandler>)conf.getClass(CONF_COMBINER_HANDLER,null);
+	}
+	
+	
+	public static void setReducerHandler(Configuration conf,Class<? extends ReducerHandler> handler){
+		conf.setClass(CONF_REDUCER_HANDLER,handler, ReducerHandler.class);
+	}
+	
+	public static Class<? extends ReducerHandler> getReducerHandler(Configuration conf){
+		return (Class<? extends ReducerHandler>)conf.getClass(CONF_REDUCER_HANDLER,null);
+	}
+	
+	
+	public static void setMapperHandler(Configuration conf,Class<? extends MapperHandler> handler){
+		conf.setClass(CONF_MAPPER_HANDLER, handler,MapperHandler.class);
+	}
+	
+	public static Class<? extends MapperHandler> getMapperHandler(Configuration conf){
+//		String debug = conf.get(CONF_MAPPER_HANDLER);
+//		System.out.println(debug);
+		return (Class<? extends MapperHandler>)conf.getClass(CONF_MAPPER_HANDLER,null);
 	}
 }

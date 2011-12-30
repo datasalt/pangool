@@ -26,7 +26,7 @@ import org.apache.hadoop.conf.Configuration;
 public class GroupComparator extends SortComparator{
 
 	private int numFieldsCompared;
-	public static final String CONF_GROUP_COMPARATOR_FIELDS = "datasalt.pangolin.grouper.group_comparator.fields";
+	private static final String CONF_GROUP_COMPARATOR_FIELDS = "datasalt.pangolin.grouper.group_comparator.fields";
 	
 	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
@@ -36,7 +36,17 @@ public class GroupComparator extends SortComparator{
 	@Override
   public void setConf(Configuration conf) {
 	  super.setConf(conf);
-	  String s = conf.get(CONF_GROUP_COMPARATOR_FIELDS); //TODO this should change
-	  numFieldsCompared = s.split(",").length;
+	  String[] fieldsToCompare = conf.getStrings(CONF_GROUP_COMPARATOR_FIELDS);
+	  numFieldsCompared = fieldsToCompare.length;
   }
+	
+	public static void setGroupComparatorFields(Configuration conf,String[] fields){
+		conf.setStrings(CONF_GROUP_COMPARATOR_FIELDS, fields);
+	}
+	
+	public static String[] getGroupComparatorFields(Configuration conf){
+		return conf.getStrings(CONF_GROUP_COMPARATOR_FIELDS);
+	}
+	
+	
 }

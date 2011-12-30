@@ -41,7 +41,7 @@ import org.apache.hadoop.io.RawComparator;
  */
 public class SortCriteria  {
 	
-	public static final String CONF_SORT_CRITERIA = "datasalt.grouper.sort.criteria";
+	private static final String CONF_SORT_CRITERIA = "datasalt.grouper.sort.criteria";
 	
 	private SortCriteria(){
 		

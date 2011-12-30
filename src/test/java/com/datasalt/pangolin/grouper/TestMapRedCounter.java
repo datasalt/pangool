@@ -51,7 +51,6 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 	private static class Mapy extends MapperHandler<Text,NullWritable>{
 		
 		private FieldsDescription schema;
-		//private Tuple outputTuple;
 		
 		@SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
@@ -82,10 +81,11 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		@Override
 		public void setup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
 			Configuration conf = context.getConfiguration();	
-			String minGroup = conf.get(Partitioner.CONF_PARTITIONER_FIELDS);
-			String maxGroup = conf.get(GroupComparator.CONF_GROUP_COMPARATOR_FIELDS);
-			minDepth = minGroup.split(",").length - 1;
-			maxDepth = maxGroup.split(",").length - 1;
+			
+			String[] baseGroup = Partitioner.getPartitionerFields(conf);
+			String[] maxGroup = GroupComparator.getGroupComparatorFields(conf);
+			minDepth = baseGroup.length - 1;
+			maxDepth = maxGroup.length - 1;
 			this.context = context;
 			count = new int[maxDepth + 1];
 			distinctCount = new int[maxDepth + 1];
@@ -219,7 +219,5 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		Assert.assertEquals(new Text(expectedKey),actualKey);
 		Assert.assertEquals(new Text(expectedValue.toString()),actualValue);
 	}
-	
-	
 }
 

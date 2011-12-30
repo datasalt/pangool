@@ -61,9 +61,10 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
   	try{
     Configuration conf = context.getConfiguration();
   	this.schema = FieldsDescription.parse(conf);
-  	this.maxDepth = conf.get(GroupComparator.CONF_GROUP_COMPARATOR_FIELDS).split(",").length -1;
-  	String confPartitioner = conf.get(Partitioner.CONF_PARTITIONER_FIELDS);
-  	this.minDepth = confPartitioner.split(",").length -1;
+  	String[] groupFields = GroupComparator.getGroupComparatorFields(conf);
+  	this.maxDepth = groupFields.length -1;
+  	String[] partitionerFields = Partitioner.getPartitionerFields(conf);
+  	this.minDepth = partitionerFields.length -1;
   	} catch(GrouperException e){
   		throw new RuntimeException(e);
   	}
@@ -72,7 +73,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
   	this.grouperIterator.setContext(context);
   	
   	Configuration conf = context.getConfiguration();
-		Class<? extends ReducerHandler> handlerClass = conf.getClass(Grouper.CONF_REDUCER_HANDLER,null,ReducerHandler.class); 
+		Class<? extends ReducerHandler> handlerClass = Grouper.getReducerHandler(conf);
 		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
 		handler.setup(schema,context);
   	

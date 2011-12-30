@@ -38,7 +38,7 @@ import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
 import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
 
-public class TestGrouper extends AbstractHadoopTestLibrary{
+public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 
 	private static class Mapy extends MapperHandler<Text,NullWritable>{
 		
@@ -74,6 +74,11 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 	private static class Red extends ReducerHandler<ITuple,NullWritable>{
 
 		@Override
+		public void setup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
+			System.out.println("REd setup");
+		}
+		
+		@Override
     public void onOpenGroup(int depth, String field, ITuple firstElement,Reducer.Context context) throws IOException, InterruptedException {
 	    
     }
@@ -107,7 +112,7 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 		withInput("input",new Text("XE 20 listo 230"));
 		
 		Grouper grouper = new Grouper(getConf());
-		grouper.setJarByClass(TestGrouper.class);
+		grouper.setJarByClass(TestSimpleGrouper.class);
 		FieldsDescription schema = FieldsDescription.parse("country:string, age:vint, name:string, height:long");
 		grouper.setSchema(schema);
 		grouper.setInputFormat(SequenceFileInputFormat.class);
@@ -118,15 +123,19 @@ public class TestGrouper extends AbstractHadoopTestLibrary{
 		SortCriteria sortCriteria = SortCriteria.parse("country DESC,age ASC,name asc,height desc");
 		grouper.setSortCriteria(sortCriteria);
 		grouper.setGroupFields("country","age");
+		//grouper.setRollupBaseGroupFields("country");
 		
-		grouper.setOutputKeyClass(ITuple.class);
+		grouper.setOutputKeyClass(Tuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
 		
 		
 		Job job = grouper.createJob();
+		System.out.println(job.getReducerClass());
 		FileInputFormat.setInputPaths(job,new Path("input"));
 		FileOutputFormat.setOutputPath(job, new Path("output"));
 		
 		assertRun(job);
+		
+		//TODO check output
 	}
 }

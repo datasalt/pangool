@@ -16,8 +16,6 @@
 
 package com.datasalt.pangolin.grouper.io.tuple;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -40,6 +38,7 @@ import com.datasalt.pangolin.grouper.FieldsDescription.Field;
 import com.datasalt.pangolin.grouper.FieldsDescriptionBuilder;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria;
+import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.SortCriteriaBuilder;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
@@ -165,32 +164,55 @@ public class TestTupleComparator extends BaseGrouperTest{
     }
 	}
 	
+	private String[] getFirstFields(SortCriteria sortCriteria,int numFields){
+		String[] result = new String[numFields];
+		for (int i=0 ; i < numFields ; i++){
+			SortElement element = sortCriteria.getSortElements()[i];
+			result[i] = element.getFieldName();
+		}
+		return result;
+	}
+	
 	@Test
 	public void test() throws GrouperException, IOException{
 		Configuration conf=getConf();
 		
 		
 		int maxIndex =SCHEMA.getFields().length-1; 
-		int MAX_RANDOMS_PER_INDEX = 100;
+		int MAX_RANDOMS_PER_INDEX = 10;
 		for (int minIndex= maxIndex ; minIndex>=0 ; minIndex--){
 			SortCriteria sortCriteria = createRandomSortCriteria(SCHEMA,maxIndex+1);
 			SortCriteria.setInConfig(sortCriteria, conf);
-			SortComparator comp = new SortComparator();
-			comp.setConf(conf);
+			SortComparator sortComparator = new SortComparator();
+			GroupComparator groupComparator = new GroupComparator();
+			
+			sortComparator.setConf(conf);
+			
 			System.out.println("Min index : " + minIndex +  " CRITERIA:" + sortCriteria);
 			for (int i= 0 ; i < MAX_RANDOMS_PER_INDEX; i++){
-				ITuple tuple1 = new BaseTuple(getConf());
-				fillWithRandom(tuple1, minIndex, maxIndex);
-				ITuple tuple2 = new BaseTuple(getConf());
-				fillWithRandom(tuple2, minIndex, maxIndex);
-				assertSameComparison(comp, tuple1,tuple2);
-				assertOppositeOrEqualsComparison(comp.compare(tuple1,tuple2),comp.compare(tuple2,tuple1));
-				assertOppositeOrEqualsComparison(compareInBinary(comp,tuple1,tuple2),compareInBinary(comp,tuple2,tuple1));
-			}
+				
+				ITuple base1 = new BaseTuple(getConf());
+				ITuple base2 = new BaseTuple(getConf());
+				ITuple doubleBuffered1 = new Tuple(getConf()); //double buffered
+				ITuple doubleBuffered2 = new Tuple(getConf()); //double buffered
+				
+				ITuple[] tuples = new ITuple[]{base1,base2,doubleBuffered1,doubleBuffered2};
+				for (ITuple tuple : tuples){
+					fillWithRandom(tuple, minIndex, maxIndex);
+				}
+				for (int indexTuple1 = 0 ; indexTuple1 < tuples.length; indexTuple1++){
+					for (int indexTuple2 = indexTuple1 ; indexTuple2 < tuples.length ; indexTuple2++){
+						ITuple tuple1 = tuples[indexTuple1];
+						ITuple tuple2 = tuples[indexTuple2];
+						assertSameComparison(sortComparator, tuple1,tuple2);
+						assertOppositeOrEqualsComparison(sortComparator,tuple1,tuple2);
+					}
+				}
+			} //do you like bracket dance ?
 		}
 	}
 	
-	private int compareInBinary(RawComparator<?> comp,ITuple tuple1,ITuple tuple2) throws IOException{
+	private int compareInBinary(SortComparator comp,ITuple tuple1,ITuple tuple2) throws IOException{
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		tuple1.write(buffer1);
 		DataOutputBuffer buffer2 = new DataOutputBuffer();
@@ -206,14 +228,29 @@ public class TestTupleComparator extends BaseGrouperTest{
 				compObjects >= 0 && compBinary <0 ||
 				compObjects <=0 && compBinary > 0 ||
 				compObjects <0 && compBinary >= 0){
-			Assert.fail("Not same comparison : Comp objects:'" + compObjects + "' Comp binary:'" + compBinary + "' for tuples:" +
-					"\nTUPLE1:" + tuple1 + "\nTUPLE2:" +tuple2 +  "\nCRITERIA:" + comparator.getSortCriteria());
+			String error = "Not same comparison : Comp objects:'" + compObjects + "' Comp binary:'" + compBinary + "' for tuples:" +
+					"\nTUPLE1:" + tuple1 + "\nTUPLE2:" +tuple2 +  "\nCRITERIA:" + comparator.getSortCriteria();
+			//debug purposes
+			System.out.println(error);
+			//comparator.compare(tuple1,tuple2);
+			//compareInBinary(comparator,tuple1,tuple2);
+			Assert.fail(error);
 		}
 	}
 	
-	private void assertOppositeOrEqualsComparison(int comp1, int comp2){
+	private void assertOppositeOrEqualsComparison(SortComparator comp,ITuple tuple1,ITuple tuple2) throws IOException{
+		int comp1 = comp.compare(tuple1,tuple2);
+		int comp2 = comp.compare(tuple2,tuple1);
 		if (comp1 > 0 && comp2 >0 || comp1 <0 && comp2 < 0){
-			Assert.fail("Same comparison : " + comp1 + " , " + comp2 + ".It should be opposite");
+			Assert.fail("Same comparison in OBJECTS: " + comp1 + " , " + comp2 + ".It should be opposite" +"' for tuples:" +
+					"\nTUPLE1:" + tuple1 + "\nTUPLE2:" +tuple2 +  "\nCRITERIA:" + comp.getSortCriteria());
+		}
+		
+		comp1 = compareInBinary(comp,tuple1,tuple2);
+		comp2 = compareInBinary(comp,tuple2,tuple1);
+		if (comp1 > 0 && comp2 >0 || comp1 <0 && comp2 < 0){
+			Assert.fail("Same comparison in BINARY: " + comp1 + " , " + comp2 + ".It should be opposite" +"' for tuples:" +
+					"\nTUPLE1:" + tuple1 + "\nTUPLE2:" +tuple2 +  "\nCRITERIA:" + comp.getSortCriteria());
 		}
 	}
 	
