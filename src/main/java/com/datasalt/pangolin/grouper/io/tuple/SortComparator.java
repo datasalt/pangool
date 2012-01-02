@@ -302,11 +302,8 @@ public class SortComparator extends WritableComparator implements Configurable {
 			if(conf != null) {
 				this.conf = conf;
 				setSchema(FieldsDescription.parse(conf));
-				try {
-					setSortCriteria(SortCriteria.parse(conf));
-				} catch(GrouperException e) {
-					throw new RuntimeException(e);
-				}
+				setSortCriteria(SortCriteria.parse(conf));
+				
 			}
 		} catch(GrouperException e) {
 			throw new RuntimeException(e);

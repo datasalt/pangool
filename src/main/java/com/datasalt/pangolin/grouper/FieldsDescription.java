@@ -106,7 +106,12 @@ public class FieldsDescription {
 	}
 	
 	public static String classToStr(Class<?> clazz) {
-		return clazzToStr.get(clazz);
+		String clazzStr =clazzToStr.get(clazz); 
+		if (clazzStr == null){
+			return clazz.getName().toString();
+		} else {
+			return clazzStr;
+		}
 	}
 	
 	

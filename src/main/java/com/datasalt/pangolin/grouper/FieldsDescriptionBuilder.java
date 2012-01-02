@@ -29,6 +29,11 @@ public class FieldsDescriptionBuilder {
 		if (fieldAlreadyExists(fieldName)){
 			throw new InvalidFieldException("Field '" + fieldName + "' already exists");
 		}
+		
+		if (type == null){
+			throw new InvalidFieldException("Type for field '" + fieldName + "' can't be null");
+		}
+		
 		fields.add(new Field(fieldName, type));
 	}
 	
