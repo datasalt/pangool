@@ -375,7 +375,7 @@ public class BaseTuple implements ITuple {
 				text.write(output);
 			}	else if (fieldType == Boolean.class) {
 				throwIOIfNull(field);
-				output.writeBoolean((Boolean)element);
+				output.write( ((Boolean)element) ? 1 : 0);
 			} else if (fieldType.isEnum()){
 				throwIOIfNull(field);
 				Enum<?> e = (Enum<?>)element;
@@ -418,7 +418,8 @@ public class BaseTuple implements ITuple {
 				text.readFields(input);
 				tupleElements.put(name, text.toString());
 			} else if (fieldType == Boolean.class) {
-				tupleElements.put(name, input.readBoolean());
+				byte b = input.readByte();
+				tupleElements.put(name, (b != 0));
 			} else if (fieldType.isEnum()){
 				int ordinal = WritableUtils.readVInt(input);
 				try{

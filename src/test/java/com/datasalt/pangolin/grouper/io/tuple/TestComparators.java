@@ -48,20 +48,29 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.thrift.test.A;
 
+/**
+ * This tests either {@link SortComparator} or {@link GroupComparator}.It checks
+ * that the binary comparison is coherent with the objects comparison.It also checks
+ * that the custom comparators are correctly used.
+ * 
+ * @author eric
+ *
+ */
 public class TestComparators extends BaseGrouperTest {
 
+	int MAX_RANDOM_SCHEMAS = 200;
+	int MAX_RANDOMS_PER_INDEX = 20;
+	
 	@Test
 	public void test() throws GrouperException, IOException {
 		Random random = new Random();
 		Configuration conf = getConf();
 
 		int maxIndex = SCHEMA.getFields().length - 1;
-		int MAX_RANDOMS_PER_INDEX = 10;
-		int MAX_RANDOM_SCHEMA = 100;
+
 		Map<String, Class> customComparators = new HashMap<String, Class>();
 		customComparators.put("thrift_field", AComparator.class);
-		for (int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMA; randomSchema++) {
-			// FieldsDescription schema = permuteSchema(SCHEMA);
+		for (int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
 			FieldsDescription schema = permuteSchema(SCHEMA);
 			System.out.println("Schema : " + schema);
 			for (int minIndex = maxIndex; minIndex >= 0; minIndex--) {
@@ -77,9 +86,6 @@ public class TestComparators extends BaseGrouperTest {
 
 				sortComparator.setConf(conf);
 				groupComparator.setConf(conf);
-
-				System.out.println("Min index : " + minIndex + " CRITERIA:"
-						+ sortCriteria);
 				for (int i = 0; i < MAX_RANDOMS_PER_INDEX; i++) {
 
 					ITuple base1 = new BaseTuple(getConf());
@@ -128,6 +134,12 @@ public class TestComparators extends BaseGrouperTest {
 		return b.toString();
 	}
 
+	
+	/**
+	 * 
+	 * Checks that the binary comparison matches the comparison by objects.
+	 * 
+	 */
 	private void assertSameComparison(String alias, SortComparator comparator,
 			ITuple tuple1, ITuple tuple2) throws IOException {
 
@@ -152,6 +164,10 @@ public class TestComparators extends BaseGrouperTest {
 		}
 	}
 
+	
+	/**
+	 * Checks that comp(tuple1,tuple2) is -comp(tuple2,tuple1)
+	 */
 	private void assertOppositeOrEqualsComparison(SortComparator comp,
 			ITuple tuple1, ITuple tuple2) throws IOException {
 		int comp1 = comp.compare(tuple1, tuple2);
@@ -171,6 +187,11 @@ public class TestComparators extends BaseGrouperTest {
 		}
 	}
 
+	/**
+	 * Custom comparator
+	 * @author epalace
+	 *
+	 */
 	private static class AComparator implements
 			RawComparator<com.datasalt.pangolin.thrift.test.A>, Configurable {
 
@@ -223,6 +244,11 @@ public class TestComparators extends BaseGrouperTest {
 		}
 	}
 
+	/**
+	 * Fills the fields specified by the range (minIndex,maxIndex) with random
+	 * data.
+	 * 
+	 */
 	private void fillWithRandom(ITuple tuple, int minIndex, int maxIndex) {
 		try {
 			Random random = new Random();
@@ -266,6 +292,9 @@ public class TestComparators extends BaseGrouperTest {
 		}
 	}
 
+	/**
+	 * Creates a copy of the schema with the fields shuffled.
+	 */
 	private static FieldsDescription permuteSchema(FieldsDescription schema) {
 		Field[] fields = schema.getFields();
 		List<Field> permutedFields = Arrays.asList(fields);
@@ -281,6 +310,11 @@ public class TestComparators extends BaseGrouperTest {
 		return builder.createFieldsDescription();
 	}
 
+	
+	/**
+	 * 
+	 * Creates a random sort criteria based in the specified schema.
+	 */
 	private static SortCriteria createRandomSortCriteria(
 			FieldsDescription schema, Map<String, Class> customComparators,
 			int numFields) {
@@ -300,6 +334,8 @@ public class TestComparators extends BaseGrouperTest {
 		}
 	}
 
+	
+	
 	private String[] getFirstFields(SortCriteria sortCriteria, int numFields) {
 		String[] result = new String[numFields];
 		for (int i = 0; i < numFields; i++) {

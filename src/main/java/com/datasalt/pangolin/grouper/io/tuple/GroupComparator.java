@@ -17,6 +17,7 @@
 package com.datasalt.pangolin.grouper.io.tuple;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.WritableComparable;
 
 /**
  * 
@@ -29,6 +30,17 @@ public class GroupComparator extends SortComparator{
 	private static final String CONF_GROUP_COMPARATOR_FIELDS = "datasalt.pangolin.grouper.group_comparator.fields";
 	
 	@Override
+	public int compare(Object w1,Object w2) {
+		return compare((WritableComparable)w1,(WritableComparable)w2);
+	}
+	
+	@Override
+	public int compare(WritableComparable w1,WritableComparable w2) {
+		return compare(numFieldsCompared,w1,w2);
+	}
+	
+	
+	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		return compare(numFieldsCompared,b1,s1,l1,b2,s2,l2);
 	}
@@ -36,8 +48,8 @@ public class GroupComparator extends SortComparator{
 	@Override
   public void setConf(Configuration conf) {
 	  super.setConf(conf);
-	  String[] fieldsToCompare = conf.getStrings(CONF_GROUP_COMPARATOR_FIELDS);
-	  numFieldsCompared = fieldsToCompare.length;
+	  String[] fieldsToCompare = getGroupComparatorFields(conf);
+	  numFieldsCompared = (fieldsToCompare == null) ? 0 : fieldsToCompare.length;
   }
 	
 	public static void setGroupComparatorFields(Configuration conf,String[] fields){

@@ -17,7 +17,6 @@ package com.datasalt.pangolin.grouper.mapreduce.handler;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
@@ -27,7 +26,7 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 
 public abstract class ReducerHandler<OUTPUT_KEY,OUTPUT_VALUE> {
 	
-	private Reducer<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE>.Context context;
+	//private Reducer<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE>.Context context;
 	
 	public void setup(FieldsDescription schema,Reducer<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE>.Context context) throws IOException,InterruptedException {
 		
@@ -37,12 +36,15 @@ public abstract class ReducerHandler<OUTPUT_KEY,OUTPUT_VALUE> {
 		
 	}
 	
+	@SuppressWarnings("unchecked")
 	public abstract void onOpenGroup(int depth,String field,ITuple firstElement,Context context) throws IOException,InterruptedException;
 	
 	
+	@SuppressWarnings("unchecked")
 	public abstract void onCloseGroup(int depth,String field,ITuple lastElement,Context context) throws IOException,InterruptedException;
 	
 	
+	@SuppressWarnings("unchecked")
 	public abstract void onGroupElements(Iterable<ITuple> tuples,Context context) throws IOException,InterruptedException;
 	
 	

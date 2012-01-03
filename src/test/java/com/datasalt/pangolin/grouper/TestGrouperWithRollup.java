@@ -51,8 +51,9 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 
 		private FieldsDescription schema;
 		
-		@SuppressWarnings("rawtypes")
-    @Override
+		
+    @SuppressWarnings("unchecked")
+		@Override
 		public void setup(FieldsDescription schema,Mapper.Context context) throws IOException,InterruptedException {
 			this.schema = schema;
 			
@@ -60,6 +61,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		}
 		
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void map(Text key,NullWritable value,Mapper.Context context) throws IOException,InterruptedException{
 			try {
@@ -77,16 +79,19 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		private Text outputKey = new Text();
 		private Text outputValue = new Text();
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void setup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
 			//this.context = context;
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void cleanup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
 			
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
     public void onOpenGroup(int depth,String field,ITuple firstElement,Reducer.Context context) throws IOException, InterruptedException {
 			outputKey.set("OPEN "+ depth);
@@ -95,6 +100,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	    System.out.println(outputKey +" => " + outputValue);
     }
 
+		@SuppressWarnings("unchecked")
 		@Override
     public void onCloseGroup(int depth,String field,ITuple lastElement,Reducer.Context context) throws IOException, InterruptedException {
 			outputKey.set("CLOSE "+ depth);
@@ -103,6 +109,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	    System.out.println(outputKey +" => " + outputValue);
     }
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void onGroupElements(Iterable<ITuple> tuples,Reducer.Context context) throws IOException,InterruptedException {
 			Iterator<ITuple> iterator = tuples.iterator();

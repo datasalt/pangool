@@ -52,7 +52,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		
 		private FieldsDescription schema;
 		
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings({ "unchecked" })
     @Override
 		public void setup(FieldsDescription schema,Mapper.Context context) throws IOException,InterruptedException {
 			this.schema = schema;
@@ -60,6 +60,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		}
 		
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void map(Text key,NullWritable value,Mapper.Context context) throws IOException,InterruptedException{
 			try {

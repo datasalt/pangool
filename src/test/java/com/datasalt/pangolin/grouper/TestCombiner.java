@@ -40,7 +40,7 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
 import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
-@SuppressWarnings({"unchecked","rawtypes"})
+@SuppressWarnings({"unchecked"})
 public class TestCombiner extends AbstractHadoopTestLibrary{
 
 	private static class Mapy extends MapperHandler<Text,NullWritable>{

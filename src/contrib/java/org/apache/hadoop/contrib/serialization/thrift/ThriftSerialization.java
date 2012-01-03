@@ -37,16 +37,19 @@ import org.apache.thrift.TBase;
 @SuppressWarnings("rawtypes")
 public class ThriftSerialization implements Serialization<TBase> {
 	
+	@SuppressWarnings("unchecked")
 	private Map<Class<TBase>,Deserializer<TBase>> deserCache = new HashMap<Class<TBase>,Deserializer<TBase>>();
 	//private Map<Class<TBase>,Serializer<TBase>> serCache = new HashMap<Class<TBase>,Serializer<TBase>>();
 	private Serializer<TBase> ser;
 	
-	
+	@Override
   public boolean accept(Class<?> c) {
     return TBase.class.isAssignableFrom(c);
   }
 
-  public Deserializer<TBase> getDeserializer(Class<TBase> c) {
+  @SuppressWarnings("unchecked")
+  @Override
+	public Deserializer<TBase> getDeserializer(Class<TBase> c) {
   	Deserializer<TBase> deser = deserCache.get(c);
   	if (deser == null){
   		deser = new ThriftDeserializer<TBase>(c);
@@ -55,7 +58,9 @@ public class ThriftSerialization implements Serialization<TBase> {
     return deser;
   }
 
-  public Serializer<TBase> getSerializer(Class<TBase> c) {
+  @SuppressWarnings("unchecked")
+  @Override
+	public Serializer<TBase> getSerializer(Class<TBase> c) {
   	if (ser == null){
      ser =  new ThriftSerializer();
   	}

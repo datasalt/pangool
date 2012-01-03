@@ -48,7 +48,7 @@ public class SortComparator extends WritableComparator implements Configurable {
 
 	private Configuration conf;
 	private FieldsDescription schema;
-	private SortCriteria sortCriteria;
+	protected SortCriteria sortCriteria;
 	@SuppressWarnings("rawtypes")
   private Map<Class,RawComparator> instancedComparators;
 
@@ -61,17 +61,26 @@ public class SortComparator extends WritableComparator implements Configurable {
 	}
 	
 	
+	/**
+	 * Never called in MapRed jobs. Just for completion and test purposes
+	 */
 	@Override
 	public int compare(Object w1,Object w2) {
 		return compare((WritableComparable)w1,(WritableComparable)w2);
 	}
 	
+	/**
+	 * Never called in MapRed jobs. Just for completion and test purposes
+	 */
 	@Override
 	public int compare(WritableComparable w1,WritableComparable w2) {
 		int fieldsCompared = sortCriteria.getSortElements().length;
 		return compare(fieldsCompared,w1,w2);
 	}
 	
+	/**
+	 * Never called in MapRed jobs. Just for completion and test purposes
+	 */
 	@SuppressWarnings("unchecked")
   public int compare(int maxFieldsCompared,Object w1,Object w2){
 		try {
@@ -258,18 +267,11 @@ public class SortComparator extends WritableComparator implements Configurable {
 				} else if(type == Boolean.class) {
 					byte value1 = b1[offset1++];
 					byte value2 = b2[offset2++];
-					Boolean boolean1 = (value1 == 0) ? false : true;
-					Boolean boolean2 = (value2 == 0) ? false : true;
-					int comparison = boolean1.compareTo(boolean2);
-					if (comparison != 0){
-						return (sort == SortOrder.ASCENDING) ? comparison : -comparison;
-					}
-					/*
-					if(value1 > value2) {
+					if (value1 > value2){
 						return (sort == SortOrder.ASCENDING) ? 1 : -1;
-					} else if(value1 < value2) {
-						return (sort == SortOrder.ASCENDING) ? -1 : 1;
-					}*/
+					} else if (value1 < value2){
+						return (sort == SortOrder.ASCENDING)? -1 : 1;
+					}
 				} else {
 					//String(Text) and the rest of types using compareBytes
 					int length1 = readVInt(b1, offset1);
