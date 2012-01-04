@@ -28,19 +28,19 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
-import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
-import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapreduce.Mapper;
 import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
@@ -184,9 +184,9 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		}
 		
 		Grouper grouper = new Grouper(getConf());
-		grouper.setInputFormat(SequenceFileInputFormat.class);
+		//grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		grouper.setMapper(Mapy.class);
+		//grouper.setMapper(Mapy.class);
 		grouper.setReducerHandler(IdentityRed.class);
 		
 		grouper.setSchema(schema);
@@ -204,7 +204,8 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		
 		Path inputPath = new Path("input");
 		Path outputPath = new Path("output");
-		FileInputFormat.setInputPaths(job,inputPath);
+		MultipleInputs.addInputPath(job, new Path("input"), SequenceFileInputFormat.class,Mapy.class);
+		//FileInputFormat.setInputPaths(job,inputPath);
 		FileOutputFormat.setOutputPath(job, outputPath);
 		
 		assertRun(job);

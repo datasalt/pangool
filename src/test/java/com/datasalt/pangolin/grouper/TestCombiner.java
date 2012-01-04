@@ -26,6 +26,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -149,9 +150,10 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		withInput("input",new Text("XE 20 listo 230"));
 		
 		Grouper grouper = new Grouper(getConf());
-		grouper.setInputFormat(SequenceFileInputFormat.class);
+		
+		//grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		grouper.setMapper(Mapy.class);
+		//grouper.setMapper(Mapy.class);
 		grouper.setReducerHandler(Red.class);
 		
 		grouper.setSchema(FieldsDescription.parse("country:string , age:vint , name:string,height:int"));
@@ -165,7 +167,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		
 		
 		Job job = grouper.createJob();
-		FileInputFormat.setInputPaths(job,new Path("input"));
+		MultipleInputs.addInputPath(job, new Path("input"), SequenceFileInputFormat.class,Mapy.class);
 		FileOutputFormat.setOutputPath(job, new Path("output"));
 		
 		assertRun(job);

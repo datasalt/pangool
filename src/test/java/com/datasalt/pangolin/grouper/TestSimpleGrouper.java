@@ -22,7 +22,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -114,8 +114,8 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		grouper.setJarByClass(TestSimpleGrouper.class);
 		FieldsDescription schema = FieldsDescription.parse("country:string, age:vint, name:string, height:long");
 		grouper.setSchema(schema);
-		grouper.setInputFormat(SequenceFileInputFormat.class);
-		grouper.setMapper(Mapy.class);
+		//grouper.setInputFormat(SequenceFileInputFormat.class);
+		//grouper.setMapper(Mapy.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
 		grouper.setReducerHandler(Red.class);
 		
@@ -130,7 +130,8 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		
 		Job job = grouper.createJob();
 		System.out.println(job.getReducerClass());
-		FileInputFormat.setInputPaths(job,new Path("input"));
+		MultipleInputs.addInputPath(job, new Path("input"), SequenceFileInputFormat.class,Mapy.class);
+		//FileInputFormat.setInputPaths(job,new Path("input"));
 		FileOutputFormat.setOutputPath(job, new Path("output"));
 		
 		assertRun(job);

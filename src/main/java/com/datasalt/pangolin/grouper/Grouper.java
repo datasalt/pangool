@@ -55,8 +55,8 @@ public class Grouper {
 	private FieldsDescription schema;
 	
   private Class<? extends ReducerHandler> reducerHandler;
-	private Class<? extends Mapper> mapper; //TODO change this to multiinput
-	private Class<? extends InputFormat> inputFormat;
+//	private Class<? extends Mapper> mapper; //TODO change this to multiinput
+//	private Class<? extends InputFormat> inputFormat;
 	private Class<? extends OutputFormat> outputFormat;
 	private Class<? extends ReducerHandler> combinerHandler;
 	private Class<?> jarByClass;
@@ -69,12 +69,13 @@ public class Grouper {
 	
 	public Grouper(@Nonnull Configuration conf) throws IOException{
 		this.conf = conf;
-		
-		
 	}
+	
+	
 	
 	public void setSortCriteria(SortCriteria sortCriteria){
 		this.sortCriteria = sortCriteria;
+		
 	}
 	
 	public void setJarByClass(Class<?> clazz){
@@ -106,13 +107,13 @@ public class Grouper {
 		this.combinerHandler = combinerClass;
 	}
 	
-	public void setMapper(Class<? extends Mapper> mapperClass){
-		this.mapper = mapperClass;
-	}
-	
-	public void setInputFormat(Class<? extends InputFormat> inputFormat){
-		this.inputFormat = inputFormat;
-	}
+//	public void setMapper(Class<? extends Mapper> mapperClass){
+//		this.mapper = mapperClass;
+//	}
+//	
+//	public void setInputFormat(Class<? extends InputFormat> inputFormat){
+//		this.inputFormat = inputFormat;
+//	}
 	
 	public void setOutputFormat(Class<? extends OutputFormat> outputFormat){
 		this.outputFormat = outputFormat;
@@ -143,8 +144,8 @@ public class Grouper {
 		GroupComparator.setGroupComparatorFields(job.getConfiguration(),groupFields);
 		SortCriteria.setInConfig(sortCriteria, job.getConfiguration());
 		
-		job.setInputFormatClass(inputFormat);
-		job.setMapperClass(mapper);
+//		job.setInputFormatClass(inputFormat);
+//		job.setMapperClass(mapper);
 		//Grouper.setMapperHandler(job.getConfiguration(), mapper);
 		
 		if (rollupBaseGroupFields != null){
@@ -165,7 +166,7 @@ public class Grouper {
 			Grouper.setReducerHandler(job.getConfiguration(), combinerHandler);
 		}
 		Grouper.setReducerHandler(job.getConfiguration(), reducerHandler);
-		job.setInputFormatClass(inputFormat);
+//		job.setInputFormatClass(inputFormat);
 		job.setJarByClass((jarByClass!=null) ? jarByClass : reducerHandler);
 		job.setOutputFormatClass(outputFormat);
 		job.setMapOutputKeyClass(Tuple.class);
