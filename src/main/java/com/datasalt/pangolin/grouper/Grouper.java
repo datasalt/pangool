@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapred.lib.MultipleInputs;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
@@ -70,6 +71,7 @@ public class Grouper {
 	
 	public Grouper(@Nonnull Configuration conf) throws IOException{
 		this.conf = conf;
+		
 		
 	}
 	
