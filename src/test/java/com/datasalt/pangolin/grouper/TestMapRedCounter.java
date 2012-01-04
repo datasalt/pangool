@@ -27,7 +27,6 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
@@ -42,19 +41,19 @@ import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
+import com.datasalt.pangolin.grouper.mapreduce.Mapper;
 import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
 
 public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 
-	private static class Mapy extends MapperHandler<Text,NullWritable>{
+	private static class Mapy extends Mapper<Text,NullWritable>{
 		
 		private FieldsDescription schema;
 		
 		@SuppressWarnings({ "unchecked" })
     @Override
-		public void setup(FieldsDescription schema,Mapper.Context context) throws IOException,InterruptedException {
+		public void setup(FieldsDescription schema,Context context) throws IOException,InterruptedException {
 			this.schema = schema;
 			
 		}
@@ -62,10 +61,10 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public void map(Text key,NullWritable value,Mapper.Context context) throws IOException,InterruptedException{
+		public void map(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
 			try {
 				Tuple outputKey = createTuple(key.toString(), schema);
-				emit(outputKey,context);
+				collector.write(outputKey);
 			} catch (InvalidFieldException e) {
 				throw new RuntimeException(e);
 			}
@@ -187,7 +186,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		Grouper grouper = new Grouper(getConf());
 		grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		grouper.setMapperHandler(Mapy.class);
+		grouper.setMapper(Mapy.class);
 		grouper.setReducerHandler(IdentityRed.class);
 		
 		grouper.setSchema(schema);

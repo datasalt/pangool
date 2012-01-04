@@ -20,54 +20,78 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.grouper.FieldsDescription;
-import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
-import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
 
 /**
  * TODO doc
  * @author eric
  *
  */
-public class Mapper<INPUT_KEY,INPUT_VALUE> extends org.apache.hadoop.mapreduce.Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
+public abstract class Mapper<INPUT_KEY,INPUT_VALUE> extends org.apache.hadoop.mapreduce.Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
 	
 
-	private MapperHandler<INPUT_KEY,INPUT_VALUE> handler;
+	//private MapperHandler<INPUT_KEY,INPUT_VALUE> handler;
 	private FieldsDescription schema;
+	private Collector collector;
+	//private NullWritable nullValue = NullWritable.get();
 	
+	
+	public static final class Collector {
+		private NullWritable nullValue = NullWritable.get();
+		private Mapper.Context context;
+		Collector(Mapper.Context context){
+			this.context = context;
+		}
+		
+		
+		public void write(Tuple tuple) throws IOException,InterruptedException {
+			context.write(tuple, nullValue);
+		}
+		
+	}
 	
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
-	public void setup(Context context) throws IOException,InterruptedException {
+	public final void setup(Context context) throws IOException,InterruptedException {
 		try {
 			Configuration conf = context.getConfiguration();
-			Class<? extends MapperHandler> handlerClass = Grouper.getMapperHandler(conf);
-			this.handler = ReflectionUtils.newInstance(handlerClass, conf);
+			//Class<? extends MapperHandler> handlerClass = Grouper.getMapperHandler(conf);
+			//this.handler = ReflectionUtils.newInstance(handlerClass, conf);
 			this.schema = FieldsDescription.parse(conf);
-			
-			handler.setup(schema,context);
+			this.collector = new Collector(context);
+			setup(schema,context);
+			//handler.setup(schema,context);
 			
 		} catch(GrouperException e) {
 			throw new RuntimeException(e);
 		}
 	}
 	
+	public abstract void setup(FieldsDescription schema, Context context) throws IOException,InterruptedException;
+	
 
 	@Override
 	public void cleanup(Context context) throws IOException,InterruptedException {
-		handler.cleanup(schema,context);
+		//handler.cleanup(schema,context);
 		
 	}
 	
 	
 	@Override
-	public void map(INPUT_KEY key, INPUT_VALUE value,Context context) throws IOException,InterruptedException {
-		handler.map(key, value,context);
+	public final void map(INPUT_KEY key, INPUT_VALUE value,Context context) throws IOException,InterruptedException {
+		map(key,value,collector);
 	}
+	
+	public abstract void map(INPUT_KEY key,INPUT_VALUE value,Collector collector) throws IOException,InterruptedException;
 
+//	protected void emit(Tuple tuple,Context context) throws IOException, InterruptedException{
+//		context.write(tuple, nullValue);
+//	}
+	
+	
+	
 }

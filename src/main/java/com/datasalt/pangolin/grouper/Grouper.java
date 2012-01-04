@@ -21,7 +21,6 @@ import javax.annotation.Nonnull;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapred.lib.MultipleInputs;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
@@ -35,7 +34,6 @@ import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
 import com.datasalt.pangolin.grouper.mapreduce.SimpleCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.SimpleReducer;
-import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
 import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
 
@@ -57,7 +55,7 @@ public class Grouper {
 	private FieldsDescription schema;
 	
   private Class<? extends ReducerHandler> reducerHandler;
-	private Class<? extends MapperHandler> mapperHandler; //TODO change this to multiinput
+	private Class<? extends Mapper> mapper; //TODO change this to multiinput
 	private Class<? extends InputFormat> inputFormat;
 	private Class<? extends OutputFormat> outputFormat;
 	private Class<? extends ReducerHandler> combinerHandler;
@@ -108,8 +106,8 @@ public class Grouper {
 		this.combinerHandler = combinerClass;
 	}
 	
-	public void setMapperHandler(Class<? extends MapperHandler> mapperClass){
-		this.mapperHandler = mapperClass;
+	public void setMapper(Class<? extends Mapper> mapperClass){
+		this.mapper = mapperClass;
 	}
 	
 	public void setInputFormat(Class<? extends InputFormat> inputFormat){
@@ -146,8 +144,8 @@ public class Grouper {
 		SortCriteria.setInConfig(sortCriteria, job.getConfiguration());
 		
 		job.setInputFormatClass(inputFormat);
-		job.setMapperClass(Mapper.class);
-		Grouper.setMapperHandler(job.getConfiguration(), mapperHandler);
+		job.setMapperClass(mapper);
+		//Grouper.setMapperHandler(job.getConfiguration(), mapper);
 		
 		if (rollupBaseGroupFields != null){
 			//grouper with rollup
@@ -199,13 +197,13 @@ public class Grouper {
 	}
 	
 	
-	public static void setMapperHandler(Configuration conf,Class<? extends MapperHandler> handler){
-		conf.setClass(CONF_MAPPER_HANDLER, handler,MapperHandler.class);
-	}
-	
-	public static Class<? extends MapperHandler> getMapperHandler(Configuration conf){
-//		String debug = conf.get(CONF_MAPPER_HANDLER);
-//		System.out.println(debug);
-		return (Class<? extends MapperHandler>)conf.getClass(CONF_MAPPER_HANDLER,null);
-	}
+//	public static void setMapperHandler(Configuration conf,Class<? extends MapperHandler> handler){
+//		conf.setClass(CONF_MAPPER_HANDLER, handler,MapperHandler.class);
+//	}
+//	
+//	public static Class<? extends MapperHandler> getMapperHandler(Configuration conf){
+////		String debug = conf.get(CONF_MAPPER_HANDLER);
+////		System.out.println(debug);
+//		return (Class<? extends MapperHandler>)conf.getClass(CONF_MAPPER_HANDLER,null);
+//	}
 }

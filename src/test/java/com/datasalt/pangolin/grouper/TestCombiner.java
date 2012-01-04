@@ -23,7 +23,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -37,25 +36,25 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.mapreduce.handler.MapperHandler;
+import com.datasalt.pangolin.grouper.mapreduce.Mapper;
 import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
 @SuppressWarnings({"unchecked"})
 public class TestCombiner extends AbstractHadoopTestLibrary{
 
-	private static class Mapy extends MapperHandler<Text,NullWritable>{
+	private static class Mapy extends Mapper<Text,NullWritable>{
 		
 		private Tuple outputTuple;
 		
     @Override
-		public void setup(FieldsDescription schema,Mapper.Context context) throws IOException,InterruptedException {
-			super.setup(schema,context);
+		public void setup(FieldsDescription schema,Context context) throws IOException,InterruptedException {
+			//super.setup(schema,context);
 			this.outputTuple = TupleFactory.createTuple(schema);
 			
 		}
 		
     @Override
-		public void map(Text key,NullWritable value,Mapper.Context context) throws IOException,InterruptedException{
+		public void map(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
 			String[] tokens = key.toString().split("\\s+");
 			String country = tokens[0];
 			int age = Integer.parseInt(tokens[1]);
@@ -67,7 +66,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 				outputTuple.setInt("age", age);
 				outputTuple.setString("name", name);
 				outputTuple.setInt("height", height);
-				emit(outputTuple,context);
+				collector.write(outputTuple);
 			} catch (InvalidFieldException e) {
 				throw new RuntimeException(e);
 			}
@@ -152,7 +151,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		Grouper grouper = new Grouper(getConf());
 		grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		grouper.setMapperHandler(Mapy.class);
+		grouper.setMapper(Mapy.class);
 		grouper.setReducerHandler(Red.class);
 		
 		grouper.setSchema(FieldsDescription.parse("country:string , age:vint , name:string,height:int"));
