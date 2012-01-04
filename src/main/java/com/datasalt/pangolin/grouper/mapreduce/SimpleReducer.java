@@ -27,7 +27,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.TupleIterator;
-import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 
@@ -38,7 +38,7 @@ import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
  */
 public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
-	private FieldsDescription schema;
+	private Schema schema;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	private ReducerHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
@@ -48,7 +48,7 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 		super.setup(context);
 		try {
 			Configuration conf = context.getConfiguration();
-			this.schema = FieldsDescription.parse(conf);
+			this.schema = Schema.parse(conf);
 		} catch(GrouperException e) {
 			throw new RuntimeException(e);
 		}

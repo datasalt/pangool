@@ -19,14 +19,14 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.thrift.TBase;
 
-import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.GrouperException;
 
 /**
  * This is the common interface implemented by {@link BaseTuple} and {@link Tuple}.
  * A Tuple is basically a hadoop-serializable object containing fields according to the schema defined in 
- * {@link FieldsDescription}. Tuples are used in intermediate {@link org.apache.hadoop.mapreduce.Mapper}
+ * {@link Schema}. Tuples are used in intermediate {@link org.apache.hadoop.mapreduce.Mapper}
  * outputs in {@link Grouper} and {@link Grouper}
  * 
  * @author eric
@@ -34,11 +34,11 @@ import com.datasalt.pangolin.grouper.GrouperException;
  */
 public interface ITuple extends WritableComparable<ITuple>,Configurable{
 	
-	public FieldsDescription getSchema();
+	public Schema getSchema();
 	
 	public int partialHashCode(String[] fields) throws InvalidFieldException;
 	
-	public void setSchema(FieldsDescription schema);
+	public void setSchema(Schema schema);
 	
 	
 	//Getters

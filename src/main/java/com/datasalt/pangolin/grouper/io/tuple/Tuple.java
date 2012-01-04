@@ -25,7 +25,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.thrift.TBase;
 
-import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
 
 /**
@@ -43,7 +43,7 @@ import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
  */
 public class Tuple implements ITuple {
 
-	//private FieldsDescription schema;
+	//private Schema schema;
 	//private Configuration conf;
 	private BaseTuple previousTuple, currentTuple;
 
@@ -54,7 +54,7 @@ public class Tuple implements ITuple {
 		currentTuple = ReflectionUtils.newInstance(BaseTuple.class, null);
 	}
 
-	Tuple(@Nonnull FieldsDescription schema) {
+	Tuple(@Nonnull Schema schema) {
 		//this.schema = schema;
 		currentTuple = new BaseTuple(schema);
 		previousTuple = new BaseTuple(schema);
@@ -104,7 +104,7 @@ public class Tuple implements ITuple {
 		if(conf != null) {
 			//this.conf = conf;
 			//try {
-//				FieldsDescription schema = FieldsDescription.parse(this.conf);
+//				Schema schema = Schema.parse(this.conf);
 //				if(schema != null) {
 //					this.schema = schema;
 //				}
@@ -123,7 +123,7 @@ public class Tuple implements ITuple {
 	}
 
 	@Override
-	public FieldsDescription getSchema() {
+	public Schema getSchema() {
 		return currentTuple.getSchema();
 	}
 
@@ -241,7 +241,7 @@ public class Tuple implements ITuple {
 	}
 
 	@Override
-	public void setSchema(FieldsDescription schema) {
+	public void setSchema(Schema schema) {
 		currentTuple.setSchema(schema);
 	}
 

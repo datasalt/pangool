@@ -52,7 +52,7 @@ public class Grouper {
 	private final static String CONF_COMBINER_HANDLER = "datasalt.grouper.combiner_handler";
 
 	private Configuration conf;
-	private FieldsDescription schema;
+	private Schema schema;
 	
   private Class<? extends ReducerHandler> reducerHandler;
 //	private Class<? extends Mapper> mapper; //TODO change this to multiinput
@@ -83,7 +83,7 @@ public class Grouper {
 	}
 	
 	
-	public void setSchema(FieldsDescription schema){
+	public void setSchema(Schema schema){
 		this.schema = schema;
 	}
 	
@@ -140,7 +140,7 @@ public class Grouper {
 	
 	public Job createJob() throws IOException{
 		Job job = new Job(conf);
-		FieldsDescription.setInConfig(schema, job.getConfiguration());
+		Schema.setInConfig(schema, job.getConfiguration());
 		GroupComparator.setGroupComparatorFields(job.getConfiguration(),groupFields);
 		SortCriteria.setInConfig(sortCriteria, job.getConfiguration());
 		

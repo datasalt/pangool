@@ -35,10 +35,10 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datasalt.pangolin.grouper.BaseGrouperTest;
-import com.datasalt.pangolin.grouper.FieldsDescription;
-import com.datasalt.pangolin.grouper.FieldsDescription.Field;
-import com.datasalt.pangolin.grouper.FieldsDescriptionBuilder;
+import com.datasalt.pangolin.grouper.BaseTest;
+import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.Schema.Field;
+import com.datasalt.pangolin.grouper.SchemaBuilder;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria;
 import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
@@ -56,7 +56,7 @@ import com.datasalt.pangolin.thrift.test.A;
  * @author eric
  *
  */
-public class TestComparators extends BaseGrouperTest {
+public class TestComparators extends BaseTest {
 
 	int MAX_RANDOM_SCHEMAS = 200;
 	int MAX_RANDOMS_PER_INDEX = 20;
@@ -71,10 +71,10 @@ public class TestComparators extends BaseGrouperTest {
 		Map<String, Class> customComparators = new HashMap<String, Class>();
 		customComparators.put("thrift_field", AComparator.class);
 		for (int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
-			FieldsDescription schema = permuteSchema(SCHEMA);
+			Schema schema = permuteSchema(SCHEMA);
 			System.out.println("Schema : " + schema);
 			for (int minIndex = maxIndex; minIndex >= 0; minIndex--) {
-				FieldsDescription.setInConfig(schema, conf);
+				Schema.setInConfig(schema, conf);
 				SortCriteria sortCriteria = createRandomSortCriteria(schema,
 						customComparators, maxIndex + 1);
 				String[] groupFields = getFirstFields(sortCriteria, random
@@ -252,9 +252,9 @@ public class TestComparators extends BaseGrouperTest {
 	private void fillWithRandom(ITuple tuple, int minIndex, int maxIndex) {
 		try {
 			Random random = new Random();
-			FieldsDescription fieldsDescription = tuple.getSchema();
+			Schema schema = tuple.getSchema();
 			for (int i = minIndex; i <= maxIndex; i++) {
-				Field field = fieldsDescription.getField(i);
+				Field field = schema.getField(i);
 				String fieldName = field.getName();
 				Class fieldType = field.getType();
 				if (fieldType == Integer.class || fieldType == VIntWritable.class) {
@@ -295,11 +295,11 @@ public class TestComparators extends BaseGrouperTest {
 	/**
 	 * Creates a copy of the schema with the fields shuffled.
 	 */
-	private static FieldsDescription permuteSchema(FieldsDescription schema) {
+	private static Schema permuteSchema(Schema schema) {
 		Field[] fields = schema.getFields();
 		List<Field> permutedFields = Arrays.asList(fields);
 		Collections.shuffle(permutedFields);
-		FieldsDescriptionBuilder builder = new FieldsDescriptionBuilder();
+		SchemaBuilder builder = new SchemaBuilder();
 		for (Field field : permutedFields) {
 			try {
 				builder.addField(field.getName(), field.getType());
@@ -316,7 +316,7 @@ public class TestComparators extends BaseGrouperTest {
 	 * Creates a random sort criteria based in the specified schema.
 	 */
 	private static SortCriteria createRandomSortCriteria(
-			FieldsDescription schema, Map<String, Class> customComparators,
+			Schema schema, Map<String, Class> customComparators,
 			int numFields) {
 		try {
 			Random random = new Random();

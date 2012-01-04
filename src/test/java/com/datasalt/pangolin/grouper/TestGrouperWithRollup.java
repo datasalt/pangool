@@ -48,12 +48,12 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	private static class Mapy extends Mapper<Text,NullWritable>{
 		
 
-		private FieldsDescription schema;
+		private Schema schema;
 		
 		
     @SuppressWarnings("unchecked")
 		@Override
-		public void setup(FieldsDescription schema,Context context) throws IOException,InterruptedException {
+		public void setup(Schema schema,Context context) throws IOException,InterruptedException {
 			this.schema = schema;
 			
 			
@@ -80,13 +80,13 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public void setup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
+		public void setup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
 			//this.context = context;
 		}
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public void cleanup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
+		public void cleanup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
 			
 		}
 		
@@ -123,7 +123,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	}
 	
 	
-	private static Tuple createTuple(String text,FieldsDescription schema) throws InvalidFieldException{
+	private static Tuple createTuple(String text,Schema schema) throws InvalidFieldException{
 		Tuple tuple = TupleFactory.createTuple(schema);
 		String[] tokens = text.split("\\s+");
 		String country = tokens[0];
@@ -152,7 +152,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		};
 		
 		ITuple[] tuples = new ITuple[inputElements.length];
-		FieldsDescription schema = FieldsDescription.parse("country:string,age:vint,name:string,height:int");
+		Schema schema = Schema.parse("country:string,age:vint,name:string,height:int");
 		int i=0; 
 		for (String inputElement : inputElements){
 			withInput("input",writable(inputElement));

@@ -24,7 +24,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.TupleIterator;
@@ -46,12 +46,12 @@ import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
 public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
 	private boolean firstIteration = true;
-	private FieldsDescription schema;
+	private Schema schema;
 	private int minDepth, maxDepth;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	private ReducerHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
-	protected FieldsDescription getSchema() {
+	protected Schema getSchema() {
 		return schema;
 	}
     	
@@ -60,7 +60,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
   public void setup(Context context) throws IOException,InterruptedException {
   	try{
     Configuration conf = context.getConfiguration();
-  	this.schema = FieldsDescription.parse(conf);
+  	this.schema = Schema.parse(conf);
   	String[] groupFields = GroupComparator.getGroupComparatorFields(conf);
   	this.maxDepth = groupFields.length -1;
   	String[] partitionerFields = Partitioner.getPartitionerFields(conf);

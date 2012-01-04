@@ -21,7 +21,7 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 
-import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 
@@ -34,7 +34,7 @@ public abstract class Mapper<INPUT_KEY,INPUT_VALUE> extends org.apache.hadoop.ma
 	
 
 	//private MapperHandler<INPUT_KEY,INPUT_VALUE> handler;
-	private FieldsDescription schema;
+	private Schema schema;
 	private Collector collector;
 	//private NullWritable nullValue = NullWritable.get();
 	
@@ -61,7 +61,7 @@ public abstract class Mapper<INPUT_KEY,INPUT_VALUE> extends org.apache.hadoop.ma
 			Configuration conf = context.getConfiguration();
 			//Class<? extends MapperHandler> handlerClass = Grouper.getMapperHandler(conf);
 			//this.handler = ReflectionUtils.newInstance(handlerClass, conf);
-			this.schema = FieldsDescription.parse(conf);
+			this.schema = Schema.parse(conf);
 			this.collector = new Collector(context);
 			setup(schema,context);
 			//handler.setup(schema,context);
@@ -71,7 +71,7 @@ public abstract class Mapper<INPUT_KEY,INPUT_VALUE> extends org.apache.hadoop.ma
 		}
 	}
 	
-	public abstract void setup(FieldsDescription schema, Context context) throws IOException,InterruptedException;
+	public abstract void setup(Schema schema, Context context) throws IOException,InterruptedException;
 	
 
 	@Override

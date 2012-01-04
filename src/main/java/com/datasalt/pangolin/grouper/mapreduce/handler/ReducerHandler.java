@@ -21,18 +21,18 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 
-import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 
 public abstract class ReducerHandler<OUTPUT_KEY,OUTPUT_VALUE> {
 	
 	//private Reducer<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE>.Context context;
 	
-	public void setup(FieldsDescription schema,Reducer<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE>.Context context) throws IOException,InterruptedException {
+	public void setup(Schema schema,Reducer<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE>.Context context) throws IOException,InterruptedException {
 		
 	}
 	
-	public void cleanup(FieldsDescription schema,Reducer<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE>.Context context) throws IOException,InterruptedException {
+	public void cleanup(Schema schema,Reducer<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE>.Context context) throws IOException,InterruptedException {
 		
 	}
 	

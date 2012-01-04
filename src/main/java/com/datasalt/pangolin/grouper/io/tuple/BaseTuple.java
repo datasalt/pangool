@@ -36,8 +36,8 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.thrift.TBase;
 
 import com.datasalt.pangolin.commons.Buffer;
-import com.datasalt.pangolin.grouper.FieldsDescription;
-import com.datasalt.pangolin.grouper.FieldsDescription.Field;
+import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.Schema.Field;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.io.Serialization;
 
@@ -56,7 +56,7 @@ public class BaseTuple implements ITuple {
 	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 	private Buffer tmpInputBuffer = new Buffer();
 	private Serialization serialization;
-	private FieldsDescription schema;
+	private Schema schema;
 	private Text text = new Text();
 	
 	@SuppressWarnings("rawtypes")
@@ -71,13 +71,13 @@ public class BaseTuple implements ITuple {
   private BaseTuple() {
 	}
 	
-	BaseTuple(@Nonnull FieldsDescription schema){
+	BaseTuple(@Nonnull Schema schema){
 		setSchema(schema);
 	}
 	
 	BaseTuple(@Nonnull Configuration conf){
 		try {
-	    FieldsDescription schema = FieldsDescription.parse(conf);
+	    Schema schema = Schema.parse(conf);
 	    if (schema == null){
 	    	throw new RuntimeException("schema must be set in conf");
 	    }
@@ -89,7 +89,7 @@ public class BaseTuple implements ITuple {
 	
 
 	@Override
-	public FieldsDescription getSchema(){
+	public Schema getSchema(){
 		return schema;
 	}
 	
@@ -108,7 +108,7 @@ public class BaseTuple implements ITuple {
 	 * Caches the values from the enum fields. This is done just once for efficiency since it uses reflection. 
 	 * 
 	 */
-	private void cacheEnums(FieldsDescription schema) {
+	private void cacheEnums(Schema schema) {
 		try {
 			for(Field field : schema.getFields()) {
 				Class<?> type = field.getType();
@@ -126,7 +126,7 @@ public class BaseTuple implements ITuple {
 	}
 	
 	@Override
-	public void setSchema(@Nonnull FieldsDescription schema) {
+	public void setSchema(@Nonnull Schema schema) {
 		if (this.schema != null){
 			throw new IllegalStateException("Schema already set,not allowed to set it twice");
 		} else if (schema == null){
@@ -499,7 +499,7 @@ public class BaseTuple implements ITuple {
 		if (conf != null){
 			this.conf = conf;
 			try {
-				FieldsDescription schema =FieldsDescription.parse(this.conf);
+				Schema schema =Schema.parse(this.conf);
 				if (schema != null){
 					setSchema(schema);
 				}

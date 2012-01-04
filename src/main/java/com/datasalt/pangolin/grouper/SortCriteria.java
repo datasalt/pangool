@@ -31,8 +31,8 @@ import org.apache.hadoop.io.RawComparator;
  * SortCriteria specifies how the {@link ITuple} fields will be sorted by {@link SortComparator}.
  * Basically it contains a list of fields with a sort descriptor {@link SortOrder} (ascending or descending order).
  * For example: "name asc,age desc"
- * The sort criteria needs to match the {@link FieldsDescription} fields ordering, so in any case the {@link SortCriteria} must 
- * be a prefix from {@link FieldsDescription} 
+ * The sort criteria needs to match the {@link Schema} fields ordering, so in any case the {@link SortCriteria} must 
+ * be a prefix from {@link Schema} 
  * TODO : this can change in the future
  * 
  * 

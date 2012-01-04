@@ -15,29 +15,40 @@
  */
 package com.datasalt.pangolin.grouper;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.datasalt.pangolin.grouper.Schema.Field;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 
 public class SchemaBuilder {
 
-	private Map<Integer,FieldsDescription> fieldsDescriptionBySource = new HashMap<Integer,FieldsDescription>();
-	private SortCriteria sortCriteria;
+	private List<Field> fields = new ArrayList<Field>();
 	
-	public SchemaBuilder(){
+	public void addField(String fieldName,Class type) throws InvalidFieldException{
+		if (fieldAlreadyExists(fieldName)){
+			throw new InvalidFieldException("Field '" + fieldName + "' already exists");
+		}
 		
+		if (type == null){
+			throw new InvalidFieldException("Type for field '" + fieldName + "' can't be null");
+		}
+		
+		fields.add(new Field(fieldName, type));
 	}
 	
-	public void setFieldsDescriptionForSource(int source,String fieldsDescription) throws GrouperException{
-		FieldsDescription f = FieldsDescription.parse(fieldsDescription);
-		fieldsDescriptionBySource.put(source,f);
+	private boolean fieldAlreadyExists(String fieldName){
+		for (Field field : fields){
+			if (field.getName().equalsIgnoreCase(fieldName)){
+				return true;
+			}
+		}
+		return false;
 	}
 	
-	public void setSortCriteria(String sortCriteria) throws GrouperException{
-		this.sortCriteria = SortCriteria.parse(sortCriteria);
+	public Schema createFieldsDescription(){
+		Field[] fieldsArray = new Field[fields.size()];
+		fields.toArray(fieldsArray);
+		return new Schema(fieldsArray);
 	}
-	
-	public Schema createSchema() throws GrouperException{
-		  return new Schema(fieldsDescriptionBySource,sortCriteria);
-	}
-	
 }

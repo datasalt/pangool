@@ -4,11 +4,11 @@ import javax.annotation.Nonnull;
 
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.Schema;
 
 public class TupleFactory {
 
-	public static Tuple createTuple(@Nonnull FieldsDescription schema){
+	public static Tuple createTuple(@Nonnull Schema schema){
 		Tuple tuple = ReflectionUtils.newInstance(Tuple.class, null);
 		tuple.setSchema(schema);
 		return tuple;

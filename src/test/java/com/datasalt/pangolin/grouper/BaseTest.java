@@ -8,13 +8,13 @@ import com.datasalt.pangolin.commons.test.AbstractBaseTest;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.thrift.test.A;
 
-public abstract class BaseGrouperTest extends AbstractBaseTest{
+public abstract class BaseTest extends AbstractBaseTest{
 
-	public static FieldsDescription SCHEMA;
+	public static Schema SCHEMA;
 
 	@Before
 	public void prepare2() throws GrouperException, IOException {
-		SCHEMA = FieldsDescription.parse(
+		SCHEMA = Schema.parse(
 				"int_field:int,"+
 				"long_field:long," + 
 				"vint_field:vint," + 
@@ -26,7 +26,7 @@ public abstract class BaseGrouperTest extends AbstractBaseTest{
 		    "enum_field:" + SortOrder.class.getName() + "," +
 		    "thrift_field:" + A.class.getName());
 		
-				FieldsDescription.setInConfig(SCHEMA, getConf());
+				Schema.setInConfig(SCHEMA, getConf());
 	}
 	
 }

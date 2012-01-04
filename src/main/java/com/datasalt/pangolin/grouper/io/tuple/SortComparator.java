@@ -29,8 +29,8 @@ import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangolin.grouper.FieldsDescription;
-import com.datasalt.pangolin.grouper.FieldsDescription.Field;
+import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.Schema.Field;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria;
 import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
@@ -47,7 +47,7 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 public class SortComparator extends WritableComparator implements Configurable {
 
 	private Configuration conf;
-	private FieldsDescription schema;
+	private Schema schema;
 	protected SortCriteria sortCriteria;
 	@SuppressWarnings("rawtypes")
   private Map<Class,RawComparator> instancedComparators;
@@ -147,7 +147,7 @@ public class SortComparator extends WritableComparator implements Configurable {
 		return compare(fieldsCompared, b1, s1, l1, b2, s2, l2);
 	}
 
-	private void setSchema(FieldsDescription schema){
+	private void setSchema(Schema schema){
 		this.schema = schema;
 	}
 	
@@ -303,7 +303,7 @@ public class SortComparator extends WritableComparator implements Configurable {
 		try {
 			if(conf != null) {
 				this.conf = conf;
-				setSchema(FieldsDescription.parse(conf));
+				setSchema(Schema.parse(conf));
 				setSortCriteria(SortCriteria.parse(conf));
 				
 			}

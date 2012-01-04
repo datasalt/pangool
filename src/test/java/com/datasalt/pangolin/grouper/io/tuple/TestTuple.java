@@ -14,13 +14,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractBaseTest;
-import com.datasalt.pangolin.grouper.BaseGrouperTest;
-import com.datasalt.pangolin.grouper.FieldsDescription;
+import com.datasalt.pangolin.grouper.BaseTest;
+import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.thrift.test.A;
 
-public class TestTuple extends BaseGrouperTest{
+public class TestTuple extends BaseTest{
 
 	
 

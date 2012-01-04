@@ -48,7 +48,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		private Tuple outputTuple;
 		
     @Override
-		public void setup(FieldsDescription schema,Context context) throws IOException,InterruptedException {
+		public void setup(Schema schema,Context context) throws IOException,InterruptedException {
 			//super.setup(schema,context);
 			this.outputTuple = TupleFactory.createTuple(schema);
 			
@@ -108,7 +108,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		//private int numFields;
 		
 		
-    public void setup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
+    public void setup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
 			
 		}
 		
@@ -156,7 +156,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		//grouper.setMapper(Mapy.class);
 		grouper.setReducerHandler(Red.class);
 		
-		grouper.setSchema(FieldsDescription.parse("country:string , age:vint , name:string,height:int"));
+		grouper.setSchema(Schema.parse("country:string , age:vint , name:string,height:int"));
 		SortCriteria sortCriteria = SortCriteria.parse("country ASC,age ASC");
 		grouper.setSortCriteria(sortCriteria);
 		grouper.setRollupBaseGroupFields("country");

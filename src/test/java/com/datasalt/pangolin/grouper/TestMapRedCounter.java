@@ -49,11 +49,11 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 
 	private static class Mapy extends Mapper<Text,NullWritable>{
 		
-		private FieldsDescription schema;
+		private Schema schema;
 		
 		@SuppressWarnings({ "unchecked" })
     @Override
-		public void setup(FieldsDescription schema,Context context) throws IOException,InterruptedException {
+		public void setup(Schema schema,Context context) throws IOException,InterruptedException {
 			this.schema = schema;
 			
 		}
@@ -79,7 +79,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		private int maxDepth;
 		
 		@Override
-		public void setup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
+		public void setup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
 			Configuration conf = context.getConfiguration();	
 			
 			String[] baseGroup = Partitioner.getPartitionerFields(conf);
@@ -92,7 +92,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		}
 		
 		@Override
-		public void cleanup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
+		public void cleanup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
 			
 		}
 		
@@ -139,7 +139,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 	}
 	
 	
-	private static Tuple createTuple(String text,FieldsDescription schema) throws InvalidFieldException{
+	private static Tuple createTuple(String text,Schema schema) throws InvalidFieldException{
 		Tuple tuple = TupleFactory.createTuple(schema);
 		String[] tokens = text.split(",");
 		String user = tokens[0];
@@ -177,7 +177,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 				"user2,2,url8"
 		};
 		
-		FieldsDescription schema = FieldsDescription.parse("user:string,day:vint,url:string,count:vint");
+		Schema schema = Schema.parse("user:string,day:vint,url:string,count:vint");
 		
 		for (String inputElement : inputElements){
 			withInput("input",writable(inputElement));
@@ -187,6 +187,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		//grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
 		//grouper.setMapper(Mapy.class);
+		
 		grouper.setReducerHandler(IdentityRed.class);
 		
 		grouper.setSchema(schema);

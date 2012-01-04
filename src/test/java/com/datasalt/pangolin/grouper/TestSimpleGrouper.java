@@ -45,7 +45,7 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		
 		@Override
 		@SuppressWarnings("rawtypes")
-		public void setup(FieldsDescription schema, Context context) throws IOException,InterruptedException {
+		public void setup(Schema schema, Context context) throws IOException,InterruptedException {
 			this.outputTuple = TupleFactory.createTuple(schema);
 		}
 		
@@ -73,7 +73,7 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 	private static class Red extends ReducerHandler<ITuple,NullWritable>{
 
 		@Override
-		public void setup(FieldsDescription schema,Reducer.Context context) throws IOException,InterruptedException {
+		public void setup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
 			System.out.println("REd setup");
 		}
 		
@@ -112,7 +112,7 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		
 		Grouper grouper = new Grouper(getConf());
 		grouper.setJarByClass(TestSimpleGrouper.class);
-		FieldsDescription schema = FieldsDescription.parse("country:string, age:vint, name:string, height:long");
+		Schema schema = Schema.parse("country:string, age:vint, name:string, height:long");
 		grouper.setSchema(schema);
 		//grouper.setInputFormat(SequenceFileInputFormat.class);
 		//grouper.setMapper(Mapy.class);
