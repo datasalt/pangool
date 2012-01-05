@@ -33,7 +33,7 @@ import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
+import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 /**
  * 
@@ -49,7 +49,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 	private Schema schema;
 	private int minDepth, maxDepth;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
-	private ReducerHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
+	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
 	protected Schema getSchema() {
 		return schema;
@@ -73,7 +73,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
   	this.grouperIterator.setContext(context);
   	
   	Configuration conf = context.getConfiguration();
-		Class<? extends ReducerHandler> handlerClass = Grouper.getReducerHandler(conf);
+		Class<? extends GroupHandler> handlerClass = Grouper.getGroupHandler(conf);
 		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
 		handler.setup(schema,context);
   	

@@ -307,7 +307,7 @@ public class TestComparators extends BaseTest {
 				throw new RuntimeException(e);
 			}
 		}
-		return builder.createFieldsDescription();
+		return builder.createSchema();
 	}
 
 	
@@ -325,7 +325,7 @@ public class TestComparators extends BaseTest {
 				Field field = schema.getField(i);
 				// TODO add custom comparator
 				builder.addSortElement(field.getName(),
-						random.nextBoolean() ? SortOrder.ASCENDING : SortOrder.DESCENDING,
+						random.nextBoolean() ? SortOrder.ASC : SortOrder.DESC,
 						customComparators.get(field.getName()));
 			}
 			return builder.createSortCriteria();

@@ -90,7 +90,7 @@ public class SortComparator extends WritableComparator implements Configurable {
 				Field field = schema.getField(depth);
 				String fieldName = field.getName();
 				SortElement sortElement = sortCriteria.getSortElementByFieldName(field.getName());
-				SortOrder sort = SortOrder.ASCENDING; // by default
+				SortOrder sort = SortOrder.ASC; // by default
 				@SuppressWarnings("rawtypes")
         RawComparator comparator = null;
 				if(sortElement != null) {
@@ -106,7 +106,7 @@ public class SortComparator extends WritableComparator implements Configurable {
 				 comparison = compareObjects(tuple1.getObject(fieldName), tuple2.getObject(fieldName));
 				}
 				if(comparison != 0) {
-					return (sort == SortOrder.ASCENDING) ? comparison : -comparison;
+					return (sort == SortOrder.ASC) ? comparison : -comparison;
 				}
 			}
 			return 0;
@@ -183,7 +183,7 @@ public class SortComparator extends WritableComparator implements Configurable {
 				Field field = schema.getFields()[depth];
 				Class<?> type = field.getType();
 				SortElement sortElement = sortCriteria.getSortElementByFieldName(field.getName());
-				SortOrder sort=SortOrder.ASCENDING; //by default
+				SortOrder sort=SortOrder.ASC; //by default
 				RawComparator<?> comparator=null;
 				if(sortElement != null){
 					sort=sortElement.getSortOrder();
@@ -197,7 +197,7 @@ public class SortComparator extends WritableComparator implements Configurable {
 					offset2+=WritableUtils.decodeVIntSize(b2[offset2]);
 					int comparison = comparator.compare(b1, offset1,length1,b2,offset2,length2);
 					if (comparison != 0){
-						return (sort == SortOrder.ASCENDING) ? comparison : -comparison;
+						return (sort == SortOrder.ASC) ? comparison : -comparison;
 					}
 					offset1 += length1;
 					offset2 += length2;
@@ -205,9 +205,9 @@ public class SortComparator extends WritableComparator implements Configurable {
 					int value1 = readInt(b1, offset1);
 					int value2 = readInt(b2, offset2);
 					if(value1 > value2) {
-						return (sort == SortOrder.ASCENDING) ? 1 : -1;
+						return (sort == SortOrder.ASC) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == SortOrder.ASCENDING) ? -1 : 1;
+						return (sort == SortOrder.ASC) ? -1 : 1;
 					}
 					offset1 += Integer.SIZE / 8;
 					offset2 += Integer.SIZE / 8;
@@ -215,9 +215,9 @@ public class SortComparator extends WritableComparator implements Configurable {
 					long value1 = readLong(b1, offset1);
 					long value2 = readLong(b2, offset2);
 					if(value1 > value2) {
-						return (sort == SortOrder.ASCENDING) ? 1 : -1;
+						return (sort == SortOrder.ASC) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == SortOrder.ASCENDING) ? -1 : 1;
+						return (sort == SortOrder.ASC) ? -1 : 1;
 					}
 					offset1 += Long.SIZE / 8;
 					offset2 += Long.SIZE / 8;
@@ -225,9 +225,9 @@ public class SortComparator extends WritableComparator implements Configurable {
 					int value1 = readVInt(b1, offset1);
 					int value2 = readVInt(b2, offset2);
 					if(value1 > value2) {
-						return (sort == SortOrder.ASCENDING) ? 1 : -1;
+						return (sort == SortOrder.ASC) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == SortOrder.ASCENDING) ? -1 : 1;
+						return (sort == SortOrder.ASC) ? -1 : 1;
 					}
 					int vintSize =WritableUtils.decodeVIntSize(b1[offset1]);
 					offset1 += vintSize;
@@ -237,9 +237,9 @@ public class SortComparator extends WritableComparator implements Configurable {
 					long value1 = readVLong(b1, offset1);
 					long value2 = readVLong(b2, offset2);
 					if(value1 > value2) {
-						return (sort == SortOrder.ASCENDING) ? 1 : -1;
+						return (sort == SortOrder.ASC) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == SortOrder.ASCENDING) ? -1 : 1;
+						return (sort == SortOrder.ASC) ? -1 : 1;
 					}
 					int vIntSize =WritableUtils.decodeVIntSize(b1[offset1]); 
 					offset1 += vIntSize;
@@ -248,9 +248,9 @@ public class SortComparator extends WritableComparator implements Configurable {
 					float value1 = readFloat(b1, offset1);
 					float value2 = readFloat(b2, offset2);
 					if(value1 > value2) {
-						return (sort == SortOrder.ASCENDING) ? 1 : -1;
+						return (sort == SortOrder.ASC) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == SortOrder.ASCENDING) ? -1 : 1;
+						return (sort == SortOrder.ASC) ? -1 : 1;
 					}
 					offset1 += Float.SIZE / 8;
 					offset2 += Float.SIZE / 8;
@@ -258,9 +258,9 @@ public class SortComparator extends WritableComparator implements Configurable {
 					double value1 = readDouble(b1, offset1);
 					double value2 = readDouble(b2, offset2);
 					if(value1 > value2) {
-						return (sort == SortOrder.ASCENDING) ? 1 : -1;
+						return (sort == SortOrder.ASC) ? 1 : -1;
 					} else if(value1 < value2) {
-						return (sort == SortOrder.ASCENDING) ? -1 : 1;
+						return (sort == SortOrder.ASC) ? -1 : 1;
 					}
 					offset1 += Double.SIZE / 8;
 					offset2 += Double.SIZE / 8;
@@ -268,9 +268,9 @@ public class SortComparator extends WritableComparator implements Configurable {
 					byte value1 = b1[offset1++];
 					byte value2 = b2[offset2++];
 					if (value1 > value2){
-						return (sort == SortOrder.ASCENDING) ? 1 : -1;
+						return (sort == SortOrder.ASC) ? 1 : -1;
 					} else if (value1 < value2){
-						return (sort == SortOrder.ASCENDING)? -1 : 1;
+						return (sort == SortOrder.ASC)? -1 : 1;
 					}
 				} else {
 					//String(Text) and the rest of types using compareBytes
@@ -280,7 +280,7 @@ public class SortComparator extends WritableComparator implements Configurable {
 					offset2+=WritableUtils.decodeVIntSize(b2[offset2]);
 					int comparison = compareBytes(b1, offset1, length1, b2, offset2, length2);
 					if(comparison != 0) {
-						return (sort == SortOrder.ASCENDING) ? comparison : (-comparison);
+						return (sort == SortOrder.ASC) ? comparison : (-comparison);
 					}
 					offset1 += length1;
 					offset2 += length2;

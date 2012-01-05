@@ -22,6 +22,7 @@ import java.util.Iterator;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
@@ -33,12 +34,13 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapreduce.Mapper;
-import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
+import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 @SuppressWarnings({"unchecked"})
 public class TestCombiner extends AbstractHadoopTestLibrary{
@@ -75,7 +77,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		
 	}
 	
-	private static class Red extends ReducerHandler<ITuple,NullWritable>{
+	private static class Red extends GroupHandler<ITuple,NullWritable>{
 
 		
 		
@@ -103,7 +105,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 	  
 	}}
 	
-	private static class Combi extends ReducerHandler<ITuple,NullWritable>{
+	private static class Combi extends GroupHandler<ITuple,NullWritable>{
 
 		//private int numFields;
 		
@@ -149,25 +151,32 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		withInput("input",new Text("US 16 listo 160"));
 		withInput("input",new Text("XE 20 listo 230"));
 		
+		SchemaBuilder schemaBuilder = new SchemaBuilder();
+		schemaBuilder.addField("country", String.class);
+		schemaBuilder.addField("age", VIntWritable.class);
+		schemaBuilder.addField("name", String.class);
+		schemaBuilder.addField("height", Integer.class);
+		
+		SortCriteriaBuilder sortBuilder = new SortCriteriaBuilder();
+		sortBuilder.addSortElement("country", SortOrder.ASC);
+		sortBuilder.addSortElement("age",SortOrder.ASC);
+		sortBuilder.addSortElement("name",SortOrder.ASC);
+		SortCriteria sortCriteria = sortBuilder.createSortCriteria();
+		//SortCriteria sortCriteria = SortCriteria.parse("country ASC,age ASC");
+		
 		Grouper grouper = new Grouper(getConf());
 		
-		//grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		//grouper.setMapper(Mapy.class);
-		grouper.setReducerHandler(Red.class);
-		
-		grouper.setSchema(Schema.parse("country:string , age:vint , name:string,height:int"));
-		SortCriteria sortCriteria = SortCriteria.parse("country ASC,age ASC");
+		grouper.setGroupHandler(Red.class);
+		grouper.setSchema(schemaBuilder.createSchema());
 		grouper.setSortCriteria(sortCriteria);
 		grouper.setRollupBaseGroupFields("country");
-		grouper.setGroupFields("country","age","name");
+		grouper.setFieldsToGroupBy("country","age","name");
 		grouper.setCombinerHandler(Combi.class);
 		grouper.setOutputKeyClass(Tuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
-		
-		
+		grouper.addInput(new Path("input"),SequenceFileInputFormat.class, Mapy.class);
 		Job job = grouper.createJob();
-		MultipleInputs.addInputPath(job, new Path("input"), SequenceFileInputFormat.class,Mapy.class);
 		FileOutputFormat.setOutputPath(job, new Path("output"));
 		
 		assertRun(job);

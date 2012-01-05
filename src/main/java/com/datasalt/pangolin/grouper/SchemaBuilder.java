@@ -46,7 +46,7 @@ public class SchemaBuilder {
 		return false;
 	}
 	
-	public Schema createFieldsDescription(){
+	public Schema createSchema(){
 		Field[] fieldsArray = new Field[fields.size()];
 		fields.toArray(fieldsArray);
 		return new Schema(fieldsArray);

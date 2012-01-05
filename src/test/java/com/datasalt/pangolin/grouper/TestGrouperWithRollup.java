@@ -40,7 +40,7 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.mapreduce.Mapper;
-import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
+import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 
 public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
@@ -72,19 +72,18 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		}
 	}
 	
-	private static class IdentityRed extends ReducerHandler<Text,Text>{
+	private static class IdentityRed extends GroupHandler<Text,Text>{
 
 		//private Reducer.Context context;
 		private Text outputKey = new Text();
 		private Text outputValue = new Text();
 		
-		@SuppressWarnings("unchecked")
 		@Override
-		public void setup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
+		public void setup(Schema schema,@SuppressWarnings("rawtypes") Reducer.Context context) throws IOException,InterruptedException {
 			//this.context = context;
 		}
 		
-		@SuppressWarnings("unchecked")
+
 		@Override
 		public void cleanup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
 			
@@ -143,9 +142,9 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		
 		String[] inputElements = new String[]{
 				"ES 20 listo 250",
+				"US 14 beber 202",
 				"US 14 perro 180",
 				"US 14 perro 170",
-				"US 14 beber 202",
 				"US 15 jauja 160",
 				"US 16 listo 160",
 				"XE 20 listo 230"
@@ -160,28 +159,23 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		}
 		
 		Grouper grouper = new Grouper(getConf());
-		//grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		//grouper.setMapper(Mapy.class);
-		grouper.setReducerHandler(IdentityRed.class);
+		grouper.setGroupHandler(IdentityRed.class);
 		
 		grouper.setSchema(schema);
-		SortCriteria sortCriteria = SortCriteria.parse("country ASC,age ASC");
+		SortCriteria sortCriteria = SortCriteria.parse("country ASC,age ASC,name ASC");
 		grouper.setSortCriteria(sortCriteria);
 		grouper.setRollupBaseGroupFields("country");
-		grouper.setGroupFields("country","age","name");
+		grouper.setFieldsToGroupBy("country","age","name");
 		
 		grouper.setOutputKeyClass(Text.class);
 		grouper.setOutputValueClass(Text.class);
-		
+		grouper.addInput(new Path("input"), SequenceFileInputFormat.class, Mapy.class);
 		
 		Job job = grouper.createJob();
 		
 		job.setNumReduceTasks(1);
 		Path outputPath = new Path("output");
-		Path inputPath = new Path("input");
-		MultipleInputs.addInputPath(job, new Path("input"), SequenceFileInputFormat.class,Mapy.class);
-		//FileInputFormat.setInputPaths(job,inputPath);
 		FileOutputFormat.setOutputPath(job, outputPath);
 		
 		assertRun(job);
@@ -203,10 +197,10 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		assertOutput(reader,"OPEN 1",tuples[1]);
 		assertOutput(reader,"OPEN 2",tuples[1]);
 		assertOutput(reader,"ELEMENT",tuples[1]);
-		assertOutput(reader,"ELEMENT",tuples[2]);
-		assertOutput(reader,"CLOSE 2",tuples[2]);
+		assertOutput(reader,"CLOSE 2",tuples[1]);
 		
-		assertOutput(reader,"OPEN 2",tuples[3]);
+		assertOutput(reader,"OPEN 2",tuples[2]);
+		assertOutput(reader,"ELEMENT",tuples[2]);
 		assertOutput(reader,"ELEMENT",tuples[3]);
 		assertOutput(reader,"CLOSE 2",tuples[3]);
 		assertOutput(reader,"CLOSE 1",tuples[3]);
@@ -241,9 +235,9 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	
 	/**
 	 * 
-	 * Checks that {@link Grouper} calls properly {@link ReducerHandler#onOpenGroup}, 
-	 * {@link ReducerHandler#onCloseGroup} and {@link ReducerHandler#onGroupElements} and checks that the elements (tuples) passed are coherent. 
-	 * This method assumes an specific output from the {@link ReducerHandler}. The output needs to be a Text,Text for key and value
+	 * Checks that {@link Grouper} calls properly {@link GroupHandler#onOpenGroup}, 
+	 * {@link GroupHandler#onCloseGroup} and {@link GroupHandler#onGroupElements} and checks that the elements (tuples) passed are coherent. 
+	 * This method assumes an specific output from the {@link GroupHandler}. The output needs to be a Text,Text for key and value
 	 * This will be the format used : 
 	 * key("OPEN depth"), value("serialized value")
 	 * key("CLOSE depth"), value("serialized value")

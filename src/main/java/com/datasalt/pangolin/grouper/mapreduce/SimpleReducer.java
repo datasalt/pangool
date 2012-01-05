@@ -29,7 +29,7 @@ import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
+import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 /**
  * TODO
@@ -40,7 +40,7 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 
 	private Schema schema;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
-	private ReducerHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
+	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
   @SuppressWarnings({"unchecked","rawtypes"})
   public void setup(Context context) throws IOException,InterruptedException {
@@ -57,7 +57,7 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
   	this.grouperIterator.setContext(context);
   	
   	Configuration conf = context.getConfiguration();
-    Class<? extends ReducerHandler> handlerClass = Grouper.getReducerHandler(conf);
+    Class<? extends GroupHandler> handlerClass = Grouper.getGroupHandler(conf);
     
 		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
 		

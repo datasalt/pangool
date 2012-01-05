@@ -42,7 +42,7 @@ public class SortCriteriaBuilder {
 	
 	private boolean fieldAlreadyExists(String fieldName){
 		for (SortElement field : fields){
-			if (field.getName().equalsIgnoreCase(fieldName)){
+			if (field.getFieldName().equalsIgnoreCase(fieldName)){
 				return true;
 			}
 		}

@@ -24,7 +24,7 @@ import org.apache.hadoop.mapreduce.Reducer.Context;
 
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
-import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
+import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 /**
  * Iterator used in {@link Grouper},specially in {@link RollupReducer}. Basically it translates an {@link Iterable} containing 
@@ -63,7 +63,7 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>,
 	 *  This is used to mark that the first element from iterable was already consumed, so in next iteration don't call iterator.next().
 	 *  Instead of this reuse the currentKey in {@link ReduceContext#getCurrentKey()} 
 	 *  
-	 *  This method is usually called before {@link ReducerHandler#onGroupElements(Iterable,Context)}
+	 *  This method is usually called before {@link GroupHandler#onGroupElements(Iterable,Context)}
 	 */
 	
 	public void setFirstTupleConsumed(boolean available){

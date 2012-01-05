@@ -42,10 +42,10 @@ import org.apache.hadoop.io.RawComparator;
 public class SortCriteria  {
 	
 	private static final String CONF_SORT_CRITERIA = "datasalt.grouper.sort.criteria";
-	
-	private SortCriteria(){
-		
-	}
+//	
+//	private SortCriteria(){
+//		
+//	}
 	
 	public Map<String, SortElement> getSortElementsByName() {
   	return sortElementsByName;
@@ -60,6 +60,10 @@ public class SortCriteria  {
   }
 
 	public static class SortElement {
+		
+		private String fieldName;
+		private SortOrder sortOrder;
+		private Class<? extends RawComparator> comparator;
 		
 		public SortElement(String name,SortOrder sortOrder,Class<? extends RawComparator> comparator){
 			this.fieldName = name;
@@ -81,16 +85,9 @@ public class SortCriteria  {
     	this.sortOrder = sortOrder;
     }
 
-		public void setComparator(Class<? extends RawComparator> comparator) {
+		public void setComparator(Class<? extends RawComparator<?>> comparator) {
     	this.comparator = comparator;
     }
-
-		private String fieldName;
-		private SortOrder sortOrder;
-		private Class<? extends RawComparator> comparator;
-		public String getName(){
-			return fieldName;
-		}
 		
 		public SortOrder getSortOrder(){
 			return sortOrder;
@@ -102,8 +99,8 @@ public class SortCriteria  {
 	}
 	
 	public static enum SortOrder {
-		ASCENDING("asc"), 
-		DESCENDING("desc");
+		ASC("asc"), 
+		DESC("desc");
 		
 		private String abr;
 		private SortOrder(String abr){
@@ -167,11 +164,11 @@ public class SortCriteria  {
 			
 			SortOrder sortOrder;
 			if ("ASC".equals(nameSort[1+offset].toUpperCase())){
-				sortOrder = SortOrder.ASCENDING;
+				sortOrder = SortOrder.ASC;
 			} else if("DESC".equals(nameSort[1+offset].toUpperCase())){
-				sortOrder = SortOrder.DESCENDING;
+				sortOrder = SortOrder.DESC;
 			} else {
-				throw new GrouperException ("Invalid sortingCriteria " + nameSort[1] + " in " + sortCriteria);
+				throw new GrouperException ("Invalid SortCriteria " + nameSort[1] + " in " + sortCriteria);
 			}
 			
 			SortElement sortElement = new SortElement(name,sortOrder,comparator);
@@ -193,7 +190,7 @@ public class SortCriteria  {
 			  b.append(",");
 			}
 			SortElement sortElement = sortElements[i];
-			b.append(sortElement.getName());
+			b.append(sortElement.getFieldName());
 			Class<?> comparator = sortElement.getComparator();
 			if (comparator != null){
 				b.append(" using ").append(comparator.getName());

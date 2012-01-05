@@ -35,6 +35,7 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
@@ -42,7 +43,7 @@ import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.mapreduce.Mapper;
-import com.datasalt.pangolin.grouper.mapreduce.handler.ReducerHandler;
+import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 
 public class TestMapRedCounter extends AbstractHadoopTestLibrary{
@@ -71,7 +72,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		}
 	}
 	
-	private static class IdentityRed extends ReducerHandler<Text,Text>{
+	private static class IdentityRed extends GroupHandler<Text,Text>{
 
 		private Reducer.Context context;
 		private int [] count,distinctCount;
@@ -178,35 +179,33 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		};
 		
 		Schema schema = Schema.parse("user:string,day:vint,url:string,count:vint");
+		SortCriteriaBuilder sortBuilder = new SortCriteriaBuilder();
+		sortBuilder.addSortElement("user", SortOrder.ASC);
+		sortBuilder.addSortElement("day",SortOrder.ASC);
+		sortBuilder.addSortElement("url",SortOrder.ASC);
+		SortCriteria sortCriteria = sortBuilder.createSortCriteria();
 		
 		for (String inputElement : inputElements){
 			withInput("input",writable(inputElement));
 		}
 		
 		Grouper grouper = new Grouper(getConf());
-		//grouper.setInputFormat(SequenceFileInputFormat.class);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		//grouper.setMapper(Mapy.class);
-		
-		grouper.setReducerHandler(IdentityRed.class);
+		grouper.setGroupHandler(IdentityRed.class);
 		
 		grouper.setSchema(schema);
-		SortCriteria sortCriteria = SortCriteria.parse("user ASC,day ASC,url ASC");
 		grouper.setSortCriteria(sortCriteria);
 		grouper.setRollupBaseGroupFields("user");
-		grouper.setGroupFields("user","day","url");
+		grouper.setFieldsToGroupBy("user","day","url");
 		
 		grouper.setOutputKeyClass(Text.class);
 		grouper.setOutputValueClass(Text.class);
-		
+		grouper.addInput(new Path("input"), SequenceFileInputFormat.class, Mapy.class);
 		
 		Job job = grouper.createJob();
 		job.setNumReduceTasks(1);
 		
-		Path inputPath = new Path("input");
 		Path outputPath = new Path("output");
-		MultipleInputs.addInputPath(job, new Path("input"), SequenceFileInputFormat.class,Mapy.class);
-		//FileInputFormat.setInputPaths(job,inputPath);
 		FileOutputFormat.setOutputPath(job, outputPath);
 		
 		assertRun(job);

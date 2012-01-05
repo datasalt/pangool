@@ -83,10 +83,14 @@ public abstract class Mapper<INPUT_KEY,INPUT_VALUE> extends org.apache.hadoop.ma
 	
 	@Override
 	public final void map(INPUT_KEY key, INPUT_VALUE value,Context context) throws IOException,InterruptedException {
-		map(key,value,collector);
+		try{
+			map(key,value,collector);
+		} catch(GrouperException e){
+			throw new RuntimeException(e);
+		}
 	}
 	
-	public abstract void map(INPUT_KEY key,INPUT_VALUE value,Collector collector) throws IOException,InterruptedException;
+	public abstract void map(INPUT_KEY key,INPUT_VALUE value,Collector collector) throws IOException,InterruptedException,GrouperException;
 
 //	protected void emit(Tuple tuple,Context context) throws IOException, InterruptedException{
 //		context.write(tuple, nullValue);

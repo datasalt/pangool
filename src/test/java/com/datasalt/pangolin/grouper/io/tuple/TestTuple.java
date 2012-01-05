@@ -140,7 +140,7 @@ public class TestTuple extends BaseTest{
 		}
 		
 		for (ITuple tuple : tuples){
-			SortOrder value = SortOrder.ASCENDING;
+			SortOrder value = SortOrder.ASC;
 			tuple.setEnum("enum_field",value);
 			assertEquals(value,tuple.getEnum("enum_field"));
 			assertEquals(value,tuple.getObject("enum_field"));
@@ -267,7 +267,7 @@ public class TestTuple extends BaseTest{
 			tuple.setObject("boolean_field", true);
 			tuple.setObject("enum_field", null);
 			assertNotSerializable(tuple);
-			tuple.setObject("enum_field", SortOrder.ASCENDING);
+			tuple.setObject("enum_field", SortOrder.ASC);
 			tuple.setObject("string_field", null);
 			assertNotSerializable(tuple);
 			tuple.setObject("string_field", "");

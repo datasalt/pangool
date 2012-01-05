@@ -29,16 +29,15 @@ import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.mapreduce.Mapper;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 
-public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
+public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 
-	private static class Mapy extends Mapper<Text,NullWritable>{
+	private static class Mapy1 extends Mapper<Text,NullWritable>{
 		
 		private Tuple outputTuple;
 		
@@ -49,22 +48,41 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		
 		
 		@Override
-		public void map(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
+		public void map(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException,GrouperException {
 			String[] tokens = key.toString().split("\\s+");
-			String country = tokens[0];
-			Integer age = Integer.parseInt(tokens[1]);
-			String name = tokens[2];
-			Integer height = Integer.parseInt(tokens[3]);
+			Integer id = Integer.parseInt(tokens[0]);
+			String country = tokens[1];
+			Integer age = Integer.parseInt(tokens[2]);
+			String name = tokens[3];
+			Integer height = Integer.parseInt(tokens[4]);
+			outputTuple.setInt("id",id);
+			outputTuple.setString("country", country);
+			outputTuple.setInt("age", age);
+			outputTuple.setString("name", name);
+			outputTuple.setLong("height", height);
+			collector.write(outputTuple);
+		}
+	}
+	
+	private static class Mapy2 extends Mapper<Text,NullWritable>{
+		
+		private Tuple outputTuple;
+		
+		@Override
+		public void setup(Schema schema, Context context) throws IOException,InterruptedException {
+			this.outputTuple = TupleFactory.createTuple(schema);
+		}
+		
+		
+		@Override
+		public void map(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException,GrouperException {
+			String[] tokens = key.toString().split("\\s+");
+			Integer id = Integer.parseInt(tokens[0]);
+			String surname  = tokens[1];
+			outputTuple.setString("surname", surname);
+			outputTuple.setInt("id", id);
+			collector.write(outputTuple);
 			
-			try {
-				outputTuple.setString("country", country);
-				outputTuple.setInt("age", age);
-				outputTuple.setString("name", name);
-				outputTuple.setLong("height", height);
-				collector.write(outputTuple);
-			} catch(InvalidFieldException e) {
-				throw new RuntimeException(e);
-			}
 		}
 	}
 	
@@ -72,7 +90,6 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 
 		@Override
 		public void setup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
-			System.out.println("REd setup");
 		}
 		
 		@Override
@@ -100,17 +117,21 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 	@Test
 	public void test() throws IOException, InterruptedException, ClassNotFoundException, GrouperException{
 		
-		withInput("input",new Text("ES 20 listo 250"));
-		withInput("input",new Text("US 14 perro 180"));
-		withInput("input",new Text("US 14 perro 170"));
-		withInput("input",new Text("US 14 beber 202"));
-		withInput("input",new Text("US 15 jauja 160"));
-		withInput("input",new Text("US 16 listo 160"));
-		withInput("input",new Text("XE 20 listo 230"));
+		withInput("input1",new Text("1 ES 20 eric 250"));
+		withInput("input1",new Text("2 US 14 ivan 180"));
+		withInput("input1",new Text("3 US 14 pere 170"));
+		withInput("input1",new Text("4 US 14 bieber 202"));
+		withInput("input1",new Text("5 US 15 jauja 160"));
+		withInput("input1",new Text("6 US 16 listo 160"));
+		withInput("input1",new Text("7 XE 20 listo 230"));
+		
+		withInput("input2", new Text("1 palacios"));
+		withInput("input2", new Text("2 deprado"));
+		withInput("input3", new Text("3 ferrera"));
 		
 		
-		Schema schema = Schema.parse("country:string, age:vint, name:string, height:long");
-		SortCriteria sortCriteria = SortCriteria.parse("country DESC,age ASC,name asc,height desc");
+		Schema schema = Schema.parse("id:vint, country:string, age:vint, name:string, height:long, surname:string");
+		SortCriteria sortCriteria = SortCriteria.parse("id ASC");
 		
 		Grouper grouper = new Grouper(getConf());
 		grouper.setJarByClass(TestSimpleGrouper.class);
@@ -119,11 +140,12 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		grouper.setGroupHandler(Red.class);
 		
 		grouper.setSortCriteria(sortCriteria);
-		grouper.setFieldsToGroupBy("country","age");
+		grouper.setFieldsToGroupBy("id");
 		
 		grouper.setOutputKeyClass(Tuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
-		grouper.addInput(new Path("input"), SequenceFileInputFormat.class, Mapy.class);
+		grouper.addInput(new Path("input1"), SequenceFileInputFormat.class, Mapy1.class);
+		grouper.addInput(new Path("input2"), SequenceFileInputFormat.class, Mapy2.class);
 		
 		Job job = grouper.createJob();
 		FileOutputFormat.setOutputPath(job, new Path("output"));
@@ -132,3 +154,4 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		//TODO check output
 	}
 }
+

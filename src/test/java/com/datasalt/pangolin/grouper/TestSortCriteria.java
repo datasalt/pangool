@@ -33,12 +33,12 @@ public class TestSortCriteria {
 		SortCriteria criteria = SortCriteria.parse("name asc , caca using " + SortComparator.class.getName() + " desc");
 		SortElement[] sortElement = criteria.getSortElements();
 		assertEquals(2,sortElement.length);
-		assertEquals("name",sortElement[0].getName());
-		assertEquals(SortOrder.ASCENDING,sortElement[0].getSortOrder());
+		assertEquals("name",sortElement[0].getFieldName());
+		assertEquals(SortOrder.ASC,sortElement[0].getSortOrder());
 		assertNull(sortElement[0].getComparator());
 		
-		assertEquals("caca",sortElement[1].getName());
-		assertEquals(SortOrder.DESCENDING,sortElement[1].getSortOrder());
+		assertEquals("caca",sortElement[1].getFieldName());
+		assertEquals(SortOrder.DESC,sortElement[1].getSortOrder());
 		assertEquals(SortComparator.class,sortElement[1].getComparator());
 		
 		
