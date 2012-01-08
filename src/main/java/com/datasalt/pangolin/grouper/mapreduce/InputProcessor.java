@@ -20,9 +20,11 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.Mapper;
 
-import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 
 /**
@@ -30,14 +32,10 @@ import com.datasalt.pangolin.grouper.io.tuple.Tuple;
  * @author eric
  *
  */
-public abstract class Mapper<INPUT_KEY,INPUT_VALUE> extends org.apache.hadoop.mapreduce.Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
+public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
 	
-
-	//private MapperHandler<INPUT_KEY,INPUT_VALUE> handler;
 	private Schema schema;
 	private Collector collector;
-	//private NullWritable nullValue = NullWritable.get();
-	
 	
 	public static final class Collector {
 		private NullWritable nullValue = NullWritable.get();
@@ -54,48 +52,44 @@ public abstract class Mapper<INPUT_KEY,INPUT_VALUE> extends org.apache.hadoop.ma
 	}
 	
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
 	public final void setup(Context context) throws IOException,InterruptedException {
 		try {
 			Configuration conf = context.getConfiguration();
-			//Class<? extends MapperHandler> handlerClass = Grouper.getMapperHandler(conf);
-			//this.handler = ReflectionUtils.newInstance(handlerClass, conf);
 			this.schema = Schema.parse(conf);
 			this.collector = new Collector(context);
 			setup(schema,context);
-			//handler.setup(schema,context);
-			
 		} catch(GrouperException e) {
 			throw new RuntimeException(e);
 		}
 	}
 	
-	public abstract void setup(Schema schema, Context context) throws IOException,InterruptedException;
+	//TODO should this be blank , not abstract ?
+	public abstract void setup(Schema schema, Context context) throws IOException,InterruptedException,GrouperException ;
 	
 
 	@Override
+	//TODO should we delegate this one as well . Another clenaup method ??
 	public void cleanup(Context context) throws IOException,InterruptedException {
-		//handler.cleanup(schema,context);
-		
 	}
 	
 	
 	@Override
 	public final void map(INPUT_KEY key, INPUT_VALUE value,Context context) throws IOException,InterruptedException {
 		try{
-			map(key,value,collector);
+			process(key,value,collector);
 		} catch(GrouperException e){
 			throw new RuntimeException(e);
 		}
 	}
 	
-	public abstract void map(INPUT_KEY key,INPUT_VALUE value,Collector collector) throws IOException,InterruptedException,GrouperException;
-
-//	protected void emit(Tuple tuple,Context context) throws IOException, InterruptedException{
-//		context.write(tuple, nullValue);
-//	}
-	
-	
+	/**
+	 * This is the actual method that needs to be implemented by mappers used in {@link Grouper}
+	 * @param key
+	 * @param value
+	 * @param collector
+	 * 
+	 */
+	public abstract void process(INPUT_KEY key,INPUT_VALUE value,Collector collector) throws IOException,InterruptedException,GrouperException;
 	
 }

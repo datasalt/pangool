@@ -39,13 +39,13 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
-import com.datasalt.pangolin.grouper.mapreduce.Mapper;
+import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 
 public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 
-	private static class Mapy extends Mapper<Text,NullWritable>{
+	private static class Mapy extends InputProcessor<Text,NullWritable>{
 		
 
 		private Schema schema;
@@ -53,7 +53,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		
     @SuppressWarnings("unchecked")
 		@Override
-		public void setup(Schema schema,Context context) throws IOException,InterruptedException {
+		public void setup(Schema schema,Context context) throws IOException,InterruptedException,GrouperException  {
 			this.schema = schema;
 			
 			
@@ -62,7 +62,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public void map(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
+		public void process(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
 			try {
 				Tuple outputKey = createTuple(key.toString(), schema);
 				collector.write(outputKey);
@@ -160,23 +160,22 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		
 		Grouper grouper = new Grouper(getConf());
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		grouper.setGroupHandler(IdentityRed.class);
+		grouper.setOutputHandler(IdentityRed.class);
 		
 		grouper.setSchema(schema);
 		SortCriteria sortCriteria = SortCriteria.parse("country ASC,age ASC,name ASC");
 		grouper.setSortCriteria(sortCriteria);
-		grouper.setRollupBaseGroupFields("country");
+		grouper.setRollupBaseFieldsToGroupBy("country");
 		grouper.setFieldsToGroupBy("country","age","name");
 		
 		grouper.setOutputKeyClass(Text.class);
 		grouper.setOutputValueClass(Text.class);
 		grouper.addInput(new Path("input"), SequenceFileInputFormat.class, Mapy.class);
-		
-		Job job = grouper.createJob();
-		
-		job.setNumReduceTasks(1);
 		Path outputPath = new Path("output");
-		FileOutputFormat.setOutputPath(job, outputPath);
+		grouper.setOutputPath(outputPath);
+		Job job = grouper.createJob();
+		job.setNumReduceTasks(1);
+
 		
 		assertRun(job);
 		

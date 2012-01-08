@@ -42,13 +42,13 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
-import com.datasalt.pangolin.grouper.mapreduce.Mapper;
+import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 
 public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 
-	private static class Mapy extends Mapper<Text,NullWritable>{
+	private static class Mapy extends InputProcessor<Text,NullWritable>{
 		
 		private Schema schema;
 		
@@ -62,7 +62,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public void map(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
+		public void process(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
 			try {
 				Tuple outputKey = createTuple(key.toString(), schema);
 				collector.write(outputKey);
@@ -82,7 +82,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		@Override
 		public void setup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
 			Configuration conf = context.getConfiguration();	
-			
+			//TODO this needs to be acceded in another fashion
 			String[] baseGroup = Partitioner.getPartitionerFields(conf);
 			String[] maxGroup = GroupComparator.getGroupComparatorFields(conf);
 			minDepth = baseGroup.length - 1;
@@ -191,22 +191,19 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		
 		Grouper grouper = new Grouper(getConf());
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		grouper.setGroupHandler(IdentityRed.class);
+		grouper.setOutputHandler(IdentityRed.class);
 		
 		grouper.setSchema(schema);
 		grouper.setSortCriteria(sortCriteria);
-		grouper.setRollupBaseGroupFields("user");
+		grouper.setRollupBaseFieldsToGroupBy("user");
 		grouper.setFieldsToGroupBy("user","day","url");
 		
 		grouper.setOutputKeyClass(Text.class);
 		grouper.setOutputValueClass(Text.class);
 		grouper.addInput(new Path("input"), SequenceFileInputFormat.class, Mapy.class);
-		
+		grouper.setOutputPath(new Path("output"));
 		Job job = grouper.createJob();
 		job.setNumReduceTasks(1);
-		
-		Path outputPath = new Path("output");
-		FileOutputFormat.setOutputPath(job, outputPath);
 		
 		assertRun(job);
 		

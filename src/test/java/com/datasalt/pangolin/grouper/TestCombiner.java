@@ -39,13 +39,13 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.mapreduce.Mapper;
+import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 @SuppressWarnings({"unchecked"})
 public class TestCombiner extends AbstractHadoopTestLibrary{
 
-	private static class Mapy extends Mapper<Text,NullWritable>{
+	private static class Mapy extends InputProcessor<Text,NullWritable>{
 		
 		private Tuple outputTuple;
 		
@@ -57,7 +57,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		}
 		
     @Override
-		public void map(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
+		public void process(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
 			String[] tokens = key.toString().split("\\s+");
 			String country = tokens[0];
 			int age = Integer.parseInt(tokens[1]);
@@ -110,26 +110,26 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		//private int numFields;
 		
 		
-    public void setup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
+    public void setup(Schema schema,Reducer.Context context) throws IOException,InterruptedException,GrouperException {
 			
 		}
 		
 		@Override
-    public void onOpenGroup(int depth,String field,ITuple firstElement,Context context) throws IOException,InterruptedException  {
+    public void onOpenGroup(int depth,String field,ITuple firstElement,Context context) throws IOException,InterruptedException,GrouperException  {
 			
 	    System.out.println("COMBI OPEN("+ depth+","+field +"):\t\t" + firstElement);
 	    //emit(firstElement);
 		}
 
 		@Override
-    public void onCloseGroup(int depth,String field,ITuple lastElement,Context context) {
+    public void onCloseGroup(int depth,String field,ITuple lastElement,Context context) throws IOException,InterruptedException,GrouperException {
 	    System.out.println("COMBI CLOSE:("+depth+","+field+")\t\t" + lastElement);
     }
 
 		
 
 		@Override
-    public void onGroupElements(Iterable<ITuple> tuples, Reducer.Context context) throws IOException, InterruptedException {
+    public void onGroupElements(Iterable<ITuple> tuples, Reducer.Context context) throws IOException, InterruptedException,GrouperException  {
 	    // TODO Auto-generated method stub
 	    
     }
@@ -167,17 +167,17 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		Grouper grouper = new Grouper(getConf());
 		
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		grouper.setGroupHandler(Red.class);
+		grouper.setOutputHandler(Red.class);
 		grouper.setSchema(schemaBuilder.createSchema());
 		grouper.setSortCriteria(sortCriteria);
-		grouper.setRollupBaseGroupFields("country");
+		grouper.setRollupBaseFieldsToGroupBy("country");
 		grouper.setFieldsToGroupBy("country","age","name");
 		grouper.setCombinerHandler(Combi.class);
 		grouper.setOutputKeyClass(Tuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
 		grouper.addInput(new Path("input"),SequenceFileInputFormat.class, Mapy.class);
+		grouper.setOutputPath(new Path("output"));
 		Job job = grouper.createJob();
-		FileOutputFormat.setOutputPath(job, new Path("output"));
 		
 		assertRun(job);
 	}

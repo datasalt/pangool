@@ -25,7 +25,7 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.mapreduce.Mapper;
+import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 import com.google.common.io.Files;
 
@@ -42,7 +42,7 @@ public class Sandboxing {
 	 * @author pere
 	 *
 	 */
-	private static class MyInputProcessor extends Mapper<LongWritable, Text> {
+	private static class MyInputProcessor extends InputProcessor<LongWritable, Text> {
 
 		private Tuple outputTuple;
 		
@@ -57,7 +57,7 @@ public class Sandboxing {
     }
 
 		@Override
-    public void map(LongWritable key, Text value, com.datasalt.pangolin.grouper.mapreduce.Mapper.Collector collector)
+    public void process(LongWritable key, Text value, com.datasalt.pangolin.grouper.mapreduce.InputProcessor.Collector collector)
         throws IOException, InterruptedException, GrouperException {
 	    
 			String[] tokens = value.toString().split("\\s+");
@@ -158,7 +158,7 @@ public class Sandboxing {
 		 */
 		grouper.setSortCriteria(sortCriteria);
 		grouper.setOutputFormat(TextOutputFormat.class); // could be one by default		
-		grouper.setGroupHandler(MyGroupHandler.class); // could be Identity Handler?
+		grouper.setOutputHandler(MyGroupHandler.class); // could be Identity Handler?
 		grouper.setFieldsToGroupBy("url"); // could be the first in the schema or something?
 		grouper.setOutputKeyClass(Text.class);
 		grouper.setOutputValueClass(Text.class);

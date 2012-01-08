@@ -32,13 +32,13 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
-import com.datasalt.pangolin.grouper.mapreduce.Mapper;
+import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 
 public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 
-	private static class Mapy extends Mapper<Text,NullWritable>{
+	private static class Mapy extends InputProcessor<Text,NullWritable>{
 		
 		private Tuple outputTuple;
 		
@@ -49,7 +49,7 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		
 		
 		@Override
-		public void map(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
+		public void process(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
 			String[] tokens = key.toString().split("\\s+");
 			String country = tokens[0];
 			Integer age = Integer.parseInt(tokens[1]);
@@ -116,7 +116,7 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		grouper.setJarByClass(TestSimpleGrouper.class);
 		grouper.setSchema(schema);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		grouper.setGroupHandler(Red.class);
+		grouper.setOutputHandler(Red.class);
 		
 		grouper.setSortCriteria(sortCriteria);
 		grouper.setFieldsToGroupBy("country","age");
@@ -124,9 +124,8 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		grouper.setOutputKeyClass(Tuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
 		grouper.addInput(new Path("input"), SequenceFileInputFormat.class, Mapy.class);
-		
+		grouper.setOutputPath(new Path("output"));
 		Job job = grouper.createJob();
-		FileOutputFormat.setOutputPath(job, new Path("output"));
 		
 		assertRun(job);
 		//TODO check output

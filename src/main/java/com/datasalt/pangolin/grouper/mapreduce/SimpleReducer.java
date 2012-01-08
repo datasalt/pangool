@@ -44,30 +44,30 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 
   @SuppressWarnings({"unchecked","rawtypes"})
   public void setup(Context context) throws IOException,InterruptedException {
-  	//System.out.println("SimpleReducer setup");
 		super.setup(context);
 		try {
 			Configuration conf = context.getConfiguration();
 			this.schema = Schema.parse(conf);
+
+			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>();
+			this.grouperIterator.setContext(context);
+			Class<? extends GroupHandler> handlerClass = Grouper.getGroupHandler(conf);
+
+			this.handler = ReflectionUtils.newInstance(handlerClass, conf);
+
+			handler.setup(schema, context);
 		} catch(GrouperException e) {
 			throw new RuntimeException(e);
 		}
-  	
-  	this.grouperIterator = new TupleIterator<OUTPUT_KEY,OUTPUT_VALUE>();
-  	this.grouperIterator.setContext(context);
-  	
-  	Configuration conf = context.getConfiguration();
-    Class<? extends GroupHandler> handlerClass = Grouper.getGroupHandler(conf);
-    
-		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
-		
-		handler.setup(schema,context);
-  	
   }
   @Override
   public void cleanup(Context context) throws IOException,InterruptedException {
-  	super.cleanup(context);
-  	handler.cleanup(schema,context);
+  	try{
+  		super.cleanup(context);
+  		handler.cleanup(schema,context);
+  	} catch(GrouperException e){
+  		throw new RuntimeException(e);
+  	}
   }
   
 
@@ -80,7 +80,11 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 	public final void reduce(ITuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
 		Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
-		handler.onGroupElements(grouperIterator,context);
+		try{
+			handler.onGroupElements(grouperIterator,context);
+		} catch(GrouperException e){
+			throw new RuntimeException(e);
+		}
 		
 	}
   

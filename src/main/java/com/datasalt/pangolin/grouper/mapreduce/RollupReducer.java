@@ -58,80 +58,91 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
   @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override  	
   public void setup(Context context) throws IOException,InterruptedException {
-  	try{
-    Configuration conf = context.getConfiguration();
-  	this.schema = Schema.parse(conf);
-  	String[] groupFields = GroupComparator.getGroupComparatorFields(conf);
-  	this.maxDepth = groupFields.length -1;
-  	String[] partitionerFields = Partitioner.getPartitionerFields(conf);
-  	this.minDepth = partitionerFields.length -1;
-  	} catch(GrouperException e){
-  		throw new RuntimeException(e);
-  	}
-  	
-  	this.grouperIterator = new TupleIterator<OUTPUT_KEY,OUTPUT_VALUE>();
-  	this.grouperIterator.setContext(context);
-  	
-  	Configuration conf = context.getConfiguration();
-		Class<? extends GroupHandler> handlerClass = Grouper.getGroupHandler(conf);
-		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
-		handler.setup(schema,context);
-  	
+		try {
+			Configuration conf = context.getConfiguration();
+			this.schema = Schema.parse(conf);
+			String[] groupFields = GroupComparator.getGroupComparatorFields(conf);
+			this.maxDepth = groupFields.length - 1;
+			String[] partitionerFields = Partitioner.getPartitionerFields(conf);
+			this.minDepth = partitionerFields.length - 1;
+
+			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>();
+			this.grouperIterator.setContext(context);
+			
+			Class<? extends GroupHandler> handlerClass = Grouper.getGroupHandler(conf);
+			this.handler = ReflectionUtils.newInstance(handlerClass, conf);
+			handler.setup(schema, context);
+		} catch(GrouperException e) {
+			throw new RuntimeException(e);
+		}
   	
   }
   
   public void cleanup(Context context) throws IOException,InterruptedException {
+  	try{
   	handler.cleanup(schema,context);
+  	} catch(GrouperException e){
+  		throw new RuntimeException(e);
+  	}
   }
   
 
   @Override
   public final void run(Context context) throws IOException,InterruptedException {
-  	setup(context);
-  	firstIteration=true;
-  	while (context.nextKey()) {
-      reduce(context.getCurrentKey(), context.getValues(), context);
-      //TODO look if this matches super.run() implementation
-    }
-    
-    //close last group
-    for (int i=maxDepth; i >=minDepth ; i--){
-			handler.onCloseGroup(i,schema.getFields()[i].getName(),context.getCurrentKey(),context);
+		try {
+			setup(context);
+			firstIteration = true;
+			while(context.nextKey()) {
+				reduce(context.getCurrentKey(), context.getValues(), context);
+				// TODO look if this matches super.run() implementation
+			}
+
+			// close last group
+			for(int i = maxDepth; i >= minDepth; i--) {
+				handler.onCloseGroup(i, schema.getFields()[i].getName(), context.getCurrentKey(), context);
+			}
+			cleanup(context);
+		} catch(GrouperException e) {
+			throw new RuntimeException(e);
 		}
-    cleanup(context);
   }
   
   
   @Override
-	public final void reduce(ITuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
- 	Iterator<NullWritable> iterator = values.iterator();
-		grouperIterator.setIterator(iterator);
-		iterator.next();
-		Tuple currentKey = (Tuple)context.getCurrentKey();
-		int indexMismatch;
-		if (firstIteration) {
-			indexMismatch = minDepth;
-			firstIteration=false;
-		} else {
-			ITuple previousKey = currentKey.getPreviousTuple();
-			indexMismatch = indexMismatch(previousKey,currentKey , minDepth,maxDepth);
-			for (int i = maxDepth; i >= indexMismatch; i--) {
-				handler.onCloseGroup(i, schema.getFields()[i].getName(), previousKey,context);
-			}
-		}
-
-		for (int i = indexMismatch; i <= maxDepth; i++) {
-			handler.onOpenGroup(i, schema.getFields()[i].getName(), currentKey,context);
-		}
-
-		// we consumed the first element , so needs to comunicate to iterator
-		grouperIterator.setFirstTupleConsumed(true);
-		handler.onGroupElements(grouperIterator,context);
-
-		// This loop consumes the remaining elements that reduce didn't consume
-		// The goal of this is to correctly set the last element in the next onCloseGroup() call
-		while (iterator.hasNext()) {
+	public final void reduce(ITuple key, Iterable<NullWritable> values, Context context) throws IOException,
+	    InterruptedException {
+		try {
+			Iterator<NullWritable> iterator = values.iterator();
+			grouperIterator.setIterator(iterator);
 			iterator.next();
+			Tuple currentKey = (Tuple) context.getCurrentKey();
+			int indexMismatch;
+			if(firstIteration) {
+				indexMismatch = minDepth;
+				firstIteration = false;
+			} else {
+				ITuple previousKey = currentKey.getPreviousTuple();
+				indexMismatch = indexMismatch(previousKey, currentKey, minDepth, maxDepth);
+				for(int i = maxDepth; i >= indexMismatch; i--) {
+					handler.onCloseGroup(i, schema.getFields()[i].getName(), previousKey, context);
+				}
+			}
+
+			for(int i = indexMismatch; i <= maxDepth; i++) {
+				handler.onOpenGroup(i, schema.getFields()[i].getName(), currentKey, context);
+			}
+
+			// we consumed the first element , so needs to comunicate to iterator
+			grouperIterator.setFirstTupleConsumed(true);
+			handler.onGroupElements(grouperIterator, context);
+
+			// This loop consumes the remaining elements that reduce didn't consume
+			// The goal of this is to correctly set the last element in the next onCloseGroup() call
+			while(iterator.hasNext()) {
+				iterator.next();
+			}
+		} catch(GrouperException e) {
+			throw new RuntimeException(e);
 		}
 	}
   

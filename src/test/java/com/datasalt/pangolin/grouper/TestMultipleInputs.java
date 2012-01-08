@@ -31,13 +31,13 @@ import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
-import com.datasalt.pangolin.grouper.mapreduce.Mapper;
+import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
 
 public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 
-	private static class Mapy1 extends Mapper<Text,NullWritable>{
+	private static class Mapy1 extends InputProcessor<Text,NullWritable>{
 		
 		private Tuple outputTuple;
 		
@@ -48,7 +48,7 @@ public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 		
 		
 		@Override
-		public void map(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException,GrouperException {
+		public void process(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException,GrouperException {
 			String[] tokens = key.toString().split("\\s+");
 			Integer id = Integer.parseInt(tokens[0]);
 			String country = tokens[1];
@@ -64,7 +64,7 @@ public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 		}
 	}
 	
-	private static class Mapy2 extends Mapper<Text,NullWritable>{
+	private static class Mapy2 extends InputProcessor<Text,NullWritable>{
 		
 		private Tuple outputTuple;
 		
@@ -75,7 +75,7 @@ public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 		
 		
 		@Override
-		public void map(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException,GrouperException {
+		public void process(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException,GrouperException {
 			String[] tokens = key.toString().split("\\s+");
 			Integer id = Integer.parseInt(tokens[0]);
 			String surname  = tokens[1];
@@ -137,7 +137,7 @@ public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 		grouper.setJarByClass(TestSimpleGrouper.class);
 		grouper.setSchema(schema);
 		grouper.setOutputFormat(SequenceFileOutputFormat.class);
-		grouper.setGroupHandler(Red.class);
+		grouper.setOutputHandler(Red.class);
 		
 		grouper.setSortCriteria(sortCriteria);
 		grouper.setFieldsToGroupBy("id");
@@ -146,9 +146,8 @@ public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 		grouper.setOutputValueClass(NullWritable.class);
 		grouper.addInput(new Path("input1"), SequenceFileInputFormat.class, Mapy1.class);
 		grouper.addInput(new Path("input2"), SequenceFileInputFormat.class, Mapy2.class);
-		
+		grouper.setOutputPath(new Path("output"));
 		Job job = grouper.createJob();
-		FileOutputFormat.setOutputPath(job, new Path("output"));
 		
 		assertRun(job);
 		//TODO check output
