@@ -49,6 +49,10 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 			context.write(tuple, nullValue);
 		}
 		
+		public Mapper.Context getContext() {
+			return context;
+		}
+		
 	}
 	
 	
