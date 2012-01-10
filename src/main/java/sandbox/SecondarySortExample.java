@@ -11,9 +11,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer.Context;
-import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangolin.commons.HadoopUtils;
@@ -22,9 +20,9 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.SortCriteria;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 import com.google.common.io.Files;
@@ -35,7 +33,7 @@ import com.google.common.io.Files;
  * @author pere
  *
  */
-public class Sandboxing {
+public class SecondarySortExample {
 
 	/**
 	 * 
@@ -163,13 +161,11 @@ public class Sandboxing {
 		grouper.setOutputKeyClass(Text.class);
 		grouper.setOutputValueClass(Text.class);
 		
-		Job job = grouper.createJob();
-		/*
-		 * Maybe better to have the Path be passed as constructor argument before
-		 */
 		Path output = new Path("output-sandbox-pere");
+		grouper.setOutputPath(output);
+		
+		Job job = grouper.createJob();
 		HadoopUtils.deleteIfExists(FileSystem.get(conf), output);
-		FileOutputFormat.setOutputPath(job, output);
 		
 		job.waitForCompletion(true);
 		
