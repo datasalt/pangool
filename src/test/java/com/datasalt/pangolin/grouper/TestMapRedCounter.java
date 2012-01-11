@@ -105,8 +105,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
     }
 
 		@Override
-    public void onCloseGroup(int depth,String field,ITuple lastElement,Reducer.Context context) throws IOException, InterruptedException {
-			try {
+    public void onCloseGroup(int depth,String field,ITuple lastElement,Reducer.Context context) throws IOException, InterruptedException,GrouperException {
 				String tupleStr = lastElement.toString(0, depth);
 				String output =  tupleStr +  " => count:" + count[depth];
 				if (depth < maxDepth){
@@ -119,23 +118,15 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 					count[depth - 1] += count[depth];
 					distinctCount[depth - 1]++;
 				}
-			} catch(InvalidFieldException e) {
-				throw new RuntimeException(e);
-			}
     }
 		
 		@Override
-		public void onGroupElements(Iterable<ITuple> tuples,Reducer.Context context) throws IOException,InterruptedException {
+		public void onGroupElements(Iterable<ITuple> tuples,Reducer.Context context) throws IOException,InterruptedException,GrouperException {
 			Iterator<ITuple> iterator = tuples.iterator();
-
-			try {
 				while(iterator.hasNext()) {
 					ITuple tuple = iterator.next();
 					count[maxDepth] += tuple.getInt("count");
 				}
-			} catch(InvalidFieldException e) {
-				throw new RuntimeException(e);
-			}
 		}
 	}
 	
