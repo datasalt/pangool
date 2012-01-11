@@ -2,19 +2,20 @@ package com.datasalt.pangolin.pangool;
 
 import java.io.IOException;
 
+import junit.framework.Assert;
+
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.pangool.PangoolConfig;
+import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.pangool.SortCriteria.SortOrder;
 
 public class TestPangoolConfig {
 
 	@Test
-	public void test() throws InvalidFieldException, JsonGenerationException, JsonMappingException, IOException {
+	public void test() throws JsonGenerationException, JsonMappingException, IOException, GrouperException {
 		PangoolConfig config = new PangoolConfig();
 		
 		SchemaBuilder builder1 = new SchemaBuilder();
@@ -36,6 +37,9 @@ public class TestPangoolConfig {
 		config.setGroupByFields(new String[] { "url", "date" });
 		
 		ObjectMapper mapper = new ObjectMapper();
-		System.out.println(config.toStringAsJSON(mapper));
+		String jsonConfig = config.toStringAsJSON(mapper);
+		PangoolConfig config2 = PangoolConfig.fromJSON(jsonConfig, mapper);
+		
+		Assert.assertEquals(jsonConfig, config2.toStringAsJSON(mapper));
 	}
 }
