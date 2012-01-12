@@ -3,14 +3,12 @@ package com.datasalt.pangolin.grouper.io.tuple;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.util.Random;
 
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serializer;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datasalt.pangolin.grouper.BaseTest;
@@ -18,7 +16,6 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
-import com.datasalt.pangolin.thrift.test.A;
 
 public class TestTuple extends BaseTest{
 

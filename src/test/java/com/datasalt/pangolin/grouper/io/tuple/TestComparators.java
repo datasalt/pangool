@@ -37,10 +37,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.datasalt.pangolin.grouper.BaseTest;
+import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.Schema.Field;
 import com.datasalt.pangolin.grouper.SchemaBuilder;
-import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria;
 import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
