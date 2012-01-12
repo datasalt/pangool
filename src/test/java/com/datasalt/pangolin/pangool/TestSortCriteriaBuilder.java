@@ -27,17 +27,6 @@ public class TestSortCriteriaBuilder {
 		}
 	}
 
-	@Test
-	public void testInvalidReservedName() {
-		SortCriteriaBuilder builder = new SortCriteriaBuilder(null);
-		try {
-			builder.add(Schema.Field.SOURCE_ID_FIELD, SortOrder.ASC);
-			Assert.fail("Catched exception after adding reserved field should have been thrown");
-		} catch(Exception ife) {
-			return;
-		}
-	}	
-	
 	public void testInvalidSortOrder() {
 		SortCriteriaBuilder builder = new SortCriteriaBuilder(null);
 		try {
