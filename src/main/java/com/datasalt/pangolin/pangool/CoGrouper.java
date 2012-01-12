@@ -55,7 +55,7 @@ public class CoGrouper {
 		}
 	}
 
-	private PangoolConfig config;
+	private PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
 
 	private Configuration conf;
 
@@ -71,14 +71,13 @@ public class CoGrouper {
 	private List<Input> multiInputs = new ArrayList<Input>();
 
 	public CoGrouper(Configuration conf) {
-		config = new PangoolConfig();
 		this.conf = conf;
 	}
 
 	// ------------------------------------------------------------------------- //
 
 	public CoGrouper setSorting(Sorting sorting) {
-		config.setSorting(sorting);
+		configBuilder.setSorting(sorting);
 		return this;
 	}
 
@@ -98,30 +97,22 @@ public class CoGrouper {
 	}
 
 	public CoGrouper addSchema(Integer schemaId, Schema schema) throws CoGrouperException {
-		if(config.getSchemes().containsKey(schemaId)) {
-			throw new CoGrouperException("Schema already present: " + schemaId);
-		}
-
-		if(schema == null) {
-			throw new CoGrouperException("Schema may not be null");
-		}
-
-		config.addSchema(schemaId, schema);
+		configBuilder.addSchema(schemaId, schema);
 		return this;
 	}
 
 	public CoGrouper groupBy(String... fields) {
-		config.setGroupByFields(fields);
+		configBuilder.setGroupByFields(fields);
 		return this;
 	}
 
 	public CoGrouper setRollupFrom(String rollupFrom) {
-		config.setRollupFrom(rollupFrom);
+		configBuilder.setRollupFrom(rollupFrom);
 		return this;
 	}
 
 	public CoGrouper setPartitionerFields(String... partitionerFields) {
-		config.setCustomPartitionerFields(partitionerFields);
+		configBuilder.setCustomPartitionerFields(partitionerFields);
 		return this;
 	}
 
@@ -173,12 +164,8 @@ public class CoGrouper {
 		}
 	}
 
-	void doAllChecks() throws CoGrouperException {
+	public Job createJob() throws IOException, CoGrouperException {
 
-		raiseExceptionIfEmpty(config.getSchemes().values(), "Need to set at least one schema");
-		raiseExceptionIfNull(config.getSorting(), "Need to set sorting");
-		raiseExceptionIfNull(config.getSorting().getSortCriteria(), "Need to set sorting criteria");
-		raiseExceptionIfNull(config.getGroupByFields(), "Need to set fields to group by");
 		raiseExceptionIfNull(reduceHandler, "Need to set a group handler");
 		raiseExceptionIfEmpty(multiInputs, "Need to add at least one input");
 		raiseExceptionIfNull(outputFormat, "Need to set output format");
@@ -186,7 +173,7 @@ public class CoGrouper {
 		raiseExceptionIfNull(outputValueClass, "Need to set outputValueClass");
 		raiseExceptionIfNull(outputPath, "Need to set outputPath");
 
-		config.build();
+		PangoolConfig config = configBuilder.build();
 		
 		if(config.getRollupFrom() != null) {
 			
@@ -204,11 +191,6 @@ public class CoGrouper {
 				    + GroupHandlerWithRollup.class + " instead.");
 			}
 		}
-	}
-
-	public Job createJob() throws IOException, CoGrouperException {
-
-		doAllChecks();
 
 		Job job = new Job(conf);
 		// Serialize PangoolConf in Hadoop Configuration
