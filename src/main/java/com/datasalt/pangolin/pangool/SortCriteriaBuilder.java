@@ -31,18 +31,15 @@ class SortCriteriaBuilder {
 		return parentSorting.secondarySort(sourceId);
 	}
 	
-	public void add(String fieldName, SortOrder order, Class<? extends RawComparator> customComparator)
+	public SortCriteriaBuilder add(String fieldName, SortOrder order, Class<? extends RawComparator> customComparator)
 	    throws InvalidFieldException {
 
 		if(fieldAlreadyExists(fieldName)) {
 			throw new InvalidFieldException("Sorting field '" + fieldName + "' already specified");
 		}
 		
-		if(fieldName.equals(Schema.Field.SOURCE_ID_FIELD)) {
-			throw new InvalidFieldException("Can't define a sorting field with reserved name: " + Schema.Field.SOURCE_ID_FIELD + ". Use appropriate API method instead.");
-		}
-
 		fields.add(new SortElement(fieldName, order, customComparator));
+		return this;
 	}
 
 	public SortCriteriaBuilder add(String fieldName, SortOrder order) throws InvalidFieldException {

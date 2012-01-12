@@ -1,6 +1,7 @@
 package com.datasalt.pangolin.pangool;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ public class Schema {
 	public static class Field {
 		
 		public final static String SOURCE_ID_FIELD = "#source#";
+		public final static Field SOURCE_ID = new Field(SOURCE_ID_FIELD, VIntWritable.class);
 		
 		private String name;
 		private Class<?> type;
@@ -67,7 +69,7 @@ public class Schema {
 		}
 	}
 
-	private Field[] fields;
+	private List<Field> fields;
 
 	public static Class<?> strToClass(String str) throws ClassNotFoundException {
 		Class<?> clazz = (Class<?>) strClassMap.get(str);
@@ -88,8 +90,8 @@ public class Schema {
 
 	private Map<String, Integer> indexByFieldName = new HashMap<String, Integer>();
 
-	public Schema(Field[] fields) {
-		this.fields = fields;
+	public Schema(List<Field> fields) {
+		this.fields = Collections.unmodifiableList(fields);
 		int index = 0;
 		for(Field field : fields) {
 			this.indexByFieldName.put(field.getName(), index);
@@ -97,27 +99,27 @@ public class Schema {
 		}
 	}
 
-	public Field[] getFields() {
+	public List<Field> getFields() {
 		return fields;
 	}
 
 	public Field getField(String fieldName) {
 		int index = indexByFieldName(fieldName);
-		return fields[index];
+		return fields.get(index);
 	}
 
 	public Field getField(int i) {
-		return fields[i];
+		return fields.get(i);
 	}
 
 	public String serialize() {
 		StringBuilder b = new StringBuilder();
-		String fieldName = fields[0].name;
-		Class<?> fieldType = fields[0].type;
+		String fieldName = fields.get(0).name;
+		Class<?> fieldType = fields.get(0).type;
 		b.append(fieldName).append(":").append(classToStr(fieldType));
-		for(int i = 1; i < fields.length; i++) {
-			fieldName = fields[i].name;
-			fieldType = fields[i].type;
+		for(int i = 1; i < fields.size(); i++) {
+			fieldName = fields.get(i).name;
+			fieldType = fields.get(i).type;
 			String clazzStr = classToStr(fieldType);
 			if(clazzStr == null) {
 				clazzStr = fieldType.getName();
@@ -156,9 +158,7 @@ public class Schema {
 				String type = nameType[1].trim();
 				fields.add(new Field(name, strToClass(type)));
 			}
-			Field[] fieldsArray = new Field[fields.size()];
-			fields.toArray(fieldsArray);
-			return new Schema(fieldsArray);
+			return new Schema(fields);
 		} catch(ClassNotFoundException e) {
 			throw new CoGrouperException(e);
 		}

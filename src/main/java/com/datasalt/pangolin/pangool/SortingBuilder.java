@@ -3,6 +3,8 @@ package com.datasalt.pangolin.pangool;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.hadoop.io.RawComparator;
+
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.pangool.SortCriteria.SortOrder;
 
@@ -13,6 +15,7 @@ import com.datasalt.pangolin.pangool.SortCriteria.SortOrder;
  * @author pere
  * 
  */
+@SuppressWarnings("rawtypes")
 public class SortingBuilder extends SortCriteriaBuilder {
 
 	private Map<Integer, SortCriteriaBuilder> secondarySortBuilders;
@@ -22,14 +25,26 @@ public class SortingBuilder extends SortCriteriaBuilder {
 		secondarySortBuilders = new HashMap<Integer, SortCriteriaBuilder>();
 	}
 	
+	public SortingBuilder add(String fieldName, SortOrder order, Class<? extends RawComparator> customComparator) throws InvalidFieldException {
+		super.add(fieldName, order, customComparator);
+		return this;
+	}
+	
+	@Override
+	public SortingBuilder add(String fieldName, SortOrder order) throws InvalidFieldException {
+		super.add(fieldName, order);
+	  return this;
+	}
+	
 	public SortCriteriaBuilder secondarySort(Integer sourceId) {
 		SortCriteriaBuilder builder = new SortCriteriaBuilder(this);
 		secondarySortBuilders.put(sourceId, builder);
 		return builder;
 	}
 
-	public void addSourceId(SortOrder order) throws InvalidFieldException {
+	public SortingBuilder addSourceId(SortOrder order) throws InvalidFieldException {
 		add(Schema.Field.SOURCE_ID_FIELD, order, null);
+		return this;
 	}
 	
 	public Sorting buildSorting() {

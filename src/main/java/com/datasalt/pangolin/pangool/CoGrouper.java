@@ -3,9 +3,7 @@ package com.datasalt.pangolin.pangool;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -15,7 +13,6 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
@@ -23,8 +20,6 @@ import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
 import com.datasalt.pangolin.grouper.mapreduce.SimpleCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.SimpleReducer;
-import com.datasalt.pangolin.pangool.Schema.Field;
-import com.datasalt.pangolin.pangool.SortCriteria.SortElement;
 import com.datasalt.pangolin.pangool.io.tuple.GroupComparator;
 import com.datasalt.pangolin.pangool.io.tuple.Partitioner;
 import com.datasalt.pangolin.pangool.mapreduce.GroupHandler;
@@ -39,7 +34,6 @@ import com.datasalt.pangolin.pangool.mapreduce.InputProcessor;
 @SuppressWarnings("rawtypes")
 public class CoGrouper {
 
-	private final static String CONF_PANGOOL_CONF = CoGrouper.class.getName() + ".pangool.conf";
 	private final static String CONF_REDUCER_HANDLER = CoGrouper.class.getName() + ".reducer.handler";
 	private final static String CONF_COMBINER_HANDLER = CoGrouper.class.getName() + ".combiner.handler";
 
@@ -75,8 +69,6 @@ public class CoGrouper {
 	private Path outputPath;
 
 	private List<Input> multiInputs = new ArrayList<Input>();
-
-	private ObjectMapper jsonSerDe = new ObjectMapper();
 
 	public CoGrouper(Configuration conf) {
 		config = new PangoolConfig();
@@ -152,6 +144,16 @@ public class CoGrouper {
 		return this;
 	}
 
+	@SuppressWarnings("unchecked")
+  public static Class<? extends GroupHandler> getGroupHandler(Configuration conf) {
+		return (Class<? extends GroupHandler>) conf.getClass(CONF_REDUCER_HANDLER, null);
+	}
+	
+	@SuppressWarnings("unchecked")
+  public static Class<? extends GroupHandler> getCombinerHandler(Configuration conf) {
+		return (Class<? extends GroupHandler>) conf.getClass(CONF_COMBINER_HANDLER, null);
+	}
+
 	// ------------------------------------------------------------------------- //
 
 	private void raiseExceptionIfNull(Object ob, String message) throws CoGrouperException {
@@ -179,71 +181,19 @@ public class CoGrouper {
 		raiseExceptionIfNull(outputValueClass, "Need to set outputValueClass");
 		raiseExceptionIfNull(outputPath, "Need to set outputPath");
 
-		// Check that sortCriteria is a combination of fields from schema
-
-		List<String> commonFields = new ArrayList<String>();
-		Collection<Schema> schemas = config.getSchemes().values();
-		int count = 0;
-		// Calculate the common fields between all schemas
-		for(Schema schema : schemas) {
-			if(count == 0) {
-				// First schema has all common fields
-				for(Field field : schema.getFields()) {
-					commonFields.add(field.getName());
-				}
-			} else {
-				// The rest of schemas are tested against the (so far) common fields
-				Iterator<String> iterator = commonFields.iterator();
-				while(iterator.hasNext()) {
-					String field = iterator.next();
-					if(!schema.containsFieldName(field)) {
-						iterator.remove();
-					}
-				}
-			}
-			count++;
-		}
-
-		for(SortElement sortElement : config.getSorting().getSortCriteria().getSortElements()) {
-			if(!commonFields.contains(sortElement.getFieldName())) {
-				String extraReason = schemas.size() > 1 ? " common " : "";
-				throw new CoGrouperException("Sort element [" + sortElement.getFieldName() + "] not contained in "
-				    + extraReason + " Schema fields: " + commonFields);
-			}
-		}
-
-		for(Map.Entry<Integer, SortCriteria> secondarySortCriteria : config.getSorting().getSecondarySortCriterias()
-		    .entrySet()) {
-			// Check that each particular sort criteria (not common fields) matches existent fields for the schema
-			int schemaId = secondarySortCriteria.getKey();
-			Schema schema = config.getSchemes().get(schemaId);
-			if(schema == null) {
-				throw new CoGrouperException("Sort criteria for unexisting schema [" + schemaId + "]");
-			}
-			for(SortElement sortElement : secondarySortCriteria.getValue().getSortElements()) {
-				if(!schema.containsFieldName(sortElement.getFieldName())) {
-					throw new CoGrouperException("Particular secondary sort for schema [" + schemaId
-					    + "] has non-existent field [" + sortElement.getFieldName() + "]");
-				}
-			}
-		}
-
-		SortCriteria sortCriteria = config.getSorting().getSortCriteria();
-		for(int i = 0; i < config.getGroupByFields().size(); i++) {
-			if(!sortCriteria.getSortElements()[i].getFieldName().equals(config.getGroupByFields().get(i))) {
-				throw new CoGrouperException("Group by fields " + config.getGroupByFields()
-				    + " is not a prefix of sort criteria: " + sortCriteria);
-			}
-		}
-
+		config.build();
+		
 		if(config.getRollupFrom() != null) {
+			
 			// Check that rollupFrom is contained in groupBy
+			
 			if(!config.getGroupByFields().contains(config.getRollupFrom())) {
 				throw new CoGrouperException("Rollup from [" + config.getRollupFrom() + "] not contained in group by fields "
 				    + config.getGroupByFields());
 			}
 
 			// Check that we are using the appropriate Handler
+			
 			if(!GroupHandlerWithRollup.class.isAssignableFrom(reduceHandler)) {
 				throw new CoGrouperException("Can't use " + reduceHandler + " with rollup. Please use "
 				    + GroupHandlerWithRollup.class + " instead.");
@@ -257,8 +207,8 @@ public class CoGrouper {
 
 		Job job = new Job(conf);
 		// Serialize PangoolConf in Hadoop Configuration
-		conf.set(CONF_PANGOOL_CONF, config.toStringAsJSON(jsonSerDe));
-
+		PangoolConfig.setPangoolConfig(config, conf);
+		
 		// Set fields to group by in Hadoop Configuration
 		GroupComparator.setGroupComparatorFields(job.getConfiguration(), config.getGroupByFields());
 
