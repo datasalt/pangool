@@ -94,6 +94,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			firstIteration = true;
 			while(context.nextKey()) {
 				reduce(context.getCurrentKey(), context.getValues(), context);
+				((Tuple)context.getCurrentKey()).swapInstances();
 				// TODO look if this matches super.run() implementation
 			}
 

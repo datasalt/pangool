@@ -72,9 +72,9 @@ class TupleDeserializer implements Deserializer<ITuple> {
 			result = ReflectionUtils.newInstance(Tuple.class, null);
 		}
 		
-		if (result instanceof Tuple){
-			((Tuple)result).swapInstances();
-		}
+//		if (result instanceof Tuple){
+//			((Tuple)result).swapInstances();
+//		}
 		
 		readFields(result, in);
 		return result;

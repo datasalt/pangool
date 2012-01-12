@@ -17,7 +17,6 @@
 package com.datasalt.pangolin.grouper.io.tuple;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,18 +28,15 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
-import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.serializer.Serializer;
-import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.datasalt.pangolin.grouper.BaseTest;
+import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.Schema.Field;
 import com.datasalt.pangolin.grouper.SchemaBuilder;
-import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria;
 import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
@@ -48,7 +44,6 @@ import com.datasalt.pangolin.grouper.SortCriteriaBuilder;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangolin.io.Serialization;
-import com.datasalt.pangolin.thrift.test.A;
 
 /**
  * This tests either {@link SortComparator} or {@link GroupComparator}.It checks
