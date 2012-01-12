@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VIntWritable;
@@ -39,17 +41,22 @@ import com.datasalt.pangolin.io.Serialization;
 
 class TupleSerializer implements Serializer<ITuple> {
 
-	
+
 	private Serialization ser;
 	
 	private DataOutputStream out;
 	private Schema schema;
 	private Text text= new Text();
 	
-  //private Map<String,Enum<?>[]> cachedEnums;
+  private Map<String,Enum<?>[]> cachedEnums;
   private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 	
-
+  TupleSerializer(Serialization ser,Schema schema){
+		this.schema = schema;
+		this.ser = ser;
+		cachedEnums = TupleSerialization.cacheEnums(schema);
+	}
+	
   public void open(OutputStream out) {
   	this.out = new DataOutputStream(out);
   }
@@ -62,38 +69,36 @@ class TupleSerializer implements Serializer<ITuple> {
   	this.out.close();
   }
   
-  void setSchema(Schema schema){
-  	this.schema = schema;
-  	//cachedEnums = TupleSerialization.cacheEnums(schema);
+//  public static int defaultInt(Object o){
+//  	return (o == null) ? 0: (Integer)o;
+//  }
+//  
+//  public static long defaultLong(Object o){
+//  	return (o == null) ? 0l: (Long)o;
+//  }
+//  
+//  public static float defaultFloat(Object o){
+//  	return (o == null) ? 0f: (Float)o;
+//  }
+//  
+//  public static double defaultDouble(Object o){
+//  	return (o == null) ? 0.0: (Double)o;
+//  }
+//  
+//  public static boolean defaultBoolean(Object o){
+//  	return (o == null) ? false: (Boolean)o;
+//  }
+//  
+//  private String defaultString(Object o){
+//  	return (o == null) ? "": (String)o;
+//  }
+  
+  private static void throwIOIfNull(String field,Object element) throws IOException {
+  	if (element == null){
+  		throw new IOException("Field '" + field + "' can't be null");
+  	}
   }
   
-  void setSerialization(Serialization ser){
-  	this.ser = ser;
-  }
-  
-  public static int defaultInt(Object o){
-  	return (o == null) ? 0: (Integer)o;
-  }
-  
-  public static long defaultLong(Object o){
-  	return (o == null) ? 0l: (Long)o;
-  }
-  
-  public static float defaultFloat(Object o){
-  	return (o == null) ? 0f: (Float)o;
-  }
-  
-  public static double defaultDouble(Object o){
-  	return (o == null) ? 0.0: (Double)o;
-  }
-  
-  public static boolean defaultBoolean(Object o){
-  	return (o == null) ? false: (Boolean)o;
-  }
-  
-  private String defaultString(Object o){
-  	return (o == null) ? "": (String)o;
-  }
   
 	public void write(ITuple tuple,DataOutput output) throws IOException {
 		int presentFields = 0;
@@ -106,24 +111,37 @@ class TupleSerializer implements Serializer<ITuple> {
 			} 
 			try {
 				if (fieldType == VIntWritable.class) {
-					WritableUtils.writeVInt(output, defaultInt(element));
+					throwIOIfNull(fieldName,element);
+					WritableUtils.writeVInt(output, (Integer)element);
 				} else if (fieldType == VLongWritable.class) {
-					WritableUtils.writeVLong(output, defaultLong(element));
+					throwIOIfNull(fieldName,element);
+					WritableUtils.writeVLong(output, (Long)element);
 				} else if (fieldType == Integer.class) {
-					output.writeInt(defaultInt(element));
+					throwIOIfNull(fieldName,element);
+					output.writeInt((Integer)element);
 				} else if (fieldType == Long.class) {
-					output.writeLong(defaultLong(element));
+					throwIOIfNull(fieldName,element);
+					output.writeLong((Long)element);
 				} else if (fieldType == Double.class) {
-					output.writeDouble(defaultDouble(element));
+					throwIOIfNull(fieldName,element);
+					output.writeDouble((Double)element);
 				} else if (fieldType == Float.class) {
-					output.writeFloat(defaultFloat(element));
+					throwIOIfNull(fieldName,element);
+					output.writeFloat((Float)element);
 				} else if (fieldType == String.class) {
-					text.set(defaultString(element));
+					if (element == null){
+						//WritableUtils.writeVInt(output,-1);
+						element = "";
+					} //else {
+					text.set((String)element);
 					text.write(output);
+					//}
 				} else if (fieldType == Boolean.class) {
-					output.write(defaultBoolean(element) ? 1 : 0);
+					throwIOIfNull(fieldName,element);
+					output.write((Boolean)element ? 1 : 0);
 				} else if (fieldType.isEnum()) {
 					Enum<?> e = (Enum<?>) element;
+					throwIOIfNull(fieldName,element);
 					if (e.getClass() != fieldType){
 						throw new IOException("Field '" + fieldName + "' contains '" + element
 						+ "' which is " + element.getClass().getName()
