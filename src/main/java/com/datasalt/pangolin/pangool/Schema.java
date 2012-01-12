@@ -10,8 +10,6 @@ import org.apache.commons.collections.bidimap.DualHashBidiMap;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 
-import com.datasalt.pangolin.grouper.GrouperException;
-
 /**
  * Encapsulates one Pangool schame composed of {@link Field} instances.
  * 
@@ -142,7 +140,7 @@ public class Schema {
 		return serialize();
 	}
 
-	public static Schema parse(String serialized) throws GrouperException {
+	public static Schema parse(String serialized) throws CoGrouperException {
 		try {
 			if(serialized == null || serialized.isEmpty()) {
 				return null;
@@ -152,7 +150,7 @@ public class Schema {
 			for(String field : fieldsStr) {
 				String[] nameType = field.split(":");
 				if(nameType.length != 2) {
-					throw new GrouperException("Incorrect fields description " + serialized);
+					throw new CoGrouperException("Incorrect fields description " + serialized);
 				}
 				String name = nameType[0].trim();
 				String type = nameType[1].trim();
@@ -162,7 +160,7 @@ public class Schema {
 			fields.toArray(fieldsArray);
 			return new Schema(fieldsArray);
 		} catch(ClassNotFoundException e) {
-			throw new GrouperException(e);
+			throw new CoGrouperException(e);
 		}
 	}
 

@@ -27,7 +27,7 @@ class SortCriteriaBuilder {
 		this.parentSorting = parentSorting;
 	}
 	
-	public SortCriteriaBuilder secondarySort(String sourceId) {
+	public SortCriteriaBuilder secondarySort(Integer sourceId) {
 		return parentSorting.secondarySort(sourceId);
 	}
 	
