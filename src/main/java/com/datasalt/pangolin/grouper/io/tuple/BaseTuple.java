@@ -236,6 +236,15 @@ public class BaseTuple extends HashMap<String,Object> implements ITuple {
 //	}
 	
 	@Override
+	public Object put(String key, Object value) {
+		if (key != null && value != null){
+			return super.put(key,value);
+		} else {
+			return remove(key);
+		}
+	}
+	
+	@Override
 	public int getInt(String fieldName)  {
 		return (Integer)getField(fieldName);
 	}
@@ -428,19 +437,16 @@ public class BaseTuple extends HashMap<String,Object> implements ITuple {
 	
 	
 	
-	@Override
-	public boolean equals(Object tuple2){
+	//@Override
+	public static boolean leftEquals(ITuple tuple1,ITuple tuple2){
 		if (!(tuple2 instanceof ITuple)){
 			return false;
 		}
 		
 			
-			for (Map.Entry<String,Object> entry : entrySet()){
-			//for(Field field : schema.getFields()) {
+			for (Map.Entry<String,Object> entry : tuple1.entrySet()){
 				String fieldName = entry.getKey();
 				Object thisElement = entry.getValue();
-				//String fieldName = field.getName();
-				//Object thisElement = getObject(fieldName);
 				Object thatElement = ((ITuple) tuple2).getObject(fieldName);
 				if (thisElement == null){
 					if (thatElement != null){
