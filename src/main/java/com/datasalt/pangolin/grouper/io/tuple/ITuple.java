@@ -15,6 +15,13 @@
  */
 package com.datasalt.pangolin.grouper.io.tuple;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Map;
+
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.thrift.TBase;
@@ -32,60 +39,68 @@ import com.datasalt.pangolin.grouper.GrouperException;
  * @author eric
  *
  */
-public interface ITuple extends WritableComparable<ITuple>,Configurable{
+public interface ITuple extends Map<String,Object>,Comparable<ITuple>/*extends WritableComparable<ITuple>,Configurable*/{
 	
-	public Schema getSchema();
+	//public Schema getSchema();
 	
-	public int partialHashCode(String[] fields) throws InvalidFieldException;
+	public int partialHashCode(String[] fields);
 	
-	public void setSchema(Schema schema);
+	//public void setSchema(Schema schema);
 	
 	
 	//Getters
 	
-	public int getInt(String fieldName) throws InvalidFieldException;
 	
-	public long getLong(String fieldName) throws InvalidFieldException;
+	public int size();
 	
-	public float getFloat(String fieldName) throws InvalidFieldException;
+	public int getInt(String fieldName);
 	
-	public double getDouble(String fieldName) throws InvalidFieldException;
+	public long getLong(String fieldName);
 	
-	public String getString(String fieldName) throws InvalidFieldException;
+	public float getFloat(String fieldName);
 	
-	public Object getObject(String fieldName) throws InvalidFieldException;
+	public double getDouble(String fieldName);
 	
-	public <T> T getObject(Class<T> clazz,String fieldName) throws InvalidFieldException ;
+	public String getString(String fieldName);
 	
-	public Enum<? extends Enum<?>> getEnum(String fieldName) throws InvalidFieldException;
+	public Object getObject(String fieldName);
+	
+	public <T> T getObject(Class<T> clazz,String fieldName);
+	
+	public Enum<? extends Enum<?>> getEnum(String fieldName);
 	
 	
 	
 	//Setters
 	
-	public void setEnum(String fieldName, Enum<? extends Enum<?>> value) throws InvalidFieldException;
+	public void setEnum(String fieldName, Enum<? extends Enum<?>> value);
 	
-	public void setInt(String fieldName, int value) throws InvalidFieldException;
+	public void setInt(String fieldName, int value);
 	
-	public void setString(String fieldName,String value) throws InvalidFieldException;
+	public void setString(String fieldName,String value);
 	
-	public void setLong(String fieldName,long value) throws InvalidFieldException;
+	public void setLong(String fieldName,long value) ;
 	
-	public void setFloat(String fieldName,float value) throws InvalidFieldException;
+	public void setFloat(String fieldName,float value) ;
 	
-	public void setDouble(String fieldName,double value) throws InvalidFieldException;
+	public void setDouble(String fieldName,double value) ;
 	
-	public void setBoolean(String fieldName,boolean value) throws InvalidFieldException;
+	public void setBoolean(String fieldName,boolean value) ;
 	
-	public void setObject(String fieldName,Object object) throws InvalidFieldException;
+	public void setObject(String fieldName,Object object) ;
 	
-	public <T> void setObject(Class<T> valueType,String fieldName,T value) throws InvalidFieldException;
+	public <T> void setObject(Class<T> valueType,String fieldName,T value) ;
 	
-	public void setThriftObject(String fieldName,TBase<?, ?> value) throws InvalidFieldException;
+	//public void setThriftObject(String fieldName,TBase<?, ?> value) ;
 	
 
-	public String toString(int minFieldIndex,int maxFieldIndex) throws InvalidFieldException;
+	public String toString(Schema schema,int minFieldIndex,int maxFieldIndex) ;
 	
+	
+	
+//	public void write(Schema schema,DataOutput output) throws IOException;
+//	public void readFields(Schema schema,DataInput input) throws IOException;
+//	
 	/**
 	 * Thrown when a field is not present in schema
 	 * 

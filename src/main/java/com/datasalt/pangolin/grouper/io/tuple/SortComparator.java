@@ -26,6 +26,8 @@ import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
+
+import static org.apache.hadoop.io.WritableComparator.*;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
@@ -44,7 +46,7 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
  * @author eric
  * 
  */
-public class SortComparator extends WritableComparator implements Configurable {
+public class SortComparator implements RawComparator<ITuple>,Configurable {
 
 	private Configuration conf;
 	private Schema schema;
@@ -53,7 +55,7 @@ public class SortComparator extends WritableComparator implements Configurable {
   private Map<Class,RawComparator> instancedComparators;
 
 	public SortComparator() {
-		super(Tuple.class);
+		
 	}
 
 	public SortCriteria getSortCriteria(){
@@ -61,19 +63,19 @@ public class SortComparator extends WritableComparator implements Configurable {
 	}
 	
 	
-	/**
-	 * Never called in MapRed jobs. Just for completion and test purposes
-	 */
-	@Override
-	public int compare(Object w1,Object w2) {
-		return compare((WritableComparable)w1,(WritableComparable)w2);
-	}
+//	/**
+//	 * Never called in MapRed jobs. Just for completion and test purposes
+//	 */
+//	@Override
+//	public int compare(Object w1,Object w2) {
+//		return compare((WritableComparable)w1,(WritableComparable)w2);
+//	}
 	
 	/**
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
 	@Override
-	public int compare(WritableComparable w1,WritableComparable w2) {
+	public int compare(ITuple w1,ITuple w2) {
 		int fieldsCompared = sortCriteria.getSortElements().length;
 		return compare(fieldsCompared,w1,w2);
 	}
@@ -82,8 +84,7 @@ public class SortComparator extends WritableComparator implements Configurable {
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
 	@SuppressWarnings("unchecked")
-  public int compare(int maxFieldsCompared,Object w1,Object w2){
-		try {
+  public int compare(int maxFieldsCompared,ITuple w1,ITuple w2){
 			ITuple tuple1 = (ITuple) w1;
 			ITuple tuple2 = (ITuple) w2;
 			for(int depth = 0; depth < maxFieldsCompared; depth++) {
@@ -110,9 +111,7 @@ public class SortComparator extends WritableComparator implements Configurable {
 				}
 			}
 			return 0;
-		} catch(InvalidFieldException e) {
-			throw new RuntimeException(e);
-		}
+		
 	}
 	
 	/**
@@ -314,6 +313,7 @@ public class SortComparator extends WritableComparator implements Configurable {
 	
 	static {
 		// statically added in register
-		WritableComparator.define(Tuple.class, new SortComparator());
+		
+		//WritableComparator.define(Tuple.class, new SortComparator());
 	}
 }

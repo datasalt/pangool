@@ -18,9 +18,12 @@ package com.datasalt.pangolin.grouper.io.tuple;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,409 +45,293 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.io.Serialization;
 
 /**
- * This is the basic implementation of {@link ITuple}. It implements the type-checking and raw low-level fields 
- * serialization/deserialization.
+ * This is the basic implementation of {@link ITuple}. 
  * 
  * @author eric
  * 
  */
-public class BaseTuple implements ITuple {
-	private Configuration conf;
+public class BaseTuple extends HashMap<String,Object> implements ITuple {
+	//private Configuration conf;
 	
-	private Map<String,Object> tupleElements = new HashMap<String,Object>();
-	private Set<String> nullObjects = new HashSet<String>();
-	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
-	private Buffer tmpInputBuffer = new Buffer();
-	private Serialization serialization;
-	private Schema schema;
-	private Text text = new Text();
+	//private Map<String,Object> elements = new HashMap<String,Object>();
+	//private Set<String> nullObjects = new HashSet<String>();
 	
-	@SuppressWarnings("rawtypes")
-  private Map<String,Enum[]> cachedEnums = new HashMap<String,Enum[]>();
+	
+	//private Serialization serialization;
+	//private Schema schema;
+//	private Text text = new Text();
 	
 	
 	
-	/**
-	 * Hadoop can use this using ReflectionUtils.newInstance
-	 */
-	@SuppressWarnings("unused")
-  private BaseTuple() {
+	
+	
+//	/**
+//	 * Hadoop can use this using ReflectionUtils.newInstance
+//	 */
+//	@SuppressWarnings("unused")
+  public BaseTuple() {
 	}
 	
-	BaseTuple(@Nonnull Schema schema){
-		setSchema(schema);
-	}
+//	BaseTuple(@Nonnull Schema schema){
+//		setSchema(schema);
+//	}
 	
-	BaseTuple(@Nonnull Configuration conf){
-		try {
-	    Schema schema = Schema.parse(conf);
-	    if (schema == null){
-	    	throw new RuntimeException("schema must be set in conf");
-	    }
-    } catch(GrouperException e) {
-	    throw new RuntimeException(e);
-    }
-		setConf(conf);
-	}
+//	BaseTuple(@Nonnull Configuration conf){
+//		try {
+//	    Schema schema = Schema.parse(conf);
+//	    if (schema == null){
+//	    	throw new RuntimeException("schema must be set in conf");
+//	    }
+//    } catch(GrouperException e) {
+//	    throw new RuntimeException(e);
+//    }
+//		setConf(conf);
+//	}
 	
 
-	@Override
-	public Schema getSchema(){
-		return schema;
-	}
+//	@Override
+//	public Schema getSchema(){
+//		return schema;
+//	}
 	
-	public void setSerialization(Serialization ser){
-		this.serialization = ser;
-	}
+//	public void setSerialization(Serialization ser){
+//		this.serialization = ser;
+//	}
 	
-	public void clear(){
-		this.tupleElements.clear();
-		this.nullObjects.clear();
-		populateObjects();
-	}
+//	public void clear(){
+//		this.
+//		this.elements.clear();
+////		this.nullObjects.clear();
+////		populateObjects();
+//	}
 	
 	
-	/**
-	 * Caches the values from the enum fields. This is done just once for efficiency since it uses reflection. 
-	 * 
-	 */
-	private void cacheEnums(Schema schema) {
-		try {
-			for(Field field : schema.getFields()) {
-				Class<?> type = field.getType();
-				if(type.isEnum()) {
-					Method method = type.getMethod("values", null);
-					Object values = method.invoke(null);
-					cachedEnums.put(field.getName(),(Enum[])values);
-				}
-
-			}
-		} catch(Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
 	
-	@Override
-	public void setSchema(@Nonnull Schema schema) {
-		if (this.schema != null){
-			throw new IllegalStateException("Schema already set,not allowed to set it twice");
-		} else if (schema == null){
-			throw new RuntimeException("Schema can't be null");
-		}
-		this.schema = schema;
-		this.cachedEnums.clear();
-		cacheEnums(schema);
-		clear();
-	}
 	
-	private void populateObjects(){
-		for (Field field : schema.getFields()){
-			Class fieldType = field.getType();
-			String fieldName = field.getName();
-			if (fieldType == Integer.class || fieldType == VIntWritable.class){
-				tupleElements.put(fieldName,0);
-			} else if (fieldType == Long.class || fieldType == VLongWritable.class){
-				tupleElements.put(fieldName,0l);
-			} else if(fieldType == String.class){
-				tupleElements.put(fieldName,"");
-			} else if(fieldType == Boolean.class){
-				tupleElements.put(fieldName,false);
-			} else if(fieldType == Float.class){
-				tupleElements.put(fieldName,0.f);
-			} else if(fieldType == Double.class){
-				tupleElements.put(fieldName,0.0);
-			} else if(fieldType.isEnum()){
-        Enum[] enums = cachedEnums.get(fieldName);
-        tupleElements.put(fieldName,enums[0]);
-			} else {
-				Object object = ReflectionUtils.newInstance(fieldType, conf);
-				tupleElements.put(fieldName,object);
-				nullObjects.add(fieldName);
-			}
-		}
-	}
+//	@Override
+//	public void setSchema(@Nonnull Schema schema) {
+//		if (this.schema != null){
+//			throw new IllegalStateException("Schema already set,not allowed to set it twice");
+//		} else if (schema == null){
+//			throw new RuntimeException("Schema can't be null");
+//		}
+//		this.schema = schema;
+//		this.cachedEnums.clear();
+//		cacheEnums(schema);
+//		clear();
+//	}
+	
+//	private void populateObjects(){
+//		for (Field field : schema.getFields()){
+//			Class fieldType = field.getType();
+//			String fieldName = field.getName();
+//			if (fieldType == Integer.class || fieldType == VIntWritable.class){
+//				tupleElements.put(fieldName,0);
+//			} else if (fieldType == Long.class || fieldType == VLongWritable.class){
+//				tupleElements.put(fieldName,0l);
+//			} else if(fieldType == String.class){
+//				tupleElements.put(fieldName,"");
+//			} else if(fieldType == Boolean.class){
+//				tupleElements.put(fieldName,false);
+//			} else if(fieldType == Float.class){
+//				tupleElements.put(fieldName,0.f);
+//			} else if(fieldType == Double.class){
+//				tupleElements.put(fieldName,0.0);
+//			} else if(fieldType.isEnum()){
+//        Enum[] enums = cachedEnums.get(fieldName);
+//        tupleElements.put(fieldName,enums[0]);
+//			} else {
+//				Object object = ReflectionUtils.newInstance(fieldType, conf);
+//				tupleElements.put(fieldName,object);
+//				nullObjects.add(fieldName);
+//			}
+//		}
+//	}
 	
 	
 	
 		
 	
-	private Object getField(String fieldName) throws InvalidFieldException {
-		if (!this.schema.containsFieldName(fieldName)){
-			throw new InvalidFieldException("Field " + fieldName + " not in schema");
-		}
+	private Object getField(String fieldName)  {
+//		if (!this.schema.containsFieldName(fieldName)){
+//			throw new InvalidFieldException("Field " + fieldName + " not in schema");
+//		}
 		
-		if (nullObjects.contains(fieldName)){
-			return null;
-		} else {
-			return tupleElements.get(fieldName);
-		}
+//		if (nullObjects.contains(fieldName)){
+//			return null;
+//		} else {
+			Object ret = get(fieldName);
+//			if (ret == null){
+//				throw new InvalidFieldException("Field '"+fieldName + "' not in present in Tuple");
+//			}
+			return ret;
+		
 	}
 	
-	private void setField(String fieldName,Object value) throws InvalidFieldException {
-		if (!this.schema.containsFieldName(fieldName)){
-			throw new InvalidFieldException("Field \"" + fieldName + "\" not in schema");
-		}
+	private void setField(String fieldName,Object value)  {
+//		if (!this.schema.containsFieldName(fieldName)){
+//			throw new InvalidFieldException("Field \"" + fieldName + "\" not in schema");
+//		}
 		
 		//checkValidValueForField(fieldName,value);
 		
-		if (value == null){
-			nullObjects.add(fieldName);
-		} else {
-			nullObjects.remove(fieldName);
-			tupleElements.put(fieldName,value);
-		}
+//		if (value == null){
+//			nullObjects.add(fieldName);
+//		} else {
+//			nullObjects.remove(fieldName);
+			put(fieldName,value);
+//		}
 	}
 	
-	private void checkType(String fieldName,Object value,Class ... expectedClasses) throws InvalidFieldException {
-		for (Class expectedClass : expectedClasses){
-			if (value.getClass() == expectedClass){
-				return;
-			}
-		}
-		
-		String concatedClasses=expectedClasses[0].toString();
-		for (int i=1 ; i < expectedClasses.length ; i++){
-			concatedClasses += "," + expectedClasses[i].toString();
-		}
-		
-		throw new InvalidFieldException("Value " + value + " for field " + fieldName + " doesn't match expected types :" + concatedClasses);
-	}
+//	private void checkType(String fieldName,Object value,Class ... expectedClasses)  {
+//		for (Class expectedClass : expectedClasses){
+//			if (value.getClass() == expectedClass){
+//				return;
+//			}
+//		}
+//		
+//		String concatedClasses=expectedClasses[0].toString();
+//		for (int i=1 ; i < expectedClasses.length ; i++){
+//			concatedClasses += "," + expectedClasses[i].toString();
+//		}
+//		
+//		throw new InvalidFieldException("Value " + value + " for field " + fieldName + " doesn't match expected types :" + concatedClasses);
+//	}
 	
-	private void checkValidValueForField(String fieldName,Object value)  throws InvalidFieldException {
-		Class<?> expectedType = this.schema.getField(fieldName).getType();
-		
-		if (expectedType == Integer.class || expectedType == VIntWritable.class){
-			checkNonNull(fieldName, value);
-			checkType(fieldName,value,Integer.class);
-		} else if (expectedType == Long.class || expectedType == VLongWritable.class){
-			//checkNonNull(fieldName,value);
-			//checkType(fieldName,value,)
-		}
-		
-		if (value instanceof Integer){
-			
-		} else  if (value instanceof Long){
-			checkNonNull(fieldName,value);
-		} else if (value instanceof String){
-			checkNonNull(fieldName,value);
-		} else if (value instanceof Float){
-			checkNonNull(fieldName,value);
-		} else if (value instanceof Double){
-			checkNonNull(fieldName,value);
-		} else if (value instanceof Boolean){
-			checkNonNull(fieldName,value);
-		} else if (value.getClass().isEnum()){
-			checkNonNull(fieldName,value);
-		} else {
-			
-		}
-		
-	}
+//	private void checkValidValueForField(String fieldName,Object value)   {
+//		Class<?> expectedType = this.schema.getField(fieldName).getType();
+//		
+//		if (expectedType == Integer.class || expectedType == VIntWritable.class){
+//			checkNonNull(fieldName, value);
+//			checkType(fieldName,value,Integer.class);
+//		} else if (expectedType == Long.class || expectedType == VLongWritable.class){
+//			//checkNonNull(fieldName,value);
+//			//checkType(fieldName,value,)
+//		}
+//		
+//		if (value instanceof Integer){
+//			
+//		} else  if (value instanceof Long){
+//			checkNonNull(fieldName,value);
+//		} else if (value instanceof String){
+//			checkNonNull(fieldName,value);
+//		} else if (value instanceof Float){
+//			checkNonNull(fieldName,value);
+//		} else if (value instanceof Double){
+//			checkNonNull(fieldName,value);
+//		} else if (value instanceof Boolean){
+//			checkNonNull(fieldName,value);
+//		} else if (value.getClass().isEnum()){
+//			checkNonNull(fieldName,value);
+//		} else {
+//			
+//		}
+//		
+//	}
 	
-	private void checkNonNull(String fieldName,Object value) throws InvalidFieldException {
-		if (value == null){
-			throw new InvalidFieldException("Field " + fieldName + " can't be null");
-		}
-	}
+//	private void checkNonNull(String fieldName,Object value)  {
+//		if (value == null){
+//			throw new InvalidFieldException("Field " + fieldName + " can't be null");
+//		}
+//	}
 	
 	@Override
-	public int getInt(String fieldName) throws InvalidFieldException {
+	public int getInt(String fieldName)  {
 		return (Integer)getField(fieldName);
 	}
 	
 	@Override
-	public long getLong(String fieldName) throws InvalidFieldException {
+	public long getLong(String fieldName)  {
 		return (Long)getField(fieldName);
 	}
 	
 	
 	@Override
-	public float getFloat(String fieldName) throws InvalidFieldException {
+	public float getFloat(String fieldName)  {
 		return (Float)getField(fieldName);
 	}
 	
 	@Override
-	public double getDouble(String fieldName) throws InvalidFieldException {
+	public double getDouble(String fieldName)  {
 		return (Double)getField(fieldName);
 	}
 	
 	@Override
-	public String getString(String fieldName) throws InvalidFieldException {
+	public String getString(String fieldName)  {
 		return (String)getField(fieldName);
 	}
 	
 	@Override
-	public Object getObject(String fieldName) throws InvalidFieldException {
+	public Object getObject(String fieldName)  {
 		return getField(fieldName);
 	}
 	
-	public Enum<?> getEnum(String fieldName) throws InvalidFieldException {
+	public Enum<?> getEnum(String fieldName)  {
 		return (Enum<?>)getField(fieldName);
 	}
 	
 	@Override
-	public void setEnum(String fieldName, Enum<? extends Enum<?>> value) throws InvalidFieldException {
+	public void setEnum(String fieldName, Enum<? extends Enum<?>> value)  {
 		setField(fieldName,value);
 	}
 	
 	@Override
-	public void setInt(String fieldName, int value) throws InvalidFieldException {
+	public void setInt(String fieldName, int value)  {
 		setField(fieldName,value);
 	}
 	
 	@Override
-	public void setString(String fieldName,String value) throws InvalidFieldException {
+	public void setString(String fieldName,String value)  {
 		setField(fieldName,value);
 	}
 	
 	@Override
-	public void setLong(String fieldName,long value) throws InvalidFieldException {
+	public void setLong(String fieldName,long value)  {
 		setField(fieldName,value);
 	}
 	
 	@Override
-	public void setFloat(String fieldName,float value) throws InvalidFieldException {
+	public void setFloat(String fieldName,float value)  {
 		setField(fieldName,value);
 	}
 	
 	@Override
-	public void setDouble(String fieldName,double value) throws InvalidFieldException {
+	public void setDouble(String fieldName,double value)  {
 		setField(fieldName,value);
 	}
 	
 	@Override
-	public void setBoolean(String fieldName,boolean value) throws InvalidFieldException {
+	public void setBoolean(String fieldName,boolean value)  {
 		setField(fieldName,value);
 	}
 	
 	@Override
-	public void setObject(String fieldName,Object object) throws InvalidFieldException {
+	public void setObject(String fieldName,Object object)  {
 		setField(fieldName,object);
 	}
 	
-	@Override
-	public void setThriftObject(String fieldName,TBase value) throws InvalidFieldException{
-		setField(fieldName,value);
-	}
+
 	
 	@Override
-  public <T> T getObject(Class<T> clazz, String fieldName) throws InvalidFieldException {
+  public <T> T getObject(Class<T> clazz, String fieldName)  {
 	  return (T) getField(fieldName);
   }
 
 	@Override
-  public <T> void setObject(Class<T> valueType, String fieldName, T value) throws InvalidFieldException {
+  public <T> void setObject(Class<T> valueType, String fieldName, T value)  {
 	  setField(fieldName,value);
   }
 	
-	private void throwIOIfNull(Field field) throws IOException{
-		if (nullObjects.contains(field.getName())){
-			throw new IOException("Field '" + field.getName() + "' with type '" + field.getType().getName() + "' can't be serialized as null");
-		}
-	}
+//	private void throwIOIfNull(Field field) throws IOException{
+//		if (nullObjects.contains(field.getName())){
+//			throw new IOException("Field '" + field.getName() + "' with type '" + field.getType().getName() + "' can't be serialized as null");
+//		}
+//	}
 	
-	@Override
-	public void write(DataOutput output) throws IOException {
-		for (Field field : schema.getFields()) {
-			String fieldName = field.getName();
-			Class<?> fieldType = field.getType();
-			Object element = tupleElements.get(fieldName);
-			try{
-			if (fieldType == VIntWritable.class) {
-				throwIOIfNull(field);
-				WritableUtils.writeVInt(output, (Integer) element);
-			} else if (fieldType == VLongWritable.class) {
-				throwIOIfNull(field);
-				WritableUtils.writeVLong(output, (Long) element);
-			} else if (fieldType == Integer.class){
-				throwIOIfNull(field);
-			  output.writeInt((Integer)element);
-			} else if (fieldType == Long.class){
-				throwIOIfNull(field);
-				output.writeLong((Long)element);
-			} else if (fieldType == Double.class) {
-				throwIOIfNull(field);
-				output.writeDouble((Double) element);
-			} else if (fieldType == Float.class) {
-				throwIOIfNull(field);
-				output.writeFloat((Float) element);
-			} else if (fieldType == String.class) {
-				throwIOIfNull(field);
-				text.set((String)element);
-				text.write(output);
-			}	else if (fieldType == Boolean.class) {
-				throwIOIfNull(field);
-				output.write( ((Boolean)element) ? 1 : 0);
-			} else if (fieldType.isEnum()){
-				throwIOIfNull(field);
-				Enum<?> e = (Enum<?>)element;
-				WritableUtils.writeVInt(output,e.ordinal());
-			} else {
-				if (nullObjects.contains(fieldName)){
-					WritableUtils.writeVInt(output,0);
-				} else {
-					Object object = tupleElements.get(fieldName);
-					tmpOutputBuffer.reset();
-					serialization.ser(object,tmpOutputBuffer);
-					WritableUtils.writeVInt(output,tmpOutputBuffer.getLength());
-					output.write(tmpOutputBuffer.getData(),0,tmpOutputBuffer.getLength());
-				}
-			}} catch(ClassCastException e){
-				throw new IOException("Field '" + fieldName  + "' contains '" + element + 
-						"' which is " + element.getClass().getName() + ".The expected type is " + fieldType.getName());
-			}
-		}
-	}
+	
+//	}
 
-	@Override
-	public void readFields(DataInput input) throws IOException {
-		for (int i =0 ; i < schema.getFields().length ; i++) {
-			Class<?> fieldType = schema.getFields()[i].getType();
-			String name = schema.getFields()[i].getName();
-			if (fieldType == VIntWritable.class) {
-				tupleElements.put(name,WritableUtils.readVInt(input));
-			} else if (fieldType == VLongWritable.class) {
-				tupleElements.put(name,WritableUtils.readVLong(input));
-			} else if (fieldType == Integer.class){
-				tupleElements.put(name,input.readInt());
-			} else if (fieldType == Long.class){
-				tupleElements.put(name, input.readLong());
-			}	else if (fieldType == Double.class) {
-				tupleElements.put(name, input.readDouble());
-			} else if (fieldType == Float.class) {
-				tupleElements.put(name, input.readFloat());
-			} else if (fieldType == String.class) {
-				text.readFields(input);
-				tupleElements.put(name, text.toString());
-			} else if (fieldType == Boolean.class) {
-				byte b = input.readByte();
-				tupleElements.put(name, (b != 0));
-			} else if (fieldType.isEnum()){
-				int ordinal = WritableUtils.readVInt(input);
-				try{
-					Enum<?>[] enums = cachedEnums.get(name);
-					if (enums == null){
-						throw new IOException("Field "+ name + " is not a enum type");
-					}
-					tupleElements.put(name,enums[ordinal]);
-				} catch (ArrayIndexOutOfBoundsException e){
-					throw new RuntimeException(e);
-				}
-			} else {
-				int size =WritableUtils.readVInt(input);
-				if (size != 0){
-					tmpInputBuffer.setSize(size);
-					input.readFully(tmpInputBuffer.getBytes(),0,size);
-					Object ob = serialization.deser(tupleElements.get(name),tmpInputBuffer.getBytes(),0,size);
-					this.tupleElements.put(name, ob);
-					nullObjects.remove(name);
-				} else {
-					nullObjects.add(name);
-				}
-			}
-		}
-	}
+	
 	
 //	public void deepCopyFrom(TupleImpl tuple) {
 //		setSchema(tuple.getSchema());
@@ -464,10 +351,10 @@ public class BaseTuple implements ITuple {
 	/**
 	 * Calculates a combinated hashCode using the specified fields.
 	 * @param fields
-	 * @throws InvalidFieldException
+	 * @
 	 */
 	@Override
-	public int partialHashCode(String[] fields) throws InvalidFieldException {
+	public int partialHashCode(String[] fields)  {
 		int result = 0;
 		for(String fieldName : fields) {
 			Object object = getField(fieldName);
@@ -482,48 +369,49 @@ public class BaseTuple implements ITuple {
 		return result & Integer.MAX_VALUE;
 	}
 
-	@Override
-  public Configuration getConf() {
-		return this.conf;
-  }
-
-	/**
-	 * This method is used automatically in Hadoop in reducer step, when it instanciates the keys/values for first time.
-	 */
-	@Override
-  public void setConf(Configuration conf) {
-		if (this.conf != null){
-			//TODO should be so strict ?
-			throw new IllegalStateException("Tuple previously configured.Not allowed to be configured twice");
-		}
-		if (conf != null){
-			this.conf = conf;
-			try {
-				Schema schema =Schema.parse(this.conf);
-				if (schema != null){
-					setSchema(schema);
-				}
-	      this.serialization = new Serialization(conf);
-      } catch(GrouperException e) {
-	      throw new RuntimeException(e);
-      } catch(IOException e) {
-	      throw new RuntimeException(e);
-      }
-		}
-  }
+//	@Override
+//  public Configuration getConf() {
+//		return this.conf;
+//  }
+//
+//	/**
+//	 * This method is used automatically in Hadoop in reducer step, when it instanciates the keys/values for first time.
+//	 */
+//	@Override
+//  public void setConf(Configuration conf) {
+//		if (this.conf != null){
+//			//TODO should be so strict ?
+//			throw new IllegalStateException("Tuple previously configured.Not allowed to be configured twice");
+//		}
+//		if (conf != null){
+//			this.conf = conf;
+//			try {
+//				Schema schema =Schema.parse(this.conf);
+//				if (schema != null){
+//					setSchema(schema);
+//				}
+//	      this.serialization = new Serialization(conf);
+//      } catch(GrouperException e) {
+//	      throw new RuntimeException(e);
+//      } catch(IOException e) {
+//	      throw new RuntimeException(e);
+//      }
+//		}
+//  }
 
 	@Override
   public int compareTo(ITuple that) {
 		//TODO this method makes sense ? Mark it like NotImplemented ?
-		try{
-		if (!this.schema.equals(that.getSchema())){
-			//TODO is this necessary ? Too heavy
-			//TODO should Int and VInt treated different ? 
-			throw new RuntimeException("Schemas are different + "+schema + " <=>" +that.getSchema()); 
-		}
-		
-		for (Field field : this.schema.getFields()){
-			String fieldName = field.getName();
+//		try{
+//		if (!this.schema.equals(that.getSchema())){
+//			//TODO is this necessary ? Too heavy
+//			//TODO should Int and VInt treated different ? 
+//			throw new RuntimeException("Schemas are different + "+schema + " <=>" +that.getSchema()); 
+//		}
+		for (Map.Entry<String,Object> entry : entrySet()){
+		//for (Field field : this.schema.getFields()){
+			String fieldName = entry.getKey();
+			//String fieldName = field.getName();
 			Object thisElement = getField(fieldName);
 			Object thatElement = getField(fieldName);
 			int comparison = SortComparator.compareObjects(thisElement,thatElement);
@@ -532,9 +420,9 @@ public class BaseTuple implements ITuple {
 			}
 		}
 		return 0;
-		} catch(InvalidFieldException e){
-			throw new RuntimeException(e);
-		}
+//		} catch(InvalidFieldException e){
+//			throw new RuntimeException(e);
+//		}
   }
 	
 	
@@ -546,10 +434,13 @@ public class BaseTuple implements ITuple {
 			return false;
 		}
 		
-		try {
-			for(Field field : schema.getFields()) {
-				String fieldName = field.getName();
-				Object thisElement = getObject(fieldName);
+			
+			for (Map.Entry<String,Object> entry : entrySet()){
+			//for(Field field : schema.getFields()) {
+				String fieldName = entry.getKey();
+				Object thisElement = entry.getValue();
+				//String fieldName = field.getName();
+				//Object thisElement = getObject(fieldName);
 				Object thatElement = ((ITuple) tuple2).getObject(fieldName);
 				if (thisElement == null){
 					if (thatElement != null){
@@ -560,30 +451,47 @@ public class BaseTuple implements ITuple {
 				}
 			}
 			return true;
-		} catch(InvalidFieldException e) {
-			return false;
-		}
+		
 	}
 	
 	
 	@Override
 	public String toString() {
-		try {
-		return toString(0,schema.getFields().length-1);
-		} catch(InvalidFieldException e){
-			throw new RuntimeException(e);
-		}
+		return toString(null,0,size()-1);
+		
 	}
 	
-	
-	public String toString(int minFieldIndex,int maxFieldIndex) throws InvalidFieldException{
+	/**
+	 * If schema null then outputs the fields in order
+	 * TODO this method needs to be reimplemented
+	 * @param schema
+	 * @param minFieldIndex
+	 * @param maxFieldIndex
+	 * @return
+	 * @
+	 */
+	public String toString(Schema schema,int minFieldIndex,int maxFieldIndex) {
 		
 			StringBuilder b = new StringBuilder("{"); // TODO not optimized,should be cached
 			boolean first = true;
+			
+			List<String> orderedFields = new ArrayList<String>();
+			orderedFields.addAll(keySet());
+			
 			for(int index = minFieldIndex ; index <=maxFieldIndex ; index++) {
-				Field field = schema.getField(index);
-				String fieldName = field.getName();
+				String fieldName;
+				Class<?> fieldType;
+				
+				if (schema != null){
+					Field field = schema.getField(index);
+					fieldName = field.getName();
+					fieldType = field.getType();
+				} else {
+					fieldName = orderedFields.get(index);
+					fieldType = getField(fieldName).getClass();
+				}
 				Object element = getField(fieldName);
+				
 				if(!first) {
 					b.append(",");
 				} else {
@@ -593,7 +501,7 @@ public class BaseTuple implements ITuple {
 				if (element == null){
 					b.append("null");
 				} else {
-					if (field.getType() == String.class){
+					if (fieldType == String.class){
 						b.append("\"").append(element.toString()).append("\"");
 					} else {
 						b.append(element.toString());
@@ -603,6 +511,15 @@ public class BaseTuple implements ITuple {
 			b.append("}");
 			return b.toString();
 		}
+
+	
+
+//	@Override
+//	public String toString(int minFieldIndex, int maxFieldIndex)
+//			 {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 	
 }

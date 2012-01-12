@@ -31,6 +31,7 @@ import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
+import org.apache.hadoop.io.serializer.Serializer;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,6 +46,7 @@ import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.SortCriteriaBuilder;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.thrift.test.A;
 
@@ -88,15 +90,15 @@ public class TestComparators extends BaseTest {
 				groupComparator.setConf(conf);
 				for (int i = 0; i < MAX_RANDOMS_PER_INDEX; i++) {
 
-					ITuple base1 = new BaseTuple(getConf());
-					ITuple base2 = new BaseTuple(getConf());
-					ITuple doubleBuffered1 = new Tuple(getConf()); // double buffered
-					ITuple doubleBuffered2 = new Tuple(getConf()); // double buffered
+					ITuple base1 = new BaseTuple();
+					ITuple base2 = new BaseTuple();
+					ITuple doubleBuffered1 = new Tuple(); // double buffered
+					ITuple doubleBuffered2 = new Tuple(); // double buffered
 
 					ITuple[] tuples = new ITuple[] { base1, base2, doubleBuffered1,
 							doubleBuffered2 };
 					for (ITuple tuple : tuples) {
-						fillWithRandom(tuple, minIndex, maxIndex);
+						fillWithRandom(SCHEMA,tuple, minIndex, maxIndex);
 					}
 					for (int indexTuple1 = 0; indexTuple1 < tuples.length; indexTuple1++) {
 						for (int indexTuple2 = indexTuple1; indexTuple2 < tuples.length; indexTuple2++) {
@@ -117,10 +119,19 @@ public class TestComparators extends BaseTest {
 
 	private int compareInBinary(SortComparator comp, ITuple tuple1, ITuple tuple2)
 			throws IOException {
+		TupleSerialization serialization = new TupleSerialization();
+		Serializer<ITuple> ser = serialization.getSerializer(ITuple.class);
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
-		tuple1.write(buffer1);
+		ser.open(buffer1);
+		ser.serialize(tuple1);
+		ser.close();
+		
+		//tuple1.write(buffer1);
 		DataOutputBuffer buffer2 = new DataOutputBuffer();
-		tuple2.write(buffer2);
+		ser.open(buffer2);
+		ser.serialize(tuple2);
+		ser.close();
+		
 		return comp.compare(buffer1.getData(), 0, buffer1.getLength(), buffer2
 				.getData(), 0, buffer2.getLength());
 	}
@@ -249,10 +260,10 @@ public class TestComparators extends BaseTest {
 	 * data.
 	 * 
 	 */
-	private void fillWithRandom(ITuple tuple, int minIndex, int maxIndex) {
+	private void fillWithRandom(Schema schema,ITuple tuple, int minIndex, int maxIndex) {
 		try {
 			Random random = new Random();
-			Schema schema = tuple.getSchema();
+			//Schema schema = tuple.getSchema();
 			for (int i = minIndex; i <= maxIndex; i++) {
 				Field field = schema.getField(i);
 				String fieldName = field.getName();

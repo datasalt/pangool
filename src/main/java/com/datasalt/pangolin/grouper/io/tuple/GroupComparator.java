@@ -29,13 +29,10 @@ public class GroupComparator extends SortComparator{
 	private int numFieldsCompared;
 	private static final String CONF_GROUP_COMPARATOR_FIELDS = "datasalt.pangolin.grouper.group_comparator.fields";
 	
-	@Override
-	public int compare(Object w1,Object w2) {
-		return compare((WritableComparable)w1,(WritableComparable)w2);
-	}
+	
 	
 	@Override
-	public int compare(WritableComparable w1,WritableComparable w2) {
+	public int compare(ITuple w1,ITuple w2) {
 		return compare(numFieldsCompared,w1,w2);
 	}
 	

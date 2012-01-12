@@ -26,19 +26,15 @@ import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
-import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
@@ -52,7 +48,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
     @Override
 		public void setup(Schema schema,Context context) throws IOException,InterruptedException {
 			//super.setup(schema,context);
-			this.outputTuple = TupleFactory.createTuple(schema);
+			this.outputTuple = new Tuple();
 			
 		}
 		
@@ -63,16 +59,14 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 			int age = Integer.parseInt(tokens[1]);
 			String name = tokens[2];
 			int height = Integer.parseInt(tokens[3]);
-			
-			try {
 				outputTuple.setString("country",country);
 				outputTuple.setInt("age", age);
 				outputTuple.setString("name", name);
 				outputTuple.setInt("height", height);
 				collector.write(outputTuple);
-			} catch (InvalidFieldException e) {
-				throw new RuntimeException(e);
-			}
+//			} catch (InvalidFieldException e) {
+//				throw new RuntimeException(e);
+//			}
 		}
 		
 	}

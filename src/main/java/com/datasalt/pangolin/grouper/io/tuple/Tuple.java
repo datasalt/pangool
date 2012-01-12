@@ -18,6 +18,9 @@ package com.datasalt.pangolin.grouper.io.tuple;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
@@ -47,44 +50,44 @@ public class Tuple implements ITuple {
 	//private Configuration conf;
 	private BaseTuple previousTuple, currentTuple;
 
-	@SuppressWarnings("unused")
-	private Tuple() {
+//	@SuppressWarnings("unused")
+	public Tuple() {
 		// this allows to use private construction
 		previousTuple = ReflectionUtils.newInstance(BaseTuple.class, null);
 		currentTuple = ReflectionUtils.newInstance(BaseTuple.class, null);
 	}
 
-	Tuple(@Nonnull Schema schema) {
-		//this.schema = schema;
-		currentTuple = new BaseTuple(schema);
-		previousTuple = new BaseTuple(schema);
-	}
+//	Tuple(@Nonnull Schema schema) {
+//		//this.schema = schema;
+//		currentTuple = new BaseTuple(schema);
+//		previousTuple = new BaseTuple(schema);
+//	}
+//	
+//	Tuple(@Nonnull Configuration conf){
+//		currentTuple = new BaseTuple(conf);
+//		previousTuple = new BaseTuple(conf);
+//	}
 	
-	Tuple(@Nonnull Configuration conf){
-		currentTuple = new BaseTuple(conf);
-		previousTuple = new BaseTuple(conf);
-	}
-	
 	
 
-	@Override
-	public void write(DataOutput out) throws IOException {
-		currentTuple.write(out);
-
-	}
-
-	/**
-	 * This is where the double-buffer swapping is performed.
-	 */
-	@Override
-	public void readFields(DataInput in) throws IOException {
-		// swapping double buffering
-		BaseTuple tmpTuple = previousTuple;
-		previousTuple = currentTuple;
-		currentTuple = tmpTuple;
-
-		currentTuple.readFields(in);
-	}
+//	@Override
+//	public void write(Schema schema,DataOutput out) throws IOException {
+//		currentTuple.write(schema,out);
+//
+//	}
+//
+//	/**
+//	 * This is where the double-buffer swapping is performed.
+//	 */
+//	@Override
+//	public void readFields(Schema schema,DataInput in) throws IOException {
+//		// swapping double buffering
+//		BaseTuple tmpTuple = previousTuple;
+//		previousTuple = currentTuple;
+//		currentTuple = tmpTuple;
+//
+//		currentTuple.readFields(schema,in);
+//	}
 
 	/**
 	 * It always return a nonnull instance even if readFields never was invoked
@@ -99,76 +102,76 @@ public class Tuple implements ITuple {
 		return currentTuple.compareTo(anotherTuple);
 	}
 
-	@Override
-	public void setConf(Configuration conf) {
-		if(conf != null) {
-			//this.conf = conf;
-			//try {
-//				Schema schema = Schema.parse(this.conf);
-//				if(schema != null) {
-//					this.schema = schema;
-//				}
-				previousTuple.setConf(conf);
-				currentTuple.setConf(conf);
-			//} catch(GrouperException e) {
-			//	throw new RuntimeException(e);
-			//}
-		}
+//	@Override
+//	public void setConf(Configuration conf) {
+//		if(conf != null) {
+//			//this.conf = conf;
+//			//try {
+////				Schema schema = Schema.parse(this.conf);
+////				if(schema != null) {
+////					this.schema = schema;
+////				}
+//				previousTuple.setConf(conf);
+//				currentTuple.setConf(conf);
+//			//} catch(GrouperException e) {
+//			//	throw new RuntimeException(e);
+//			//}
+//		}
+//
+//	}
+//
+//	@Override
+//	public Configuration getConf() {
+//		return currentTuple.getConf();
+//	}
 
-	}
+//	@Override
+//	public Schema getSchema() {
+//		return currentTuple.getSchema();
+//	}
 
 	@Override
-	public Configuration getConf() {
-		return currentTuple.getConf();
-	}
-
-	@Override
-	public Schema getSchema() {
-		return currentTuple.getSchema();
-	}
-
-	@Override
-	public int partialHashCode(String[] fields) throws InvalidFieldException {
+	public int partialHashCode(String[] fields)  {
 		return currentTuple.partialHashCode(fields);
 	}
 
 	@Override
-	public int getInt(String fieldName) throws InvalidFieldException {
+	public int getInt(String fieldName)  {
 		return currentTuple.getInt(fieldName);
 	}
 
 	@Override
-	public long getLong(String fieldName) throws InvalidFieldException {
+	public long getLong(String fieldName)  {
 		return currentTuple.getLong(fieldName);
 	}
 
 	@Override
-	public float getFloat(String fieldName) throws InvalidFieldException {
+	public float getFloat(String fieldName)  {
 		return currentTuple.getFloat(fieldName);
 	}
 
 	@Override
-	public double getDouble(String fieldName) throws InvalidFieldException {
+	public double getDouble(String fieldName)  {
 		return currentTuple.getDouble(fieldName);
 	}
 
 	@Override
-	public String getString(String fieldName) throws InvalidFieldException {
+	public String getString(String fieldName)  {
 		return currentTuple.getString(fieldName);
 	}
 
 	@Override
-	public Object getObject(String fieldName) throws InvalidFieldException {
+	public Object getObject(String fieldName)  {
 		return currentTuple.getObject(fieldName);
 	}
 	
 	@Override
-  public <T> T getObject(Class<T> clazz, String fieldName) throws InvalidFieldException {
+  public <T> T getObject(Class<T> clazz, String fieldName)  {
 	  return currentTuple.getObject(clazz,fieldName);
   }
 
 	@Override
-	public Enum<? extends Enum<?>> getEnum(String fieldName) throws InvalidFieldException {
+	public Enum<? extends Enum<?>> getEnum(String fieldName)  {
 		return currentTuple.getEnum(fieldName);
 	}
 
@@ -177,60 +180,60 @@ public class Tuple implements ITuple {
 	
 	
 	@Override
-	public void setEnum(String fieldName, Enum<? extends Enum<?>> value) throws InvalidFieldException {
+	public void setEnum(String fieldName, Enum<? extends Enum<?>> value)  {
 		currentTuple.setEnum(fieldName, value);
 
 	}
 
 	@Override
-	public void setInt(String fieldName, int value) throws InvalidFieldException {
+	public void setInt(String fieldName, int value)  {
 		currentTuple.setInt(fieldName, value);
 
 	}
 
 	@Override
-	public void setString(String fieldName, String value) throws InvalidFieldException {
+	public void setString(String fieldName, String value)  {
 		currentTuple.setString(fieldName, value);
 
 	}
 
 	@Override
-	public void setLong(String fieldName, long value) throws InvalidFieldException {
+	public void setLong(String fieldName, long value)  {
 		currentTuple.setLong(fieldName, value);
 
 	}
 
 	@Override
-	public void setFloat(String fieldName, float value) throws InvalidFieldException {
+	public void setFloat(String fieldName, float value)  {
 		currentTuple.setFloat(fieldName, value);
 
 	}
 
 	@Override
-	public void setDouble(String fieldName, double value) throws InvalidFieldException {
+	public void setDouble(String fieldName, double value)  {
 		currentTuple.setDouble(fieldName, value);
 
 	}
 
 	@Override
-	public void setBoolean(String fieldName, boolean value) throws InvalidFieldException {
+	public void setBoolean(String fieldName, boolean value)  {
 		currentTuple.setBoolean(fieldName, value);
 
 	}
 
 	@Override
-	public void setObject(String fieldName, Object object) throws InvalidFieldException {
+	public void setObject(String fieldName, Object object)  {
 		currentTuple.setObject(fieldName, object);
 
 	}
 
-	@Override
-	public void setThriftObject(String fieldName,TBase<?,?> value) throws InvalidFieldException {
-		currentTuple.setThriftObject(fieldName, value);
-	}
+//	@Override
+//	public void setThriftObject(String fieldName,TBase<?,?> value)  {
+//		currentTuple.setThriftObject(fieldName, value);
+//	}
 	
 	@Override
-  public <T> void setObject(Class<T> valueType, String fieldName, T value) throws InvalidFieldException {
+  public <T> void setObject(Class<T> valueType, String fieldName, T value)  {
 	  currentTuple.setObject(valueType,fieldName,value);
   }
 	
@@ -240,18 +243,80 @@ public class Tuple implements ITuple {
 		return currentTuple.toString();
 	}
 
-	@Override
-	public void setSchema(Schema schema) {
-		currentTuple.setSchema(schema);
-	}
+//	@Override
+//	public void setSchema(Schema schema) {
+//		currentTuple.setSchema(schema);
+//	}
 
 	@Override
-  public String toString(int minFieldIndex, int maxFieldIndex) throws InvalidFieldException {
-	  return currentTuple.toString(minFieldIndex,maxFieldIndex);
+  public String toString(Schema schema,int minFieldIndex, int maxFieldIndex)  {
+	  return currentTuple.toString(schema,minFieldIndex,maxFieldIndex);
   }
 
 	@Override
 	public boolean equals(Object tuple){
 		return currentTuple.equals(tuple);
+	}
+
+	@Override
+	public void clear() {
+		currentTuple.clear();
+		
+	}
+
+	@Override
+	public boolean containsKey(Object key) {
+		return currentTuple.containsKey(key);
+	}
+
+	@Override
+	public boolean containsValue(Object value) {
+		return currentTuple.containsValue(value);
+	}
+
+	@Override
+	public Set<java.util.Map.Entry<String, Object>> entrySet() {
+		return currentTuple.entrySet();
+	}
+
+	@Override
+	public Object get(Object key) {
+		return currentTuple.get(key);
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return currentTuple.isEmpty();
+	}
+
+	@Override
+	public Set<String> keySet() {
+		return currentTuple.keySet();
+	}
+
+	@Override
+	public Object put(String key, Object value) {
+		return currentTuple.put(key,value);
+	}
+
+	@Override
+	public void putAll(Map<? extends String, ? extends Object> m) {
+		currentTuple.putAll(m);
+		
+	}
+
+	@Override
+	public Object remove(Object key) {
+		return currentTuple.remove(key);
+	}
+
+	@Override
+	public Collection<Object> values() {
+		return currentTuple.values();
+	}
+
+	@Override
+	public int size() {
+		return currentTuple.size();
 	}
 }

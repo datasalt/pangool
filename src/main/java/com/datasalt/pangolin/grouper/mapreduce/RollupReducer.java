@@ -153,7 +153,6 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 	 * @return
 	 */
 	private int indexMismatch(ITuple tuple1,ITuple tuple2,int minFieldIndex,int maxFieldIndex){
-		try {
 			for(int i = minFieldIndex; i <= maxFieldIndex; i++) {
 				String fieldName = schema.getFields()[i].getName();
 				if(!tuple1.getObject(fieldName).equals(tuple2.getObject(fieldName))) {
@@ -161,8 +160,5 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 				}
 			}
 			return -1;
-		} catch(InvalidFieldException e) {
-			throw new RuntimeException(e);
-    }
 	}
 }

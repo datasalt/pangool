@@ -28,9 +28,7 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
@@ -38,7 +36,6 @@ import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
-import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
@@ -123,7 +120,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	
 	
 	private static Tuple createTuple(String text,Schema schema) throws InvalidFieldException{
-		Tuple tuple = TupleFactory.createTuple(schema);
+		Tuple tuple = new Tuple();
 		String[] tokens = text.split("\\s+");
 		String country = tokens[0];
 		Integer age = Integer.parseInt(tokens[1]);

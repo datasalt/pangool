@@ -23,14 +23,12 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
-import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
@@ -43,7 +41,7 @@ public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 		
 		@Override
 		public void setup(Schema schema, Context context) throws IOException,InterruptedException {
-			this.outputTuple = TupleFactory.createTuple(schema);
+			this.outputTuple = new Tuple();
 		}
 		
 		
@@ -70,7 +68,7 @@ public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 		
 		@Override
 		public void setup(Schema schema, Context context) throws IOException,InterruptedException {
-			this.outputTuple = TupleFactory.createTuple(schema);
+			this.outputTuple = new Tuple();
 		}
 		
 		

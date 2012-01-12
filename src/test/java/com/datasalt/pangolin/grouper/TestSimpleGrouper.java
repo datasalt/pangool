@@ -23,7 +23,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
@@ -31,7 +30,6 @@ import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
-import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
@@ -44,7 +42,7 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 		
 		@Override
 		public void setup(Schema schema, Context context) throws IOException,InterruptedException {
-			this.outputTuple = TupleFactory.createTuple(schema);
+			this.outputTuple = new Tuple();
 		}
 		
 		
@@ -56,15 +54,15 @@ public class TestSimpleGrouper extends AbstractHadoopTestLibrary{
 			String name = tokens[2];
 			Integer height = Integer.parseInt(tokens[3]);
 			
-			try {
+			//try {
 				outputTuple.setString("country", country);
 				outputTuple.setInt("age", age);
 				outputTuple.setString("name", name);
 				outputTuple.setLong("height", height);
 				collector.write(outputTuple);
-			} catch(InvalidFieldException e) {
-				throw new RuntimeException(e);
-			}
+//			} catch(InvalidFieldException e) {
+//				throw new RuntimeException(e);
+//			}
 		}
 	}
 	

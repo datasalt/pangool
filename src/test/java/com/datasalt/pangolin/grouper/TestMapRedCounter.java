@@ -28,9 +28,7 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
@@ -41,7 +39,6 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
-import com.datasalt.pangolin.grouper.io.tuple.TupleFactory;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
@@ -78,6 +75,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		private int [] count,distinctCount;
 		private int minDepth;
 		private int maxDepth;
+		private Schema schema;
 		
 		@Override
 		public void setup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
@@ -90,6 +88,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 			this.context = context;
 			count = new int[maxDepth + 1];
 			distinctCount = new int[maxDepth + 1];
+			this.schema = schema;
 		}
 		
 		@Override
@@ -106,7 +105,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 
 		@Override
     public void onCloseGroup(int depth,String field,ITuple lastElement,Reducer.Context context) throws IOException, InterruptedException,GrouperException {
-				String tupleStr = lastElement.toString(0, depth);
+				String tupleStr = lastElement.toString(schema,0, depth);
 				String output =  tupleStr +  " => count:" + count[depth];
 				if (depth < maxDepth){
 					//distinctCount is not set in highest depth
@@ -132,7 +131,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 	
 	
 	private static Tuple createTuple(String text,Schema schema) throws InvalidFieldException{
-		Tuple tuple = TupleFactory.createTuple(schema);
+		Tuple tuple = new Tuple();
 		String[] tokens = text.split(",");
 		String user = tokens[0];
 		Integer day = Integer.parseInt(tokens[1]);

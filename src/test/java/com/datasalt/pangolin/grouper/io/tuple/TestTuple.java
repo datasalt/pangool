@@ -8,6 +8,8 @@ import java.util.Random;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.io.serializer.Deserializer;
+import org.apache.hadoop.io.serializer.Serializer;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,6 +20,7 @@ import com.datasalt.pangolin.grouper.BaseTest;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
+import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangolin.thrift.test.A;
 
 public class TestTuple extends BaseTest{
@@ -33,8 +36,10 @@ public class TestTuple extends BaseTest{
 		
 		
 		Random random = new Random();
-		BaseTuple baseTuple = new BaseTuple(getConf()); //needed to pass serialization and SCHEMA the same time
-		Tuple doubleBufferedTuple = new Tuple(getConf());
+		//BaseTuple baseTuple = new BaseTuple(getConf()); //needed to pass serialization and SCHEMA the same time
+		//Tuple doubleBufferedTuple = new Tuple(getConf());
+		BaseTuple baseTuple = new BaseTuple();
+		Tuple doubleBufferedTuple = new Tuple();
 		ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
 		
 		for (ITuple tuple : tuples){
@@ -180,48 +185,64 @@ public class TestTuple extends BaseTest{
 		//TODO should we convert float to double ?
 	}
 	
-	private void assertSerializable(ITuple tuple) throws IOException{
-		Configuration conf = tuple.getConf();
+	private void assertSerializable(ITuple tuple) throws IOException, GrouperException{
+		TupleSerialization serialization = new TupleSerialization();
+		
+		serialization.setConf(getConf());
+		Serializer<ITuple> ser = serialization.getSerializer(ITuple.class);
+		Deserializer<ITuple> deser = serialization.getDeserializer(ITuple.class);
+		//Configuration conf = getConf();
+		//Schema schema = Schema.parse(conf);
 		DataOutputBuffer output = new DataOutputBuffer();
 		DataInputBuffer input = new DataInputBuffer();
-	  tuple.write(output);
+	  //tuple.write(schema,output);
+	  ser.open(output);
+	  ser.serialize(tuple);
+	  ser.close();
     
 	  input.reset(output.getData(),0,output.getLength());
-		ITuple deserializedTuple = new BaseTuple(conf);
-		deserializedTuple.readFields(input);
+		ITuple deserializedTuple = new BaseTuple();
+		//deserializedTuple.readFields(schema,input);
+		deser.open(input);
+		deserializedTuple = deser.deserialize(deserializedTuple);
+		deser.close();
 		assertEquals(tuple,deserializedTuple);
-	  deserializedTuple = new Tuple(conf);
+	  deserializedTuple = new Tuple();
 	  
 	  input.reset(output.getData(),0,output.getLength());
-		deserializedTuple.readFields(input);
+	  deser.open(input);
+		deserializedTuple = deser.deserialize(deserializedTuple);
+		deser.close();
+		
+	  //deserializedTuple.readFields(schema,input);
 		assertEquals(tuple,deserializedTuple);
 	}
 	
 	
 	
-	@Test
-	public void testAssingWrongTypes(){
-		
-		//Ituple
-		
-//		try{
-//			//can't assign wrong types
-//		  tuple.setString("int_field","caca");
-//		  Assert.fail();
-//		} catch(InvalidFieldException e){
-//			e.printStackTrace();
-//		}
+//	@Test
+//	public void testAssingWrongTypes(){
 //		
-//		try {
-//			tuple.setObject("string_field", new A());
-//		} catch(InvalidFieldException e){
-//			e.printStackTrace();
-//		}
+//		//Ituple
 //		
-//		
+////		try{
+////			//can't assign wrong types
+////		  tuple.setString("int_field","caca");
+////		  Assert.fail();
+////		} catch(InvalidFieldException e){
+////			e.printStackTrace();
+////		}
+////		
+////		try {
+////			tuple.setObject("string_field", new A());
+////		} catch(InvalidFieldException e){
+////			e.printStackTrace();
+////		}
+////		
+////		
+////	}
+//
 //	}
-
-	}
 		
 	
 	private void assertNotSerializable(ITuple tuple){
@@ -239,8 +260,8 @@ public class TestTuple extends BaseTest{
 	 */
 	public void testPrimitivesNonnull() throws GrouperException, IOException {
 
-		ITuple baseTuple = new BaseTuple(getConf());
-		ITuple doubleBufferedTuple = new Tuple(getConf());
+		ITuple baseTuple = new BaseTuple();
+		ITuple doubleBufferedTuple = new Tuple();
 		ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
 		
 		for(ITuple tuple : tuples){
@@ -275,46 +296,46 @@ public class TestTuple extends BaseTest{
 		
 	}
 	
-	@Test
-	public void testNullSchema() throws IOException{
-		ITuple baseTuple = ReflectionUtils.newInstance(BaseTuple.class,null);
-		ITuple doubleBufferedTuple =ReflectionUtils.newInstance(Tuple.class,null);
-		ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
-		
-		for (ITuple tuple : tuples){
-		try{
-			tuple.setSchema(null);
-			Assert.fail();
-		} catch(Exception e){
-			System.out.println(e);
-		}
-		}
-		
-		
-		for (ITuple tuple : tuples){
-		tuple.setSchema(SCHEMA);
-		try{
-			tuple.setSchema(SCHEMA); //can't assign twice an SCHEMA 
-		} catch(IllegalStateException e){
-			System.out.println(e);
-		}
-		}
-		
-		baseTuple = ReflectionUtils.newInstance(BaseTuple.class,null);
-		doubleBufferedTuple =ReflectionUtils.newInstance(Tuple.class,null);
-		tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
-		
-		for (ITuple tuple : tuples){
-			tuple.setSchema(SCHEMA);
-			
-			try{
-				tuple.setConf(getConf()); //can't assign a configuration after SCHEMA set 
-			} catch(IllegalStateException e){
-				System.out.println(e);
-			}
-			}
-		
-		
-	}
+//	@Test
+//	public void testNullSchema() throws IOException{
+//		ITuple baseTuple = ReflectionUtils.newInstance(BaseTuple.class,null);
+//		ITuple doubleBufferedTuple =ReflectionUtils.newInstance(Tuple.class,null);
+//		ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
+//		
+//		for (ITuple tuple : tuples){
+//		try{
+//			tuple.setSchema(null);
+//			Assert.fail();
+//		} catch(Exception e){
+//			System.out.println(e);
+//		}
+//		}
+//		
+//		
+//		for (ITuple tuple : tuples){
+//		tuple.setSchema(SCHEMA);
+//		try{
+//			tuple.setSchema(SCHEMA); //can't assign twice an SCHEMA 
+//		} catch(IllegalStateException e){
+//			System.out.println(e);
+//		}
+//		}
+//		
+//		baseTuple = ReflectionUtils.newInstance(BaseTuple.class,null);
+//		doubleBufferedTuple =ReflectionUtils.newInstance(Tuple.class,null);
+//		tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
+//		
+//		for (ITuple tuple : tuples){
+//			tuple.setSchema(SCHEMA);
+//			
+//			try{
+//				tuple.setConf(getConf()); //can't assign a configuration after SCHEMA set 
+//			} catch(IllegalStateException e){
+//				System.out.println(e);
+//			}
+//			}
+//		
+//		
+//	}
 
 }
