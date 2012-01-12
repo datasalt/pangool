@@ -25,6 +25,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.pangool.CoGrouperException;
 import com.datasalt.pangolin.pangool.PangoolConfig;
+import com.datasalt.pangolin.pangool.PangoolConfigBuilder;
 import com.datasalt.pangolin.pangool.Schema;
 import com.datasalt.pangolin.pangool.Schema.Field;
 import com.datasalt.pangolin.pangool.SortCriteria;
@@ -44,27 +45,76 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	private Map<Class, RawComparator> instancedComparators;
 
+	protected SortCriteria commonCriteria;
+	protected Schema commonSchema;
+	
+	PangoolConfig getConfig() {
+  	return config;
+  }
+
+	/*
+	 * When comparing, we save the source Ids, if we find them
+	 */
+	int firstSourceId  = 0;
+	int secondSourceId = 0;
+
+	int offset1 = 0;
+	int offset2 = 0;
+	
+	int nSchemas = 0; // Cached number of schemas
+	
 	public SortComparator() {
 
 	}
 
 	/**
+	 * Called for each compare(), we must reset the source ids for both tuples
+	 */
+	private void resetSourceIds() {
+		firstSourceId  = 0;
+		secondSourceId = 0;
+	}
+	
+	/**
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
 	@Override
 	public int compare(ITuple w1, ITuple w2) {
-		SortCriteria commonCriteria = config.getSorting().getSortCriteria();
-		Schema commonSchema = config.getCommonOrderedSchema();
-		int fieldsToCompare = commonCriteria.getSortElements().length;
+		resetSourceIds();
 		
-		return compare(fieldsToCompare, w1, w2, commonSchema, commonCriteria);
+		int fieldsToCompare = commonCriteria.getSortElements().length;
+		int commonCompare = compare(fieldsToCompare, commonSchema, commonCriteria, w1, w2);
+		
+		if(commonCompare == 0) {
+			if(nSchemas == 1) {
+				// If we have only one schema, everything is common
+				return 0;
+			} else {
+				// Continue comparing
+				if(firstSourceId == secondSourceId) {
+					SortCriteria particularCriteria = config.getSorting().getSecondarySortCriteriaByName(firstSourceId);
+					if(particularCriteria != null) {
+						Schema particularSchema = config.getParticularPartialOrderedSchemas().get(firstSourceId);
+						fieldsToCompare = particularCriteria.getSortElements().length;
+						return compare(fieldsToCompare, particularSchema, particularCriteria, w1, w2);
+					} else {
+						// No particular ordering, we don't care
+						return 0;
+					}
+				} else { // Different sources, order by sourceId
+					return firstSourceId > secondSourceId ? 1 : -1;
+				}
+			}
+		} else {
+			return commonCompare;
+		}
 	}
 
 	/**
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
 	@SuppressWarnings("unchecked")
-	public int compare(int fieldsToCompare, ITuple w1, ITuple w2, Schema schema, SortCriteria sortCriteria) {
+	public int compare(int fieldsToCompare, Schema schema, SortCriteria sortCriteria, ITuple w1, ITuple w2) {
 		ITuple tuple1 = (ITuple) w1;
 		ITuple tuple2 = (ITuple) w2;
 		for(int depth = 0; depth < fieldsToCompare; depth++) {
@@ -91,7 +141,6 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			}
 		}
 		return 0;
-
 	}
 
 	/**
@@ -110,8 +159,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			} else if(element2 instanceof Comparable) {
 				return -((Comparable) element2).compareTo(element1);
 			} else {
-				// both objects are not Comparable
-				// TODO is this correct?
+				// not Comparable -> we don't care
 				return 0;
 			}
 		}
@@ -119,13 +167,42 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
+		resetSourceIds();
+
 		SortCriteria commonCriteria = config.getSorting().getSortCriteria();
 		Schema commonSchema = config.getCommonOrderedSchema();
-		int fieldsToCompare = commonCriteria.getSortElements().length;
+		int fieldsToCompare = commonCriteria.getSortElements().length;		
 
-		return compare(fieldsToCompare, commonSchema, commonCriteria, b1, s1, l1, b2, s2, l2);
+		int commonCompare = compare(fieldsToCompare, commonSchema, commonCriteria, b1, s1, l1, b2, s2, l2);
+
+		if(commonCompare == 0) {
+			if(nSchemas == 1) {
+				// If we have only one schema, everything is common
+				return 0;
+			} else {
+				// Continue comparing
+				if(firstSourceId == secondSourceId) {
+					SortCriteria particularCriteria = config.getSorting().getSecondarySortCriteriaByName(firstSourceId);
+					if(particularCriteria != null) {
+						Schema particularSchema = config.getParticularPartialOrderedSchemas().get(firstSourceId);
+						fieldsToCompare = particularCriteria.getSortElements().length;
+						return compare(fieldsToCompare, particularSchema, particularCriteria, b1, offset1, l1, b2, offset2, l2);
+					} else {
+						// No particular ordering, we don't care
+						return 0;
+					}
+				} else { // Different sources, order by sourceId
+					return firstSourceId > secondSourceId ? 1 : -1;
+				}
+			}
+		} else {
+			return commonCompare;
+		}
 	}
 
+	/**
+	 * Cache RawComparators
+	 */
   private void instanceComparators() {
 		this.instancedComparators = new HashMap<Class, RawComparator>();
 		for(SortElement sortElement : config.getSorting().getSortCriteria().getSortElements()) {
@@ -146,8 +223,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	public int compare(int fieldsToCompare, Schema schema, SortCriteria sortCriteria, byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 
 		try {
-			int offset1 = s1;
-			int offset2 = s2;
+			offset1 = s1;
+			offset2 = s2;
 			for(int depth = 0; depth < fieldsToCompare; depth++) {
 				Field field = schema.getFields().get(depth);
 				Class<?> type = field.getType();
@@ -280,8 +357,11 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			 * Set PangoolConf
 			 */
 			try {
-	      config = PangoolConfig.get(conf);
+	      config = PangoolConfigBuilder.get(conf);
 	      instanceComparators();
+	      nSchemas = config.getSchemes().values().size();
+	      commonCriteria = config.getSorting().getSortCriteria();
+	      commonSchema = config.getCommonOrderedSchema();
       } catch(JsonParseException e) {
       	throw new RuntimeException(e);
       } catch(JsonMappingException e) {

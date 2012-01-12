@@ -31,7 +31,7 @@ public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandl
 	 *          The reducer context as in {@link Reducer}
 	 * 
 	 */
-	public void onOpenGroup(int depth, String field, ITuple firstElement, Reducer.Context context)
+	public void onOpenGroup(int depth, String field, ITuple firstElement, State state, Reducer.Context context)
 	    throws IOException, InterruptedException, CoGrouperException {
 		
 	}
@@ -51,7 +51,7 @@ public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandl
 	 *          The reducer context as in {@link Reducer}
 	 * 
 	 */
-	public void onCloseGroup(int depth, String field, ITuple lastElement, Context context) throws IOException,
+	public void onCloseGroup(int depth, String field, ITuple lastElement, State state, Context context) throws IOException,
 	    InterruptedException, CoGrouperException {
 		
 	}

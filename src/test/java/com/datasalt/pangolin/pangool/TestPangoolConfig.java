@@ -18,46 +18,46 @@ public class TestPangoolConfig {
 
 	@Test
 	public void testCommonOrderedSchema() throws CoGrouperException {
-		PangoolConfig config = new PangoolConfig();
+		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
 
-		config.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
-		config.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
-		config.setSorting(Sorting.parse("url asc, fetched desc"));
-		config.setGroupByFields("url");
-		config.build();
+		configBuilder.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
+		configBuilder.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
+		configBuilder.setSorting(Sorting.parse("url asc, fetched desc"));
+		configBuilder.setGroupByFields("url");
+		PangoolConfig config = configBuilder.build();
 		
 		Assert.assertEquals(Schema.parse("url:string, fetched:long").toString(), config.getCommonOrderedSchema().toString());
 	}
 	
 	@Test
 	public void testCommonOrderedSchemaWithSourceId() throws InvalidFieldException, CoGrouperException {
-		PangoolConfig config = new PangoolConfig();
+		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
 
-		config.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
-		config.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
+		configBuilder.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
+		configBuilder.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
 		
-		config.setSorting(new SortingBuilder()
+		configBuilder.setSorting(new SortingBuilder()
 			.add("url", SortOrder.ASC)
 			.add("fetched", SortOrder.DESC)
 			.addSourceId(SortOrder.ASC)
 			.buildSorting()
 		);
 
-		config.setGroupByFields("url");
-		config.build();
+		configBuilder.setGroupByFields("url");
+		PangoolConfig config = configBuilder.build();
 		
 		Assert.assertEquals(Schema.parse("url:string, fetched:long, " + Field.SOURCE_ID_FIELD + ":vint").toString(), config.getCommonOrderedSchema().toString());
 	}
 	
 	@Test
 	public void testParticularPartialOrderedSchemas() throws CoGrouperException {
-		PangoolConfig config = new PangoolConfig();
+		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
 
-		config.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
-		config.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
-		config.setSorting(Sorting.parse("url asc, fetched desc"));
-		config.setGroupByFields("url");
-		config.build();
+		configBuilder.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
+		configBuilder.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
+		configBuilder.setSorting(Sorting.parse("url asc, fetched desc"));
+		configBuilder.setGroupByFields("url");
+		PangoolConfig config = configBuilder.build();
 		
 		Map<Integer, Schema> partialOrderedSchemas = config.getParticularPartialOrderedSchemas();
 
@@ -67,7 +67,7 @@ public class TestPangoolConfig {
 	
 	@Test
 	public void testSerDeEquality() throws JsonGenerationException, JsonMappingException, IOException, CoGrouperException, InvalidFieldException {
-		PangoolConfig config = new PangoolConfig();
+		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
 
 		SchemaBuilder builder1 = new SchemaBuilder();
 		builder1
@@ -93,15 +93,16 @@ public class TestPangoolConfig {
 				.add("name", SortOrder.ASC)
 			.buildSorting();
 
-		config.addSchema(1, builder1.createSchema());
-		config.addSchema(2, builder2.createSchema());
-		config.setSorting(sorting);
-		config.setRollupFrom("url");
-		config.setGroupByFields("url", "date");
+		configBuilder.addSchema(1, builder1.createSchema());
+		configBuilder.addSchema(2, builder2.createSchema());
+		configBuilder.setSorting(sorting);
+		configBuilder.setRollupFrom("url");
+		configBuilder.setGroupByFields("url", "date");
+		PangoolConfig config = configBuilder.build();
 
 		ObjectMapper mapper = new ObjectMapper();
 		String jsonConfig = config.toStringAsJSON(mapper);		
-		PangoolConfig config2 = PangoolConfig.fromJSON(jsonConfig, mapper);
+		PangoolConfig config2 = PangoolConfigBuilder.fromJSON(jsonConfig, mapper);
 
 		Assert.assertEquals(jsonConfig, config2.toStringAsJSON(mapper));
 	}

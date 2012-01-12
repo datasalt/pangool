@@ -1,5 +1,7 @@
 package com.datasalt.pangolin.pangool;
 
+import java.io.IOException;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -12,19 +14,19 @@ import com.datasalt.pangolin.pangool.SortCriteria.SortOrder;
 public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 
 	@Test(expected = CoGrouperException.class)
-	public void testSortingWithUncommonElement() throws InvalidFieldException, CoGrouperException {
+	public void testSortingWithUncommonElement() throws InvalidFieldException, CoGrouperException, IOException {
 		Sorting sorting = Sorting.parse("url asc, content desc"); // not in common: content
 		testCoGrouper(sorting, new String[] { "url" }, null);
 	}
 
 	@Test(expected = CoGrouperException.class)
-	public void testSortingWithUnexistingElement() throws InvalidFieldException, CoGrouperException {
+	public void testSortingWithUnexistingElement() throws InvalidFieldException, CoGrouperException, IOException {
 		Sorting sorting = Sorting.parse("url asc, foo desc"); // unexisting: foo
 		testCoGrouper(sorting, new String[] { "url" }, null);
 	}
 
 	@Test
-	public void testValidSortings() throws InvalidFieldException, CoGrouperException {
+	public void testValidSortings() throws InvalidFieldException, CoGrouperException, IOException {
 		Sorting sorting;
 		sorting = Sorting.parse("url asc, fetched desc");
 		testCoGrouper(sorting, new String[] { "url" }, null);
@@ -37,7 +39,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 	}
 
 	@Test(expected = CoGrouperException.class)
-	public void testSecondarySortingUnexistingField() throws InvalidFieldException, CoGrouperException {
+	public void testSecondarySortingUnexistingField() throws InvalidFieldException, CoGrouperException, IOException {
 		Sorting sorting = new SortingBuilder()
 			.add("url", SortOrder.ASC)
 			.add("date", SortOrder.ASC)
@@ -49,7 +51,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 	}
 	
 	@Test
-	public void testSecondarySortings() throws InvalidFieldException, CoGrouperException {
+	public void testSecondarySortings() throws InvalidFieldException, CoGrouperException, IOException {
 		Sorting sorting = new SortingBuilder()
 			.add("url", SortOrder.ASC)
 			.add("date", SortOrder.ASC)
@@ -63,7 +65,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 	// --------------------------------------------------- //
 	
 	@Test
-	public void testValidRollupFrom() throws CoGrouperException {
+	public void testValidRollupFrom() throws CoGrouperException, IOException {
 		Sorting sorting;
 		
 		sorting = Sorting.parse("url asc, date asc, fetched desc");
@@ -85,7 +87,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 	// --------------------------------------------------- //
 
 	@Test(expected=CoGrouperException.class)
-	public void testInvalidRollupFrom() throws CoGrouperException {
+	public void testInvalidRollupFrom() throws CoGrouperException, IOException {
 		Sorting sorting;
 		
 		sorting = Sorting.parse("url asc, date asc, fetched desc");
@@ -95,7 +97,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 		testCoGrouper(sorting, new String[] { "url", "date" }, "foo");
 	}
 	
-	private void testCoGrouper(Sorting sorting, String[] groupBy, String rollupFrom) throws CoGrouperException {
+	private void testCoGrouper(Sorting sorting, String[] groupBy, String rollupFrom) throws CoGrouperException, IOException {
 		CoGrouper grouper = new CoGrouper(new Configuration());
 
 		grouper
@@ -111,6 +113,6 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 			grouper.setRollupFrom(rollupFrom);
 		}
 
-		grouper.doAllChecks();
+		grouper.createJob();
 	}
 }

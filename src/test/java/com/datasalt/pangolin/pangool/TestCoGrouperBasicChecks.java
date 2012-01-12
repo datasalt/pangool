@@ -1,5 +1,7 @@
 package com.datasalt.pangolin.pangool;
 
+import java.io.IOException;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -11,7 +13,7 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 
 	@Test(expected=CoGrouperException.class)
-	public void testMissingSchemas() throws CoGrouperException, InvalidFieldException {
+	public void testMissingSchemas() throws CoGrouperException, InvalidFieldException, IOException {
 		CoGrouper grouper = new CoGrouper(new Configuration());
 
 		grouper
@@ -21,11 +23,11 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 			.setGroupHandler(myGroupHandler.getClass())
 			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
 		
-		grouper.doAllChecks();
+		grouper.createJob();
 	}
 	
 	@Test(expected=CoGrouperException.class)
-	public void testMissingSorting() throws CoGrouperException {
+	public void testMissingSorting() throws CoGrouperException, IOException {
 		CoGrouper grouper = new CoGrouper(new Configuration());
 
 		grouper
@@ -36,11 +38,11 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 			.setGroupHandler(myGroupHandler.getClass())
 			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
 		
-		grouper.doAllChecks();
+		grouper.createJob();
 	}
 	
 	@Test(expected=CoGrouperException.class)
-	public void testMissingGroupBy() throws CoGrouperException, InvalidFieldException {
+	public void testMissingGroupBy() throws CoGrouperException, InvalidFieldException, IOException {
 		CoGrouper grouper = new CoGrouper(new Configuration());
 
 		grouper
@@ -51,11 +53,11 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 			.setGroupHandler(myGroupHandler.getClass())
 			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
 		
-		grouper.doAllChecks();
+		grouper.createJob();
 	}
 
 	@Test(expected=CoGrouperException.class)
-	public void testMissingInputs() throws CoGrouperException, InvalidFieldException {
+	public void testMissingInputs() throws CoGrouperException, InvalidFieldException, IOException {
 		CoGrouper grouper = new CoGrouper(new Configuration());
 
 		grouper
@@ -66,11 +68,11 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 			.setGroupHandler(myGroupHandler.getClass())
 			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
 		
-		grouper.doAllChecks();
+		grouper.createJob();
 	}
 	
 	@Test(expected=CoGrouperException.class)
-	public void testMissingOutput() throws CoGrouperException, InvalidFieldException {
+	public void testMissingOutput() throws CoGrouperException, InvalidFieldException, IOException {
 		CoGrouper grouper = new CoGrouper(new Configuration());
 
 		grouper
@@ -81,11 +83,11 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 			.setSorting(getTestSorting())
 			.setGroupHandler(myGroupHandler.getClass());
 		
-		grouper.doAllChecks();
+		grouper.createJob();
 	}
 	
 	@Test(expected=CoGrouperException.class)
-	public void testMissingGroupHandler() throws CoGrouperException, InvalidFieldException {
+	public void testMissingGroupHandler() throws CoGrouperException, InvalidFieldException, IOException {
 		CoGrouper grouper = new CoGrouper(new Configuration());
 
 		grouper
@@ -96,11 +98,11 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 			.setSorting(getTestSorting())
 			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
 		
-		grouper.doAllChecks();
+		grouper.createJob();
 	}
 
 	@Test
-	public void testAllFine() throws CoGrouperException, InvalidFieldException {
+	public void testAllFine() throws CoGrouperException, InvalidFieldException, IOException {
 		CoGrouper grouper = new CoGrouper(new Configuration());
 
 		grouper
@@ -112,6 +114,6 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 			.setGroupHandler(myGroupHandler.getClass())
 			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
 		
-		grouper.doAllChecks();
+		grouper.createJob();
 	}
 }
