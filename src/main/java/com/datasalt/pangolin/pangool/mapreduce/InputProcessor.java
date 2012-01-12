@@ -84,7 +84,7 @@ public class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPU
 	 * Do not override. Override {@link InputProcessor#cleanup(Collector)} instead.
 	 */
 	@Override
-	public final void cleanup(org.apache.hadoop.mapreduce.Mapper.Context context) throws IOException,InterruptedException {
+	public final void cleanup(Context context) throws IOException,InterruptedException {
 		cleanup(collector);
 	}
 	
@@ -99,7 +99,7 @@ public class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPU
 	 * Do not override! Override {@link InputProcessor#process(Object, Object, Collector)} instead.
 	 */
 	@Override
-	public final void map(INPUT_KEY key, INPUT_VALUE value, org.apache.hadoop.mapreduce.Mapper.Context context) throws IOException,InterruptedException {
+	public final void map(INPUT_KEY key, INPUT_VALUE value, Context context) throws IOException,InterruptedException {
 		try{
 			process(key,value,collector);
 		} catch(GrouperException e){
