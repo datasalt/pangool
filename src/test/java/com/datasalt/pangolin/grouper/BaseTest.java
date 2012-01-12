@@ -13,6 +13,7 @@ import com.datasalt.pangolin.commons.test.AbstractBaseTest;
 import com.datasalt.pangolin.grouper.Schema.Field;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.thrift.test.A;
 
 public abstract class BaseTest extends AbstractBaseTest{
 

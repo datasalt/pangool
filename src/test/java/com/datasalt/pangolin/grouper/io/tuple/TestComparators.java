@@ -44,6 +44,7 @@ import com.datasalt.pangolin.grouper.SortCriteriaBuilder;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangolin.io.Serialization;
+import com.datasalt.pangolin.thrift.test.A;
 
 /**
  * This tests either {@link SortComparator} or {@link GroupComparator}.It checks
