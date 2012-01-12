@@ -13,14 +13,14 @@ public class TestSortingBuilder {
 	public void testBuildSorting() throws InvalidFieldException {
 		SortingBuilder builder = new SortingBuilder();
 		Sorting sorting = builder.add("url", SortOrder.ASC).add("date", SortOrder.DESC)
-			.secondarySort("schema1").add("name", SortOrder.ASC).add("surname", SortOrder.DESC)
-			.secondarySort("schema2").add("taste", SortOrder.ASC)
+			.secondarySort(1).add("name", SortOrder.ASC).add("surname", SortOrder.DESC)
+			.secondarySort(2).add("taste", SortOrder.ASC)
 			.buildSorting();
 		Assert.assertNotNull(sorting);
 		Assert.assertEquals(SortOrder.ASC, sorting.getSortCriteria().getSortElementByFieldName("url").getSortOrder());
 		Assert.assertEquals(SortOrder.DESC, sorting.getSortCriteria().getSortElementByFieldName("date").getSortOrder());
-		Assert.assertEquals(SortOrder.ASC, sorting.getSecondarySortCriteriaByName("schema1").getSortElementByFieldName("name").getSortOrder());
-		Assert.assertEquals(SortOrder.DESC, sorting.getSecondarySortCriteriaByName("schema1").getSortElementByFieldName("surname").getSortOrder());
-		Assert.assertEquals(SortOrder.ASC, sorting.getSecondarySortCriteriaByName("schema2").getSortElementByFieldName("taste").getSortOrder());		
+		Assert.assertEquals(SortOrder.ASC, sorting.getSecondarySortCriteriaByName(1).getSortElementByFieldName("name").getSortOrder());
+		Assert.assertEquals(SortOrder.DESC, sorting.getSecondarySortCriteriaByName(1).getSortElementByFieldName("surname").getSortOrder());
+		Assert.assertEquals(SortOrder.ASC, sorting.getSecondarySortCriteriaByName(2).getSortElementByFieldName("taste").getSortOrder());		
 	}
 }

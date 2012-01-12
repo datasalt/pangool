@@ -15,14 +15,14 @@ import com.datasalt.pangolin.pangool.SortCriteria.SortOrder;
  */
 public class SortingBuilder extends SortCriteriaBuilder {
 
-	private Map<String, SortCriteriaBuilder> secondarySortBuilders;
+	private Map<Integer, SortCriteriaBuilder> secondarySortBuilders;
 
 	public SortingBuilder() {
 		super(null);
-		secondarySortBuilders = new HashMap<String, SortCriteriaBuilder>();
+		secondarySortBuilders = new HashMap<Integer, SortCriteriaBuilder>();
 	}
 	
-	public SortCriteriaBuilder secondarySort(String sourceId) {
+	public SortCriteriaBuilder secondarySort(Integer sourceId) {
 		SortCriteriaBuilder builder = new SortCriteriaBuilder(this);
 		secondarySortBuilders.put(sourceId, builder);
 		return builder;
@@ -33,8 +33,8 @@ public class SortingBuilder extends SortCriteriaBuilder {
 	}
 	
 	public Sorting buildSorting() {
-		Map<String, SortCriteria> secondarySortCriterias = new HashMap<String, SortCriteria>();
-		for(Map.Entry<String, SortCriteriaBuilder> builders: secondarySortBuilders.entrySet()) {
+		Map<Integer, SortCriteria> secondarySortCriterias = new HashMap<Integer, SortCriteria>();
+		for(Map.Entry<Integer, SortCriteriaBuilder> builders: secondarySortBuilders.entrySet()) {
 			secondarySortCriterias.put(builders.getKey(), builders.getValue().buildSortCriteria());
 		}
 		Sorting sorting = new Sorting(buildSortCriteria(), secondarySortCriterias);
