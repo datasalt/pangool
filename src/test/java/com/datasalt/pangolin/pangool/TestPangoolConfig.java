@@ -46,7 +46,6 @@ public class TestPangoolConfig {
 		config.setSorting(sorting);
 		config.setRollupFrom("url");
 		config.setGroupByFields("url", "date");
-		config.setCustomPartitionerFields("url");
 
 		ObjectMapper mapper = new ObjectMapper();
 		String jsonConfig = config.toStringAsJSON(mapper);

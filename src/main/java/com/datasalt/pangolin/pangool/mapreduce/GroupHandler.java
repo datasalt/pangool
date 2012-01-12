@@ -20,7 +20,7 @@ import com.datasalt.pangolin.pangool.Schema;
  * 
  */
 @SuppressWarnings("rawtypes")
-public abstract class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
+public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 
 	/**
 	 * 
@@ -48,7 +48,9 @@ public abstract class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 	 * @param context
 	 *          The reducer context as in {@link Reducer}
 	 */
-	public abstract void onGroupElements(Iterable<ITuple> tuples, Context context) throws IOException,
-	    InterruptedException, CoGrouperException;
+	public void onGroupElements(Iterable<ITuple> tuples, Context context) throws IOException,
+	    InterruptedException, CoGrouperException {
+		
+	}
 
 }

@@ -32,7 +32,7 @@ import com.datasalt.pangolin.grouper.io.tuple.Tuple;
  * @author eric
  *
  */
-public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
+public class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
 	
 	private Schema schema;
 	private Collector collector;
@@ -64,10 +64,10 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 		}
 	}
 	
-	//TODO should this be blank , not abstract ?
-	public abstract void setup(Schema schema, Context context) throws IOException,InterruptedException,GrouperException ;
+	public void setup(Schema schema, Context context) throws IOException,InterruptedException,GrouperException {
+		
+	}	
 	
-
 	@Override
 	//TODO should we delegate this one as well . Another clenaup method ??
 	public void cleanup(Context context) throws IOException,InterruptedException {
@@ -90,6 +90,7 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 	 * @param collector
 	 * 
 	 */
-	public abstract void process(INPUT_KEY key,INPUT_VALUE value,Collector collector) throws IOException,InterruptedException,GrouperException;
-	
+	public void process(INPUT_KEY key,INPUT_VALUE value,Collector collector) throws IOException,InterruptedException,GrouperException {
+		
+	}
 }

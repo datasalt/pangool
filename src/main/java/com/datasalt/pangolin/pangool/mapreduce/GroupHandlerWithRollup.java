@@ -14,7 +14,7 @@ import com.datasalt.pangolin.pangool.CoGrouperException;
  *
  */
 @SuppressWarnings("rawtypes")
-public abstract class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
+public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 
 	/**
 	 * 
@@ -31,8 +31,10 @@ public abstract class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends G
 	 *          The reducer context as in {@link Reducer}
 	 * 
 	 */
-	public abstract void onOpenGroup(int depth, String field, ITuple firstElement, Reducer.Context context)
-	    throws IOException, InterruptedException, CoGrouperException;
+	public void onOpenGroup(int depth, String field, ITuple firstElement, Reducer.Context context)
+	    throws IOException, InterruptedException, CoGrouperException {
+		
+	}
 
 	/**
 	 * 
@@ -49,6 +51,8 @@ public abstract class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends G
 	 *          The reducer context as in {@link Reducer}
 	 * 
 	 */
-	public abstract void onCloseGroup(int depth, String field, ITuple lastElement, Context context) throws IOException,
-	    InterruptedException, CoGrouperException;
+	public void onCloseGroup(int depth, String field, ITuple lastElement, Context context) throws IOException,
+	    InterruptedException, CoGrouperException {
+		
+	}
 }
