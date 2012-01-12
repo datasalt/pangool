@@ -1,10 +1,5 @@
 package com.datasalt.pangolin.pangool;
 
-import java.io.IOException;
-
-import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.Schema;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangolin.pangool.mapreduce.GroupHandler;
