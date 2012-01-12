@@ -41,7 +41,7 @@ public class PangoolConfig {
 		this.sorting = sorting;
 	}
 
-	Sorting getSorting() {
+	public Sorting getSorting() {
   	return sorting;
   }
 
