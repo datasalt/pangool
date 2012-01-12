@@ -3,6 +3,8 @@ package com.datasalt.pangolin.pangool;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.hadoop.io.RawComparator;
+
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.pangool.SortCriteria.SortOrder;
 
@@ -13,28 +15,41 @@ import com.datasalt.pangolin.pangool.SortCriteria.SortOrder;
  * @author pere
  * 
  */
+@SuppressWarnings("rawtypes")
 public class SortingBuilder extends SortCriteriaBuilder {
 
-	private Map<String, SortCriteriaBuilder> secondarySortBuilders;
+	private Map<Integer, SortCriteriaBuilder> secondarySortBuilders;
 
 	public SortingBuilder() {
 		super(null);
-		secondarySortBuilders = new HashMap<String, SortCriteriaBuilder>();
+		secondarySortBuilders = new HashMap<Integer, SortCriteriaBuilder>();
 	}
 	
-	public SortCriteriaBuilder secondarySort(String sourceId) {
+	public SortingBuilder add(String fieldName, SortOrder order, Class<? extends RawComparator> customComparator) throws InvalidFieldException {
+		super.add(fieldName, order, customComparator);
+		return this;
+	}
+	
+	@Override
+	public SortingBuilder add(String fieldName, SortOrder order) throws InvalidFieldException {
+		super.add(fieldName, order);
+	  return this;
+	}
+	
+	public SortCriteriaBuilder secondarySort(Integer sourceId) {
 		SortCriteriaBuilder builder = new SortCriteriaBuilder(this);
 		secondarySortBuilders.put(sourceId, builder);
 		return builder;
 	}
 
-	public void addSourceId(SortOrder order) throws InvalidFieldException {
+	public SortingBuilder addSourceId(SortOrder order) throws InvalidFieldException {
 		add(Schema.Field.SOURCE_ID_FIELD, order, null);
+		return this;
 	}
 	
 	public Sorting buildSorting() {
-		Map<String, SortCriteria> secondarySortCriterias = new HashMap<String, SortCriteria>();
-		for(Map.Entry<String, SortCriteriaBuilder> builders: secondarySortBuilders.entrySet()) {
+		Map<Integer, SortCriteria> secondarySortCriterias = new HashMap<Integer, SortCriteria>();
+		for(Map.Entry<Integer, SortCriteriaBuilder> builders: secondarySortBuilders.entrySet()) {
 			secondarySortCriterias.put(builders.getKey(), builders.getValue().buildSortCriteria());
 		}
 		Sorting sorting = new Sorting(buildSortCriteria(), secondarySortCriterias);

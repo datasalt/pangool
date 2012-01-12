@@ -9,9 +9,6 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.pangool.SortCriteria;
-
 /**
  * Encapsulates the sorting configuration
  * 
@@ -21,9 +18,9 @@ import com.datasalt.pangolin.pangool.SortCriteria;
 public class Sorting {
 
 	private SortCriteria sortCriteria;
-	private Map<String, SortCriteria> secondarySortCriterias; // key is source Id
+	private Map<Integer, SortCriteria> secondarySortCriterias; // key is source Id
 
-	Sorting(SortCriteria sortCriteria, Map<String, SortCriteria> secondarySortCriterias) {
+	Sorting(SortCriteria sortCriteria, Map<Integer, SortCriteria> secondarySortCriterias) {
 		this.sortCriteria = sortCriteria;
 		this.secondarySortCriterias = secondarySortCriterias;
 	}
@@ -32,19 +29,19 @@ public class Sorting {
 		return sortCriteria;
 	}
 
-	public Map<String, SortCriteria> getSecondarySortCriterias() {
+	public Map<Integer, SortCriteria> getSecondarySortCriterias() {
 		return secondarySortCriterias;
 	}
 
-	public SortCriteria getSecondarySortCriteriaByName(String schemaName) {
+	public SortCriteria getSecondarySortCriteriaByName(Integer schemaName) {
 		return secondarySortCriterias.get(schemaName);
 	}
 	
 	private Map<String, Object> getJsonableData() {
 		Map<String, Object> jsonableData = new HashMap<String, Object>();
 		Map<String, String> jsonableSecondarySortCriterias = new HashMap<String, String>();
-		for(Map.Entry<String, SortCriteria> entry : secondarySortCriterias.entrySet()) {
-			jsonableSecondarySortCriterias.put(entry.getKey(), entry.getValue().toString());
+		for(Map.Entry<Integer, SortCriteria> sortCriteria : secondarySortCriterias.entrySet()) {
+			jsonableSecondarySortCriterias.put(sortCriteria.getKey() + "", sortCriteria.getValue().toString());
 		}
 		jsonableData.put("sortCriteria", sortCriteria.toString());
 		jsonableData.put("secondarySortCriterias", jsonableSecondarySortCriterias);
@@ -60,14 +57,22 @@ public class Sorting {
 	}
 	
 	@SuppressWarnings("unchecked")
-  static Sorting fromJSON(String json, ObjectMapper mapper) throws JsonParseException, JsonMappingException, IOException, GrouperException {
+  static Sorting fromJSON(String json, ObjectMapper mapper) throws JsonParseException, JsonMappingException, IOException, CoGrouperException {
 		Map<String, Object> jsonData = mapper.readValue(json, HashMap.class);
 		SortCriteria sortCriteria = SortCriteria.parse((String) jsonData.get("sortCriteria"));
+		
 		Map<String, String> jsonSecondarySortCriterias = (Map<String, String>) jsonData.get("secondarySortCriterias");
-		Map<String, SortCriteria> secondarySortCriterias = new HashMap<String, SortCriteria>();
+		Map<Integer, SortCriteria> secondarySortCriterias = new HashMap<Integer, SortCriteria>();
 		for(Map.Entry<String, String> jsonSecondarySortCriteria: jsonSecondarySortCriterias.entrySet()) {
-			secondarySortCriterias.put(jsonSecondarySortCriteria.getKey(), SortCriteria.parse(jsonSecondarySortCriteria.getValue()));
+			secondarySortCriterias.put(Integer.parseInt(jsonSecondarySortCriteria.getKey()), SortCriteria.parse(jsonSecondarySortCriteria.getValue()));
 		}
+		Sorting sorting = new Sorting(sortCriteria, secondarySortCriterias);
+		return sorting;
+	}
+	
+	public static Sorting parse(String sortingStr) throws CoGrouperException {
+		Map<Integer, SortCriteria> secondarySortCriterias = new HashMap<Integer, SortCriteria>();
+		SortCriteria sortCriteria = SortCriteria.parse(sortingStr);
 		Sorting sorting = new Sorting(sortCriteria, secondarySortCriterias);
 		return sorting;
 	}

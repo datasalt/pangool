@@ -7,8 +7,6 @@ import java.util.Map;
 
 import org.apache.hadoop.io.RawComparator;
 
-import com.datasalt.pangolin.grouper.GrouperException;
-
 /**
  * Encapsulates one sorting configuration composed of {@link SortElement}s.
  * 
@@ -92,7 +90,7 @@ public class SortCriteria {
 	}
 
 	@SuppressWarnings("unchecked")
-  public static SortCriteria parse(String sortCriteria) throws GrouperException {
+  public static SortCriteria parse(String sortCriteria) throws CoGrouperException {
 		List<SortElement> sortElements = new ArrayList<SortElement>();
 		List<String> fields = new ArrayList<String>();
 		String[] tokens = sortCriteria.split(",");
@@ -100,11 +98,11 @@ public class SortCriteria {
 
 			String[] nameSort = token.trim().split("\\s+");
 			if(nameSort.length < 2 || nameSort.length > 4) {
-				throw new GrouperException("Invalid sortCriteria format : " + sortCriteria);
+				throw new CoGrouperException("Invalid sortCriteria format : " + sortCriteria);
 			}
 			String name = nameSort[0].toLowerCase();
 			if(fields.contains(name)) {
-				throw new GrouperException("Invalid sortCriteria .Repeated field " + name);
+				throw new CoGrouperException("Invalid sortCriteria .Repeated field " + name);
 			}
 			fields.add(name);
 			int offset = 0;
@@ -115,7 +113,7 @@ public class SortCriteria {
 					offset = 2;
 				}
 			} catch(ClassNotFoundException e) {
-				throw new GrouperException("Class not found : " + nameSort[2], e);
+				throw new CoGrouperException("Class not found : " + nameSort[2], e);
 			}
 
 			SortOrder sortOrder;
@@ -124,7 +122,7 @@ public class SortCriteria {
 			} else if("DESC".equals(nameSort[1 + offset].toUpperCase())) {
 				sortOrder = SortOrder.DESC;
 			} else {
-				throw new GrouperException("Invalid SortCriteria " + nameSort[1] + " in " + sortCriteria);
+				throw new CoGrouperException("Invalid SortCriteria " + nameSort[1] + " in " + sortCriteria);
 			}
 
 			SortElement sortElement = new SortElement(name, sortOrder, comparator);

@@ -17,7 +17,9 @@ package com.datasalt.pangolin.commons.io;
 
 import com.datasalt.pangolin.commons.io.ProtoStuffDeserializer;
 import com.datasalt.pangolin.commons.io.ProtoStuffSerializer;
+import com.datasalt.pangolin.serialization.thrift.ThriftSerialization;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
@@ -40,5 +42,18 @@ public class ProtoStuffSerialization implements Serialization<Schema> {
 	@Override
   public Deserializer<Schema> getDeserializer(Class<Schema> c) {
 	  return new ProtoStuffDeserializer(c);
+  }
+	
+  /**
+   * Enables ProtoStuff Serialization support in Hadoop. 
+   */
+  public static void enableProtoStuffSerialization(Configuration conf) {
+		String ser = conf.get("io.serializations").trim();
+		if (ser.length() !=0 ) {
+			ser += ",";
+		}
+		//Adding the ProtoStuff serialization
+		ser += ProtoStuffSerialization.class.getName();
+		conf.set("io.serializations", ser);
   }
 }
