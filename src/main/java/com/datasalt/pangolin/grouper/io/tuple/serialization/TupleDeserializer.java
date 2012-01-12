@@ -30,11 +30,6 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.util.ReflectionUtils;
-import org.apache.thrift.TBase;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TIOStreamTransport;
 
 import com.datasalt.pangolin.commons.Buffer;
 import com.datasalt.pangolin.grouper.Schema;
@@ -54,6 +49,14 @@ class TupleDeserializer implements Deserializer<ITuple> {
 	private Buffer tmpInputBuffer = new Buffer();
 	//private 
 	
+	
+	TupleDeserializer(Serialization ser,Schema schema){
+		this.schema = schema;
+		this.ser = ser;
+		this.cachedEnums = TupleSerialization.cacheEnums(schema);
+	}
+	
+	
 	@Override
 	public void open(InputStream in) throws IOException {
 		this.in = new DataInputStream(in);
@@ -66,8 +69,13 @@ class TupleDeserializer implements Deserializer<ITuple> {
 	public ITuple deserialize(ITuple t) throws IOException {
 		ITuple result = t;
 		if (result == null) {
-			result = ReflectionUtils.newInstance(t.getClass(), null);
+			result = ReflectionUtils.newInstance(Tuple.class, null);
 		}
+		
+		if (result instanceof Tuple){
+			((Tuple)result).swapInstances();
+		}
+		
 		readFields(result, in);
 		return result;
 	}
@@ -112,7 +120,10 @@ class TupleDeserializer implements Deserializer<ITuple> {
 				if (size != 0){
 					tmpInputBuffer.setSize(size);
 					input.readFully(tmpInputBuffer.getBytes(),0,size);
-					//TODO check if tuple.getObject() is not null cache elements
+					if (tuple.getObject(name) == null){
+						tuple.setObject(name,ReflectionUtils.newInstance(fieldType, null));
+					}
+					
 					Object ob = ser.deser(tuple.getObject(name),tmpInputBuffer.getBytes(),0,size);
 					tuple.setObject(name, ob);
 					
@@ -131,14 +142,14 @@ class TupleDeserializer implements Deserializer<ITuple> {
 
 
   
-	void setSchema(Schema schema){
-		this.schema = schema;
-		
-	}
-	
-	void setSerialization(Serialization ser){
-		this.ser = ser;
-	}
+//	void setSchema(Schema schema){
+//		this.schema = schema;
+//		
+//	}
+//	
+//	void setSerialization(Serialization ser){
+//		this.ser = ser;
+//	}
  
 
 }

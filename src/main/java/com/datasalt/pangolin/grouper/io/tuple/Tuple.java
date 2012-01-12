@@ -88,6 +88,12 @@ public class Tuple implements ITuple {
 //
 //		currentTuple.readFields(schema,in);
 //	}
+	
+	public void swapInstances() throws IOException {
+		BaseTuple tmpTuple = previousTuple;
+		previousTuple = currentTuple;
+		currentTuple = tmpTuple;
+	}
 
 	/**
 	 * It always return a nonnull instance even if readFields never was invoked

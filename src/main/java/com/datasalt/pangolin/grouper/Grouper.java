@@ -26,6 +26,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.contrib.serialization.thrift.ThriftSerialization;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -34,11 +35,13 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 
+import com.datasalt.pangolin.commons.io.ProtoStuffSerialization;
 import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
 import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
@@ -86,8 +89,18 @@ public class Grouper {
 	private Path outputPath;
 	private List<Input> multiInputs = new ArrayList<Input>();
 
+	private static void addTupleSerialization(Configuration conf) {
+		String ser = conf.get("io.serializations").trim();
+		if (ser.length() !=0 ) {
+			ser += ",";
+		}
+		ser += TupleSerialization.class.getName();
+		conf.set("io.serializations", ser);
+	}
+	
 	public Grouper(@Nonnull Configuration conf) throws IOException {
 		this.conf = conf;
+		addTupleSerialization(conf);
 	}
 
 	public void addInput(Path path, Class<? extends InputFormat> inputFormat, Class<? extends InputProcessor> inputProcessor) {

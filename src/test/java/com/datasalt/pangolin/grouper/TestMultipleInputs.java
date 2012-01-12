@@ -79,6 +79,9 @@ public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 			String surname  = tokens[1];
 			outputTuple.setString("surname", surname);
 			outputTuple.setInt("id", id);
+			outputTuple.setInt("age", 0);
+			outputTuple.setString("name", "");
+			outputTuple.setLong("height", 456);
 			collector.write(outputTuple);
 			
 		}
