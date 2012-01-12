@@ -15,9 +15,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.codehaus.jackson.map.ObjectMapper;
 
-import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
-import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
@@ -25,9 +24,12 @@ import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
 import com.datasalt.pangolin.grouper.mapreduce.SimpleCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.SimpleReducer;
-import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 import com.datasalt.pangolin.pangool.Schema.Field;
 import com.datasalt.pangolin.pangool.SortCriteria.SortElement;
+import com.datasalt.pangolin.pangool.io.tuple.GroupComparator;
+import com.datasalt.pangolin.pangool.io.tuple.Partitioner;
+import com.datasalt.pangolin.pangool.mapreduce.GroupHandler;
+import com.datasalt.pangolin.pangool.mapreduce.GroupHandlerWithRollup;
 
 /**
  * 
@@ -37,9 +39,9 @@ import com.datasalt.pangolin.pangool.SortCriteria.SortElement;
 @SuppressWarnings("rawtypes")
 public class CoGrouper {
 
-	public final static String CONF_MAPPER_HANDLER = "datasalt.grouper.mapper_handler";
-	private final static String CONF_REDUCER_HANDLER = "datasalt.grouper.reducer_handler";
-	private final static String CONF_COMBINER_HANDLER = "datasalt.grouper.combiner_handler";
+	private final static String CONF_PANGOOL_CONF = CoGrouper.class.getName() + ".pangool.conf";
+	private final static String CONF_REDUCER_HANDLER = CoGrouper.class.getName() + ".reducer.handler";
+	private final static String CONF_COMBINER_HANDLER = CoGrouper.class.getName() + ".combiner.handler";
 
 	/**
 	 * 
@@ -63,7 +65,7 @@ public class CoGrouper {
 
 	private Configuration conf;
 
-	private Class<? extends GroupHandler> outputHandler;
+	private Class<? extends GroupHandler> reduceHandler;
 	private Class<? extends OutputFormat> outputFormat;
 	private Class<? extends GroupHandler> combinerHandler;
 	private Class<?> jarByClass;
@@ -73,6 +75,8 @@ public class CoGrouper {
 	private Path outputPath;
 
 	private List<Input> multiInputs = new ArrayList<Input>();
+
+	private ObjectMapper jsonSerDe = new ObjectMapper();
 
 	public CoGrouper(Configuration conf) {
 		config = new PangoolConfig();
@@ -130,7 +134,7 @@ public class CoGrouper {
 	}
 
 	public CoGrouper setOutputHandler(Class<? extends GroupHandler> outputHandler) {
-		this.outputHandler = outputHandler;
+		this.reduceHandler = outputHandler;
 		return this;
 	}
 
@@ -149,7 +153,7 @@ public class CoGrouper {
 	}
 
 	public CoGrouper setGroupHandler(Class<? extends GroupHandler> groupHandler) {
-		this.outputHandler = groupHandler;
+		this.reduceHandler = groupHandler;
 		return this;
 	}
 
@@ -173,7 +177,7 @@ public class CoGrouper {
 		raiseExceptionIfNull(config.getSorting(), "Need to set sorting");
 		raiseExceptionIfNull(config.getSorting().getSortCriteria(), "Need to set sorting criteria");
 		raiseExceptionIfNull(config.getGroupByFields(), "Need to set fields to group by");
-		raiseExceptionIfNull(outputHandler, "Need to set a group handler");
+		raiseExceptionIfNull(reduceHandler, "Need to set a group handler");
 		raiseExceptionIfEmpty(multiInputs, "Need to add at least one input");
 		raiseExceptionIfNull(outputFormat, "Need to set output format");
 		raiseExceptionIfNull(outputKeyClass, "Need to set outputKeyClass");
@@ -243,6 +247,12 @@ public class CoGrouper {
 				throw new CoGrouperException("Rollup from [" + config.getRollupFrom() + "] not contained in group by fields "
 				    + config.getGroupByFields());
 			}
+
+			// Check that we are using the appropriate Handler
+			if(!GroupHandlerWithRollup.class.isAssignableFrom(reduceHandler)) {
+				throw new CoGrouperException("Can't use " + reduceHandler + " with rollup. Please use "
+				    + GroupHandlerWithRollup.class + " instead.");
+			}
 		}
 	}
 
@@ -251,43 +261,45 @@ public class CoGrouper {
 		doAllChecks();
 
 		Job job = new Job(conf);
+		// Serialize PangoolConf in Hadoop Configuration
+		conf.set(CONF_PANGOOL_CONF, config.toStringAsJSON(jsonSerDe));
 
-		/*
-		 * TODO Serialize PangoolConfig
-		 */
+		// Set fields to group by in Hadoop Configuration
+		GroupComparator.setGroupComparatorFields(job.getConfiguration(), config.getGroupByFields());
 
-		// GroupComparator.setGroupComparatorFields(job.getConfiguration(), config.getGroupByFields());
+		List<String> partitionerFields;
 
 		if(config.getRollupFrom() != null) {
-			// Grouper with rollup
-			/*
-			 * TODO Calculate rollupBaseGroupFields from "rollupFrom"
-			 */
-			// List<String> rollupBaseGroupFields;
-			// List<String> partitionerFields = (config.getCustomPartitionerFields() != null) ?
-			// config.getCustomPartitionerFields()
-			// : rollupBaseGroupFields;
-			// Partitioner.setPartitionerFields(job.getConfiguration(), partitionerFields);
+			// Grouper with rollup: calculate rollupBaseGroupFields from "rollupFrom"
+			List<String> rollupBaseGroupFields = new ArrayList<String>();
+			for(String groupByField : config.getGroupByFields()) {
+				rollupBaseGroupFields.add(groupByField);
+				if(groupByField.equals(config.getRollupFrom())) {
+					break;
+				}
+			}
+			partitionerFields = (config.getCustomPartitionerFields() != null) ? config.getCustomPartitionerFields()
+			    : rollupBaseGroupFields;
 			job.setReducerClass(RollupReducer.class);
 		} else {
-			// simple grouper
-			// String[] partitionerFields = (config.getCustomPartitionerFields() != null) ?
-			// config.getCustomPartitionerFields()
-			// : config.getGroupByFields();
-			// Partitioner.setPartitionerFields(job.getConfiguration(), partitionerFields);
+			// Simple grouper
+			partitionerFields = (config.getCustomPartitionerFields() != null) ? config.getCustomPartitionerFields() : config
+			    .getGroupByFields();
 			job.setReducerClass(SimpleReducer.class);
 		}
 
+		// Set fields to partition by in Hadoop Configuration
+		Partitioner.setPartitionerFields(job.getConfiguration(), partitionerFields);
+
 		if(combinerHandler != null) {
-			/*
-			 * TODO Change when we have two instances of GroupHandler
-			 */
 			job.setCombinerClass((config.getRollupFrom() == null) ? SimpleCombiner.class : RollupCombiner.class);
+			// Set Combiner Handler
 			conf.setClass(CONF_COMBINER_HANDLER, combinerHandler, GroupHandler.class);
 		}
-		conf.setClass(CONF_REDUCER_HANDLER, outputHandler, GroupHandler.class);
+		// Set Reducer Handler
+		conf.setClass(CONF_REDUCER_HANDLER, reduceHandler, GroupHandler.class);
 
-		job.setJarByClass((jarByClass != null) ? jarByClass : outputHandler);
+		job.setJarByClass((jarByClass != null) ? jarByClass : reduceHandler);
 		job.setOutputFormatClass(outputFormat);
 		job.setMapOutputKeyClass(Tuple.class);
 		job.setMapOutputValueClass(NullWritable.class);

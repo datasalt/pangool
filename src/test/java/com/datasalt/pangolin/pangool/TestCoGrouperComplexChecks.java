@@ -104,7 +104,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 		  .setSorting(sorting)
 		  .groupBy(groupBy)
 		  .addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
-		  .setGroupHandler(myGroupHandler.getClass())
+		  .setGroupHandler(myGroupHandlerWithRollup.getClass())
 		  .setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
 		
 		if(rollupFrom != null) {
