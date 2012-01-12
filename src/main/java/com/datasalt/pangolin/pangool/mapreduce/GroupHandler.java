@@ -22,6 +22,12 @@ import com.datasalt.pangolin.pangool.Schema;
 @SuppressWarnings("rawtypes")
 public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 
+	// To be added state info here, 
+	public static class State {
+		State() {
+		}		
+	}
+	
 	/**
 	 * 
 	 * @param schema
@@ -29,11 +35,11 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 	 * @param context
 	 *          See {@link Reducer.Context}
 	 */
-	public void setup(Schema schema, Reducer.Context context) throws IOException, InterruptedException, CoGrouperException {
+	public void setup(State state, Reducer.Context context) throws IOException, InterruptedException, CoGrouperException {
 
 	}
 
-	public void cleanup(Schema schema, Reducer.Context context) throws IOException, InterruptedException,
+	public void cleanup(State state, Reducer.Context context) throws IOException, InterruptedException,
 	    CoGrouperException {
 
 	}
@@ -48,7 +54,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 	 * @param context
 	 *          The reducer context as in {@link Reducer}
 	 */
-	public void onGroupElements(Iterable<ITuple> tuples, Context context) throws IOException,
+	public void onGroupElements(Iterable<ITuple> tuples, State state, Context context) throws IOException,
 	    InterruptedException, CoGrouperException {
 		
 	}

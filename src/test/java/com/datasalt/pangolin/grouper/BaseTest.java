@@ -6,7 +6,6 @@ import org.junit.Before;
 
 import com.datasalt.pangolin.commons.test.AbstractBaseTest;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
-import com.datasalt.pangolin.thrift.test.A;
 
 public abstract class BaseTest extends AbstractBaseTest{
 

@@ -15,8 +15,6 @@
  */
 package com.datasalt.pangolin.serialization.thrift;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -26,15 +24,11 @@ import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
-import org.apache.hadoop.record.Buffer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import sun.security.action.GetLongAction;
-
-import com.datasalt.pangolin.commons.io.ProtoStuffSerialization;
-import com.datasalt.pangolin.serialization.thrift.test.ObjForTest;
+import com.datasalt.pangolin.thrift.test.ObjForTest;
 
 /**
  * Test the class {@link ThriftSerialization}
