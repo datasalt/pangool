@@ -32,10 +32,6 @@ public class PangoolConfigBuilder {
 		config.setSorting( sorting );
 	}
 
-	public void setCustomPartitionerFields(String... customPartitionerFields) {
-  	config.setCustomPartitionerFields(customPartitionerFields);
-  }
-
 	public void addSchema(Integer schemaId, Schema schema) throws CoGrouperException {
 		if(config.getSchemes().containsKey(schemaId)) {
 			throw new CoGrouperException("Schema already present: " + schemaId);

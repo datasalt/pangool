@@ -26,7 +26,6 @@ public class PangoolConfig {
 	private Sorting sorting;
 	private Map<Integer, Schema> schemes; // key is schema Id
 	private List<String> groupByFields;
-	private List<String> customPartitionerFields;
 	private String rollupFrom;
 	
 	private Schema commonOrderedSchema;
@@ -39,14 +38,6 @@ public class PangoolConfig {
 	void setSorting(Sorting sorting) {
 		this.sorting = sorting;
 	}
-
-	public List<String> getCustomPartitionerFields() {
-  	return customPartitionerFields;
-  }
-
-	void setCustomPartitionerFields(String... customPartitionerFields) {
-  	this.customPartitionerFields = Collections.unmodifiableList(Arrays.asList(customPartitionerFields));
-  }
 
 	public Sorting getSorting() {
   	return sorting;
@@ -119,7 +110,6 @@ public class PangoolConfig {
 		b.append("sorting: ").append(sorting.toString()).append(" ");
 		b.append("schemes: ").append(schemes.toString()).append(" ");
 		b.append("groupByFields: ").append(groupByFields).append(" ");
-		b.append("customPartitionerFields:").append(customPartitionerFields).append(" ");
 		b.append("rollupFrom: ").append(rollupFrom);
 		return b.toString();
 	}
@@ -132,11 +122,6 @@ public class PangoolConfig {
 		
 		ArrayList<String> list = (ArrayList<String>) jsonData.get("groupByFields");
 		setGroupByFields(list.toArray(new String[0]));
-		
-		list = (ArrayList<String>) jsonData.get("customPartitionerFields");
-		if(list != null) {
-			setCustomPartitionerFields(list.toArray(new String[0]));
-		}
 		
     Map<String, String> jsonSchemes = (Map<String, String>) jsonData.get("schemes");
 		
@@ -158,7 +143,6 @@ public class PangoolConfig {
 		
 		jsonableData.put("schemes", jsonableSchemes);
 		jsonableData.put("groupByFields", groupByFields);
-		jsonableData.put("customPartitionerFields", customPartitionerFields);
 		jsonableData.put("rollupFrom", rollupFrom);
 		return mapper.writeValueAsString(jsonableData);
 	}	

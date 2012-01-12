@@ -16,7 +16,6 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
-import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
 import com.datasalt.pangolin.grouper.mapreduce.SimpleCombiner;
@@ -25,6 +24,7 @@ import com.datasalt.pangolin.pangool.io.tuple.GroupComparator;
 import com.datasalt.pangolin.pangool.io.tuple.Partitioner;
 import com.datasalt.pangolin.pangool.mapreduce.GroupHandler;
 import com.datasalt.pangolin.pangool.mapreduce.GroupHandlerWithRollup;
+import com.datasalt.pangolin.pangool.mapreduce.InputProcessor;
 
 /**
  * 
@@ -108,11 +108,6 @@ public class CoGrouper {
 
 	public CoGrouper setRollupFrom(String rollupFrom) {
 		configBuilder.setRollupFrom(rollupFrom);
-		return this;
-	}
-
-	public CoGrouper setPartitionerFields(String... partitionerFields) {
-		configBuilder.setCustomPartitionerFields(partitionerFields);
 		return this;
 	}
 
@@ -210,12 +205,11 @@ public class CoGrouper {
 					break;
 				}
 			}
-			partitionerFields = (config.getCustomPartitionerFields() != null) ? config.getCustomPartitionerFields()
-			    : rollupBaseGroupFields;
+			partitionerFields = rollupBaseGroupFields;
 			job.setReducerClass(RollupReducer.class);
 		} else {
 			// Simple grouper
-			partitionerFields = (config.getCustomPartitionerFields() != null) ? config.getCustomPartitionerFields() : config
+			partitionerFields = config
 			    .getGroupByFields();
 			job.setReducerClass(SimpleReducer.class);
 		}

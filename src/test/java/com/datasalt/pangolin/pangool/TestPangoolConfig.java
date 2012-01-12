@@ -93,6 +93,7 @@ public class TestPangoolConfig {
 				.add("name", SortOrder.ASC)
 			.buildSorting();
 
+<<<<<<< HEAD
 		configBuilder.addSchema(1, builder1.createSchema());
 		configBuilder.addSchema(2, builder2.createSchema());
 		configBuilder.setSorting(sorting);
@@ -100,6 +101,13 @@ public class TestPangoolConfig {
 		configBuilder.setGroupByFields("url", "date");
 		configBuilder.setCustomPartitionerFields("url");
 		PangoolConfig config = configBuilder.build();
+=======
+		config.addSchema(1, builder1.createSchema());
+		config.addSchema(2, builder2.createSchema());
+		config.setSorting(sorting);
+		config.setRollupFrom("url");
+		config.setGroupByFields("url", "date");
+>>>>>>> 2ee1283d3a4512bfb45ef475700a0785935d46ef
 
 		ObjectMapper mapper = new ObjectMapper();
 		String jsonConfig = config.toStringAsJSON(mapper);		
