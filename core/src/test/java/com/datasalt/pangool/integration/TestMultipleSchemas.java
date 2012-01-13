@@ -17,6 +17,7 @@ import com.datasalt.pangolin.commons.HadoopUtils;
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
@@ -87,7 +88,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		    .setGroupHandler(new GroupHandler() {
 
 			    @Override
-			    public void onGroupElements(Iterable tuples, State state, Context context) throws IOException,
+			    public void onGroupElements(ITuple group, Iterable tuples, State state, Context context) throws IOException,
 			        InterruptedException, CoGrouperException {
 
 				    System.out.println(tuples);

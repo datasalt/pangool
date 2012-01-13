@@ -26,15 +26,13 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.grouper.Schema;
-import com.datasalt.pangolin.grouper.Grouper;
-import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.io.tuple.FilteredReadOnlyTuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
-import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
@@ -85,7 +83,9 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			handler.setup(state, context);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
-		}
+		} catch(InvalidFieldException e) {
+			throw new RuntimeException(e);
+    }
   	
   }
   

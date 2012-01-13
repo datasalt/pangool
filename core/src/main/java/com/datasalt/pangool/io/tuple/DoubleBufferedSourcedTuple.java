@@ -34,7 +34,7 @@ public class DoubleBufferedSourcedTuple implements ISourcedTuple{
 		this.currentTuple.setContainedTuple(tuple);
 	}
 	
-	void swapInstances() throws IOException {
+	public void swapInstances() throws IOException {
 		ISourcedTuple tmpTuple = previousTuple;
 		previousTuple = currentTuple;
 		currentTuple = tmpTuple;
@@ -124,22 +124,22 @@ public class DoubleBufferedSourcedTuple implements ISourcedTuple{
 	}
 
 	@Override
-	public int getInt(String fieldName) {
+	public Integer getInt(String fieldName) {
 		return currentTuple.getInt(fieldName);
 	}
 
 	@Override
-	public long getLong(String fieldName) {
+	public Long getLong(String fieldName) {
 		return currentTuple.getLong(fieldName);
 	}
 
 	@Override
-	public float getFloat(String fieldName) {
+	public Float getFloat(String fieldName) {
 		return currentTuple.getFloat(fieldName);
 	}
 
 	@Override
-	public double getDouble(String fieldName) {
+	public Double getDouble(String fieldName) {
 		return currentTuple.getDouble(fieldName);
 	}
 

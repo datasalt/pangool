@@ -34,6 +34,7 @@ import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
+import com.datasalt.pangool.io.tuple.DoubleBufferedSourcedTuple;
 
 /**
  * 
@@ -115,7 +116,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
 			iterator.next();
-			Tuple currentKey = (Tuple) context.getCurrentKey();
+			DoubleBufferedSourcedTuple currentKey = (DoubleBufferedSourcedTuple) context.getCurrentKey();
 			int indexMismatch;
 			if(firstIteration) {
 				indexMismatch = minDepth;
@@ -141,6 +142,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			while(iterator.hasNext()) {
 				iterator.next();
 			}
+			
 		} catch(GrouperException e) {
 			throw new RuntimeException(e);
 		}
