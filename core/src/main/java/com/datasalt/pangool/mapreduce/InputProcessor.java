@@ -26,6 +26,7 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangool.io.tuple.SourcedTuple;
 
 /**
  * TODO doc
@@ -39,6 +40,20 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 		private NullWritable nullValue = NullWritable.get();
     private Mapper.Context context;
     private Schema schema;
+    
+    private ThreadLocal<SourcedTuple> cachedSourcedTuple = new ThreadLocal<SourcedTuple>() {
+
+    	SourcedTuple cachedTuple;
+    	
+    	@Override
+    	public SourcedTuple get() {
+    		return cachedTuple;
+    	}
+    	
+    	public void set(SourcedTuple cachedTuple) {
+    		this.cachedTuple = cachedTuple;
+    	}
+    };
     
 		Collector(Schema schema, Mapper.Context context){
 			this.schema = schema;
@@ -55,7 +70,16 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 		@SuppressWarnings("unchecked")
     public void write(ITuple tuple) throws IOException,InterruptedException {
 			context.write(tuple, nullValue);
-		}		
+		}
+		
+		public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
+			SourcedTuple sTuple = cachedSourcedTuple.get();
+			if(sTuple == null) {
+				sTuple = new SourcedTuple(tuple);
+				cachedSourcedTuple.set(sTuple);
+			}
+			write(sTuple);
+		}
 	}
 	
 	/**

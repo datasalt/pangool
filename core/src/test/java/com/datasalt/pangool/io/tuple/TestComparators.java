@@ -15,17 +15,13 @@ import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
-import org.apache.hadoop.io.serializer.Serializer;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
-import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.BaseTest;
@@ -49,10 +45,8 @@ import com.datasalt.pangool.SortingBuilder;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class TestComparators extends BaseTest {
 
-	int MAX_RANDOM_SCHEMAS = 200;
-	int MAX_RANDOMS_PER_INDEX = 20;
+	int MAX_RANDOM_SCHEMAS = 50;
 
-	@Ignore
 	@Test
 	public void test() throws CoGrouperException, IOException {
 		Random random = new Random();
@@ -66,12 +60,18 @@ public class TestComparators extends BaseTest {
 		for(int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
 
 			Schema schema = permuteSchema(SCHEMA);
-			System.out.println("Schema : " + schema);
+			Sorting sortCriteria = createRandomSortCriteria(schema, customComparators, maxIndex + 1);
+			String[] groupFields = getFirstFields(sortCriteria.getSortCriteria(), random.nextInt(sortCriteria.getSortCriteria().getSortElements().length));
 
+			SourcedTuple base1 = new SourcedTuple(new BaseTuple());
+			SourcedTuple base2 = new SourcedTuple(new BaseTuple());
+
+			SourcedTuple[] tuples = new SourcedTuple[] { base1, base2 };
+			for(ITuple tuple: tuples) {
+				fillTuple(false, schema, tuple, 0, maxIndex);
+			}
+			
 			for(int minIndex = maxIndex; minIndex >= 0; minIndex--) {
-				Sorting sortCriteria = createRandomSortCriteria(schema, customComparators, maxIndex + 1);
-				String[] groupFields = getFirstFields(sortCriteria.getSortCriteria(), random.nextInt(sortCriteria.getSortCriteria().getSortElements().length));
-
 				/*
 				 * Set everything into the Hadoop Conf.
 				 */
@@ -88,47 +88,32 @@ public class TestComparators extends BaseTest {
 				sortComparator.setConf(conf);
 				groupComparator.setConf(conf);
 
-				for(int i = 0; i < MAX_RANDOMS_PER_INDEX; i++) {
-
-					SourcedTuple base1 = new SourcedTuple(new BaseTuple());
-					SourcedTuple base2 = new SourcedTuple(new BaseTuple());
-					SourcedTuple doubleBuffered1 = new SourcedTuple(new Tuple()); // double buffered
-					SourcedTuple doubleBuffered2 = new SourcedTuple(new Tuple()); // double buffered
-
-					SourcedTuple[] tuples = new SourcedTuple[] { base1, base2, doubleBuffered1, doubleBuffered2 };
-					for(ITuple tuple : tuples) {
-						fillWithRandom(SCHEMA, tuple, minIndex, maxIndex);
+				for(ITuple tuple : tuples) {
+					fillTuple(true, schema, tuple, minIndex, maxIndex);
+				}
+				for(int indexTuple1 = 0; indexTuple1 < tuples.length; indexTuple1++) {
+					for(int indexTuple2 = indexTuple1 + 1; indexTuple2 < tuples.length; indexTuple2++) {
+						SourcedTuple tuple1 = tuples[indexTuple1];
+						SourcedTuple tuple2 = tuples[indexTuple2];
+						assertSameComparison("Sort comparator", sortComparator, tuple1, tuple2);
+						assertOppositeOrEqualsComparison(sortComparator, tuple1, tuple2);
+						assertSameComparison("Group comparator", groupComparator, tuple1, tuple2);
+						assertOppositeOrEqualsComparison(groupComparator, tuple1, tuple2);
 					}
-					for(int indexTuple1 = 0; indexTuple1 < tuples.length; indexTuple1++) {
-						for(int indexTuple2 = indexTuple1; indexTuple2 < tuples.length; indexTuple2++) {
-							SourcedTuple tuple1 = tuples[indexTuple1];
-							SourcedTuple tuple2 = tuples[indexTuple2];
-							assertSameComparison("Sort comparator", sortComparator, tuple1, tuple2);
-							assertOppositeOrEqualsComparison(sortComparator, tuple1, tuple2);
-							assertSameComparison("Group comparator", groupComparator, tuple1, tuple2);
-							assertOppositeOrEqualsComparison(groupComparator, tuple1, tuple2);
-						}
-					}
-				} // do you like bracket dance ?
+				}
 			}
 		}
 	}
 
-	private int compareInBinary1(SortComparator comp, ITuple tuple1, ITuple tuple2) throws IOException {
-		TupleSerialization serialization = new TupleSerialization();
-		Serializer ser = serialization.getSerializer(tuple1.getClass());
-		DataOutputBuffer buffer1 = new DataOutputBuffer();
-		ser.open(buffer1);
-		ser.serialize(tuple1);
-		ser.close();
-
+	private int compareInBinary1(SortComparator comp, SourcedTuple tuple1, SourcedTuple tuple2) throws IOException {
+	  Serialization ser = new Serialization(getConf());	
 		
-		ser = serialization.getSerializer(tuple2.getClass());
+		DataOutputBuffer buffer1 = new DataOutputBuffer();
+		ser.ser(tuple1, buffer1);
+		
 		DataOutputBuffer buffer2 = new DataOutputBuffer();
-		ser.open(buffer2);
-		ser.serialize(tuple2);
-		ser.close();
-
+		ser.ser(tuple2, buffer2);
+		
 		return comp.compare(buffer1.getData(), 0, buffer1.getLength(), buffer2.getData(), 0, buffer2.getLength());
 	}
 	
@@ -141,16 +126,6 @@ public class TestComparators extends BaseTest {
 		return comp.compare(buffer1.getData(), 0, buffer1.getLength(), buffer2.getData(), 0, buffer2.getLength());
 	}
 	
-
-	private String concatFields(String[] fields) {
-		StringBuilder b = new StringBuilder();
-		b.append(fields[0]);
-		for(int i = 1; i < fields.length; i++) {
-			b.append(",").append(fields[i]);
-		}
-		return b.toString();
-	}
-
 	/**
 	 * 
 	 * Checks that the binary comparison matches the comparison by objects.

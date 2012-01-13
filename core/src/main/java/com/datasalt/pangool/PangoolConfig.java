@@ -14,6 +14,8 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+
 /**
  * 
  * @author pere
@@ -122,7 +124,7 @@ public class PangoolConfig {
 	}
 
 	@SuppressWarnings("unchecked")
-	void fromJSON(String json, ObjectMapper mapper) throws JsonParseException, JsonMappingException, IOException, NumberFormatException, CoGrouperException {
+	void fromJSON(String json, ObjectMapper mapper) throws JsonParseException, JsonMappingException, IOException, NumberFormatException, CoGrouperException, InvalidFieldException {
 		HashMap<String, Object> jsonData = mapper.readValue(json, HashMap.class);
 		
 		setRollupFrom((String) jsonData.get("rollupFrom"));
