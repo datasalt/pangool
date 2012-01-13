@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
@@ -32,14 +31,13 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Serializer;
 
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 
 
-class SourcedTupleSerializer implements Serializer<SourcedTuple> {
+class SourcedTupleSerializer implements Serializer<ISourcedTuple> {
 
 
 	private Serialization ser;
@@ -61,7 +59,7 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
   	this.out = new DataOutputStream(out);
   }
 
-  public void serialize(SourcedTuple tuple) throws IOException {
+  public void serialize(ISourcedTuple tuple) throws IOException {
   	write(tuple,out);
   }
 
@@ -76,7 +74,7 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
   }
   
   
-  public void write(SourcedTuple tuple,DataOutput output) throws IOException {
+  public void write(ISourcedTuple tuple,DataOutput output) throws IOException {
   	Schema commonSchema = pangoolConfig.getCommonOrderedSchema();
   	int presentFields = 0;
   	presentFields += write(commonSchema,tuple,output);
@@ -100,7 +98,7 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
   }
   
   
-	public int write(Schema schema,SourcedTuple tuple,DataOutput output) throws IOException {
+	public int write(Schema schema,ISourcedTuple tuple,DataOutput output) throws IOException {
 		int presentFields = 0;
 		for (Field field : schema.getFields()) {
 			String fieldName = field.getName();
@@ -173,7 +171,7 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
 		
 	}
 	
-	private void raiseExceptionWrongFields(Schema schema,SourcedTuple tuple) throws IOException{
+	private void raiseExceptionWrongFields(Schema schema,ISourcedTuple tuple) throws IOException{
 		List<String> wrongFields = new ArrayList<String>();
 		for (String field : tuple.keySet()){
 			if (!schema.containsFieldName(field)){
