@@ -245,23 +245,23 @@ public class BaseTuple extends HashMap<String,Object> implements ITuple {
 	}
 	
 	@Override
-	public int getInt(String fieldName)  {
+	public Integer getInt(String fieldName)  {
 		return (Integer)getField(fieldName);
 	}
 	
 	@Override
-	public long getLong(String fieldName)  {
+	public Long getLong(String fieldName)  {
 		return (Long)getField(fieldName);
 	}
 	
 	
 	@Override
-	public float getFloat(String fieldName)  {
+	public Float getFloat(String fieldName)  {
 		return (Float)getField(fieldName);
 	}
 	
 	@Override
-	public double getDouble(String fieldName)  {
+	public Double getDouble(String fieldName)  {
 		return (Double)getField(fieldName);
 	}
 	
@@ -526,6 +526,5 @@ public class BaseTuple extends HashMap<String,Object> implements ITuple {
 //		// TODO Auto-generated method stub
 //		return null;
 //	}
-
 	
 }

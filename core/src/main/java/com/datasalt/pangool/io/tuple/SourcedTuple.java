@@ -110,22 +110,22 @@ public class SourcedTuple implements ISourcedTuple{
 	}
 
 	@Override
-	public int getInt(String fieldName) {
+	public Integer getInt(String fieldName) {
 		return containedTuple.getInt(fieldName);
 	}
 
 	@Override
-	public long getLong(String fieldName) {
+	public Long getLong(String fieldName) {
 		return containedTuple.getLong(fieldName);
 	}
 
 	@Override
-	public float getFloat(String fieldName) {
+	public Float getFloat(String fieldName) {
 		return containedTuple.getFloat(fieldName);
 	}
 
 	@Override
-	public double getDouble(String fieldName) {
+	public Double getDouble(String fieldName) {
 		return containedTuple.getDouble(fieldName);
 	}
 

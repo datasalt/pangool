@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.grouper.mapreduce;
+package com.datasalt.pangool.mapreduce;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -25,16 +26,18 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.grouper.Schema;
-import com.datasalt.pangolin.grouper.Grouper;
-import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.TupleIterator;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
-import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
-import com.datasalt.pangool.io.tuple.DoubleBufferedSourcedTuple;
+import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangool.CoGrouper;
+import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.PangoolConfig;
+import com.datasalt.pangool.PangoolConfigBuilder;
+import com.datasalt.pangool.mapreduce.GroupHandler.State;
 
 /**
  * 
@@ -47,21 +50,25 @@ import com.datasalt.pangool.io.tuple.DoubleBufferedSourcedTuple;
 public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
 	private boolean firstIteration = true;
+	private PangoolConfig pangoolConfig;
+	private State state;
 	private Schema schema;
+	private List<String> groupByFields;
 	private int minDepth, maxDepth;
+	private FilteredReadOnlyTuple groupTuple;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
-	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
-
-	protected Schema getSchema() {
-		return schema;
-	}
+	private GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> handler;
     	
   @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override  	
   public void setup(Context context) throws IOException,InterruptedException {
 		try {
 			Configuration conf = context.getConfiguration();
-			this.schema = Schema.parse(conf);
+			this.pangoolConfig = PangoolConfigBuilder.get(conf);
+			this.state = new State(pangoolConfig);
+			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
+			this.groupByFields = pangoolConfig.getGroupByFields();
+			
 			String[] groupFields = GroupComparator.getGroupComparatorFields(conf);
 			this.maxDepth = groupFields.length - 1;
 			String[] partitionerFields = Partitioner.getPartitionerFields(conf);
@@ -69,19 +76,23 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 			
-			Class<? extends GroupHandler> handlerClass = Grouper.getGroupHandler(conf);
+			Class<? extends GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE>> handlerClass = 
+					(Class<? extends GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE>>) 
+					CoGrouper.getGroupHandler(conf);
 			this.handler = ReflectionUtils.newInstance(handlerClass, conf);
-			handler.setup(schema, context);
-		} catch(GrouperException e) {
+			handler.setup(state, context);
+		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
-		}
+		} catch(InvalidFieldException e) {
+			throw new RuntimeException(e);
+    }
   	
   }
   
   public void cleanup(Context context) throws IOException,InterruptedException {
   	try{
-  	handler.cleanup(schema,context);
-  	} catch(GrouperException e){
+  	handler.cleanup(state,context);
+  	} catch(CoGrouperException e){
   		throw new RuntimeException(e);
   	}
   }
@@ -100,10 +111,10 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 
 			// close last group
 			for(int i = maxDepth; i >= minDepth; i--) {
-				handler.onCloseGroup(i, schema.getFields()[i].getName(), context.getCurrentKey(), context);
+				handler.onCloseGroup(i, groupByFields.get(i), context.getCurrentKey(), state, context);
 			}
 			cleanup(context);
-		} catch(GrouperException e) {
+		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
   }
@@ -116,34 +127,37 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
 			iterator.next();
-			DoubleBufferedSourcedTuple currentKey = (DoubleBufferedSourcedTuple) context.getCurrentKey();
+			Tuple currentTuple = (Tuple) context.getCurrentKey();
 			int indexMismatch;
 			if(firstIteration) {
 				indexMismatch = minDepth;
 				firstIteration = false;
 			} else {
-				ITuple previousKey = currentKey.getPreviousTuple();
-				indexMismatch = indexMismatch(previousKey, currentKey, minDepth, maxDepth);
+				ITuple previousKey = currentTuple.getPreviousTuple();
+				indexMismatch = indexMismatch(previousKey, currentTuple, minDepth, maxDepth);
 				for(int i = maxDepth; i >= indexMismatch; i--) {
-					handler.onCloseGroup(i, schema.getFields()[i].getName(), previousKey, context);
+					handler.onCloseGroup(i, groupByFields.get(i), previousKey, state, context);
 				}
 			}
 
 			for(int i = indexMismatch; i <= maxDepth; i++) {
-				handler.onOpenGroup(i, schema.getFields()[i].getName(), currentKey, context);
+				handler.onOpenGroup(i, groupByFields.get(i), currentTuple, state, context);
 			}
 
 			// we consumed the first element , so needs to comunicate to iterator
 			grouperIterator.setFirstTupleConsumed(true);
-			handler.onGroupElements(grouperIterator, context);
+			
+			// We set a view over the group fields to the method.
+			groupTuple.setDelegatedTuple(currentTuple);
+			
+			handler.onGroupElements(groupTuple, grouperIterator, state, context);
 
 			// This loop consumes the remaining elements that reduce didn't consume
 			// The goal of this is to correctly set the last element in the next onCloseGroup() call
 			while(iterator.hasNext()) {
 				iterator.next();
 			}
-			
-		} catch(GrouperException e) {
+		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -151,7 +165,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 
 	/**
 	 * Compares sequentially the fields from two tuples and returns which field they differ. 
-	 * 
+	 * TODO: Use custom comparators when provided. The provided RawComparators must implements "compare" so we should use them. 
 	 * @return
 	 */
 	private int indexMismatch(ITuple tuple1,ITuple tuple2,int minFieldIndex,int maxFieldIndex){
