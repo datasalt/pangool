@@ -77,24 +77,20 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
   
   
   public void write(SourcedTuple tuple,DataOutput output) throws IOException {
-  	
   	Schema commonSchema = pangoolConfig.getCommonOrderedSchema();
   	int presentFields = 0;
   	presentFields += write(commonSchema,tuple,output);
   	int numSourcesDefined = pangoolConfig.getSchemes().size();
-  	if (numSourcesDefined > 1){
-  		if (tuple.getSource() < 0) {
-  			throw new IOException("tuple can't contain negative sourceId " + tuple.getSource());
-  		} else if (tuple.getSource() >= numSourcesDefined){
+  	if (!pangoolConfig.getSchemes().containsKey(tuple.getSource())){
   		throw new IOException(
-  				"tuple sourceId can't exceed numSources. " +
-  				"Num sources=" + numSourcesDefined +  " actualSource=" + tuple.getSource());
-  		}
-  		//WritableUtils.writeVInt(output, tuple.getSource());
+  				"tuple sourceId doesn't match . " +
+  				"Sources: " + pangoolConfig.getSchemes() +  " actualSource=" + tuple.getSource());
+  	}
+
+  	if(numSourcesDefined > 1) {
   		Schema schema = pangoolConfig.getSpecificOrderedSchemas().get(tuple.getSource());
     	presentFields += write(schema,tuple,output);
-    	
-  	} 
+  	}
   	
   	if (tuple.size() > presentFields ){
   		Schema schema = pangoolConfig.getSchemes().get(tuple.getSource());
@@ -177,7 +173,7 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
 		
 	}
 	
-	private void raiseExceptionWrongFields(Schema schema,ITuple tuple) throws IOException{
+	private void raiseExceptionWrongFields(Schema schema,SourcedTuple tuple) throws IOException{
 		List<String> wrongFields = new ArrayList<String>();
 		for (String field : tuple.keySet()){
 			if (!schema.containsFieldName(field)){
@@ -185,7 +181,7 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
 			}
 		}
 		String fieldsConcated = concat(wrongFields,",");
-		throw new IOException("Tuple contains fields that don't belong to schema " + fieldsConcated + ". Schema:"+schema);
+		throw new IOException("Tuple with source " + tuple.getSource() + " contains fields that don't belong to schema '" + fieldsConcated + "'.\nSchema:"+schema);
 		
 	}
 	

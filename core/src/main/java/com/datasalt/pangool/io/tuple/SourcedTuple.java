@@ -5,24 +5,27 @@ import java.util.Map;
 import java.util.Set;
 
 import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 
 public class SourcedTuple implements ITuple{
 
-	private ITuple containedTuple;
+  private ITuple containedTuple;
 	private int sourceId;
+	
+	public SourcedTuple(){
+		this.containedTuple = new BaseTuple();
+	}
 	
 	public SourcedTuple(ITuple containedTuple){
 		this.containedTuple = containedTuple;
 	}
-	
-	private SourcedTuple(){
 		
-	}
-	
 	void setContainedTuple(ITuple tuple){
 		this.containedTuple = tuple;
 	}
+	
+	
 	
 	int getSource(){
 		return sourceId;
@@ -196,5 +199,21 @@ public class SourcedTuple implements ITuple{
 	public String toString(Schema schema, int minFieldIndex, int maxFieldIndex) {
 		return containedTuple.toString(schema,minFieldIndex,maxFieldIndex);
 	}
-
+	
+	@Override
+	public String toString(){
+		return "source:" + sourceId + "=>" +containedTuple.toString();
+	}
+	
+	@Override
+	public boolean equals(Object that){
+		if (that == null){
+			return false;
+		} else if (that instanceof SourcedTuple){
+			return sourceId == ((SourcedTuple)that).sourceId 
+					&& this.containedTuple.equals(((SourcedTuple)that).containedTuple);
+		} else {
+			return false;
+		}
+	}
 }
