@@ -14,14 +14,11 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Before;
 
 import com.datasalt.pangolin.commons.test.AbstractBaseTest;
-import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.thrift.test.A;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.io.tuple.SourcedTuple;
 
@@ -30,7 +27,7 @@ public abstract class BaseTest extends AbstractBaseTest{
 	public static Schema SCHEMA;
 
 	@Before
-	public void prepareBaseSchema() throws CoGrouperException, IOException {
+	public void prepareBaseSchema() throws CoGrouperException, IOException, InvalidFieldException {
 		SCHEMA = Schema.parse(
 				"int_field:int,"+
 				"long_field:long," + 

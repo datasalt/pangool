@@ -72,7 +72,7 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 			context.write(tuple, nullValue);
 		}
 		
-		public void write(int sourceId, ITuple tuple) {
+		public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
 			SourcedTuple sTuple = cachedSourcedTuple.get();
 			if(sTuple == null) {
 				sTuple = new SourcedTuple(tuple);

@@ -14,108 +14,77 @@ import com.datasalt.pangool.CoGrouperException;
 
 public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 
-	@Test(expected=CoGrouperException.class)
+	@Test(expected = CoGrouperException.class)
 	public void testMissingSchemas() throws CoGrouperException, InvalidFieldException, IOException {
-		CoGrouper grouper = new CoGrouper(new Configuration());
-
-		grouper
-			.setSorting(getTestSorting())
-			.groupBy("date", "url")
-			.addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
-			.setGroupHandler(myGroupHandler.getClass())
-			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
-		
-		grouper.createJob();
+		new PangoolConfigBuilder().setGroupByFields("url", "date").setSorting(getTestSorting()).build();
 	}
-	
-	@Test(expected=CoGrouperException.class)
-	public void testMissingSorting() throws CoGrouperException, IOException {
-		CoGrouper grouper = new CoGrouper(new Configuration());
 
-		grouper
-			.addSchema(1, "url:string, date:long, content:string")
-			.addSchema(2, "url:string, date:long, name:string, surname:string")
-			.groupBy("date", "url")
-			.addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
-			.setGroupHandler(myGroupHandler.getClass())
-			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
-		
-		grouper.createJob();
+	@Test(expected = CoGrouperException.class)
+	public void testMissingSorting() throws CoGrouperException, IOException, InvalidFieldException {
+		new PangoolConfigBuilder().addSchema(1, Schema.parse("url:string, date:long, content:string"))
+		    .addSchema(2, Schema.parse("url:string, date:long, name:string, surname:string"))
+		    .setGroupByFields("url", "date").build();
 	}
-	
-	@Test(expected=CoGrouperException.class)
+
+	@Test(expected = CoGrouperException.class)
 	public void testMissingGroupBy() throws CoGrouperException, InvalidFieldException, IOException {
-		CoGrouper grouper = new CoGrouper(new Configuration());
-
-		grouper
-			.addSchema(1, "url:string, date:long, content:string")
-			.addSchema(2, "url:string, date:long, name:string, surname:string")
-			.setSorting(getTestSorting())
-			.addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
-			.setGroupHandler(myGroupHandler.getClass())
-			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
-		
-		grouper.createJob();
+		new PangoolConfigBuilder().addSchema(1, Schema.parse("url:string, date:long, content:string"))
+		    .addSchema(2, Schema.parse("url:string, date:long, name:string, surname:string")).setSorting(getTestSorting())
+		    .build();
 	}
 
-	@Test(expected=CoGrouperException.class)
+	@Test(expected = CoGrouperException.class)
 	public void testMissingInputs() throws CoGrouperException, InvalidFieldException, IOException {
-		CoGrouper grouper = new CoGrouper(new Configuration());
+		PangoolConfig config = new PangoolConfigBuilder()
+		    .addSchema(1, Schema.parse("url:string, date:long, content:string"))
+		    .addSchema(2, Schema.parse("url:string, date:long, name:string, surname:string"))
+		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
 
-		grouper
-			.addSchema(1, "url:string, date:long, content:string")
-			.addSchema(2, "url:string, date:long, name:string, surname:string")
-			.groupBy("date", "url")
-			.setSorting(getTestSorting())
-			.setGroupHandler(myGroupHandler.getClass())
-			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
-		
-		grouper.createJob();
+		new CoGrouper(config, new Configuration()).setGroupHandler(myGroupHandler.getClass())
+		    .setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class)
+		    .createJob();
 	}
-	
-	@Test(expected=CoGrouperException.class)
+
+	@Test(expected = CoGrouperException.class)
 	public void testMissingOutput() throws CoGrouperException, InvalidFieldException, IOException {
-		CoGrouper grouper = new CoGrouper(new Configuration());
 
-		grouper
-			.addSchema(1, "url:string, date:long, content:string")
-			.addSchema(2, "url:string, date:long, name:string, surname:string")
-			.groupBy("date", "url")
-			.addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
-			.setSorting(getTestSorting())
-			.setGroupHandler(myGroupHandler.getClass());
-		
-		grouper.createJob();
+		PangoolConfig config = new PangoolConfigBuilder()
+		    .addSchema(1, Schema.parse("url:string, date:long, content:string"))
+		    .addSchema(2, Schema.parse("url:string, date:long, name:string, surname:string"))
+		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
+
+		new CoGrouper(config, new Configuration())
+		    .addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
+		    .setGroupHandler(myGroupHandler.getClass()).createJob();
 	}
-	
-	@Test(expected=CoGrouperException.class)
-	public void testMissingGroupHandler() throws CoGrouperException, InvalidFieldException, IOException {
-		CoGrouper grouper = new CoGrouper(new Configuration());
 
-		grouper
-			.addSchema(1, "url:string, date:long, content:string")
-			.addSchema(2, "url:string, date:long, name:string, surname:string")
-			.groupBy("date", "url")
-			.addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
-			.setSorting(getTestSorting())
-			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
-		
+	@Test(expected = CoGrouperException.class)
+	public void testMissingGroupHandler() throws CoGrouperException, InvalidFieldException, IOException {
+
+		PangoolConfig config = new PangoolConfigBuilder()
+		    .addSchema(1, Schema.parse("url:string, date:long, content:string"))
+		    .addSchema(2, Schema.parse("url:string, date:long, name:string, surname:string"))
+		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
+
+		CoGrouper grouper = new CoGrouper(config, new Configuration()).addInput(new Path("input"), TextInputFormat.class,
+		    myInputProcessor.getClass()).setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
+
 		grouper.createJob();
 	}
 
 	@Test
 	public void testAllFine() throws CoGrouperException, InvalidFieldException, IOException {
-		CoGrouper grouper = new CoGrouper(new Configuration());
 
-		grouper
-			.addSchema(1, "url:string, date:long, content:string")
-			.addSchema(2, "url:string, date:long, name:string, surname:string")
-			.groupBy("url", "date")
-			.addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
-			.setSorting(getTestSorting())
-			.setGroupHandler(myGroupHandler.getClass())
-			.setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
-		
+		PangoolConfig config = new PangoolConfigBuilder()
+		    .addSchema(1, Schema.parse("url:string, date:long, content:string"))
+		    .addSchema(2, Schema.parse("url:string, date:long, name:string, surname:string"))
+		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
+
+		CoGrouper grouper = new CoGrouper(config, new Configuration())
+		    .addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
+		    .setGroupHandler(myGroupHandler.getClass())
+		    .setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
+
 		grouper.createJob();
 	}
 }

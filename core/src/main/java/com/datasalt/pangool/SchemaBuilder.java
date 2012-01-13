@@ -29,8 +29,12 @@ public class SchemaBuilder {
 			throw new InvalidFieldException("Can't define a field with reserved name: " + Schema.Field.SOURCE_ID_FIELD_NAME);
 		}
 		
-		fields.add(new Field(fieldName, type));
+		innerAdd(fieldName, type);
 		return this;
+	}
+	
+	void innerAdd(String fieldName, Class<?> type) {
+		fields.add(new Field(fieldName, type));
 	}
 
 	private boolean fieldAlreadyExists(String fieldName) {

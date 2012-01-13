@@ -16,7 +16,7 @@ import com.datasalt.pangool.SortCriteria.SortOrder;
 public class TestPangoolConfig {
 
 	@Test(expected = CoGrouperException.class)
-	public void testSortingBySameFieldDifferentType() throws CoGrouperException {
+	public void testSortingBySameFieldDifferentType() throws CoGrouperException, InvalidFieldException {
 		/*
 		 * fetched:long and fetched:vlong can't be sorted in common sorting
 		 */
@@ -30,7 +30,7 @@ public class TestPangoolConfig {
 	}
 	
 	@Test(expected = CoGrouperException.class)
-	public void testSourceIdNotAllowedForOneSchema() throws CoGrouperException {
+	public void testSourceIdNotAllowedForOneSchema() throws CoGrouperException, InvalidFieldException {
 		/*
 		 * We can't add #source# sorting if we only have one schema
 		 */
@@ -80,7 +80,7 @@ public class TestPangoolConfig {
 	}
 
 	@Test
-	public void testSourceIdAddedToCommonSchema() throws CoGrouperException {
+	public void testSourceIdAddedToCommonSchema() throws CoGrouperException, InvalidFieldException {
 		/*
 		 * Test that if we don't have specific sortings and we haven't added #source#, 
 		 * then it is automatically added to the end of common sorting
