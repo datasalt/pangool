@@ -29,8 +29,7 @@ import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 
-import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
@@ -76,7 +75,11 @@ public class SourcedTupleSerialization implements Serialization<SourcedTuple>,Co
 			throw new RuntimeException(e); 
 		} catch(IOException e){
 			throw new RuntimeException(e);
-		}
+		} catch(NumberFormatException e) {
+			throw new RuntimeException(e);
+    } catch(InvalidFieldException e) {
+			throw new RuntimeException(e);
+    }
 	}
 
 	@Override
