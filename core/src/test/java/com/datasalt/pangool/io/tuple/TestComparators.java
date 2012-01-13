@@ -33,15 +33,13 @@ import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SchemaBuilder;
 import com.datasalt.pangool.SortCriteria;
-import com.datasalt.pangool.Sorting;
-import com.datasalt.pangool.SortingBuilder;
-import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria.SortElement;
 import com.datasalt.pangool.SortCriteria.SortOrder;
-import com.datasalt.pangool.io.tuple.GroupComparator;
-import com.datasalt.pangool.io.tuple.SortComparator;
+import com.datasalt.pangool.Sorting;
+import com.datasalt.pangool.SortingBuilder;
 
 /**
  * This tests either {@link SortComparator} or {@link GroupComparator}.It checks that the binary comparison is coherent
@@ -165,11 +163,10 @@ public class TestComparators extends BaseTest {
 		int compBinary = compareInBinary1(comparator, tuple1, tuple2);
 		if(compObjects > 0 && compBinary <= 0 || compObjects >= 0 && compBinary < 0 || compObjects <= 0 && compBinary > 0
 		    || compObjects < 0 && compBinary >= 0) {
-			String[] groupFields = GroupComparator.getGroupComparatorFields(comparator.getConf());
 
 			String error = alias + ",Not same comparison : Comp objects:'" + compObjects + "' Comp binary:'" + compBinary
 			    + "' for tuples:" + "\nTUPLE1:" + tuple1 + "\nTUPLE2:" + tuple2 + "\nCRITERIA:"
-			    + comparator.getConfig().getSorting().getSortCriteria() + "\nGROUP_FIELDS:" + concatFields(groupFields);
+			    + comparator.getConfig().getSorting().getSortCriteria() + "\nGROUP_FIELDS:" + comparator.getConfig().getGroupByFields();
 
 			Assert.fail(error);
 		}

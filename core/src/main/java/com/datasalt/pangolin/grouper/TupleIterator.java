@@ -48,16 +48,13 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>,
 	 */
 	private boolean firstTupleConsumed=false;
 	
-	public TupleIterator(){	}
-	
-	public void setIterator(Iterator<NullWritable> iterator){
-		this.iterator = iterator;
-	}
-	
-	public void setContext(ReduceContext<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
+	public TupleIterator(ReduceContext<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
 		this.context = context;
 	}
 	
+	public void setIterator(Iterator<NullWritable> iterator){
+		this.iterator = iterator;
+	}	
 	
 	/**
 	 *  This is used to mark that the first element from iterable was already consumed, so in next iteration don't call iterator.next().
