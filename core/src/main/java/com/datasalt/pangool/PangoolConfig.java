@@ -67,6 +67,10 @@ public class PangoolConfig {
 		return schemes;
 	}
 	
+	public Schema getSchemaBySourceId(int sourceId){
+		return schemes.get(sourceId);
+	}
+	
 	public static void setPangoolConfig(PangoolConfig config, Configuration conf) throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper jsonSerDe = new ObjectMapper();
 		conf.set(CONF_PANGOOL_CONF, config.toStringAsJSON(jsonSerDe));
@@ -102,6 +106,10 @@ public class PangoolConfig {
 	 */
 	public Map<Integer, Schema> getSpecificOrderedSchemas() {
 		return specificOrderedSchemas;
+	}
+	
+	public Schema getSpecificOrderedSchema(int sourceId){
+		return specificOrderedSchemas.get(sourceId);
 	}
 	
 	public String toString() {

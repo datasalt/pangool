@@ -32,7 +32,7 @@ import com.datasalt.pangool.io.tuple.SourcedTuple;
  * TODO doc
  */
 @SuppressWarnings("rawtypes") 
-public class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
+public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
 	
 	private Collector collector;
 	
@@ -68,7 +68,7 @@ public class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPU
 		}
 		
 		@SuppressWarnings("unchecked")
-    public void write(Tuple tuple) throws IOException,InterruptedException {
+    public void write(ITuple tuple) throws IOException,InterruptedException {
 			context.write(tuple, nullValue);
 		}
 		
@@ -136,7 +136,5 @@ public class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPU
 	 * Called once per each input pair of key/values. Override it to implement
 	 * your custom logic. 
 	 */
-	public void process(INPUT_KEY key,INPUT_VALUE value,Collector collector) throws IOException,InterruptedException,GrouperException {
-		
-	}
+	public abstract void process(INPUT_KEY key,INPUT_VALUE value,Collector collector) throws IOException,InterruptedException,GrouperException;
 }

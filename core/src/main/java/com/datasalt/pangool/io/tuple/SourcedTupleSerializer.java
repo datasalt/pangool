@@ -77,28 +77,25 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
   
   
   public void write(SourcedTuple tuple,DataOutput output) throws IOException {
-  	
   	Schema commonSchema = pangoolConfig.getCommonOrderedSchema();
   	int presentFields = 0;
   	presentFields += write(commonSchema,tuple,output);
   	int numSourcesDefined = pangoolConfig.getSchemes().size();
-  	if (numSourcesDefined > 1){
-  		if (tuple.getSource() < 0) {
-  			throw new IOException("tuple can't contain negative sourceId " + tuple.getSource());
-  		} else if (tuple.getSource() >= numSourcesDefined){
+  	if (!pangoolConfig.getSchemes().containsKey(tuple.getSource())){
   		throw new IOException(
-  				"tuple sourceId can't exceed numSources. " +
-  				"Num sources=" + numSourcesDefined +  " actualSource=" + tuple.getSource());
-  		}
-  		WritableUtils.writeVInt(output, tuple.getSource());
+  				"tuple sourceId doesn't match . " +
+  				"Sources: " + pangoolConfig.getSchemes() +  " actualSource=" + tuple.getSource());
+  	}
+
+  	if(numSourcesDefined > 1) {
   		Schema schema = pangoolConfig.getSpecificOrderedSchemas().get(tuple.getSource());
     	presentFields += write(schema,tuple,output);
-  	} 
+  	}
   	
-//	if (tuple.size() > presentFields){
-//	raiseExceptionWrongFields(schema,tuple);
-//}
-  	
+  	if (tuple.size() > presentFields ){
+  		Schema schema = pangoolConfig.getSchemes().get(tuple.getSource());
+  		raiseExceptionWrongFields(schema,tuple);
+  	}
   	
   }
   
@@ -107,6 +104,10 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
 		int presentFields = 0;
 		for (Field field : schema.getFields()) {
 			String fieldName = field.getName();
+			if (fieldName == Field.SOURCE_ID_FIELD_NAME){
+				WritableUtils.writeVInt(output, tuple.getSource());
+				continue;
+			}
 			Class<?> fieldType = field.getType();
 			Object element = tuple.getObject(fieldName);
 			if (element != null) {
@@ -133,12 +134,10 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
 					output.writeFloat((Float)element);
 				} else if (fieldType == String.class) {
 					if (element == null){
-						//WritableUtils.writeVInt(output,-1);
 						element = "";
-					} //else {
+					} 
 					text.set((String)element);
 					text.write(output);
-					//}
 				} else if (fieldType == Boolean.class) {
 					throwIOIfNull(fieldName,element);
 					output.write((Boolean)element ? 1 : 0);
@@ -174,7 +173,7 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
 		
 	}
 	
-	private void raiseExceptionWrongFields(Schema schema,ITuple tuple) throws IOException{
+	private void raiseExceptionWrongFields(Schema schema,SourcedTuple tuple) throws IOException{
 		List<String> wrongFields = new ArrayList<String>();
 		for (String field : tuple.keySet()){
 			if (!schema.containsFieldName(field)){
@@ -182,7 +181,7 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
 			}
 		}
 		String fieldsConcated = concat(wrongFields,",");
-		throw new IOException("Tuple contains fields that don't belong to schema " + fieldsConcated + ". Schema:"+schema);
+		throw new IOException("Tuple with source " + tuple.getSource() + " contains fields that don't belong to schema '" + fieldsConcated + "'.\nSchema:"+schema);
 		
 	}
 	

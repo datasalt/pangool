@@ -49,8 +49,7 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			Configuration conf = context.getConfiguration();
 			this.schema = Schema.parse(conf);
 
-			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>();
-			this.grouperIterator.setContext(context);
+			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 			Class<? extends GroupHandler> handlerClass = Grouper.getGroupHandler(conf);
 
 			this.handler = ReflectionUtils.newInstance(handlerClass, conf);
@@ -60,6 +59,7 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			throw new RuntimeException(e);
 		}
   }
+  
   @Override
   public void cleanup(Context context) throws IOException,InterruptedException {
   	try{
