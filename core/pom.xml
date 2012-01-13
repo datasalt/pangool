@@ -9,7 +9,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>pangol-core</artifactId>
+  <artifactId>pangool-core</artifactId>
   <packaging>jar</packaging>
 
   <!-- modules inherit parent's group id and version. -->
