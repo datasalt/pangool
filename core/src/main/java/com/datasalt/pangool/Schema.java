@@ -11,6 +11,8 @@ import org.apache.commons.collections.bidimap.DualHashBidiMap;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+
 /**
  * Encapsulates one Pangool schame composed of {@link Field} instances.
  * 
@@ -174,13 +176,13 @@ public class Schema {
 		return serialize();
 	}
 
-	public static Schema parse(String serialized) throws CoGrouperException {
+	public static Schema parse(String serialized) throws CoGrouperException, InvalidFieldException {
+		SchemaBuilder builder = new SchemaBuilder();
 		try {
 			if(serialized == null || serialized.isEmpty()) {
 				return null;
 			}
 			String[] fieldsStr = serialized.split(",");
-			List<Field> fields = new ArrayList<Field>(fieldsStr.length);
 			for(String field : fieldsStr) {
 				String[] nameType = field.split(":");
 				if(nameType.length != 2) {
@@ -188,9 +190,9 @@ public class Schema {
 				}
 				String name = nameType[0].trim();
 				String type = nameType[1].trim();
-				fields.add(new Field(name, strToClass(type)));
+				builder.innerAdd(name, strToClass(type));
 			}
-			return new Schema(fields);
+			return builder.createSchema();
 		} catch(ClassNotFoundException e) {
 			throw new CoGrouperException(e);
 		}

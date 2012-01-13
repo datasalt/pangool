@@ -31,6 +31,11 @@ public class SortingBuilder extends SortCriteriaBuilder {
 		return this;
 	}
 	
+	public SortingBuilder add(String fieldName) throws InvalidFieldException {
+		super.add(fieldName, SortOrder.ASC);
+		return this;
+	}
+	
 	@Override
 	public SortingBuilder add(String fieldName, SortOrder order) throws InvalidFieldException {
 		super.add(fieldName, order);
@@ -43,6 +48,11 @@ public class SortingBuilder extends SortCriteriaBuilder {
 		return builder;
 	}
 
+	public SortingBuilder addSourceId() throws InvalidFieldException {
+		addSourceId(SortOrder.ASC);
+		return this;
+	}
+	
 	public SortingBuilder addSourceId(SortOrder order) throws InvalidFieldException {
 		add(Schema.Field.SOURCE_ID_FIELD_NAME, order, null);
 		sourceIdFieldAdded = true;

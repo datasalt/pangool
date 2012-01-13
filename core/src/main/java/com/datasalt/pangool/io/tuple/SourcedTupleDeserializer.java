@@ -32,82 +32,88 @@ import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.commons.Buffer;
-import com.datasalt.pangolin.grouper.Schema;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangool.PangoolConfig;
+import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.Schema.Field;
 
 
-class SourcedTupleDeserializer implements Deserializer<SourcedTuple> {
+class SourcedTupleDeserializer implements Deserializer<ISourcedTuple> {
 
-	private PangoolConfig pangoolConfig;
+	private PangoolConfig pangoolConf;
 	private DataInputStream in;
 	private Text text = new Text();
 	private Serialization ser;
 	private Map<String,Enum<?>[]> cachedEnums = new HashMap<String,Enum<?>[]>();
 	
 	private Buffer tmpInputBuffer = new Buffer();
+	private Class<? extends ISourcedTuple> instanceClazz;
 	//private 
 	
 	
-	SourcedTupleDeserializer(Serialization ser,PangoolConfig pangoolConfig){
-		this.pangoolConfig = pangoolConfig;
+	SourcedTupleDeserializer(Serialization ser,PangoolConfig pangoolConfig,Class<? extends ISourcedTuple> instanceClass){
+		this.pangoolConf = pangoolConfig;
 		this.ser = ser;
 		this.cachedEnums = SourcedTupleSerialization.getEnums(pangoolConfig);
+		this.instanceClazz =instanceClass;
 	}
-	
 	
 	@Override
 	public void open(InputStream in) throws IOException {
 		this.in = new DataInputStream(in);
-		//this.in = in;
-		
-		
 	}
 
 	@Override
-	public SourcedTuple deserialize(SourcedTuple t) throws IOException {
+	public ISourcedTuple deserialize(ISourcedTuple t) throws IOException {
 		if (t == null) {
-			t = ReflectionUtils.newInstance(SourcedTuple.class, null);
+			t = ReflectionUtils.newInstance(instanceClazz, null);
 		}
-		//TODO
-		//readFields(t, in);
+		Schema commonSchema = pangoolConf.getCommonOrderedSchema();
+		readFields(commonSchema,t,in);
+		int numSchemas = pangoolConf.getSchemes().size();
+		if (numSchemas > 1){
+			// in this step source should be set 
+			Schema specificSchema = pangoolConf.getSpecificOrderedSchema(t.getSource());
+			readFields(specificSchema,t,in);
+		}
 		return t;
 	}
 	
 	
 	
-	public void readFields(Schema schema,SourcedTuple tuple ,DataInput input) throws IOException {
-		for (int i =0 ; i < schema.getFields().length ; i++) {
-			Class<?> fieldType = schema.getFields()[i].getType();
-			String name = schema.getFields()[i].getName();
-			if (fieldType == VIntWritable.class) {
-				tuple.setInt(name,WritableUtils.readVInt(input));
+	public void readFields(Schema schema,ISourcedTuple tuple ,DataInput input) throws IOException {
+		for (int i =0 ; i < schema.getFields().size(); i++) {
+			Class<?> fieldType = schema.getField(i).getType();
+			String fieldName = schema.getField(i).getName();
+			if (Field.SOURCE_ID_FIELD_NAME.equals(fieldName)){
+				tuple.setSource(WritableUtils.readVInt(input));
+			} else if (fieldType == VIntWritable.class) {
+				tuple.setInt(fieldName,WritableUtils.readVInt(input));
 			} else if (fieldType == VLongWritable.class) {
-				tuple.setLong(name,WritableUtils.readVLong(input));
+				tuple.setLong(fieldName,WritableUtils.readVLong(input));
 			} else if (fieldType == Integer.class){
-				tuple.setInt(name,input.readInt());
+				tuple.setInt(fieldName,input.readInt());
 			} else if (fieldType == Long.class){
-				tuple.setLong(name, input.readLong());
+				tuple.setLong(fieldName, input.readLong());
 			}	else if (fieldType == Double.class) {
-				tuple.setDouble(name, input.readDouble());
+				tuple.setDouble(fieldName, input.readDouble());
 			} else if (fieldType == Float.class) {
-				tuple.setFloat(name, input.readFloat());
+				tuple.setFloat(fieldName, input.readFloat());
 			} else if (fieldType == String.class) {
 				text.readFields(input);
-				tuple.setString(name, text.toString());
+				tuple.setString(fieldName, text.toString());
 			} else if (fieldType == Boolean.class) {
 				byte b = input.readByte();
-				tuple.setBoolean(name, (b != 0));
+				tuple.setBoolean(fieldName, (b != 0));
 			} else if (fieldType.isEnum()){
 				int ordinal = WritableUtils.readVInt(input);
 				try{
-					Enum<?>[] enums = cachedEnums.get(name);
+					Enum<?>[] enums = cachedEnums.get(fieldName);
 					if (enums == null){
-						throw new IOException("Field "+ name + " is not a enum type");
+						throw new IOException("Field "+ fieldName + " is not a enum type");
 					}
-					tuple.setObject(name,enums[ordinal]);
+					tuple.setObject(fieldName,enums[ordinal]);
 				} catch (ArrayIndexOutOfBoundsException e){
 					throw new RuntimeException(e);
 				}
@@ -116,15 +122,15 @@ class SourcedTupleDeserializer implements Deserializer<SourcedTuple> {
 				if (size != 0){
 					tmpInputBuffer.setSize(size);
 					input.readFully(tmpInputBuffer.getBytes(),0,size);
-					if (tuple.getObject(name) == null){
-						tuple.setObject(name,ReflectionUtils.newInstance(fieldType, null));
+					if (tuple.getObject(fieldName) == null){
+						tuple.setObject(fieldName,ReflectionUtils.newInstance(fieldType, null));
 					}
 					
-					Object ob = ser.deser(tuple.getObject(name),tmpInputBuffer.getBytes(),0,size);
-					tuple.setObject(name, ob);
+					Object ob = ser.deser(tuple.getObject(fieldName),tmpInputBuffer.getBytes(),0,size);
+					tuple.setObject(fieldName, ob);
 					
 				} else {
-					tuple.setObject(name, null);
+					tuple.setObject(fieldName, null);
 				}
 			}
 		}
@@ -135,17 +141,4 @@ class SourcedTupleDeserializer implements Deserializer<SourcedTuple> {
 		in.close();
 		
 	}
-
-
-  
-//	void setSchema(Schema schema){
-//		this.schema = schema;
-//		
-//	}
-//	
-//	void setSerialization(Serialization ser){
-//		this.ser = ser;
-//	}
- 
-
 }

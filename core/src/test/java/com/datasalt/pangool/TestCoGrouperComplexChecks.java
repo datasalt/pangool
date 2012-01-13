@@ -71,7 +71,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 	// --------------------------------------------------- //
 	
 	@Test
-	public void testValidRollupFrom() throws CoGrouperException, IOException {
+	public void testValidRollupFrom() throws CoGrouperException, IOException, InvalidFieldException {
 		Sorting sorting;
 		
 		sorting = Sorting.parse("url asc, date asc, fetched desc");
@@ -93,7 +93,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 	// --------------------------------------------------- //
 
 	@Test(expected=CoGrouperException.class)
-	public void testInvalidRollupFrom() throws CoGrouperException, IOException {
+	public void testInvalidRollupFrom() throws CoGrouperException, IOException, InvalidFieldException {
 		Sorting sorting;
 		
 		sorting = Sorting.parse("url asc, date asc, fetched desc");
@@ -103,22 +103,22 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 		testCoGrouper(sorting, new String[] { "url", "date" }, "foo");
 	}
 	
-	private void testCoGrouper(Sorting sorting, String[] groupBy, String rollupFrom) throws CoGrouperException, IOException {
-		CoGrouper grouper = new CoGrouper(new Configuration());
-
-		grouper
-			.addSchema(1, "url:string, date:long, fetched:long, content:string")
-		  .addSchema(2, "url:string, date:long, fetched:long, name:string, surname:string")
+	private void testCoGrouper(Sorting sorting, String[] groupBy, String rollupFrom) throws CoGrouperException, IOException, InvalidFieldException {
+		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder()
+			.addSchema(1, Schema.parse("url:string, date:long, fetched:long, content:string"))
+		  .addSchema(2, Schema.parse("url:string, date:long, fetched:long, name:string, surname:string"))
 		  .setSorting(sorting)
-		  .groupBy(groupBy)
-		  .addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
-		  .setGroupHandler(myGroupHandlerWithRollup.getClass())
-		  .setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
-		
+		  .setGroupByFields(groupBy);
+		  
 		if(rollupFrom != null) {
-			grouper.setRollupFrom(rollupFrom);
+			configBuilder.setRollupFrom(rollupFrom);
 		}
 
-		grouper.createJob();
+		CoGrouper grouper = new CoGrouper(configBuilder.build(), new Configuration());
+
+		grouper.addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
+		  .setGroupHandler(myGroupHandlerWithRollup.getClass())
+		  .setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class)
+		  .createJob();
 	}
 }

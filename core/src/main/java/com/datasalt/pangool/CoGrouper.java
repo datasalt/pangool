@@ -55,10 +55,9 @@ public class CoGrouper {
 		}
 	}
 
-	private PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
-
 	private Configuration conf;
-
+	private PangoolConfig config;
+	
 	private Class<? extends GroupHandler> reduceHandler;
 	private Class<? extends OutputFormat> outputFormat;
 	private Class<? extends GroupHandler> combinerHandler;
@@ -70,16 +69,12 @@ public class CoGrouper {
 
 	private List<Input> multiInputs = new ArrayList<Input>();
 
-	public CoGrouper(Configuration conf) {
+	public CoGrouper(PangoolConfig config, Configuration conf) {
 		this.conf = conf;
+		this.config = config;
 	}
 
 	// ------------------------------------------------------------------------- //
-
-	public CoGrouper setSorting(Sorting sorting) {
-		configBuilder.setSorting(sorting);
-		return this;
-	}
 
 	public CoGrouper setJarByClass(Class<?> jarByClass) {
 		this.jarByClass = jarByClass;
@@ -89,25 +84,6 @@ public class CoGrouper {
 	public CoGrouper addInput(Path path, Class<? extends InputFormat> inputFormat,
 	    Class<? extends InputProcessor> inputProcessor) {
 		this.multiInputs.add(new Input(path, inputFormat, inputProcessor));
-		return this;
-	}
-
-	public CoGrouper addSchema(Integer schemaId, String schema) throws CoGrouperException {
-		return addSchema(schemaId, Schema.parse(schema));
-	}
-
-	public CoGrouper addSchema(Integer schemaId, Schema schema) throws CoGrouperException {
-		configBuilder.addSchema(schemaId, schema);
-		return this;
-	}
-
-	public CoGrouper groupBy(String... fields) {
-		configBuilder.setGroupByFields(fields);
-		return this;
-	}
-
-	public CoGrouper setRollupFrom(String rollupFrom) {
-		configBuilder.setRollupFrom(rollupFrom);
 		return this;
 	}
 
@@ -168,8 +144,6 @@ public class CoGrouper {
 		raiseExceptionIfNull(outputValueClass, "Need to set outputValueClass");
 		raiseExceptionIfNull(outputPath, "Need to set outputPath");
 
-		PangoolConfig config = configBuilder.build();
-		
 		if(config.getRollupFrom() != null) {
 			
 			// Check that rollupFrom is contained in groupBy

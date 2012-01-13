@@ -5,31 +5,38 @@ import java.util.Map;
 import java.util.Set;
 
 import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 
-public class SourcedTuple implements ITuple{
+public class SourcedTuple implements ISourcedTuple{
 
-	private ITuple containedTuple;
+  private ITuple containedTuple;
 	private int sourceId;
+	
+	public SourcedTuple(){
+		this.containedTuple = new BaseTuple();
+	}
 	
 	public SourcedTuple(ITuple containedTuple){
 		this.containedTuple = containedTuple;
 	}
-	
-	void setContainedTuple(ITuple tuple){
+		
+	@Override
+	public void setContainedTuple(ITuple tuple){
 		this.containedTuple = tuple;
 	}
 	
-	int getSource(){
+
+	
+	@Override
+	public int getSource(){
 		return sourceId;
 	}
 	
-	void setSource(int sourceId){
+	@Override
+	public void setSource(int sourceId){
 		this.sourceId = sourceId;
 	}
-	
-	
-	
 	
 	@Override
 	public void clear() {
@@ -192,5 +199,26 @@ public class SourcedTuple implements ITuple{
 	public String toString(Schema schema, int minFieldIndex, int maxFieldIndex) {
 		return containedTuple.toString(schema,minFieldIndex,maxFieldIndex);
 	}
+	
+	@Override
+	public String toString(){
+		return "source:" + sourceId + "=>" +containedTuple.toString();
+	}
+	
+	@Override
+	public boolean equals(Object that){
+		if (that == null){
+			return false;
+		} else if (that instanceof SourcedTuple){
+			return sourceId == ((SourcedTuple)that).sourceId 
+					&& this.containedTuple.equals(((SourcedTuple)that).containedTuple);
+		} else {
+			return false;
+		}
+	}
 
+	@Override
+	public ITuple getContainedTuple() {
+		return containedTuple;
+	}
 }

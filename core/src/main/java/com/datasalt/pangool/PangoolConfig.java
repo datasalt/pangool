@@ -14,6 +14,8 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+
 /**
  * 
  * @author pere
@@ -67,6 +69,10 @@ public class PangoolConfig {
 		return schemes;
 	}
 	
+	public Schema getSchemaBySourceId(int sourceId){
+		return schemes.get(sourceId);
+	}
+	
 	public static void setPangoolConfig(PangoolConfig config, Configuration conf) throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper jsonSerDe = new ObjectMapper();
 		conf.set(CONF_PANGOOL_CONF, config.toStringAsJSON(jsonSerDe));
@@ -104,6 +110,10 @@ public class PangoolConfig {
 		return specificOrderedSchemas;
 	}
 	
+	public Schema getSpecificOrderedSchema(int sourceId){
+		return specificOrderedSchemas.get(sourceId);
+	}
+	
 	public String toString() {
 		StringBuilder b = new StringBuilder();
 		b.append("sorting: ").append(sorting.toString()).append(" ");
@@ -114,7 +124,7 @@ public class PangoolConfig {
 	}
 
 	@SuppressWarnings("unchecked")
-	void fromJSON(String json, ObjectMapper mapper) throws JsonParseException, JsonMappingException, IOException, NumberFormatException, CoGrouperException {
+	void fromJSON(String json, ObjectMapper mapper) throws JsonParseException, JsonMappingException, IOException, NumberFormatException, CoGrouperException, InvalidFieldException {
 		HashMap<String, Object> jsonData = mapper.readValue(json, HashMap.class);
 		
 		setRollupFrom((String) jsonData.get("rollupFrom"));

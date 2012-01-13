@@ -47,6 +47,11 @@ public class SortCriteriaBuilder {
 		return this;
 	}
 
+	public SortCriteriaBuilder add(String fieldName) throws InvalidFieldException {
+		add(fieldName, SortOrder.ASC);
+		return this;
+	}
+	
 	private boolean fieldAlreadyExists(String fieldName) {
 		for(SortElement field : fields) {
 			if(field.getFieldName().equalsIgnoreCase(fieldName)) {

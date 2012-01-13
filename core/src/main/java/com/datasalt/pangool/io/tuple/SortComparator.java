@@ -19,16 +19,13 @@ import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
 
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.SortCriteria;
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.SortCriteria;
 import com.datasalt.pangool.SortCriteria.SortElement;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 
@@ -362,15 +359,9 @@ public class SortComparator implements RawComparator<SourcedTuple>, Configurable
 	      nSchemas = config.getSchemes().values().size();
 	      commonCriteria = config.getSorting().getSortCriteria();
 	      commonSchema = config.getCommonOrderedSchema();
-      } catch(JsonParseException e) {
+      } catch(Exception e) {
       	throw new RuntimeException(e);
-      } catch(JsonMappingException e) {
-      	throw new RuntimeException(e);
-      } catch(IOException e) {
-      	throw new RuntimeException(e);
-      } catch(CoGrouperException e) {
-      	throw new RuntimeException(e);
-      }
+      } 
 		}
 	}
 }
