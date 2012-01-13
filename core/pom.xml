@@ -2,13 +2,20 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.datasalt</groupId>
-  <artifactId>pangolin</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <parent>
+    <groupId>com.datasalt.pangool</groupId>
+    <artifactId>pangool</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>pangol-core</artifactId>
   <packaging>jar</packaging>
 
-  <name>pangolin</name>
+  <!-- modules inherit parent's group id and version. -->
+  <name>pangool</name>
   <url>http://www.datasalt.com</url>
+  <description></description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
