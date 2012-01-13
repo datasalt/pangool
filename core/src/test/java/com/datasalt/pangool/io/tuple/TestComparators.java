@@ -117,15 +117,6 @@ public class TestComparators extends BaseTest {
 		return comp.compare(buffer1.getData(), 0, buffer1.getLength(), buffer2.getData(), 0, buffer2.getLength());
 	}
 	
-	private int compareInBinary2(SortComparator comp, SourcedTuple tuple1, SourcedTuple tuple2) throws IOException {
-		Serialization ser = getSer();
-		DataOutputBuffer buffer1 = new DataOutputBuffer();
-		DataOutputBuffer buffer2 = new DataOutputBuffer();
-		ser.ser(tuple1, buffer1);
-		ser.ser(tuple2,buffer2);
-		return comp.compare(buffer1.getData(), 0, buffer1.getLength(), buffer2.getData(), 0, buffer2.getLength());
-	}
-	
 	/**
 	 * 
 	 * Checks that the binary comparison matches the comparison by objects.

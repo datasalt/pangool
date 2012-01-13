@@ -61,13 +61,10 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
 			collector.write(1, tuple);
 
-			tuple.setString("country", "ES");
-			tuple.setInt("averageSalary", 1000);
-
-			collector.write(1, tuple);
-
 			tuple.setString("country", "FR");
 			tuple.setInt("averageSalary", 1500);
+			
+			collector.write(1, tuple);
 		}
 	}
 
