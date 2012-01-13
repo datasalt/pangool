@@ -191,9 +191,6 @@ public class CoGrouper {
 		// Serialize PangoolConf in Hadoop Configuration
 		PangoolConfig.setPangoolConfig(config, conf);
 		
-		// Set fields to group by in Hadoop Configuration
-		GroupComparator.setGroupComparatorFields(job.getConfiguration(), config.getGroupByFields());
-
 		List<String> partitionerFields;
 
 		if(config.getRollupFrom() != null) {

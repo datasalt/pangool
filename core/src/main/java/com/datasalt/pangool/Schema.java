@@ -44,6 +44,34 @@ public class Schema {
 		strClassMap.put(PrimitiveTypes.BOOLEAN, Boolean.class);
 	}
 
+	/**
+	 * Convenience class for dealing with lists of Field
+	 * 
+	 * @author pere
+	 *
+	 */
+	public static class Fields extends ArrayList<Field> {
+		
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+		public Field get(String fieldName) {
+			for(int i = 0; i < size(); i++) {
+				Field currentField = get(i);
+				if(currentField.getName().equals(fieldName)) {
+					return currentField;
+				}
+			}
+			return null;
+		}
+		
+		public boolean contains(String fieldName) {
+			return get(fieldName) != null;
+		}
+	}
+	
 	public static class Field {
 		
 		public final static String SOURCE_ID_FIELD_NAME = "#source#";
@@ -66,6 +94,10 @@ public class Schema {
 
 		public String getName() {
 			return name;
+		}
+		
+		public String toString() {
+			return name + ":" + type;
 		}
 	}
 

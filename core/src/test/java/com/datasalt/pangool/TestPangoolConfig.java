@@ -1,7 +1,6 @@
 package com.datasalt.pangool;
 
 import java.io.IOException;
-import java.util.Map;
 
 import junit.framework.Assert;
 
@@ -11,18 +10,25 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.PangoolConfig;
-import com.datasalt.pangool.PangoolConfigBuilder;
-import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.SchemaBuilder;
-import com.datasalt.pangool.Sorting;
-import com.datasalt.pangool.SortingBuilder;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 
 public class TestPangoolConfig {
 
+	@Test(expected = CoGrouperException.class)
+	public void testSortingBySameFieldDifferentType() throws CoGrouperException {
+		/*
+		 * fetched:long and fetched:vlong can't be sorted in common sorting
+		 */
+		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
+
+		configBuilder.addSchema(0, Schema.parse("url:string, fetched:long, content:string"));
+		configBuilder.addSchema(1, Schema.parse("url:string, fetched:vlong, name:string"));
+		configBuilder.setSorting(Sorting.parse("url asc, fetched desc"));
+		configBuilder.setGroupByFields("url");
+		configBuilder.build();
+	}
+	
 	@Test(expected = CoGrouperException.class)
 	public void testSourceIdNotAllowedForOneSchema() throws CoGrouperException {
 		/*
@@ -66,15 +72,19 @@ public class TestPangoolConfig {
 		configBuilder.setGroupByFields("url");
 		
 		PangoolConfig config = configBuilder.build();
-		System.out.println(config.getSorting());
 		
 		Assert.assertEquals(Schema.parse("url:string, " + Field.SOURCE_ID_FIELD_NAME + ":vint").toString(),
 		    config.getCommonOrderedSchema().toString());
-		Assert.assertEquals(Schema.parse("fetched:vlong, name:string, url:string").toString(), config.getSpecificOrderedSchemas().get(1).toString());
+		Assert.assertEquals(Schema.parse("content:string, date:long, fetched:long").toString(), config.getSpecificOrderedSchemas().get(0).toString());
+		Assert.assertEquals(Schema.parse("fetched:vlong, name:string").toString(), config.getSpecificOrderedSchemas().get(1).toString());
 	}
 
 	@Test
 	public void testSourceIdAddedToCommonSchema() throws CoGrouperException {
+		/*
+		 * Test that if we don't have specific sortings and we haven't added #source#, 
+		 * then it is automatically added to the end of common sorting
+		 */
 		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
 
 		configBuilder.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
@@ -85,39 +95,34 @@ public class TestPangoolConfig {
 
 		Assert.assertEquals(Schema.parse("url:string, fetched:long, " + Field.SOURCE_ID_FIELD_NAME + ":vint").toString(),
 		    config.getCommonOrderedSchema().toString());
+		Assert.assertEquals(Schema.parse("content:string, date:long").toString(),
+		    config.getSpecificOrderedSchemas().get(0).toString());
+		Assert.assertEquals(Schema.parse("name:string").toString(),
+		    config.getSpecificOrderedSchemas().get(1).toString());
 	}
 
 	@Test
 	public void testCommonOrderedSchemaWithSourceId() throws InvalidFieldException, CoGrouperException {
+		/*
+		 * We can put #source# sorting anywhere in the middle of common sorting
+		 */
 		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
 
 		configBuilder.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
 		configBuilder.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
 
-		configBuilder.setSorting(new SortingBuilder().add("url", SortOrder.ASC).add("fetched", SortOrder.DESC)
-		    .addSourceId(SortOrder.ASC).buildSorting());
+		configBuilder.setSorting(new SortingBuilder().add("url", SortOrder.ASC).addSourceId(SortOrder.ASC).add("fetched", SortOrder.DESC)
+		    .buildSorting());
 
 		configBuilder.setGroupByFields("url");
 		PangoolConfig config = configBuilder.build();
 
-		Assert.assertEquals(Schema.parse("url:string, fetched:long, " + Field.SOURCE_ID_FIELD_NAME + ":vint").toString(),
+		Assert.assertEquals(Schema.parse("url:string, " + Field.SOURCE_ID_FIELD_NAME + ":vint" + ", fetched:long").toString(),
 		    config.getCommonOrderedSchema().toString());
-	}
-
-	@Test
-	public void testParticularPartialOrderedSchemas() throws CoGrouperException {
-		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
-
-		configBuilder.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
-		configBuilder.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
-		configBuilder.setSorting(Sorting.parse("url asc, fetched desc"));
-		configBuilder.setGroupByFields("url");
-		PangoolConfig config = configBuilder.build();
-
-		Map<Integer, Schema> partialOrderedSchemas = config.getSpecificOrderedSchemas();
-
-		Assert.assertEquals(Schema.parse("content:string, date:long").toString(), partialOrderedSchemas.get(0).toString());
-		Assert.assertEquals(Schema.parse("name:string").toString(), partialOrderedSchemas.get(1).toString());
+		Assert.assertEquals(Schema.parse("content:string, date:long").toString(),
+		    config.getSpecificOrderedSchemas().get(0).toString());
+		Assert.assertEquals(Schema.parse("name:string").toString(),
+		    config.getSpecificOrderedSchemas().get(1).toString());
 	}
 
 	@Test
