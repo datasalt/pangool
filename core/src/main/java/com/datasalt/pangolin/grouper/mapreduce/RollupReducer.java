@@ -66,8 +66,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			String[] partitionerFields = Partitioner.getPartitionerFields(conf);
 			this.minDepth = partitionerFields.length - 1;
 
-			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>();
-			this.grouperIterator.setContext(context);
+			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 			
 			Class<? extends GroupHandler> handlerClass = Grouper.getGroupHandler(conf);
 			this.handler = ReflectionUtils.newInstance(handlerClass, conf);

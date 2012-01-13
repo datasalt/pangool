@@ -7,3 +7,7 @@
 /core/.classpath
 /core/.project
 /core/.settings
+/examples/target
+/examples/.classpath
+/examples/.project
+/examples/.settings
