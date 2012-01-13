@@ -1,13 +1,11 @@
 package com.datasalt.pangool;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
@@ -16,6 +14,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.Schema.Fields;
 import com.datasalt.pangool.SortCriteria.SortElement;
 
 /**
@@ -78,7 +77,7 @@ public class PangoolConfigBuilder {
 		/*
 		 * Calculate common Fields
 		 */
-		List<Field> commonFields = new ArrayList<Field>();
+		Fields commonFields = new Fields(); // same name, same type
 		
 		Collection<Schema> schemas = config.getSchemes().values();
 		int count = 0;
@@ -92,9 +91,13 @@ public class PangoolConfigBuilder {
 				Iterator<Field> iterator = commonFields.iterator();
 				while(iterator.hasNext()) {
 					Field field = iterator.next();
-					if(!schema.containsFieldName(field.getName())) {
-						iterator.remove();
+					if(schema.containsFieldName(field.getName())) {
+						Field fieldInSchema = schema.getField(field.getName());
+						if(fieldInSchema.getType().equals(field.getType())) {
+							continue; // same name, same type -> field remains
+						}
 					}
+					iterator.remove(); // otherwise it is discarded
 				}
 			}
 			count++;
@@ -105,18 +108,14 @@ public class PangoolConfigBuilder {
 		/*
 		 * Calculate common ordered schema
 		 */
-		List<Field> commonSchema = new ArrayList<Field>();
+		Fields commonSchema = new Fields();
 		
 		for(SortElement sortElement: config.getSorting().getSortCriteria().getSortElements()) {
 			if(sortElement.getFieldName().equals(Field.SOURCE_ID_FIELD_NAME)) {
 				commonSchema.add(Field.SOURCE_ID);
 				continue;
 			}
-			for(Field commonField: commonFields) {
-				if(sortElement.getFieldName().equals(commonField.getName())) {
-					commonSchema.add(commonField);
-				}
-			}
+			commonSchema.add(commonFields.get(sortElement.getFieldName()));
 		}
 		
 		// Add sourceId to the end if it hasn't been specified
@@ -133,7 +132,7 @@ public class PangoolConfigBuilder {
 		Map<Integer, Schema> specificOrderedSchemas = new HashMap<Integer, Schema>();
 		for(Map.Entry<Integer, Schema> schema: config.getSchemes().entrySet()) {
 			
-			List<Field> specificSchema = new ArrayList<Field>();
+			Fields specificSchema = new Fields();
 			
 			// Check specific sort order for schema -- add these fields first
 			SortCriteria specificSorting = config.getSorting().getSpecificSortCriterias().get(schema.getKey());
@@ -144,7 +143,7 @@ public class PangoolConfigBuilder {
 			}
 			
 			// Find the fields that are not present in the common sorting
-			List<Field> nonCommonFields = new ArrayList<Field>();
+			Fields nonCommonFields = new Fields();
 			for(Field field: schema.getValue().getFields()) {
 				if(!commonOrderedSchema.containsFieldName(field.getName()) && !specificSchema.contains(field.getName())) {
 					nonCommonFields.add(field);
@@ -160,7 +159,7 @@ public class PangoolConfigBuilder {
 			
 			// Create the ordered schema
 			specificSchema.addAll(nonCommonFields);
-			specificOrderedSchemas.put(schema.getKey(), new Schema(nonCommonFields));
+			specificOrderedSchemas.put(schema.getKey(), new Schema(specificSchema));
 			
 			config.setSpecificOrderedSchemas(specificOrderedSchemas);
 		}		
@@ -174,16 +173,11 @@ public class PangoolConfigBuilder {
 	 * @param commonFieldNames
 	 * @throws CoGrouperException
 	 */
-	private void checkSortCriteriaSanity(List<Field> commonFields) throws CoGrouperException {
+	private void checkSortCriteriaSanity(Fields commonFields) throws CoGrouperException {
 
 		// Sorting by SourceId is not allowed if we only have one schema
 		if(config.getSorting().isSourceIdFieldContained() && config.getSchemes().values().size() == 1) {
 			throw new CoGrouperException("Invalid " + Field.SOURCE_ID_FIELD_NAME + " field for single schema sorting. " + Field.SOURCE_ID_FIELD_NAME + " may only be added when sorting more than one schema.");
-		}
-		
-		List<String> commonFieldNames = new ArrayList<String>();
-		for(Field field: commonFields) {
-			commonFieldNames.add(field.getName());
 		}
 		
 		// Check that sortCriteria is a combination of (common) fields from schema
@@ -191,10 +185,10 @@ public class PangoolConfigBuilder {
 			if(sortElement.getFieldName().equals(Field.SOURCE_ID_FIELD_NAME)) {
 				continue;
 			}
-			if(!commonFieldNames.contains(sortElement.getFieldName())) {
+			if(!commonFields.contains(sortElement.getFieldName())) {
 				String extraReason = config.getSchemes().values().size() > 1 ? " common " : "";
 				throw new CoGrouperException("Sort element [" + sortElement.getFieldName() + "] not contained in "
-				    + extraReason + " Schema fields: " + commonFieldNames);
+				    + extraReason + " Schema fields: " + commonFields);
 			}
 		}
 
