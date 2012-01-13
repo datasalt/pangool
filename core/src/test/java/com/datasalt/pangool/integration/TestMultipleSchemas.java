@@ -7,10 +7,12 @@ import java.nio.charset.Charset;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangolin.commons.HadoopUtils;
@@ -59,6 +61,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 			tuple = new BaseTuple();
 			tuple.setString("country", "ES");
 			tuple.setInt("averageSalary", 1000);
+			System.out.println(tuple.getInt("averageSalary"));
 
 			collector.write(1, tuple);
 
@@ -69,6 +72,15 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		}
 	}
 
+	public static class MyGroupHandler extends GroupHandler {
+
+    @Override
+    public void onGroupElements(ITuple group, Iterable tuples, State state, Context context) throws IOException,
+        InterruptedException, CoGrouperException {
+
+	    System.out.println(tuples);
+    }
+  }
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void test() throws CoGrouperException, InvalidFieldException, IOException, InterruptedException, ClassNotFoundException {
@@ -78,19 +90,14 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		    .setSorting(new SortingBuilder().add("country").addSourceId().secondarySort(0).add("money").buildSorting())
 		    .build();
 
-		Files.write("", new File("test-input"), Charset.forName("UTF-8"));
+		Files.write("foo", new File("test-input"), Charset.forName("UTF-8"));
+		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 		
 		Job job = new CoGrouper(config, getConf())
 		    .addInput(new Path("test-input"), TextInputFormat.class, FirstInputProcessor.class)
-		    .setGroupHandler(new GroupHandler() {
-
-			    @Override
-			    public void onGroupElements(ITuple group, Iterable tuples, State state, Context context) throws IOException,
-			        InterruptedException, CoGrouperException {
-
-				    System.out.println(tuples);
-			    }
-		    }.getClass()).createJob();
+		    .setGroupHandler(MyGroupHandler.class)
+		    .setOutput(new Path("test-output"), TextOutputFormat.class, NullWritable.class, NullWritable.class)
+		    .createJob();
 
 		job.waitForCompletion(true);
 		

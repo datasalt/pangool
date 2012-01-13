@@ -26,6 +26,7 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangool.io.tuple.DoubleBufferedSourcedTuple;
 import com.datasalt.pangool.io.tuple.SourcedTuple;
 
 /**
@@ -41,16 +42,16 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
     private Mapper.Context context;
     private Schema schema;
     
-    private ThreadLocal<SourcedTuple> cachedSourcedTuple = new ThreadLocal<SourcedTuple>() {
+    private ThreadLocal<DoubleBufferedSourcedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedSourcedTuple>() {
 
-    	SourcedTuple cachedTuple;
+    	DoubleBufferedSourcedTuple cachedTuple;
     	
     	@Override
-    	public SourcedTuple get() {
+    	public DoubleBufferedSourcedTuple get() {
     		return cachedTuple;
     	}
     	
-    	public void set(SourcedTuple cachedTuple) {
+    	public void set(DoubleBufferedSourcedTuple cachedTuple) {
     		this.cachedTuple = cachedTuple;
     	}
     };
@@ -73,10 +74,14 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 		}
 		
 		public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
-			SourcedTuple sTuple = cachedSourcedTuple.get();
+			DoubleBufferedSourcedTuple sTuple = cachedSourcedTuple.get();
 			if(sTuple == null) {
-				sTuple = new SourcedTuple(tuple);
+				sTuple = new DoubleBufferedSourcedTuple(tuple);
 				cachedSourcedTuple.set(sTuple);
+			}
+			sTuple.setSource(sourceId);
+			if(sourceId == 1) {
+			System.out.println(sTuple.getInt("averageSalary"));
 			}
 			write(sTuple);
 		}

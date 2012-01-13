@@ -14,17 +14,17 @@ import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
-import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
 import com.datasalt.pangolin.grouper.mapreduce.SimpleCombiner;
-import com.datasalt.pangolin.grouper.mapreduce.SimpleReducer;
+import com.datasalt.pangool.io.tuple.DoubleBufferedSourcedTuple;
 import com.datasalt.pangool.io.tuple.GroupComparator;
 import com.datasalt.pangool.io.tuple.Partitioner;
+import com.datasalt.pangool.io.tuple.SortComparator;
 import com.datasalt.pangool.mapreduce.GroupHandler;
 import com.datasalt.pangool.mapreduce.GroupHandlerWithRollup;
 import com.datasalt.pangool.mapreduce.InputProcessor;
+import com.datasalt.pangool.mapreduce.RollupReducer;
+import com.datasalt.pangool.mapreduce.SimpleReducer;
 
 /**
  * 
@@ -161,9 +161,9 @@ public class CoGrouper {
 			}
 		}
 
-		Job job = new Job(conf);
 		// Serialize PangoolConf in Hadoop Configuration
 		PangoolConfig.setPangoolConfig(config, conf);
+		Job job = new Job(conf);
 		
 		List<String> partitionerFields;
 
@@ -191,14 +191,14 @@ public class CoGrouper {
 		if(combinerHandler != null) {
 			job.setCombinerClass((config.getRollupFrom() == null) ? SimpleCombiner.class : RollupCombiner.class);
 			// Set Combiner Handler
-			conf.setClass(CONF_COMBINER_HANDLER, combinerHandler, GroupHandler.class);
+			job.getConfiguration().setClass(CONF_COMBINER_HANDLER, combinerHandler, GroupHandler.class);
 		}
 		// Set Reducer Handler
-		conf.setClass(CONF_REDUCER_HANDLER, reduceHandler, GroupHandler.class);
+		job.getConfiguration().setClass(CONF_REDUCER_HANDLER, reduceHandler, GroupHandler.class);
 
 		job.setJarByClass((jarByClass != null) ? jarByClass : reduceHandler);
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(Tuple.class);
+		job.setMapOutputKeyClass(DoubleBufferedSourcedTuple.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(Partitioner.class);
 		job.setGroupingComparatorClass(GroupComparator.class);
