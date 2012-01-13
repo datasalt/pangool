@@ -85,29 +85,24 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		int fieldsToCompare = commonCriteria.getSortElements().length;
 		int commonCompare = compare(fieldsToCompare, commonSchema, commonCriteria, w1, w2);
 		
-		if(commonCompare == 0) {
-			if(nSchemas == 1) {
-				// If we have only one schema, everything is common
-				return 0;
-			} else {
-				// Continue comparing
-				if(firstSourceId == secondSourceId) {
-					SortCriteria particularCriteria = config.getSorting().getSpecificCriteriaByName(firstSourceId);
-					if(particularCriteria != null) {
-						Schema particularSchema = config.getSpecificOrderedSchemas().get(firstSourceId);
-						fieldsToCompare = particularCriteria.getSortElements().length;
-						return compare(fieldsToCompare, particularSchema, particularCriteria, w1, w2);
-					} else {
-						// No particular ordering, we don't care
-						return 0;
-					}
-				} else { // Different sources, order by sourceId
-					return firstSourceId > secondSourceId ? 1 : -1;
-				}
-			}
-		} else {
+		if(commonCompare != 0) {
 			return commonCompare;
 		}
+
+		if(nSchemas == 1) {
+			// If we have only one schema, everything is common
+			return 0;
+		}
+		
+		// Otherwise, continue comparing
+		SortCriteria particularCriteria = config.getSorting().getSpecificCriteriaByName(firstSourceId);
+		if(particularCriteria != null) {
+			Schema particularSchema = config.getSpecificOrderedSchemas().get(firstSourceId);
+			fieldsToCompare = particularCriteria.getSortElements().length;
+			return compare(fieldsToCompare, particularSchema, particularCriteria, w1, w2);
+		}
+		
+		return 0;
 	}
 
 	/**
@@ -117,12 +112,14 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	public int compare(int fieldsToCompare, Schema schema, SortCriteria sortCriteria, ITuple w1, ITuple w2) {
 		ITuple tuple1 = (ITuple) w1;
 		ITuple tuple2 = (ITuple) w2;
+		
 		for(int depth = 0; depth < fieldsToCompare; depth++) {
 			Field field = schema.getField(depth);
 			String fieldName = field.getName();
 			SortElement sortElement = sortCriteria.getSortElementByFieldName(field.getName());
 			SortOrder sort = SortOrder.ASC; // by default
 			RawComparator comparator = null;
+			
 			if(sortElement != null) {
 				sort = sortElement.getSortOrder();
 				comparator = instancedComparators.get(sortElement.getComparator());
@@ -131,11 +128,20 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				    + "' but not present in sortCriteria:" + sortCriteria);
 			}
 			int comparison;
+			
+			Object object1 = tuple1.getObject(fieldName);
+			Object object2 = tuple2.getObject(fieldName);
+			
 			if(comparator != null) {
-				comparison = comparator.compare(tuple1.getObject(fieldName), tuple2.getObject(fieldName));
+				comparison = comparator.compare(object1, object2);
 			} else {
-				comparison = compareObjects(tuple1.getObject(fieldName), tuple2.getObject(fieldName));
+				comparison = compareObjects(object1, object2);
 			}
+			if(field.getName().equals(Field.SOURCE_ID_FIELD_NAME)) {
+				firstSourceId  = (Integer) tuple1.getObject(fieldName);
+				secondSourceId = (Integer) tuple2.getObject(fieldName);
+			}
+			
 			if(comparison != 0) {
 				return (sort == SortOrder.ASC) ? comparison : -comparison;
 			}
@@ -175,29 +181,24 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 		int commonCompare = compare(fieldsToCompare, commonSchema, commonCriteria, b1, s1, l1, b2, s2, l2);
 
-		if(commonCompare == 0) {
-			if(nSchemas == 1) {
-				// If we have only one schema, everything is common
-				return 0;
-			} else {
-				// Continue comparing
-				if(firstSourceId == secondSourceId) {
-					SortCriteria particularCriteria = config.getSorting().getSpecificCriteriaByName(firstSourceId);
-					if(particularCriteria != null) {
-						Schema particularSchema = config.getSpecificOrderedSchemas().get(firstSourceId);
-						fieldsToCompare = particularCriteria.getSortElements().length;
-						return compare(fieldsToCompare, particularSchema, particularCriteria, b1, offset1, l1, b2, offset2, l2);
-					} else {
-						// No particular ordering, we don't care
-						return 0;
-					}
-				} else { // Different sources, order by sourceId
-					return firstSourceId > secondSourceId ? 1 : -1;
-				}
-			}
-		} else {
+		if(commonCompare != 0) {
 			return commonCompare;
 		}
+
+		if(nSchemas == 1) {
+			// If we have only one schema, everything is common
+			return 0;
+		}
+		
+		// Otherwise, continue comparing
+		SortCriteria particularCriteria = config.getSorting().getSpecificCriteriaByName(firstSourceId);
+		if(particularCriteria != null) {
+			Schema particularSchema = config.getSpecificOrderedSchemas().get(firstSourceId);
+			fieldsToCompare = particularCriteria.getSortElements().length;
+			return compare(fieldsToCompare, particularSchema, particularCriteria, b1, offset1, l1, b2, offset2, l2);
+		}
+		
+		return 0;
 	}
 
 	/**

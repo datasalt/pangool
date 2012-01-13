@@ -134,7 +134,6 @@ public class TestComparators extends BaseTest {
 		return comp.compare(buffer1.getData(), 0, buffer1.getLength(), buffer2.getData(), 0, buffer2.getLength());
 	}
 	
-	
 	private int compareInBinary2(SortComparator comp, ITuple tuple1, ITuple tuple2) throws IOException {
 		Serialization ser = getSer();
 		DataOutputBuffer buffer1 = new DataOutputBuffer();

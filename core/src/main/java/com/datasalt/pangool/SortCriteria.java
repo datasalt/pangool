@@ -55,6 +55,10 @@ public class SortCriteria {
     public Class<? extends RawComparator> getComparator() {
 			return comparator;
 		}
+    
+    public String toString() {
+    	return fieldName + " " + sortOrder;
+    }
 	}
 
 	public static enum SortOrder {
