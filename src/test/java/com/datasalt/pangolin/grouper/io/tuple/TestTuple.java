@@ -16,6 +16,7 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
+import com.datasalt.pangolin.io.Serialization;
 
 public class TestTuple extends BaseTest{
 
@@ -32,8 +33,9 @@ public class TestTuple extends BaseTest{
 			int NUM_ITERATIONS=10000;
 			for (int i=0 ; i < NUM_ITERATIONS; i++){
 			for (ITuple tuple : tuples){
-				fillWithRandom(SCHEMA, tuple, 0, SCHEMA.getFields().length-1);
+				fillTuple(true,SCHEMA, tuple, 0, SCHEMA.getFields().length-1);
 				assertSerializable(tuple,false);
+				assertSerializable2(tuple,false);
 			}
 		}
 	}
@@ -57,190 +59,26 @@ public class TestTuple extends BaseTest{
 		
 		int length = schemaPrimitives.getFields().length;
 		for (int i=length-2 ; i >= 0; i--){
-			System.out.println("From 0 to " + i);
 			ITuple tuple = new BaseTuple();
-			fillWithRandom(schemaPrimitives, tuple, 0, i);
-			assertNotSerializable(tuple);
+			fillTuple(true,schemaPrimitives, tuple, 0, i);
+			assertNonSerializable(tuple,false);
 			tuple = new Tuple();
-			fillWithRandom(schemaPrimitives, tuple, 0, i);
-			assertNotSerializable(tuple);
+			fillTuple(true,schemaPrimitives, tuple, 0, i);
+			assertNonSerializable(tuple,false);
 		}
 
 	}
 	
 	
-//	@Ignore
-//	@Test
-//	public void testTupleStorage() throws GrouperException, IOException{
-//		
-//		
-//		Random random = new Random();
-//		BaseTuple baseTuple = new BaseTuple();
-//		Tuple doubleBufferedTuple = new Tuple();
-//		ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
-//		
-//		
-//		
-//		
-//		for (ITuple tuple : tuples){
-//			System.out.println(tuple);
-//			//check if they can be serializable with no fields set
-//			assertSerializable(tuple,false);
-//		}
-//		
-//		
-//		
-//		
-//		for(ITuple tuple : tuples) {
-//			int value = random.nextInt();
-//			tuple.setInt("int_field", value);
-//			assertEquals(value, tuple.getInt("int_field"));
-//			assertEquals(value, tuple.getObject("int_field"));
-//			value = random.nextInt();
-//			tuple.setObject("int_field", value);
-//			assertEquals(value, tuple.getInt("int_field"));
-//			assertEquals(value, tuple.getObject("int_field"));
-//
-//			
-//			System.out.println(tuple);
-//			assertSerializable(tuple,false);
-//		}
-//		
-//		
-//		
-//		for (ITuple tuple : tuples){
-//			int value = random.nextInt();
-//			tuple.setInt("vint_field",value);
-//			assertEquals(value,tuple.getInt("vint_field"));
-//			assertEquals(value,tuple.getObject("vint_field"));
-//			value = random.nextInt();
-//			tuple.setObject("vint_field",value);
-//			assertEquals(value,tuple.getInt("vint_field"));
-//			assertEquals(value,tuple.getObject("vint_field"));
-//			System.out.println(tuple);
-//			assertSerializable(tuple,false);
-//		}
-//		
-//		
-//		for (ITuple tuple : tuples){
-//			long value = random.nextLong();
-//			tuple.setLong("long_field",value);
-//			assertEquals(value,tuple.getLong("long_field"));
-//			assertEquals(value,tuple.getObject("long_field"));
-//			value = random.nextLong();
-//			tuple.setObject("long_field",value);
-//			assertEquals(value,tuple.getLong("long_field"));
-//			assertEquals(value,tuple.getObject("long_field"));
-//			System.out.println(tuple);
-//			assertSerializable(tuple,false);
-//		}
-//		
-//		for (ITuple tuple : tuples){
-//			long value = random.nextLong();
-//			tuple.setLong("vlong_field",value);
-//			assertEquals(value,tuple.getLong("vlong_field"));
-//			assertEquals(value,tuple.getObject("vlong_field"));
-//			value = random.nextLong();
-//			tuple.setObject("vlong_field",value);
-//			assertEquals(value,tuple.getLong("vlong_field"));
-//			assertEquals(value,tuple.getObject("vlong_field"));
-//			System.out.println(tuple);
-//			assertSerializable(tuple,false);
-//		}
-//		for (ITuple tuple : tuples){
-//			String value = "caca";
-//			tuple.setString("string_field",value);
-//			assertEquals(value,tuple.getString("string_field"));
-//			assertEquals(value,tuple.getObject("string_field"));
-//			value = "cucu";
-//			tuple.setObject("string_field",value);
-//			assertEquals(value,tuple.getString("string_field"));
-//			assertEquals(value,tuple.getObject("string_field"));
-//			System.out.println(tuple);
-//			assertSerializable(tuple,false);
-//
-//		}
-//		
-//		for (ITuple tuple : tuples){
-//			float value = random.nextFloat();
-//			tuple.setFloat("float_field",value);
-//			assertEquals(value,tuple.getFloat("float_field"),1e-10);
-//			assertEquals(value,(Float)tuple.getObject("float_field"),1e-10);
-//			value = random.nextFloat();
-//			tuple.setObject("float_field",value);
-//			assertEquals(value,tuple.getFloat("float_field"),1e-10);
-//			assertEquals(value,(Float)tuple.getObject("float_field"),1e-10);
-//			System.out.println(tuple);
-//			assertSerializable(tuple,false);
-//
-//		}
-//		for (ITuple tuple : tuples){
-//			double value = random.nextDouble();
-//			tuple.setDouble("double_field",value);
-//			assertEquals(value,tuple.getDouble("double_field"),1e-10);
-//			assertEquals(value,(Double)tuple.getObject("double_field"),1e-10);
-//			value = random.nextDouble();
-//			tuple.setObject("double_field",value);
-//			assertEquals(value,tuple.getDouble("double_field"),1e-10);
-//			assertEquals(value,(Double)tuple.getObject("double_field"),1e-10);
-//			System.out.println(tuple);
-//			assertSerializable(tuple,false);
-//		}
-//		
-//		for (ITuple tuple : tuples){
-//			SortOrder value = SortOrder.ASC;
-//			tuple.setEnum("enum_field",value);
-//			assertEquals(value,tuple.getEnum("enum_field"));
-//			assertEquals(value,tuple.getObject("enum_field"));
-//			
-//		 TestEnum value2 = TestEnum.Blabla;
-//			
-//		 tuple.setEnum("enum_field",value2);
-//			assertEquals(value2,tuple.getEnum("enum_field"));
-//			assertEquals(value2,tuple.getObject("enum_field"));
-//			
-//			tuple.setObject("enum_field",value);
-//			assertEquals(value,tuple.getEnum("enum_field"));
-//			assertEquals(value,tuple.getObject("enum_field"));
-//			System.out.println(tuple);
-//			assertSerializable(tuple,false);
-//
-//		}
-//		
-//		for (ITuple tuple : tuples){
-//			A value = new A();
-//			value.setId("id");
-//			tuple.setObject("thrift_field",value);
-//			assertEquals(value,tuple.getObject("thrift_field"));
-//			assertEquals(value.getId(),((A)tuple.getObject("thrift_field")).getId());
-//			value = new A();
-//			value.setId("id2");
-//			tuple.setObject("thrift_field",value);
-//			assertEquals(value,tuple.getObject("thrift_field"));
-//			assertEquals(value.getId(),((A)tuple.getObject("thrift_field")).getId());
-//			System.out.println(tuple);
-//			assertSerializable(tuple,false);
-//		}
-//		
-//		//TODO what should happen when assign an int,short  to a long (automatic conversion(casting) or exception?)
-//		//TODO what happens if we retrieve a long using getInt  , or a int using getLong ?
-//		
-//		//TODO should we convert float to double ?
-//	}
-	
-//	private void assertLeftEquals(ITuple tuple1,ITuple tuple2){
-//		if (!BaseTuple.leftEquals(tuple1, tuple2)){
-//			Assert.fail("tuples are not left equals\n" + tuple1 + "\n" + tuple2);
-//		}
-//	}
+
 	
 	
 	private void assertSerializable(ITuple tuple,boolean debug) throws IOException{
 		TupleSerialization serialization = new TupleSerialization();
 		serialization.setConf(getConf());
 
-		Serializer<ITuple> ser = serialization.getSerializer(ITuple.class);
-		Deserializer<ITuple> deser = serialization.getDeserializer(ITuple.class);
+		Serializer ser = serialization.getSerializer(tuple.getClass());
+		Deserializer deser = serialization.getDeserializer(tuple.getClass());
 
 		DataInputBuffer input = new DataInputBuffer();
 		DataOutputBuffer output = new DataOutputBuffer();
@@ -252,7 +90,7 @@ public class TestTuple extends BaseTest{
 	  input.reset(output.getData(),0,output.getLength());
 		ITuple deserializedTuple = new BaseTuple();
 		deser.open(input);
-		deserializedTuple = deser.deserialize(deserializedTuple);
+		deserializedTuple = (ITuple) deser.deserialize(deserializedTuple);
 		if (debug){
 			System.out.println("D:" + deserializedTuple);
 		}
@@ -262,7 +100,7 @@ public class TestTuple extends BaseTest{
 	  
 	  input.reset(output.getData(),0,output.getLength());
 	  deser.open(input);
-		deserializedTuple = deser.deserialize(deserializedTuple);
+		deserializedTuple = (ITuple) deser.deserialize(deserializedTuple);
 		deser.close();
 		if (debug){
 			System.out.println("D2:" + deserializedTuple);
@@ -271,40 +109,49 @@ public class TestTuple extends BaseTest{
 		assertEquals(tuple,deserializedTuple);
 	}
 	
+	private void assertSerializable2(ITuple tuple,boolean debug) throws IOException{
+		Serialization ser = getSer();
+		DataInputBuffer input = new DataInputBuffer();
+		DataOutputBuffer output = new DataOutputBuffer();
+
+		ser.ser(tuple, output);
+		
+	  input.reset(output.getData(),0,output.getLength());
+		ITuple deserializedTuple = new BaseTuple();
+		deserializedTuple = ser.deser(deserializedTuple, input);
+		if (debug){
+			System.out.println("D:" + deserializedTuple);
+		}
+		assertEquals(tuple,deserializedTuple);
+	  deserializedTuple = new Tuple();
+	  
+	  input.reset(output.getData(),0,output.getLength());
+	  deserializedTuple = ser.deser(deserializedTuple,input);
+	  if (debug){
+			System.out.println("D2:" + deserializedTuple);
+		}
+		assertEquals(tuple,deserializedTuple);
+	}
 	
 	
-//	@Test
-//	public void testAssingWrongTypes(){
-//		
-//		//Ituple
-//		
-////		try{
-////			//can't assign wrong types
-////		  tuple.setString("int_field","caca");
-////		  Assert.fail();
-////		} catch(InvalidFieldException e){
-////			e.printStackTrace();
-////		}
-////		
-////		try {
-////			tuple.setObject("string_field", new A());
-////		} catch(InvalidFieldException e){
-////			e.printStackTrace();
-////		}
-////		
-////		
-////	}
-//
-//	}
+	
+
 		
 	
-	private void assertNotSerializable(ITuple tuple){
+	private void assertNonSerializable(ITuple tuple,boolean debug){
 		try{
-		assertSerializable(tuple,false);
+		assertSerializable(tuple,debug);
 		Assert.fail();
 		} catch(Exception e){
 			System.out.println(e);
 		}
+		
+		try{
+			assertSerializable2(tuple,debug);
+			Assert.fail();
+			} catch(Exception e){
+				System.out.println(e);
+			}
 	}
 	
 //	@Ignore
@@ -395,5 +242,194 @@ public class TestTuple extends BaseTest{
 //		
 //		
 //	}
+	
+//@Ignore
+//@Test
+//public void testTupleStorage() throws GrouperException, IOException{
+//	
+//	
+//	Random random = new Random();
+//	BaseTuple baseTuple = new BaseTuple();
+//	Tuple doubleBufferedTuple = new Tuple();
+//	ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
+//	
+//	
+//	
+//	
+//	for (ITuple tuple : tuples){
+//		System.out.println(tuple);
+//		//check if they can be serializable with no fields set
+//		assertSerializable(tuple,false);
+//	}
+//	
+//	
+//	
+//	
+//	for(ITuple tuple : tuples) {
+//		int value = random.nextInt();
+//		tuple.setInt("int_field", value);
+//		assertEquals(value, tuple.getInt("int_field"));
+//		assertEquals(value, tuple.getObject("int_field"));
+//		value = random.nextInt();
+//		tuple.setObject("int_field", value);
+//		assertEquals(value, tuple.getInt("int_field"));
+//		assertEquals(value, tuple.getObject("int_field"));
+//
+//		
+//		System.out.println(tuple);
+//		assertSerializable(tuple,false);
+//	}
+//	
+//	
+//	
+//	for (ITuple tuple : tuples){
+//		int value = random.nextInt();
+//		tuple.setInt("vint_field",value);
+//		assertEquals(value,tuple.getInt("vint_field"));
+//		assertEquals(value,tuple.getObject("vint_field"));
+//		value = random.nextInt();
+//		tuple.setObject("vint_field",value);
+//		assertEquals(value,tuple.getInt("vint_field"));
+//		assertEquals(value,tuple.getObject("vint_field"));
+//		System.out.println(tuple);
+//		assertSerializable(tuple,false);
+//	}
+//	
+//	
+//	for (ITuple tuple : tuples){
+//		long value = random.nextLong();
+//		tuple.setLong("long_field",value);
+//		assertEquals(value,tuple.getLong("long_field"));
+//		assertEquals(value,tuple.getObject("long_field"));
+//		value = random.nextLong();
+//		tuple.setObject("long_field",value);
+//		assertEquals(value,tuple.getLong("long_field"));
+//		assertEquals(value,tuple.getObject("long_field"));
+//		System.out.println(tuple);
+//		assertSerializable(tuple,false);
+//	}
+//	
+//	for (ITuple tuple : tuples){
+//		long value = random.nextLong();
+//		tuple.setLong("vlong_field",value);
+//		assertEquals(value,tuple.getLong("vlong_field"));
+//		assertEquals(value,tuple.getObject("vlong_field"));
+//		value = random.nextLong();
+//		tuple.setObject("vlong_field",value);
+//		assertEquals(value,tuple.getLong("vlong_field"));
+//		assertEquals(value,tuple.getObject("vlong_field"));
+//		System.out.println(tuple);
+//		assertSerializable(tuple,false);
+//	}
+//	for (ITuple tuple : tuples){
+//		String value = "caca";
+//		tuple.setString("string_field",value);
+//		assertEquals(value,tuple.getString("string_field"));
+//		assertEquals(value,tuple.getObject("string_field"));
+//		value = "cucu";
+//		tuple.setObject("string_field",value);
+//		assertEquals(value,tuple.getString("string_field"));
+//		assertEquals(value,tuple.getObject("string_field"));
+//		System.out.println(tuple);
+//		assertSerializable(tuple,false);
+//
+//	}
+//	
+//	for (ITuple tuple : tuples){
+//		float value = random.nextFloat();
+//		tuple.setFloat("float_field",value);
+//		assertEquals(value,tuple.getFloat("float_field"),1e-10);
+//		assertEquals(value,(Float)tuple.getObject("float_field"),1e-10);
+//		value = random.nextFloat();
+//		tuple.setObject("float_field",value);
+//		assertEquals(value,tuple.getFloat("float_field"),1e-10);
+//		assertEquals(value,(Float)tuple.getObject("float_field"),1e-10);
+//		System.out.println(tuple);
+//		assertSerializable(tuple,false);
+//
+//	}
+//	for (ITuple tuple : tuples){
+//		double value = random.nextDouble();
+//		tuple.setDouble("double_field",value);
+//		assertEquals(value,tuple.getDouble("double_field"),1e-10);
+//		assertEquals(value,(Double)tuple.getObject("double_field"),1e-10);
+//		value = random.nextDouble();
+//		tuple.setObject("double_field",value);
+//		assertEquals(value,tuple.getDouble("double_field"),1e-10);
+//		assertEquals(value,(Double)tuple.getObject("double_field"),1e-10);
+//		System.out.println(tuple);
+//		assertSerializable(tuple,false);
+//	}
+//	
+//	for (ITuple tuple : tuples){
+//		SortOrder value = SortOrder.ASC;
+//		tuple.setEnum("enum_field",value);
+//		assertEquals(value,tuple.getEnum("enum_field"));
+//		assertEquals(value,tuple.getObject("enum_field"));
+//		
+//	 TestEnum value2 = TestEnum.Blabla;
+//		
+//	 tuple.setEnum("enum_field",value2);
+//		assertEquals(value2,tuple.getEnum("enum_field"));
+//		assertEquals(value2,tuple.getObject("enum_field"));
+//		
+//		tuple.setObject("enum_field",value);
+//		assertEquals(value,tuple.getEnum("enum_field"));
+//		assertEquals(value,tuple.getObject("enum_field"));
+//		System.out.println(tuple);
+//		assertSerializable(tuple,false);
+//
+//	}
+//	
+//	for (ITuple tuple : tuples){
+//		A value = new A();
+//		value.setId("id");
+//		tuple.setObject("thrift_field",value);
+//		assertEquals(value,tuple.getObject("thrift_field"));
+//		assertEquals(value.getId(),((A)tuple.getObject("thrift_field")).getId());
+//		value = new A();
+//		value.setId("id2");
+//		tuple.setObject("thrift_field",value);
+//		assertEquals(value,tuple.getObject("thrift_field"));
+//		assertEquals(value.getId(),((A)tuple.getObject("thrift_field")).getId());
+//		System.out.println(tuple);
+//		assertSerializable(tuple,false);
+//	}
+//	
+//	//TODO what should happen when assign an int,short  to a long (automatic conversion(casting) or exception?)
+//	//TODO what happens if we retrieve a long using getInt  , or a int using getLong ?
+//	
+//	//TODO should we convert float to double ?
+//}
+
+//private void assertLeftEquals(ITuple tuple1,ITuple tuple2){
+//	if (!BaseTuple.leftEquals(tuple1, tuple2)){
+//		Assert.fail("tuples are not left equals\n" + tuple1 + "\n" + tuple2);
+//	}
+//}
+	
+//@Test
+//public void testAssingWrongTypes(){
+//	
+//	//Ituple
+//	
+////	try{
+////		//can't assign wrong types
+////	  tuple.setString("int_field","caca");
+////	  Assert.fail();
+////	} catch(InvalidFieldException e){
+////		e.printStackTrace();
+////	}
+////	
+////	try {
+////		tuple.setObject("string_field", new A());
+////	} catch(InvalidFieldException e){
+////		e.printStackTrace();
+////	}
+////	
+////	
+////}
+//
+//}
 
 }

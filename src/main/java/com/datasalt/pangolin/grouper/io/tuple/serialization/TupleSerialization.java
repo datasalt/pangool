@@ -29,10 +29,13 @@ import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 
+import com.datasalt.pangolin.commons.io.ProtoStuffSerialization;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.Schema.Field;
+import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 
 /**
  * A {@link Serialization} for types Tuples
@@ -41,7 +44,7 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple;
  * <code>io.serializations</code> includes the fully-qualified classname of this
  * class: <code>org.apache.hadoop.contrib.serialization.thrift.ThriftSerialization</code>.
  */
-public class TupleSerialization implements Serialization<ITuple>,Configurable{
+public class TupleSerialization implements Serialization,Configurable{
 	
 	private Configuration conf;
 	private Schema schema;
@@ -56,15 +59,8 @@ public class TupleSerialization implements Serialization<ITuple>,Configurable{
 	}
 	
 	@Override
-  public boolean accept(Class<?> c) {
-		
-    boolean result =  ITuple.class.isAssignableFrom(c);
-    if (result){
-    	System.out.println("TupleSerialization accepting " + c);
-    } else {
-    	System.out.println("Rejecting " + c);
-    }
-    return result;
+  public boolean accept(Class c) {
+		return (c == Tuple.class || c == BaseTuple.class);
   }
 
   
@@ -74,24 +70,7 @@ public class TupleSerialization implements Serialization<ITuple>,Configurable{
 		return conf;
 	}
 
-	/**
-	 * Mega tricky!!!!. This is to avoid recursive serialization instantiation!!
-	 * @param conf
-	 */
-	private void removeThisSerialization(Configuration conf){
-		String ser = conf.get("io.serializations").trim();
-		//System.out.println("Antes : " + ser);
-		
-		//String stToSearch = TupleSerialization.class.getName();
-				String stToSearch = Pattern.quote("," + TupleSerialization.class.getName());
-		//Pattern p = java.util.regex.Pattern()
-				//System.out.println(stToSearch);
-		ser = ser.replaceAll(stToSearch, "");
-		//ser = ser.replaceAll(stToSearch,"");
-		//ser += TupleSerialization.class.getName();
-		//System.out.println("Despues : " + ser);
-		conf.set("io.serializations", ser);
-	}
+	
 	
 	
 	@Override
@@ -99,10 +78,8 @@ public class TupleSerialization implements Serialization<ITuple>,Configurable{
 		try{
 		if (thatConf != null){
 			this.conf = new Configuration(thatConf);
-			removeThisSerialization(this.conf); // !!! MEGA TRICKY!!!!
-			
+			disableTupleSerialization(this.conf); // !!! MEGA TRICKY!!!!
 			this.schema = Schema.parse(this.conf);
-			
 			this.ser= new com.datasalt.pangolin.io.Serialization(this.conf);
 		}
 		} catch(GrouperException e){
@@ -113,12 +90,12 @@ public class TupleSerialization implements Serialization<ITuple>,Configurable{
 	}
 
 	@Override
-	public Serializer<ITuple> getSerializer(Class<ITuple> c) {
+	public Serializer<?> getSerializer(Class c) {
 		return new TupleSerializer(this.ser,this.schema);
 	}
 
 	@Override
-	public Deserializer<ITuple> getDeserializer(Class<ITuple> c) {
+	public Deserializer<ITuple> getDeserializer(Class c) {
 		return new TupleDeserializer(this.ser,this.schema);
 	}
 	
@@ -145,6 +122,27 @@ public class TupleSerialization implements Serialization<ITuple>,Configurable{
 				throw new RuntimeException(e);
 			}
 
+		}
+		
+		public static void enableTupleSerialization(Configuration conf) {
+			String ser = conf.get("io.serializations").trim();
+			if (ser.length() !=0 ) {
+				ser += ",";
+			}
+			//Adding the Tuple serialization
+			ser += TupleSerialization.class.getName();
+			conf.set("io.serializations", ser);
+	  }
+		
+		/**
+		 * Mega tricky!!!!. This is to avoid recursive serialization instantiation!!
+		 * @param conf
+		 */
+		public static void disableTupleSerialization(Configuration conf){
+			String ser = conf.get("io.serializations").trim();
+			String stToSearch = Pattern.quote("," + TupleSerialization.class.getName());
+			ser = ser.replaceAll(stToSearch, "");
+			conf.set("io.serializations", ser);
 		}
 	
 }

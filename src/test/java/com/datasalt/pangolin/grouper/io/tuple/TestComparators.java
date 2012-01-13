@@ -65,6 +65,9 @@ public class TestComparators extends BaseTest {
 		Configuration conf = getConf();
 
 		int maxIndex = SCHEMA.getFields().length - 1;
+		TupleSerialization serialization = new TupleSerialization();
+		serialization.setConf(getConf());
+		Serializer ser = serialization.getSerializer(Tuple.class);
 
 		Map<String, Class> customComparators = new HashMap<String, Class>();
 		customComparators.put("thrift_field", AComparator.class);
@@ -93,19 +96,33 @@ public class TestComparators extends BaseTest {
 
 					ITuple[] tuples = new ITuple[] { base1, base2, doubleBuffered1,
 							doubleBuffered2 };
+					
 					for (ITuple tuple : tuples) {
-						fillWithRandom(SCHEMA,tuple, minIndex, maxIndex);
+						fillTuple(true,SCHEMA,tuple, minIndex, maxIndex);
 					}
+					for (int defaultIndex=0 ; defaultIndex < minIndex ; defaultIndex++){
+						for (ITuple tuple : tuples) {
+							fillTuple(true,SCHEMA,tuple, defaultIndex, minIndex-1);
+						}
+					}
+					
+//					for (int defaultIndex=0 ; defaultIndex < minIndex ; defaultIndex++){
+//						for (ITuple tuple : tuples) {
+//							fillTuple(true,SCHEMA,tuple, defaultIndex, minIndex-1);
+//						}
+//					}
+					
+					
 					for (int indexTuple1 = 0; indexTuple1 < tuples.length; indexTuple1++) {
 						for (int indexTuple2 = indexTuple1; indexTuple2 < tuples.length; indexTuple2++) {
 							ITuple tuple1 = tuples[indexTuple1];
 							ITuple tuple2 = tuples[indexTuple2];
-							assertSameComparison("Sort comparator", sortComparator, tuple1,
+							assertSameComparison(ser,"Sort comparator", sortComparator, tuple1,
 									tuple2);
-							assertOppositeOrEqualsComparison(sortComparator, tuple1, tuple2);
-							assertSameComparison("Group comparator", groupComparator, tuple1,
+							assertOppositeOrEqualsComparison(ser,sortComparator, tuple1, tuple2);
+							assertSameComparison(ser,"Group comparator", groupComparator, tuple1,
 									tuple2);
-							assertOppositeOrEqualsComparison(groupComparator, tuple1, tuple2);
+							assertOppositeOrEqualsComparison(ser,groupComparator, tuple1, tuple2);
 						}
 					}
 				} // do you like bracket dance ?
@@ -113,16 +130,19 @@ public class TestComparators extends BaseTest {
 		}
 	}
 
-	private int compareInBinary(SortComparator comp, ITuple tuple1, ITuple tuple2)
+	private int compareInBinary1(Serializer ser,SortComparator comp, ITuple tuple1, ITuple tuple2)
 			throws IOException {
-		TupleSerialization serialization = new TupleSerialization();
-		Serializer<ITuple> ser = serialization.getSerializer(ITuple.class);
+		
+		//TupleSerialization serialization = new TupleSerialization();
+		//serialization.setConf(getConf());
+		//Serializer ser = serialization.getSerializer(tuple1.getClass());
+
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.open(buffer1);
 		ser.serialize(tuple1);
 		ser.close();
 		
-		//tuple1.write(buffer1);
+		//ser = serialization.getSerializer(tuple2.getClass());
 		DataOutputBuffer buffer2 = new DataOutputBuffer();
 		ser.open(buffer2);
 		ser.serialize(tuple2);
@@ -131,6 +151,19 @@ public class TestComparators extends BaseTest {
 		return comp.compare(buffer1.getData(), 0, buffer1.getLength(), buffer2
 				.getData(), 0, buffer2.getLength());
 	}
+	
+	private int compareInBinary2(SortComparator comp, ITuple tuple1, ITuple tuple2)
+			throws IOException {
+		
+		Serialization ser = getSer();
+		DataOutputBuffer buffer1 = new DataOutputBuffer();
+		ser.ser(tuple1, buffer1);
+		DataOutputBuffer buffer2 = new DataOutputBuffer();
+		ser.ser(tuple2, buffer2);
+		return comp.compare(buffer1.getData(), 0, buffer1.getLength(), buffer2
+				.getData(), 0, buffer2.getLength());
+	}
+	
 
 	private String concatFields(String[] fields) {
 		StringBuilder b = new StringBuilder();
@@ -147,11 +180,11 @@ public class TestComparators extends BaseTest {
 	 * Checks that the binary comparison matches the comparison by objects.
 	 * 
 	 */
-	private void assertSameComparison(String alias, SortComparator comparator,
+	private void assertSameComparison(Serializer ser,String alias, SortComparator comparator,
 			ITuple tuple1, ITuple tuple2) throws IOException {
 
 		int compObjects = comparator.compare(tuple1, tuple2);
-		int compBinary = compareInBinary(comparator, tuple1, tuple2);
+		int compBinary = compareInBinary1(ser,comparator, tuple1, tuple2);
 		if (compObjects > 0 && compBinary <= 0 || compObjects >= 0
 				&& compBinary < 0 || compObjects <= 0 && compBinary > 0
 				|| compObjects < 0 && compBinary >= 0) {
@@ -175,7 +208,7 @@ public class TestComparators extends BaseTest {
 	/**
 	 * Checks that comp(tuple1,tuple2) is -comp(tuple2,tuple1)
 	 */
-	private void assertOppositeOrEqualsComparison(SortComparator comp,
+	private void assertOppositeOrEqualsComparison(Serializer ser,SortComparator comp,
 			ITuple tuple1, ITuple tuple2) throws IOException {
 		int comp1 = comp.compare(tuple1, tuple2);
 		int comp2 = comp.compare(tuple2, tuple1);
@@ -185,8 +218,8 @@ public class TestComparators extends BaseTest {
 					+ "\nTUPLE2:" + tuple2 + "\nCRITERIA:" + comp.getSortCriteria());
 		}
 
-		comp1 = compareInBinary(comp, tuple1, tuple2);
-		comp2 = compareInBinary(comp, tuple2, tuple1);
+		comp1 = compareInBinary1(ser,comp, tuple1, tuple2);
+		comp2 = compareInBinary1(ser,comp, tuple2, tuple1);
 		if (comp1 > 0 && comp2 > 0 || comp1 < 0 && comp2 < 0) {
 			Assert.fail("Same comparison in BINARY: " + comp1 + " , " + comp2
 					+ ".It should be opposite" + "' for tuples:" + "\nTUPLE1:" + tuple1

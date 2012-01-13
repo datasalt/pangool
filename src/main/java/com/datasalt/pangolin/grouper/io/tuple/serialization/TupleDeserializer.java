@@ -38,7 +38,7 @@ import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangolin.io.Serialization;
 
 
-class TupleDeserializer implements Deserializer<ITuple> {
+class TupleDeserializer implements Deserializer {
 
 	private Schema schema;
 	private DataInputStream in;
@@ -66,18 +66,18 @@ class TupleDeserializer implements Deserializer<ITuple> {
 	}
 
 	@Override
-	public ITuple deserialize(ITuple t) throws IOException {
-		ITuple result = t;
-		if (result == null) {
-			result = ReflectionUtils.newInstance(Tuple.class, null);
+	public ITuple deserialize(Object t) throws IOException {
+		
+		if (t == null) {
+			t = ReflectionUtils.newInstance(Tuple.class, null);
 		}
 		
 //		if (result instanceof Tuple){
 //			((Tuple)result).swapInstances();
 //		}
 		
-		readFields(result, in);
-		return result;
+		readFields((ITuple)t, in);
+		return (ITuple)t;
 	}
 	
 	
