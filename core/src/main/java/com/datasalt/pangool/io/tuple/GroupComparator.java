@@ -1,7 +1,5 @@
 package com.datasalt.pangool.io.tuple;
 
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 
 /**
@@ -12,7 +10,6 @@ import org.apache.hadoop.conf.Configuration;
 public class GroupComparator extends SortComparator {
 
 	private int numFieldsCompared;
-	private static final String CONF_GROUP_COMPARATOR_FIELDS = GroupComparator.class.getName() + ".group.comparator.fields";
 
 	@Override
 	public int compare(SourcedTuple w1, SourcedTuple w2) {
@@ -27,15 +24,6 @@ public class GroupComparator extends SortComparator {
 	@Override
 	public void setConf(Configuration conf) {
 		super.setConf(conf);
-		String[] fieldsToCompare = getGroupComparatorFields(conf);
-		numFieldsCompared = (fieldsToCompare == null) ? 0 : fieldsToCompare.length;
-	}
-
-	public static void setGroupComparatorFields(Configuration conf, List<String> fields) {
-		conf.setStrings(CONF_GROUP_COMPARATOR_FIELDS, fields.toArray(new String[0]));
-	}
-
-	public static String[] getGroupComparatorFields(Configuration conf) {
-		return conf.getStrings(CONF_GROUP_COMPARATOR_FIELDS);
+		numFieldsCompared = (config.getGroupByFields() == null) ? 0 : config.getGroupByFields().size();
 	}
 }

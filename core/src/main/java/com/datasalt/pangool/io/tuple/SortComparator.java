@@ -41,7 +41,7 @@ import com.datasalt.pangool.SortCriteria.SortOrder;
 public class SortComparator implements RawComparator<SourcedTuple>, Configurable {
 
 	private Configuration conf;
-	private PangoolConfig config;
+	protected PangoolConfig config; // so that GroupComparator can access it
 
 	private Map<Class, RawComparator> instancedComparators;
 
