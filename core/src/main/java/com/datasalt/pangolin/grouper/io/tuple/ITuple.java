@@ -53,13 +53,13 @@ public interface ITuple extends Map<String,Object>,Comparable<ITuple>/*extends W
 	
 	public int size();
 	
-	public int getInt(String fieldName);
+	public Integer getInt(String fieldName);
 	
-	public long getLong(String fieldName);
+	public Long getLong(String fieldName);
 	
-	public float getFloat(String fieldName);
+	public Float getFloat(String fieldName);
 	
-	public double getDouble(String fieldName);
+	public Double getDouble(String fieldName);
 	
 	public String getString(String fieldName);
 	

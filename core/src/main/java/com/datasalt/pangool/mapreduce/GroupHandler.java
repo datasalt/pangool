@@ -9,6 +9,7 @@ import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
 import com.datasalt.pangolin.grouper.mapreduce.SimpleReducer;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.Schema;
 
 /**
@@ -24,8 +25,15 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 
 	// To be added state info here, 
 	public static class State {
-		State() {
+		private PangoolConfig pangoolConfig;
+		
+		public State(PangoolConfig pangoolConfig) {
+			this.pangoolConfig = pangoolConfig;
 		}		
+		
+		public PangoolConfig getPangoolConfig() {
+			return pangoolConfig;
+		}
 	}
 	
 	/**
@@ -54,7 +62,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 	 * @param context
 	 *          The reducer context as in {@link Reducer}
 	 */
-	public void onGroupElements(Iterable<ITuple> tuples, State state, Context context) throws IOException,
+	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, State state, Context context) throws IOException,
 	    InterruptedException, CoGrouperException {
 		
 	}
