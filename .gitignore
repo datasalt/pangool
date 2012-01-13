@@ -4,3 +4,6 @@
 /target
 /eclipse-classes
 /core/target
+/core/.classpath
+/core/.project
+/core/.settings

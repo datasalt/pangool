@@ -13,7 +13,7 @@
   <packaging>jar</packaging>
 
   <!-- modules inherit parent's group id and version. -->
-  <name>pangool</name>
+  <name>Pangool Core</name>
   <url>http://www.datasalt.com</url>
   <description></description>
 
