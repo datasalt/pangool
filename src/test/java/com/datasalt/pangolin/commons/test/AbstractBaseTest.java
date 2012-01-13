@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.junit.Before;
 
 import com.datasalt.pangolin.commons.io.ProtoStuffSerialization;
+import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.serialization.thrift.ThriftSerialization;
 
@@ -49,6 +50,7 @@ public abstract class AbstractBaseTest {
 	private static void configureSerialization(Configuration conf) {
 		ThriftSerialization.enableThriftSerialization(conf);
 		ProtoStuffSerialization.enableProtoStuffSerialization(conf);
+		TupleSerialization.enableTupleSerialization(conf);
 	}
 	
 	

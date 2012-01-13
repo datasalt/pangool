@@ -41,7 +41,7 @@ public abstract class BaseTest extends AbstractBaseTest{
 	 * data.
 	 * 
 	 */
-	public static void fillWithRandom(Schema schema,ITuple tuple, int minIndex, int maxIndex) {
+	public static void fillTuple(boolean isRandom,Schema schema,ITuple tuple, int minIndex, int maxIndex) {
 		try {
 			Random random = new Random();
 			//Schema schema = tuple.getSchema();
@@ -50,17 +50,17 @@ public abstract class BaseTest extends AbstractBaseTest{
 				String fieldName = field.getName();
 				Class fieldType = field.getType();
 				if (fieldType == Integer.class || fieldType == VIntWritable.class) {
-					tuple.setInt(fieldName, random.nextInt());
+					tuple.setInt(fieldName, isRandom ? random.nextInt() : 0);
 				} else if (fieldType == Long.class || fieldType == VLongWritable.class) {
-					tuple.setLong(fieldName, random.nextLong());
+					tuple.setLong(fieldName, isRandom ? random.nextLong() : 0);
 				} else if (fieldType == Boolean.class) {
-					tuple.setBoolean(fieldName, random.nextBoolean());
+					tuple.setBoolean(fieldName, isRandom ? random.nextBoolean() : false);
 				} else if (fieldType == Double.class) {
-					tuple.setDouble(fieldName, random.nextDouble());
+					tuple.setDouble(fieldName, isRandom ? random.nextDouble() : 0.0);
 				} else if (fieldType == Float.class) {
-					tuple.setFloat(fieldName, random.nextFloat());
+					tuple.setFloat(fieldName, isRandom ? random.nextFloat() : 0f);
 				} else if (fieldType == String.class) {
-					if (random.nextBoolean()) {
+					if (!isRandom || random.nextBoolean()) {
 						tuple.setString(fieldName, "");
 					} else {
 						tuple.setString(fieldName, random.nextLong() + "");
@@ -68,10 +68,10 @@ public abstract class BaseTest extends AbstractBaseTest{
 				} else if (fieldType.isEnum()) {
 					Method method = fieldType.getMethod("values", null);
 					Enum[] values = (Enum[]) method.invoke(null);
-					tuple.setEnum(fieldName, values[random.nextInt(values.length)]);
+					tuple.setEnum(fieldName, values[isRandom ? random.nextInt(values.length) : 0]);
 				} else {
 					boolean toInstance = random.nextBoolean();
-					if (toInstance) {
+					if (isRandom && toInstance) {
 						Object instance = ReflectionUtils.newInstance(fieldType, null);
 						tuple.setObject(fieldName, instance);
 					} else {
