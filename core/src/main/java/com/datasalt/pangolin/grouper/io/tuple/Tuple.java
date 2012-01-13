@@ -249,16 +249,6 @@ public class Tuple implements ITuple {
 		return currentTuple.toString();
 	}
 
-//	@Override
-//	public void setSchema(Schema schema) {
-//		currentTuple.setSchema(schema);
-//	}
-
-	@Override
-  public String toString(Schema schema,int minFieldIndex, int maxFieldIndex)  {
-	  return currentTuple.toString(schema,minFieldIndex,maxFieldIndex);
-  }
-
 	@Override
 	public boolean equals(Object tuple){
 		return currentTuple.equals(tuple);
@@ -325,4 +315,9 @@ public class Tuple implements ITuple {
 	public int size() {
 		return currentTuple.size();
 	}
+
+	@Override
+  public String toString(Collection<String> fields) {
+	  return currentTuple.toString(fields);
+  }
 }

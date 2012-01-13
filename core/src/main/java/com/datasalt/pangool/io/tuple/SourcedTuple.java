@@ -12,7 +12,6 @@ import com.datasalt.pangool.Schema.Field;
 public class SourcedTuple implements ISourcedTuple{
 
   private ITuple containedTuple;
-	private int sourceId;
 	
 	public SourcedTuple(){
 		this.containedTuple = new BaseTuple();
@@ -197,13 +196,8 @@ public class SourcedTuple implements ISourcedTuple{
 	}
 
 	@Override
-	public String toString(Schema schema, int minFieldIndex, int maxFieldIndex) {
-		return containedTuple.toString(schema,minFieldIndex,maxFieldIndex);
-	}
-	
-	@Override
 	public String toString(){
-		return "source:" + sourceId + "=>" +containedTuple.toString();
+		return "source:" + getSource() + "=>" +containedTuple.toString();
 	}
 	
 	@Override
@@ -211,7 +205,7 @@ public class SourcedTuple implements ISourcedTuple{
 		if (that == null){
 			return false;
 		} else if (that instanceof SourcedTuple){
-			return sourceId == ((SourcedTuple)that).sourceId 
+			return getSource() == ((SourcedTuple)that).getSource() 
 					&& this.containedTuple.equals(((SourcedTuple)that).containedTuple);
 		} else {
 			return false;
@@ -222,4 +216,9 @@ public class SourcedTuple implements ISourcedTuple{
 	public ITuple getContainedTuple() {
 		return containedTuple;
 	}
+
+	@Override
+  public String toString(Collection<String> fields) {
+		return containedTuple.toString(fields);
+  }
 }

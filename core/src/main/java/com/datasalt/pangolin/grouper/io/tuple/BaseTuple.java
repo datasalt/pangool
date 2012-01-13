@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -463,7 +464,7 @@ public class BaseTuple extends HashMap<String,Object> implements ITuple {
 	
 	@Override
 	public String toString() {
-		return toString(null,0,size()-1);
+		return toString(keySet());
 		
 	}
 	
@@ -476,7 +477,8 @@ public class BaseTuple extends HashMap<String,Object> implements ITuple {
 	 * @return
 	 * @
 	 */
-	public String toString(Schema schema,int minFieldIndex,int maxFieldIndex) {
+	@Override
+	public String toString(Collection<String> fields) {
 		
 			StringBuilder b = new StringBuilder("{"); // TODO not optimized,should be cached
 			boolean first = true;
@@ -484,18 +486,8 @@ public class BaseTuple extends HashMap<String,Object> implements ITuple {
 			List<String> orderedFields = new ArrayList<String>();
 			orderedFields.addAll(keySet());
 			
-			for(int index = minFieldIndex ; index <=maxFieldIndex ; index++) {
-				String fieldName;
-				Class<?> fieldType;
-				
-				if (schema != null){
-					Field field = schema.getField(index);
-					fieldName = field.getName();
-					fieldType = field.getType();
-				} else {
-					fieldName = orderedFields.get(index);
-					fieldType = getField(fieldName).getClass();
-				}
+			for(String fieldName : fields) {
+
 				Object element = getField(fieldName);
 				
 				if(!first) {
@@ -507,11 +499,8 @@ public class BaseTuple extends HashMap<String,Object> implements ITuple {
 				if (element == null){
 					b.append("null");
 				} else {
-					if (fieldType == String.class){
-						b.append("\"").append(element.toString()).append("\"");
-					} else {
 						b.append(element.toString());
-					}
+					
 				}
 			}
 			b.append("}");
@@ -519,12 +508,5 @@ public class BaseTuple extends HashMap<String,Object> implements ITuple {
 		}
 
 	
-
-//	@Override
-//	public String toString(int minFieldIndex, int maxFieldIndex)
-//			 {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
 	
 }

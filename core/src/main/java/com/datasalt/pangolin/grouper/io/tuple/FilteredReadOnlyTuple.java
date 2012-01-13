@@ -208,8 +208,18 @@ public class FilteredReadOnlyTuple implements ITuple {
 		fail();
 	}
 
+	
 	@Override
-  public String toString(Schema schema, int minFieldIndex, int maxFieldIndex) {
-	  return delegated.toString(schema, minFieldIndex, maxFieldIndex);
+	public String toString(){
+		List<String> list = new ArrayList<String>(filter);
+		return delegated.toString(list);
+	}
+
+	@Override
+  public String toString(Collection<String> fields) {
+		Set<String> set = new HashSet<String>(filter);
+		set.retainAll(fields);
+		List<String> fields2 = new ArrayList<String>(set);
+	  return delegated.toString(fields2);
   }
 }

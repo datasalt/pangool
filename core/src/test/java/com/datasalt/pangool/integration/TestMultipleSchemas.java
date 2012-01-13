@@ -26,6 +26,7 @@ import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.SortingBuilder;
 import com.datasalt.pangool.mapreduce.GroupHandler;
 import com.datasalt.pangool.mapreduce.InputProcessor;
@@ -77,8 +78,10 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
     @Override
     public void onGroupElements(ITuple group, Iterable tuples, State state, Context context) throws IOException,
         InterruptedException, CoGrouperException {
-
-	    System.out.println(tuples);
+    	System.out.println("Group " + group);
+    	for (Object tuple : tuples){
+    		System.out.println(tuple);
+    	}
     }
   }
 	@SuppressWarnings("rawtypes")
@@ -87,7 +90,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		PangoolConfig config = new PangoolConfigBuilder()
 		    .addSchema(0, Schema.parse("name:string, money:int, country:string"))
 		    .addSchema(1, Schema.parse("country:string, averageSalary:int")).setGroupByFields("country")
-		    .setSorting(new SortingBuilder().add("country").addSourceId().secondarySort(0).add("money").buildSorting())
+		    .setSorting(new SortingBuilder().add("country").addSourceId(SortOrder.DESC).secondarySort(0).add("money").buildSorting())
 		    .build();
 
 		Files.write("foo", new File("test-input"), Charset.forName("UTF-8"));

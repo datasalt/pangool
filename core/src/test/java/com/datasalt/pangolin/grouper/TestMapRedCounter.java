@@ -105,8 +105,9 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 
 		@Override
     public void onCloseGroup(int depth,String field,ITuple lastElement,Reducer.Context context) throws IOException, InterruptedException,GrouperException {
-				String tupleStr = lastElement.toString(schema,0, depth);
-				String output =  tupleStr +  " => count:" + count[depth];
+				//String tupleStr = lastElement.toString(schema,0, depth);
+			String tupleStr = "caca";	
+			String output =  tupleStr +  " => count:" + count[depth];
 				if (depth < maxDepth){
 					//distinctCount is not set in highest depth
 					output += " distinctCount:"+ distinctCount[depth];

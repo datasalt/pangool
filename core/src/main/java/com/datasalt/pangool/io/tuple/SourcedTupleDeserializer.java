@@ -72,6 +72,7 @@ class SourcedTupleDeserializer implements Deserializer<ISourcedTuple> {
 		if (t instanceof DoubleBufferedSourcedTuple) {
 			((DoubleBufferedSourcedTuple) t).swapInstances();
 		}
+		t.clear();
 		Schema commonSchema = pangoolConf.getCommonOrderedSchema();
 		readFields(commonSchema,t,in);
 		int numSchemas = pangoolConf.getSchemes().size();

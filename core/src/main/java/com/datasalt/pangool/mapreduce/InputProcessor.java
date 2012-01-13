@@ -76,9 +76,10 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 		public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
 			DoubleBufferedSourcedTuple sTuple = cachedSourcedTuple.get();
 			if(sTuple == null) {
-				sTuple = new DoubleBufferedSourcedTuple(tuple);
+				sTuple = new DoubleBufferedSourcedTuple();
 				cachedSourcedTuple.set(sTuple);
 			}
+			sTuple.setContainedTuple(tuple);
 			sTuple.setSource(sourceId);
 			if(sourceId == 1) {
 			System.out.println(sTuple.getInt("averageSalary"));

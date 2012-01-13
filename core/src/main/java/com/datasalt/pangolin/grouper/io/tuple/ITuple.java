@@ -20,6 +20,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configurable;
@@ -91,11 +92,8 @@ public interface ITuple extends Map<String,Object>,Comparable<ITuple>/*extends W
 	
 	public <T> void setObject(Class<T> valueType,String fieldName,T value) ;
 	
-	//public void setThriftObject(String fieldName,TBase<?, ?> value) ;
-	
-
-	public String toString(Schema schema,int minFieldIndex,int maxFieldIndex) ;
-	
+	public String toString(Collection<String> fields);
+		
 	
 	
 //	public void write(Schema schema,DataOutput output) throws IOException;

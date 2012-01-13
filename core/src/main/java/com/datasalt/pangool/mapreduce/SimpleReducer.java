@@ -35,6 +35,7 @@ import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
+import com.datasalt.pangool.io.tuple.ISourcedTuple;
 import com.datasalt.pangool.mapreduce.GroupHandler.State;
 
 /**
@@ -97,7 +98,7 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 		
 		// We get the firts tuple, to create the groupTuple view
 		iterator.next();
-		Tuple firstTupleGroup = (Tuple) context.getCurrentKey();
+		ITuple firstTupleGroup = (ITuple) context.getCurrentKey();
 
 		// we consumed the first element , so needs to comunicate to iterator
 		grouperIterator.setFirstTupleConsumed(true);

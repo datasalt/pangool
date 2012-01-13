@@ -211,11 +211,6 @@ public class DoubleBufferedSourcedTuple implements ISourcedTuple{
 	}
 
 	@Override
-	public String toString(Schema schema, int minFieldIndex, int maxFieldIndex) {
-		return currentTuple.toString(schema,minFieldIndex,maxFieldIndex);
-	}
-	
-	@Override
 	public String toString(){
 		return currentTuple.toString();
 	}
@@ -229,4 +224,9 @@ public class DoubleBufferedSourcedTuple implements ISourcedTuple{
 	public ITuple getContainedTuple() {
 		return currentTuple.getContainedTuple();
 	}
+
+	@Override
+  public String toString(Collection<String> fields) {
+	  return currentTuple.toString(fields);
+  }
 }
