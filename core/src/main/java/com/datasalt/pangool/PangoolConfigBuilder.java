@@ -27,11 +27,12 @@ public class PangoolConfigBuilder {
 
 	private PangoolConfig config = new PangoolConfig();
 	
-	public void setSorting(Sorting sorting) {
+	public PangoolConfigBuilder setSorting(Sorting sorting) {
 		config.setSorting( sorting );
+		return this;
 	}
 
-	public void addSchema(Integer schemaId, Schema schema) throws CoGrouperException {
+	public PangoolConfigBuilder addSchema(Integer schemaId, Schema schema) throws CoGrouperException {
 		if(config.getSchemes().containsKey(schemaId)) {
 			throw new CoGrouperException("Schema already present: " + schemaId);
 		}
@@ -41,14 +42,17 @@ public class PangoolConfigBuilder {
 		}
 
 		config.addSchema(schemaId, schema);
+		return this;
 	}
 
-	public void setGroupByFields(String... groupByFields) {
+	public PangoolConfigBuilder setGroupByFields(String... groupByFields) {
 		config.setGroupByFields(groupByFields);
+		return this;
 	}
 	
-	public void setRollupFrom(String rollupFrom) {
+	public PangoolConfigBuilder setRollupFrom(String rollupFrom) {
 		config.setRollupFrom(rollupFrom);
+		return this;
 	}
 
 	private void raiseExceptionIfNull(Object ob, String message) throws CoGrouperException {

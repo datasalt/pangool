@@ -4,8 +4,6 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-
 /**
  * 
  * @author pere
@@ -17,7 +15,7 @@ public class GroupComparator extends SortComparator {
 	private static final String CONF_GROUP_COMPARATOR_FIELDS = GroupComparator.class.getName() + ".group.comparator.fields";
 
 	@Override
-	public int compare(ITuple w1, ITuple w2) {
+	public int compare(SourcedTuple w1, SourcedTuple w2) {
 		return compare(numFieldsCompared, commonSchema, commonCriteria, w1, w2);
 	}
 

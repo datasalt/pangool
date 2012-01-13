@@ -38,7 +38,7 @@ import com.datasalt.pangool.SortCriteria.SortOrder;
  *
  */
 @SuppressWarnings("rawtypes")
-public class SortComparator implements RawComparator<ITuple>, Configurable {
+public class SortComparator implements RawComparator<SourcedTuple>, Configurable {
 
 	private Configuration conf;
 	private PangoolConfig config;
@@ -79,7 +79,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
 	@Override
-	public int compare(ITuple w1, ITuple w2) {
+	public int compare(SourcedTuple w1, SourcedTuple w2) {
 		resetSourceIds();
 		
 		int fieldsToCompare = commonCriteria.getSortElements().length;
@@ -95,6 +95,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		}
 		
 		// Otherwise, continue comparing
+		int firstSourceId = w1.getSource();
+		
 		SortCriteria particularCriteria = config.getSorting().getSpecificCriteriaByName(firstSourceId);
 		if(particularCriteria != null) {
 			Schema particularSchema = config.getSpecificOrderedSchemas().get(firstSourceId);
@@ -109,9 +111,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
 	@SuppressWarnings("unchecked")
-	public int compare(int fieldsToCompare, Schema schema, SortCriteria sortCriteria, ITuple w1, ITuple w2) {
-		ITuple tuple1 = (ITuple) w1;
-		ITuple tuple2 = (ITuple) w2;
+	public int compare(int fieldsToCompare, Schema schema, SortCriteria sortCriteria, SourcedTuple tuple1, SourcedTuple tuple2) {
 		
 		for(int depth = 0; depth < fieldsToCompare; depth++) {
 			Field field = schema.getField(depth);
@@ -137,10 +137,9 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			} else {
 				comparison = compareObjects(object1, object2);
 			}
-			if(field.getName().equals(Field.SOURCE_ID_FIELD_NAME)) {
-				firstSourceId  = (Integer) tuple1.getObject(fieldName);
-				secondSourceId = (Integer) tuple2.getObject(fieldName);
-			}
+
+			firstSourceId  = tuple1.getSource();
+			secondSourceId = tuple2.getSource();
 			
 			if(comparison != 0) {
 				return (sort == SortOrder.ASC) ? comparison : -comparison;

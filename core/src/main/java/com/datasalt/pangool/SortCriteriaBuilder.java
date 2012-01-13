@@ -18,7 +18,7 @@ import com.datasalt.pangool.SortCriteria.SortOrder;
  * 
  */
 @SuppressWarnings("rawtypes")
-class SortCriteriaBuilder {
+public class SortCriteriaBuilder {
 
 	protected List<SortElement> fields = new ArrayList<SortElement>();
 	SortingBuilder parentSorting;
