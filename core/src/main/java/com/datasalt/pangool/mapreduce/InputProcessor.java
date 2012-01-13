@@ -81,9 +81,6 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 			}
 			sTuple.setContainedTuple(tuple);
 			sTuple.setSource(sourceId);
-			if(sourceId == 1) {
-			System.out.println(sTuple.getInt("averageSalary"));
-			}
 			write(sTuple);
 		}
 	}
