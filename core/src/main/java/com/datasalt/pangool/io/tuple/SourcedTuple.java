@@ -16,6 +16,10 @@ public class SourcedTuple implements ITuple{
 		this.containedTuple = containedTuple;
 	}
 	
+	private SourcedTuple(){
+		
+	}
+	
 	void setContainedTuple(ITuple tuple){
 		this.containedTuple = tuple;
 	}

@@ -10,6 +10,7 @@ import com.datasalt.pangolin.commons.io.ProtoStuffSerialization;
 import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.serialization.thrift.ThriftSerialization;
+import com.datasalt.pangool.io.tuple.SourcedTupleSerialization;
 
 
 
@@ -51,6 +52,9 @@ public abstract class AbstractBaseTest {
 		ThriftSerialization.enableThriftSerialization(conf);
 		ProtoStuffSerialization.enableProtoStuffSerialization(conf);
 		TupleSerialization.enableTupleSerialization(conf);
+		
+		SourcedTupleSerialization.enableSourcedTupleSerialization(conf);
+		
 	}
 	
 	

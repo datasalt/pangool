@@ -90,15 +90,16 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
   				"tuple sourceId can't exceed numSources. " +
   				"Num sources=" + numSourcesDefined +  " actualSource=" + tuple.getSource());
   		}
-  		WritableUtils.writeVInt(output, tuple.getSource());
+  		//WritableUtils.writeVInt(output, tuple.getSource());
   		Schema schema = pangoolConfig.getSpecificOrderedSchemas().get(tuple.getSource());
     	presentFields += write(schema,tuple,output);
+    	
   	} 
   	
-//	if (tuple.size() > presentFields){
-//	raiseExceptionWrongFields(schema,tuple);
-//}
-  	
+  	if (tuple.size() > presentFields ){
+  		Schema schema = pangoolConfig.getSchemes().get(tuple.getSource());
+  		raiseExceptionWrongFields(schema,tuple);
+  	}
   	
   }
   
@@ -107,6 +108,10 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
 		int presentFields = 0;
 		for (Field field : schema.getFields()) {
 			String fieldName = field.getName();
+			if (fieldName == Field.SOURCE_ID_FIELD_NAME){
+				WritableUtils.writeVInt(output, tuple.getSource());
+				continue;
+			}
 			Class<?> fieldType = field.getType();
 			Object element = tuple.getObject(fieldName);
 			if (element != null) {
@@ -133,12 +138,10 @@ class SourcedTupleSerializer implements Serializer<SourcedTuple> {
 					output.writeFloat((Float)element);
 				} else if (fieldType == String.class) {
 					if (element == null){
-						//WritableUtils.writeVInt(output,-1);
 						element = "";
-					} //else {
+					} 
 					text.set((String)element);
 					text.write(output);
-					//}
 				} else if (fieldType == Boolean.class) {
 					throwIOIfNull(fieldName,element);
 					output.write((Boolean)element ? 1 : 0);

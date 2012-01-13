@@ -104,6 +104,10 @@ public class PangoolConfig {
 		return specificOrderedSchemas;
 	}
 	
+	public Schema getSpecificOrderedSchema(int sourceId){
+		return specificOrderedSchemas.get(sourceId);
+	}
+	
 	public String toString() {
 		StringBuilder b = new StringBuilder();
 		b.append("sorting: ").append(sorting.toString()).append(" ");

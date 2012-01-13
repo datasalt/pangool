@@ -54,7 +54,7 @@ public class SourcedTupleSerialization implements Serialization<SourcedTuple>,Co
 	
 	@Override
   public boolean accept(Class c) {
-		return (c == Tuple.class || c == BaseTuple.class);
+		return (c == SourcedTuple.class);
   }
 
 	@Override
