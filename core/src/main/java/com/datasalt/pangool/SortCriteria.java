@@ -120,7 +120,7 @@ public class SortCriteria {
 			if(nameSort.length < 2 || nameSort.length > 4) {
 				throw new CoGrouperException("Invalid sortCriteria format : " + sortCriteria);
 			}
-			String name = nameSort[0].toLowerCase();
+			String name = nameSort[0];
 			if(fields.contains(name)) {
 				throw new CoGrouperException("Invalid sortCriteria .Repeated field " + name);
 			}
