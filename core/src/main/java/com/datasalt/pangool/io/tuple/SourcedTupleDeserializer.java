@@ -39,7 +39,7 @@ import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 
 
-class SourcedTupleDeserializer implements Deserializer<SourcedTuple> {
+class SourcedTupleDeserializer implements Deserializer<ISourcedTuple> {
 
 	private PangoolConfig pangoolConf;
 	private DataInputStream in;
@@ -48,13 +48,15 @@ class SourcedTupleDeserializer implements Deserializer<SourcedTuple> {
 	private Map<String,Enum<?>[]> cachedEnums = new HashMap<String,Enum<?>[]>();
 	
 	private Buffer tmpInputBuffer = new Buffer();
+	private Class<? extends ISourcedTuple> instanceClazz;
 	//private 
 	
 	
-	SourcedTupleDeserializer(Serialization ser,PangoolConfig pangoolConfig){
+	SourcedTupleDeserializer(Serialization ser,PangoolConfig pangoolConfig,Class<? extends ISourcedTuple> instanceClass){
 		this.pangoolConf = pangoolConfig;
 		this.ser = ser;
 		this.cachedEnums = SourcedTupleSerialization.getEnums(pangoolConfig);
+		this.instanceClazz =instanceClass;
 	}
 	
 	@Override
@@ -63,9 +65,12 @@ class SourcedTupleDeserializer implements Deserializer<SourcedTuple> {
 	}
 
 	@Override
-	public SourcedTuple deserialize(SourcedTuple t) throws IOException {
+	public ISourcedTuple deserialize(ISourcedTuple t) throws IOException {
 		if (t == null) {
-			t = ReflectionUtils.newInstance(SourcedTuple.class, null);
+			t = ReflectionUtils.newInstance(instanceClazz, null);
+		}
+		if (t instanceof DoubleBufferedSourcedTuple) {
+			((DoubleBufferedSourcedTuple) t).swapInstances();
 		}
 		Schema commonSchema = pangoolConf.getCommonOrderedSchema();
 		readFields(commonSchema,t,in);
@@ -80,12 +85,12 @@ class SourcedTupleDeserializer implements Deserializer<SourcedTuple> {
 	
 	
 	
-	public void readFields(Schema schema,SourcedTuple tuple ,DataInput input) throws IOException {
+	public void readFields(Schema schema,ISourcedTuple tuple ,DataInput input) throws IOException {
 		for (int i =0 ; i < schema.getFields().size(); i++) {
 			Class<?> fieldType = schema.getField(i).getType();
 			String fieldName = schema.getField(i).getName();
 			if (Field.SOURCE_ID_FIELD_NAME.equals(fieldName)){
-				tuple.setSource(WritableUtils.readVInt(input));
+				tuple.setInt(Field.SOURCE_ID_FIELD_NAME,WritableUtils.readVInt(input));
 			} else if (fieldType == VIntWritable.class) {
 				tuple.setInt(fieldName,WritableUtils.readVInt(input));
 			} else if (fieldType == VLongWritable.class) {

@@ -29,6 +29,7 @@ import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 
+
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
@@ -42,7 +43,7 @@ import com.datasalt.pangool.Schema.Field;
  * To use this serialization, make sure that the Hadoop property
  * <code>io.serializations</code> includes the fully-qualified classname of this class
  */
-public class SourcedTupleSerialization implements Serialization<SourcedTuple>,Configurable{
+public class SourcedTupleSerialization implements Serialization<ISourcedTuple>,Configurable{
 	
 	private Configuration conf;
 	private com.datasalt.pangolin.io.Serialization ser;
@@ -52,8 +53,8 @@ public class SourcedTupleSerialization implements Serialization<SourcedTuple>,Co
 	}
 	
 	@Override
-  public boolean accept(Class c) {
-		return (c == SourcedTuple.class);
+  public boolean accept(Class<?> c) {
+		return (ISourcedTuple.class.isAssignableFrom(c));
   }
 
 	@Override
@@ -77,19 +78,19 @@ public class SourcedTupleSerialization implements Serialization<SourcedTuple>,Co
 			throw new RuntimeException(e);
 		} catch(NumberFormatException e) {
 			throw new RuntimeException(e);
-    } catch(InvalidFieldException e) {
+		} catch (InvalidFieldException e) {
 			throw new RuntimeException(e);
-    }
+		}
 	}
 
 	@Override
-	public Serializer<SourcedTuple> getSerializer(Class<SourcedTuple> c) {
+	public Serializer<ISourcedTuple> getSerializer(Class<ISourcedTuple> c) {
 		return new SourcedTupleSerializer(this.ser,this.pangoolConfig);
 	}
 
 	@Override
-	public Deserializer<SourcedTuple> getDeserializer(Class<SourcedTuple> c) {
-		return new SourcedTupleDeserializer(this.ser,this.pangoolConfig);
+	public Deserializer<ISourcedTuple> getDeserializer(Class<ISourcedTuple> c) {
+		return new SourcedTupleDeserializer(this.ser,this.pangoolConfig,c);
 	}
 	
 	
