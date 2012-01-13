@@ -19,7 +19,8 @@ import com.datasalt.pangolin.pangool.SortCriteria.SortOrder;
 public class SortingBuilder extends SortCriteriaBuilder {
 
 	private Map<Integer, SortCriteriaBuilder> secondarySortBuilders;
-
+	boolean sourceIdFieldAdded = false;
+	
 	public SortingBuilder() {
 		super(null);
 		secondarySortBuilders = new HashMap<Integer, SortCriteriaBuilder>();
@@ -43,16 +44,21 @@ public class SortingBuilder extends SortCriteriaBuilder {
 	}
 
 	public SortingBuilder addSourceId(SortOrder order) throws InvalidFieldException {
-		add(Schema.Field.SOURCE_ID_FIELD, order, null);
+		add(Schema.Field.SOURCE_ID_FIELD_NAME, order, null);
+		sourceIdFieldAdded = true;
 		return this;
 	}
 	
-	public Sorting buildSorting() {
+	public Sorting buildSorting() throws CoGrouperException {
 		Map<Integer, SortCriteria> secondarySortCriterias = new HashMap<Integer, SortCriteria>();
 		for(Map.Entry<Integer, SortCriteriaBuilder> builders: secondarySortBuilders.entrySet()) {
 			secondarySortCriterias.put(builders.getKey(), builders.getValue().buildSortCriteria());
 		}
-		Sorting sorting = new Sorting(buildSortCriteria(), secondarySortCriterias);
+		// Check that we have #source# field given that we have particular sortings
+		if(!secondarySortCriterias.isEmpty() && !sourceIdFieldAdded) {
+			throw new CoGrouperException("SourceId field must be added if specific sort criterias have been added.");
+		}
+		Sorting sorting = new Sorting(buildSortCriteria(), sourceIdFieldAdded, secondarySortCriterias);
 		return sorting;
 	}
 }

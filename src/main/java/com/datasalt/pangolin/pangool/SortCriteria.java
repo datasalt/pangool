@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.apache.hadoop.io.RawComparator;
 
+import com.datasalt.pangolin.pangool.Schema.Field;
+
 /**
  * Encapsulates one sorting configuration composed of {@link SortElement}s.
  * 
@@ -16,6 +18,8 @@ import org.apache.hadoop.io.RawComparator;
 @SuppressWarnings("rawtypes")
 public class SortCriteria {
 
+	boolean hasSourceIdField;
+	
 	public static class SortElement {
 
 		private String fieldName;
@@ -69,10 +73,22 @@ public class SortCriteria {
 
 	SortCriteria(SortElement[] sortElements) {
 		this.sortElements = sortElements;
+		this.hasSourceIdField = false;
 		for(SortElement sortElement : sortElements) {
+			if(sortElement.getFieldName().equals(Field.SOURCE_ID_FIELD_NAME)) {
+				this.hasSourceIdField = true;
+			}
 			this.sortElementsByName.put(sortElement.fieldName, sortElement);
 		}
 	}
+
+	boolean hasSourceIdField() {
+  	return hasSourceIdField;
+  }
+
+	void setSortElementsByName(Map<String, SortElement> sortElementsByName) {
+  	this.sortElementsByName = sortElementsByName;
+  }
 
 	private SortElement[] sortElements;
 	private Map<String, SortElement> sortElementsByName = new HashMap<String, SortElement>();
@@ -90,7 +106,7 @@ public class SortCriteria {
 	}
 
 	@SuppressWarnings("unchecked")
-  public static SortCriteria parse(String sortCriteria) throws CoGrouperException {
+  static SortCriteria parse(String sortCriteria) throws CoGrouperException {
 		List<SortElement> sortElements = new ArrayList<SortElement>();
 		List<String> fields = new ArrayList<String>();
 		String[] tokens = sortCriteria.split(",");

@@ -92,9 +92,9 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			} else {
 				// Continue comparing
 				if(firstSourceId == secondSourceId) {
-					SortCriteria particularCriteria = config.getSorting().getSecondarySortCriteriaByName(firstSourceId);
+					SortCriteria particularCriteria = config.getSorting().getSpecificCriteriaByName(firstSourceId);
 					if(particularCriteria != null) {
-						Schema particularSchema = config.getParticularPartialOrderedSchemas().get(firstSourceId);
+						Schema particularSchema = config.getSpecificOrderedSchemas().get(firstSourceId);
 						fieldsToCompare = particularCriteria.getSortElements().length;
 						return compare(fieldsToCompare, particularSchema, particularCriteria, w1, w2);
 					} else {
@@ -182,9 +182,9 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			} else {
 				// Continue comparing
 				if(firstSourceId == secondSourceId) {
-					SortCriteria particularCriteria = config.getSorting().getSecondarySortCriteriaByName(firstSourceId);
+					SortCriteria particularCriteria = config.getSorting().getSpecificCriteriaByName(firstSourceId);
 					if(particularCriteria != null) {
-						Schema particularSchema = config.getParticularPartialOrderedSchemas().get(firstSourceId);
+						Schema particularSchema = config.getSpecificOrderedSchemas().get(firstSourceId);
 						fieldsToCompare = particularCriteria.getSortElements().length;
 						return compare(fieldsToCompare, particularSchema, particularCriteria, b1, offset1, l1, b2, offset2, l2);
 					} else {

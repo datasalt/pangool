@@ -29,7 +29,7 @@ public class PangoolConfig {
 	private String rollupFrom;
 	
 	private Schema commonOrderedSchema;
-	private Map<Integer, Schema> particularPartialOrderedSchemas;
+	private Map<Integer, Schema> specificOrderedSchemas;
 
 	PangoolConfig() {
 		schemes = new HashMap<Integer, Schema>();
@@ -78,10 +78,9 @@ public class PangoolConfig {
   	this.commonOrderedSchema = commonOrderedSchema;
   }
 
-	void setParticularPartialOrderedSchemas(Map<Integer, Schema> particularPartialOrderedSchemas) {
-  	this.particularPartialOrderedSchemas = particularPartialOrderedSchemas;
+	void setSpecificOrderedSchemas(Map<Integer, Schema> specificOrderedSchemas) {
+  	this.specificOrderedSchemas = specificOrderedSchemas;
   }
-
 	
 	/**
 	 * Returns a sorted schema that represents the sorted fields common to all schemas
@@ -101,8 +100,8 @@ public class PangoolConfig {
 	 * @param sortCriteria
 	 * @return
 	 */
-	public Map<Integer, Schema> getParticularPartialOrderedSchemas() {
-		return particularPartialOrderedSchemas;
+	public Map<Integer, Schema> getSpecificOrderedSchemas() {
+		return specificOrderedSchemas;
 	}
 	
 	public String toString() {

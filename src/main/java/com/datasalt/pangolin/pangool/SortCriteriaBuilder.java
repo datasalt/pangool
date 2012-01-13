@@ -62,7 +62,7 @@ class SortCriteriaBuilder {
 		return new SortCriteria(fieldsArray);
 	}
 	
-	public Sorting buildSorting() {
+	public Sorting buildSorting() throws CoGrouperException {
 		return parentSorting.buildSorting();
 	}
 }

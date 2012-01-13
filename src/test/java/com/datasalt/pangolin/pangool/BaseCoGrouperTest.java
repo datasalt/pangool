@@ -15,7 +15,7 @@ public class BaseCoGrouperTest {
 
 	protected InputProcessor myInputProcessor = new InputProcessor();
 	
-	protected Sorting getTestSorting() throws InvalidFieldException {
+	protected Sorting getTestSorting() throws InvalidFieldException, CoGrouperException {
 		return new SortingBuilder()
 			.add("url", SortOrder.ASC)
 			.add("date", SortOrder.DESC)
