@@ -87,7 +87,7 @@ class SourcedTupleDeserializer implements Deserializer<ISourcedTuple> {
 			Class<?> fieldType = schema.getField(i).getType();
 			String fieldName = schema.getField(i).getName();
 			if (Field.SOURCE_ID_FIELD_NAME.equals(fieldName)){
-				tuple.setSource(WritableUtils.readVInt(input));
+				tuple.setInt(Field.SOURCE_ID_FIELD_NAME,WritableUtils.readVInt(input));
 			} else if (fieldType == VIntWritable.class) {
 				tuple.setInt(fieldName,WritableUtils.readVInt(input));
 			} else if (fieldType == VLongWritable.class) {

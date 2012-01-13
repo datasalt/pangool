@@ -103,7 +103,8 @@ class SourcedTupleSerializer implements Serializer<ISourcedTuple> {
 		for (Field field : schema.getFields()) {
 			String fieldName = field.getName();
 			if (fieldName == Field.SOURCE_ID_FIELD_NAME){
-				WritableUtils.writeVInt(output, tuple.getSource());
+				WritableUtils.writeVInt(output, tuple.getInt(Field.SOURCE_ID_FIELD_NAME));
+				presentFields++;
 				continue;
 			}
 			Class<?> fieldType = field.getType();

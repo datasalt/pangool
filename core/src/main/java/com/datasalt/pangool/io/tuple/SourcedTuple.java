@@ -7,6 +7,7 @@ import java.util.Set;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangool.Schema.Field;
 
 public class SourcedTuple implements ISourcedTuple{
 
@@ -30,12 +31,12 @@ public class SourcedTuple implements ISourcedTuple{
 	
 	@Override
 	public int getSource(){
-		return sourceId;
+		return getInt(Field.SOURCE_ID_FIELD_NAME);
 	}
 	
 	@Override
 	public void setSource(int sourceId){
-		this.sourceId = sourceId;
+		this.setInt(Field.SOURCE_ID_FIELD_NAME,sourceId);
 	}
 	
 	@Override
