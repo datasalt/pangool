@@ -46,8 +46,8 @@ public class Schema {
 
 	public static class Field {
 		
-		public final static String SOURCE_ID_FIELD = "#source#";
-		public final static Field SOURCE_ID = new Field(SOURCE_ID_FIELD, VIntWritable.class);
+		public final static String SOURCE_ID_FIELD_NAME = "#source#";
+		public final static Field SOURCE_ID = new Field(SOURCE_ID_FIELD_NAME, VIntWritable.class);
 		
 		private String name;
 		private Class<?> type;

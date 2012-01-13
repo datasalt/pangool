@@ -43,6 +43,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 		Sorting sorting = new SortingBuilder()
 			.add("url", SortOrder.ASC)
 			.add("date", SortOrder.ASC)
+			.addSourceId(SortOrder.DESC)
 			.secondarySort(1).add("foo", SortOrder.DESC)
 			.secondarySort(2).add("name", SortOrder.DESC)
 			.buildSorting();
@@ -55,6 +56,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 		Sorting sorting = new SortingBuilder()
 			.add("url", SortOrder.ASC)
 			.add("date", SortOrder.ASC)
+			.addSourceId(SortOrder.DESC)
 			.secondarySort(1).add("content", SortOrder.DESC)
 			.secondarySort(2).add("name", SortOrder.DESC)
 			.buildSorting();

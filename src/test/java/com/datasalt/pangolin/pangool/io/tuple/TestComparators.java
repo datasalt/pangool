@@ -306,9 +306,10 @@ public class TestComparators extends BaseTest {
 	/**
 	 * 
 	 * Creates a random sort criteria based in the specified schema.
+	 * @throws CoGrouperException 
 	 */
 	private static Sorting createRandomSortCriteria(Schema schema, Map<String, Class> customComparators,
-	    int numFields) {
+	    int numFields) throws CoGrouperException {
 		try {
 			Random random = new Random();
 			SortingBuilder builder = new SortingBuilder();

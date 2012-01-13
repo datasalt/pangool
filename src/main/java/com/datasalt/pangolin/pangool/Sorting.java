@@ -18,33 +18,40 @@ import org.codehaus.jackson.map.ObjectMapper;
 public class Sorting {
 
 	private SortCriteria sortCriteria;
-	private Map<Integer, SortCriteria> secondarySortCriterias; // key is source Id
+	private boolean sourceIdFieldContained;
+	private Map<Integer, SortCriteria> specificSortCriterias; // key is source Id
 
-	Sorting(SortCriteria sortCriteria, Map<Integer, SortCriteria> secondarySortCriterias) {
+	Sorting(SortCriteria sortCriteria, boolean sourceIdFieldContained, Map<Integer, SortCriteria> specificSortCriterias) {
 		this.sortCriteria = sortCriteria;
-		this.secondarySortCriterias = secondarySortCriterias;
+		this.sourceIdFieldContained = sourceIdFieldContained;
+		this.specificSortCriterias = specificSortCriterias;
 	}
+
+	public boolean isSourceIdFieldContained() {
+  	return sourceIdFieldContained;
+  }
 
 	public SortCriteria getSortCriteria() {
 		return sortCriteria;
 	}
 
-	public Map<Integer, SortCriteria> getSecondarySortCriterias() {
-		return secondarySortCriterias;
+	public Map<Integer, SortCriteria> getSpecificSortCriterias() {
+		return specificSortCriterias;
 	}
 
-	public SortCriteria getSecondarySortCriteriaByName(Integer schemaName) {
-		return secondarySortCriterias.get(schemaName);
+	public SortCriteria getSpecificCriteriaByName(Integer schemaName) {
+		return specificSortCriterias.get(schemaName);
 	}
 	
 	private Map<String, Object> getJsonableData() {
 		Map<String, Object> jsonableData = new HashMap<String, Object>();
-		Map<String, String> jsonableSecondarySortCriterias = new HashMap<String, String>();
-		for(Map.Entry<Integer, SortCriteria> sortCriteria : secondarySortCriterias.entrySet()) {
-			jsonableSecondarySortCriterias.put(sortCriteria.getKey() + "", sortCriteria.getValue().toString());
+		Map<String, String> jsonableSpecificSortCriterias = new HashMap<String, String>();
+		for(Map.Entry<Integer, SortCriteria> sortCriteria : specificSortCriterias.entrySet()) {
+			jsonableSpecificSortCriterias.put(sortCriteria.getKey() + "", sortCriteria.getValue().toString());
 		}
 		jsonableData.put("sortCriteria", sortCriteria.toString());
-		jsonableData.put("secondarySortCriterias", jsonableSecondarySortCriterias);
+		jsonableData.put("sourceIdFieldContained", sourceIdFieldContained);
+		jsonableData.put("specificSortCriterias", jsonableSpecificSortCriterias);
 		return jsonableData;
 	}
 
@@ -61,19 +68,21 @@ public class Sorting {
 		Map<String, Object> jsonData = mapper.readValue(json, HashMap.class);
 		SortCriteria sortCriteria = SortCriteria.parse((String) jsonData.get("sortCriteria"));
 		
-		Map<String, String> jsonSecondarySortCriterias = (Map<String, String>) jsonData.get("secondarySortCriterias");
-		Map<Integer, SortCriteria> secondarySortCriterias = new HashMap<Integer, SortCriteria>();
-		for(Map.Entry<String, String> jsonSecondarySortCriteria: jsonSecondarySortCriterias.entrySet()) {
-			secondarySortCriterias.put(Integer.parseInt(jsonSecondarySortCriteria.getKey()), SortCriteria.parse(jsonSecondarySortCriteria.getValue()));
+		boolean sourceIdFieldContained = (Boolean) jsonData.get("sourceIdFieldContained");
+		
+		Map<String, String> jsonSpecificSortCriterias = (Map<String, String>) jsonData.get("specificSortCriterias");
+		Map<Integer, SortCriteria> specificSortCriterias = new HashMap<Integer, SortCriteria>();
+		for(Map.Entry<String, String> jsonSpecificSortCriteria: jsonSpecificSortCriterias.entrySet()) {
+			specificSortCriterias.put(Integer.parseInt(jsonSpecificSortCriteria.getKey()), SortCriteria.parse(jsonSpecificSortCriteria.getValue()));
 		}
-		Sorting sorting = new Sorting(sortCriteria, secondarySortCriterias);
+		Sorting sorting = new Sorting(sortCriteria, sourceIdFieldContained, specificSortCriterias);
 		return sorting;
 	}
 	
 	public static Sorting parse(String sortingStr) throws CoGrouperException {
-		Map<Integer, SortCriteria> secondarySortCriterias = new HashMap<Integer, SortCriteria>();
 		SortCriteria sortCriteria = SortCriteria.parse(sortingStr);
-		Sorting sorting = new Sorting(sortCriteria, secondarySortCriterias);
+		Map<Integer, SortCriteria> specificSortCriterias = new HashMap<Integer, SortCriteria>();
+		Sorting sorting = new Sorting(sortCriteria, sortCriteria.hasSourceIdField(), specificSortCriterias);
 		return sorting;
 	}
 }

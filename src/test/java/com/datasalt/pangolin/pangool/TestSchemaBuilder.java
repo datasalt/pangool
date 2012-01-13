@@ -29,7 +29,7 @@ public class TestSchemaBuilder {
 	public void testInvalidReservedName() {
 		SchemaBuilder schema = new SchemaBuilder();
 		try {
-			schema.add(Schema.Field.SOURCE_ID_FIELD, String.class);
+			schema.add(Schema.Field.SOURCE_ID_FIELD_NAME, String.class);
 			Assert.fail("Catched exception after adding reserved field should have been thrown");
 		} catch(Exception ife) {
 			return;

@@ -26,7 +26,7 @@ import com.datasalt.pangolin.pangool.SortCriteria.SortElement;
 @SuppressWarnings("rawtypes")
 public class PangoolConfigBuilder {
 
-	PangoolConfig config = new PangoolConfig();
+	private PangoolConfig config = new PangoolConfig();
 	
 	public void setSorting(Sorting sorting) {
 		config.setSorting( sorting );
@@ -108,41 +108,45 @@ public class PangoolConfigBuilder {
 		List<Field> commonSchema = new ArrayList<Field>();
 		
 		for(SortElement sortElement: config.getSorting().getSortCriteria().getSortElements()) {
-			if(sortElement.getFieldName().equals(Field.SOURCE_ID_FIELD)) {
+			if(sortElement.getFieldName().equals(Field.SOURCE_ID_FIELD_NAME)) {
 				commonSchema.add(Field.SOURCE_ID);
 				continue;
 			}
-			for(Field field: commonFields) {
-				if(sortElement.getFieldName().equals(field.getName())) {
-					commonSchema.add(field);
+			for(Field commonField: commonFields) {
+				if(sortElement.getFieldName().equals(commonField.getName())) {
+					commonSchema.add(commonField);
 				}
 			}
+		}
+		
+		// Add sourceId to the end if it hasn't been specified
+		if(!config.getSorting().isSourceIdFieldContained() && config.getSchemes().values().size() > 1) {
+			commonSchema.add(Field.SOURCE_ID);
 		}
 		
 		Schema commonOrderedSchema = new Schema(commonSchema);
 		config.setCommonOrderedSchema(commonOrderedSchema);
 		
 		/*
-		 * Calculate the particular partial ordered schemas
+		 * Calculate the specific partial ordered schemas
 		 */
-		Map<Integer, Schema> particularPartialOrderedSchemas = new HashMap<Integer, Schema>();
+		Map<Integer, Schema> specificOrderedSchemas = new HashMap<Integer, Schema>();
 		for(Map.Entry<Integer, Schema> schema: config.getSchemes().entrySet()) {
 			
-			List<Field> particularSchema = new ArrayList<Field>();
+			List<Field> specificSchema = new ArrayList<Field>();
 			
-			// Check particular sort order for schema
-			
-			SortCriteria particularSorting = config.getSorting().getSecondarySortCriterias().get(schema.getKey());
-			if(particularSorting != null) {
-				for(SortElement element: particularSorting.getSortElements()) {
-					particularSchema.add(schema.getValue().getField(element.getFieldName()));
+			// Check specific sort order for schema -- add these fields first
+			SortCriteria specificSorting = config.getSorting().getSpecificSortCriterias().get(schema.getKey());
+			if(specificSorting != null) {
+				for(SortElement element: specificSorting.getSortElements()) {
+					specificSchema.add(schema.getValue().getField(element.getFieldName()));
 				}
 			}
 			
-			// Find the fields that are not common (and that are not included in the particular sort)
+			// Find the fields that are not present in the common sorting
 			List<Field> nonCommonFields = new ArrayList<Field>();
 			for(Field field: schema.getValue().getFields()) {
-				if(!commonOrderedSchema.containsFieldName(field.getName()) && !particularSchema.contains(field)) {
+				if(!commonOrderedSchema.containsFieldName(field.getName()) && !specificSchema.contains(field.getName())) {
 					nonCommonFields.add(field);
 				}
 			}
@@ -155,10 +159,10 @@ public class PangoolConfigBuilder {
 			});
 			
 			// Create the ordered schema
-			particularSchema.addAll(nonCommonFields);
-			particularPartialOrderedSchemas.put(schema.getKey(), new Schema(nonCommonFields));
+			specificSchema.addAll(nonCommonFields);
+			specificOrderedSchemas.put(schema.getKey(), new Schema(nonCommonFields));
 			
-			config.setParticularPartialOrderedSchemas(particularPartialOrderedSchemas);
+			config.setSpecificOrderedSchemas(specificOrderedSchemas);
 		}		
 		
 		return config;
@@ -171,15 +175,20 @@ public class PangoolConfigBuilder {
 	 * @throws CoGrouperException
 	 */
 	private void checkSortCriteriaSanity(List<Field> commonFields) throws CoGrouperException {
+
+		// Sorting by SourceId is not allowed if we only have one schema
+		if(config.getSorting().isSourceIdFieldContained() && config.getSchemes().values().size() == 1) {
+			throw new CoGrouperException("Invalid " + Field.SOURCE_ID_FIELD_NAME + " field for single schema sorting. " + Field.SOURCE_ID_FIELD_NAME + " may only be added when sorting more than one schema.");
+		}
+		
 		List<String> commonFieldNames = new ArrayList<String>();
 		for(Field field: commonFields) {
 			commonFieldNames.add(field.getName());
 		}
 		
 		// Check that sortCriteria is a combination of (common) fields from schema
-
 		for(SortElement sortElement : config.getSorting().getSortCriteria().getSortElements()) {
-			if(sortElement.getFieldName().equals(Field.SOURCE_ID_FIELD)) {
+			if(sortElement.getFieldName().equals(Field.SOURCE_ID_FIELD_NAME)) {
 				continue;
 			}
 			if(!commonFieldNames.contains(sortElement.getFieldName())) {
@@ -189,11 +198,10 @@ public class PangoolConfigBuilder {
 			}
 		}
 
-		for(Map.Entry<Integer, SortCriteria> secondarySortCriteria : config.getSorting().getSecondarySortCriterias()
+		for(Map.Entry<Integer, SortCriteria> secondarySortCriteria : config.getSorting().getSpecificSortCriterias()
 		    .entrySet()) {
 
-			// Check that each particular sort criteria (not common fields) matches existent fields for the schema
-			
+			// Check that each specific sort criteria matches existent fields for the schema
 			int schemaId = secondarySortCriteria.getKey();
 			Schema schema = config.getSchemes().get(schemaId);
 			if(schema == null) {
@@ -201,14 +209,18 @@ public class PangoolConfigBuilder {
 			}
 			for(SortElement sortElement : secondarySortCriteria.getValue().getSortElements()) {
 				if(!schema.containsFieldName(sortElement.getFieldName())) {
-					throw new CoGrouperException("Particular secondary sort for schema [" + schemaId
+					throw new CoGrouperException("Specific secondary sort for schema [" + schemaId
 					    + "] has non-existent field [" + sortElement.getFieldName() + "]");
+				}
+				// We also check that specific sorting fields are not included in common sorting
+				if(config.getSorting().getSortCriteria().getSortElementByFieldName(sortElement.getFieldName()) != null) {
+					throw new CoGrouperException("Specific secondary sort for schema [" + schemaId
+					    + "] has already added field to common sorting [" + sortElement.getFieldName() + "]");					
 				}
 			}
 		}
 
 		// Check that group by fields is a prefix of common sort criteria
-		
 		SortCriteria sortCriteria = config.getSorting().getSortCriteria();
 		for(int i = 0; i < config.getGroupByFields().size(); i++) {
 			if(!sortCriteria.getSortElements()[i].getFieldName().equals(config.getGroupByFields().get(i))) {

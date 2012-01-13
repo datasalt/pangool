@@ -25,8 +25,8 @@ public class SchemaBuilder {
 			throw new InvalidFieldException("Type for field '" + fieldName + "' can't be null");
 		}
 
-		if(fieldName.equals(Schema.Field.SOURCE_ID_FIELD)) {
-			throw new InvalidFieldException("Can't define a field with reserved name: " + Schema.Field.SOURCE_ID_FIELD);
+		if(fieldName.equals(Schema.Field.SOURCE_ID_FIELD_NAME)) {
+			throw new InvalidFieldException("Can't define a field with reserved name: " + Schema.Field.SOURCE_ID_FIELD_NAME);
 		}
 		
 		fields.add(new Field(fieldName, type));
