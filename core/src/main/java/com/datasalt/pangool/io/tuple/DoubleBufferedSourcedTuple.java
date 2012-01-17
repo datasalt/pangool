@@ -39,20 +39,11 @@ public class DoubleBufferedSourcedTuple implements ISourcedTuple{
 		previousTuple = currentTuple;
 		currentTuple = tmpTuple;
 	}
-	
-	public Integer getSource(){
-		return currentTuple.getSource();
-	}
-	
-	public void setSource(int sourceId){
-		this.currentTuple.setSource(sourceId);
-	}
-	
+		
 	public ISourcedTuple getPreviousTuple() {
 		return previousTuple;
 	}
-	
-	
+		
 	@Override
 	public void clear() {
 		currentTuple.clear();

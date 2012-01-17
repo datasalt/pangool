@@ -43,7 +43,6 @@ public class ComparatorsBaseTest {
 		tuple.setInt("intField", intValue);
 		tuple.setString("strField", strValue);
 		tuple.setInt(Field.SOURCE_ID_FIELD_NAME, 1);
-		tuple.setSource(1);
 		return tuple;
 	}
 	
@@ -53,7 +52,6 @@ public class ComparatorsBaseTest {
 		tuple.setInt("intField", intValue);
 		tuple.setLong("longField", longValue);
 		tuple.setInt(Field.SOURCE_ID_FIELD_NAME, 2);
-		tuple.setSource(2);
 		return tuple;
 	}
 }

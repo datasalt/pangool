@@ -78,7 +78,7 @@ class SourcedTupleDeserializer implements Deserializer<ISourcedTuple> {
 		int numSchemas = pangoolConf.getSchemes().size();
 		if (numSchemas > 1){
 			// in this step source should be set 
-			Schema specificSchema = pangoolConf.getSpecificOrderedSchema(t.getSource());
+			Schema specificSchema = pangoolConf.getSpecificOrderedSchema(t.getInt(Field.SOURCE_ID_FIELD_NAME));
 			readFields(specificSchema,t,in);
 		}
 		return t;

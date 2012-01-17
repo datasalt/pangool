@@ -79,19 +79,19 @@ class SourcedTupleSerializer implements Serializer<ISourcedTuple> {
   	int presentFields = 0;
   	presentFields += write(commonSchema,tuple,output);
   	int numSourcesDefined = pangoolConfig.getSchemes().size();
-  	if (!pangoolConfig.getSchemes().containsKey(tuple.getSource())){
+  	if (!pangoolConfig.getSchemes().containsKey(tuple.getInt(Field.SOURCE_ID_FIELD_NAME))){
   		throw new IOException(
   				"tuple sourceId doesn't match . " +
-  				"Sources: " + pangoolConfig.getSchemes() +  " actualSource=" + tuple.getSource());
+  				"Sources: " + pangoolConfig.getSchemes() +  " actualSource=" + tuple.getInt(Field.SOURCE_ID_FIELD_NAME));
   	}
 
   	if(numSourcesDefined > 1) {
-  		Schema schema = pangoolConfig.getSpecificOrderedSchemas().get(tuple.getSource());
+  		Schema schema = pangoolConfig.getSpecificOrderedSchemas().get(tuple.getInt(Field.SOURCE_ID_FIELD_NAME));
     	presentFields += write(schema,tuple,output);
   	}
   	
   	if (tuple.size() > presentFields ){
-  		Schema schema = pangoolConfig.getSchemes().get(tuple.getSource());
+  		Schema schema = pangoolConfig.getSchemes().get(tuple.getInt(Field.SOURCE_ID_FIELD_NAME));
   		raiseExceptionWrongFields(schema,tuple);
   	}
   	
@@ -180,7 +180,7 @@ class SourcedTupleSerializer implements Serializer<ISourcedTuple> {
 			}
 		}
 		String fieldsConcated = concat(wrongFields,",");
-		throw new IOException("Tuple with source " + tuple.getSource() + " contains fields that don't belong to schema '" + fieldsConcated + "'.\nSchema:"+schema);
+		throw new IOException("Tuple with source " + tuple.getInt(Field.SOURCE_ID_FIELD_NAME) + " contains fields that don't belong to schema '" + fieldsConcated + "'.\nSchema:"+schema);
 		
 	}
 	

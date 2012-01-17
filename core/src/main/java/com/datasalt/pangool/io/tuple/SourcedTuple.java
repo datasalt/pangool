@@ -25,17 +25,7 @@ public class SourcedTuple implements ISourcedTuple{
 	public void setContainedTuple(ITuple tuple){
 		this.containedTuple = tuple;
 	}
-	
-	@Override
-	public Integer getSource(){
-		return getInt(Field.SOURCE_ID_FIELD_NAME);
-	}
-	
-	@Override
-	public void setSource(int sourceId){
-		this.setInt(Field.SOURCE_ID_FIELD_NAME,sourceId);
-	}
-	
+		
 	@Override
 	public void clear() {
 		containedTuple.clear();
@@ -195,19 +185,12 @@ public class SourcedTuple implements ISourcedTuple{
 
 	@Override
 	public String toString(){
-		return "source:" + getSource() + "=>" +containedTuple.toString();
+		return containedTuple.toString();
 	}
 	
 	@Override
 	public boolean equals(Object that){
-		if (that == null){
-			return false;
-		} else if (that instanceof SourcedTuple){
-			return getSource() == ((SourcedTuple)that).getSource() 
-					&& this.containedTuple.equals(((SourcedTuple)that).containedTuple);
-		} else {
-			return false;
-		}
+		return containedTuple.equals(that);
 	}
 
 	@Override

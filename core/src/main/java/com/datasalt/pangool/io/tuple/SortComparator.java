@@ -51,6 +51,7 @@ public class SortComparator implements RawComparator<SourcedTuple>, Configurable
 
 	/*
 	 * When comparing, we save the source Ids, if we find them
+	 * TODO: These tho variables does not seems thread safe. Solve!
 	 */
 	int firstSourceId  = 0;
 	int secondSourceId = 0;
@@ -92,7 +93,7 @@ public class SortComparator implements RawComparator<SourcedTuple>, Configurable
 		}
 		
 		// Otherwise, continue comparing
-		int firstSourceId = w1.getSource();
+		int firstSourceId = w1.getInt(Field.SOURCE_ID_FIELD_NAME);
 		
 		SortCriteria particularCriteria = config.getSorting().getSpecificCriteriaByName(firstSourceId);
 		if(particularCriteria != null) {
@@ -135,8 +136,8 @@ public class SortComparator implements RawComparator<SourcedTuple>, Configurable
 				comparison = compareObjects(object1, object2);
 			}
 
-			firstSourceId  = tuple1.getSource();
-			secondSourceId = tuple2.getSource();
+			firstSourceId  = tuple1.getInt(Field.SOURCE_ID_FIELD_NAME);
+			secondSourceId = tuple2.getInt(Field.SOURCE_ID_FIELD_NAME);
 			
 			if(comparison != 0) {
 				return (sort == SortOrder.ASC) ? comparison : -comparison;

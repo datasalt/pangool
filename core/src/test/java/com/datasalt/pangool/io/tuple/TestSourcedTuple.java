@@ -16,6 +16,7 @@ import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.SortingBuilder;
 
@@ -67,7 +68,7 @@ public class TestSourcedTuple extends BaseTest{
 				int sourceId = sourceIds.get(random.nextInt(sourceIds.size()));
 				for (ISourcedTuple tuple : tuples){
 					tuple.clear();
-					tuple.setSource(sourceId);
+					tuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);
 					Schema schema = pangoolConf.getSchemaBySourceId(sourceId);
 					fillTuple(true,schema, tuple, 0, schema.getFields().size()-1);
 					System.out.println(tuple);

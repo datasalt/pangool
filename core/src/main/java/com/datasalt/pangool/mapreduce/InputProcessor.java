@@ -26,6 +26,7 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.tuple.DoubleBufferedSourcedTuple;
 import com.datasalt.pangool.io.tuple.SourcedTuple;
 
@@ -72,7 +73,7 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 		public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
 			DoubleBufferedSourcedTuple sTuple = cachedSourcedTuple.get();
 			sTuple.setContainedTuple(tuple);
-			sTuple.setSource(sourceId);		
+			sTuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);		
 			context.write(sTuple, NullWritable.get());
 		}
 	}
