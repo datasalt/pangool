@@ -62,7 +62,6 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 			tuple = new BaseTuple();
 			tuple.setString("country", "ES");
 			tuple.setInt("averageSalary", 1000);
-			System.out.println(tuple.getInt("averageSalary"));
 
 			collector.write(1, tuple);
 

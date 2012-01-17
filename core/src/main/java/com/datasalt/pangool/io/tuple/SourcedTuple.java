@@ -26,10 +26,8 @@ public class SourcedTuple implements ISourcedTuple{
 		this.containedTuple = tuple;
 	}
 	
-
-	
 	@Override
-	public int getSource(){
+	public Integer getSource(){
 		return getInt(Field.SOURCE_ID_FIELD_NAME);
 	}
 	

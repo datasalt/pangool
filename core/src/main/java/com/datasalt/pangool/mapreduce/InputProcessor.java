@@ -44,16 +44,10 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
     
     private ThreadLocal<DoubleBufferedSourcedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedSourcedTuple>() {
 
-    	DoubleBufferedSourcedTuple cachedTuple;
-    	
     	@Override
-    	public DoubleBufferedSourcedTuple get() {
-    		return cachedTuple;
-    	}
-    	
-    	public void set(DoubleBufferedSourcedTuple cachedTuple) {
-    		this.cachedTuple = cachedTuple;
-    	}
+      protected DoubleBufferedSourcedTuple initialValue() {
+	      return new DoubleBufferedSourcedTuple();
+      }
     };
     
 		Collector(Schema schema, Mapper.Context context){
@@ -70,18 +64,16 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 		
 		@SuppressWarnings("unchecked")
     public void write(ITuple tuple) throws IOException,InterruptedException {
-			context.write(tuple, nullValue);
+			DoubleBufferedSourcedTuple sTuple = cachedSourcedTuple.get();
+			sTuple.setContainedTuple(tuple);
+			context.write(sTuple, NullWritable.get());
 		}
 		
 		public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
 			DoubleBufferedSourcedTuple sTuple = cachedSourcedTuple.get();
-			if(sTuple == null) {
-				sTuple = new DoubleBufferedSourcedTuple();
-				cachedSourcedTuple.set(sTuple);
-			}
 			sTuple.setContainedTuple(tuple);
-			sTuple.setSource(sourceId);
-			write(sTuple);
+			sTuple.setSource(sourceId);		
+			context.write(sTuple, NullWritable.get());
 		}
 	}
 	

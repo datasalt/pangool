@@ -8,7 +8,7 @@ public interface ISourcedTuple extends ITuple {
 	public ITuple getContainedTuple();
 	public void setContainedTuple(ITuple tuple);
 	
-	public int getSource();
+	public Integer getSource();
 	public void setSource(int sourceId);
 
 }

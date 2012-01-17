@@ -62,7 +62,6 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 			Class<? extends GroupHandler> handlerClass = CoGrouper.getGroupHandler(conf);
-			System.out.println(handlerClass);
 
 			this.handler = ReflectionUtils.newInstance(handlerClass, conf);
 

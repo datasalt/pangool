@@ -20,6 +20,7 @@ import com.datasalt.pangool.io.tuple.DoubleBufferedSourcedTuple;
 import com.datasalt.pangool.io.tuple.GroupComparator;
 import com.datasalt.pangool.io.tuple.Partitioner;
 import com.datasalt.pangool.io.tuple.SortComparator;
+import com.datasalt.pangool.io.tuple.SourcedTupleSerialization;
 import com.datasalt.pangool.mapreduce.GroupHandler;
 import com.datasalt.pangool.mapreduce.GroupHandlerWithRollup;
 import com.datasalt.pangool.mapreduce.InputProcessor;
@@ -196,7 +197,10 @@ public class CoGrouper {
 		// Set Reducer Handler
 		job.getConfiguration().setClass(CONF_REDUCER_HANDLER, reduceHandler, GroupHandler.class);
 
-		job.setJarByClass((jarByClass != null) ? jarByClass : reduceHandler);
+		// Enabling serialization
+		SourcedTupleSerialization.enableSourcedTupleSerialization(job.getConfiguration());
+		
+		job.setJarByClass((jarByClass != null) ? jarByClass : reduceHandler);		
 		job.setOutputFormatClass(outputFormat);
 		job.setMapOutputKeyClass(DoubleBufferedSourcedTuple.class);
 		job.setMapOutputValueClass(NullWritable.class);

@@ -44,6 +44,7 @@ import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.Schema.Field;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.io.Serialization;
+import com.datasalt.pangool.io.tuple.SourcedTuple;
 
 /**
  * This is the basic implementation of {@link ITuple}. 
@@ -506,7 +507,4 @@ public class BaseTuple extends HashMap<String,Object> implements ITuple {
 			b.append("}");
 			return b.toString();
 		}
-
-	
-	
 }

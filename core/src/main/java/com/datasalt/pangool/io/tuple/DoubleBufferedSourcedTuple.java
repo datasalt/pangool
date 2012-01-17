@@ -40,7 +40,7 @@ public class DoubleBufferedSourcedTuple implements ISourcedTuple{
 		currentTuple = tmpTuple;
 	}
 	
-	public int getSource(){
+	public Integer getSource(){
 		return currentTuple.getSource();
 	}
 	

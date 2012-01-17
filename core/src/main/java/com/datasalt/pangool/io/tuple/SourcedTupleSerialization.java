@@ -19,6 +19,8 @@ package com.datasalt.pangool.io.tuple;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -36,6 +38,7 @@ import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 /**
  * A {@link Serialization} for types {@link SourcedTuple}
@@ -128,13 +131,19 @@ public class SourcedTupleSerialization implements Serialization<ISourcedTuple>,C
 		
 		
 		public static void enableSourcedTupleSerialization(Configuration conf) {
-			String ser = conf.get("io.serializations").trim();
-			if (ser.length() !=0 ) {
-				ser += ",";
+			String serClass = SourcedTupleSerialization.class.getName();
+			Collection<String> currentSers = conf.getStringCollection("io.serializations");
+			
+			if (currentSers.size() == 0) {
+				conf.set("io.serializations", serClass);
+				return;
 			}
-			//Adding the Tuple serialization
-			ser += SourcedTupleSerialization.class.getName();
-			conf.set("io.serializations", ser);
+
+			// Check if it is already present
+			if (!currentSers.contains(serClass)) {
+				currentSers.add(serClass);
+				conf.setStrings("io.serializations", currentSers.toArray(new String[]{}));
+			}
 	  }
 		
 		/**
