@@ -78,7 +78,7 @@ public class WordCount {
     .setGroupByFields(WORD_FIELD)
     .setSorting(new SortingBuilder().add(WORD_FIELD).buildSorting())
     .build();
-	
+			
 		CoGrouper cg = new CoGrouper(config, conf);
 		cg.setJarByClass(WordCount.class);
 		cg.addInput(new Path(args[0]), TextInputFormat.class, Split.class);

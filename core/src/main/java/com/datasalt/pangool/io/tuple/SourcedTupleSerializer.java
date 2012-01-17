@@ -36,9 +36,7 @@ import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 
-
 class SourcedTupleSerializer implements Serializer<ISourcedTuple> {
-
 
 	private Serialization ser;
 	
@@ -46,13 +44,11 @@ class SourcedTupleSerializer implements Serializer<ISourcedTuple> {
 	private PangoolConfig pangoolConfig;
 	private Text text= new Text();
 	
-  //private Map<String,Enum<?>[]> cachedEnums;
   private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 	
   SourcedTupleSerializer(Serialization ser,PangoolConfig pangoolConfig){
 		this.pangoolConfig = pangoolConfig;
 		this.ser = ser;
-		//cachedEnums = SourcedTupleSerialization.cacheEnums(pangoolConfig);
 	}
 	
   public void open(OutputStream out) {
@@ -71,32 +67,43 @@ class SourcedTupleSerializer implements Serializer<ISourcedTuple> {
   	if (element == null){
   		throw new IOException("Field '" + field + "' can't be null");
   	}
-  }
-  
+  } 
   
   public void write(ISourcedTuple tuple,DataOutput output) throws IOException {
+  	// First we write common schema
   	Schema commonSchema = pangoolConfig.getCommonOrderedSchema();
   	int presentFields = 0;
   	presentFields += write(commonSchema,tuple,output);
-  	int numSourcesDefined = pangoolConfig.getSchemes().size();
-  	if (!pangoolConfig.getSchemes().containsKey(tuple.getInt(Field.SOURCE_ID_FIELD_NAME))){
-  		throw new IOException(
-  				"tuple sourceId doesn't match . " +
-  				"Sources: " + pangoolConfig.getSchemes() +  " actualSource=" + tuple.getInt(Field.SOURCE_ID_FIELD_NAME));
-  	}
-
-  	if(numSourcesDefined > 1) {
-  		Schema schema = pangoolConfig.getSpecificOrderedSchemas().get(tuple.getInt(Field.SOURCE_ID_FIELD_NAME));
-    	presentFields += write(schema,tuple,output);
-  	}
+  	
+  	// Now we write specific part if needed. 
+  	presentFields += writeSpecificPart(tuple, output);
   	
   	if (tuple.size() > presentFields ){
   		Schema schema = pangoolConfig.getSchemes().get(tuple.getInt(Field.SOURCE_ID_FIELD_NAME));
   		raiseExceptionWrongFields(schema,tuple);
-  	}
-  	
+  	}  	
   }
   
+  /**
+   * Writes the specific part of the tuple. Return number of present fields  
+   */
+  public int writeSpecificPart(ISourcedTuple tuple, DataOutput output) throws IOException {
+  	int numSourcesDefined = pangoolConfig.getSchemes().size();  	
+
+  	// If only one schema defined as source, then there are not specific part.
+  	if (numSourcesDefined == 1) {
+  		return 0;
+  	}
+  	
+  	if (!pangoolConfig.getSchemes().containsKey(tuple.getInt(Field.SOURCE_ID_FIELD_NAME))){
+  		throw new IOException(
+  				"Tuple " + Field.SOURCE_ID_FIELD_NAME + " not present but more than one source present. " +
+  				"Sources: " + pangoolConfig.getSchemes() +  " actualSource=" + tuple.getInt(Field.SOURCE_ID_FIELD_NAME));
+  	}
+
+		Schema schema = pangoolConfig.getSpecificOrderedSchemas().get(tuple.getInt(Field.SOURCE_ID_FIELD_NAME));
+  	return write(schema,tuple,output);  	
+  }
   
 	public int write(Schema schema,ISourcedTuple tuple,DataOutput output) throws IOException {
 		int presentFields = 0;
@@ -167,9 +174,7 @@ class SourcedTupleSerializer implements Serializer<ISourcedTuple> {
 			}
 		} //end for
 		
-		return presentFields;
-
-		
+		return presentFields;		
 	}
 	
 	private void raiseExceptionWrongFields(Schema schema,ISourcedTuple tuple) throws IOException{
@@ -180,8 +185,7 @@ class SourcedTupleSerializer implements Serializer<ISourcedTuple> {
 			}
 		}
 		String fieldsConcated = concat(wrongFields,",");
-		throw new IOException("Tuple with source " + tuple.getInt(Field.SOURCE_ID_FIELD_NAME) + " contains fields that don't belong to schema '" + fieldsConcated + "'.\nSchema:"+schema);
-		
+		throw new IOException("Tuple with source " + tuple.getInt(Field.SOURCE_ID_FIELD_NAME) + " contains fields that don't belong to schema '" + fieldsConcated + "'.\nSchema:"+schema);	
 	}
 	
 	private String concat(List<String> list,String separator){
@@ -194,9 +198,7 @@ class SourcedTupleSerializer implements Serializer<ISourcedTuple> {
 				b.append(separator).append(list.get(i));
 			}
 			return b.toString();
-		}
-		
+		}		
 	}
-	
 
 }
