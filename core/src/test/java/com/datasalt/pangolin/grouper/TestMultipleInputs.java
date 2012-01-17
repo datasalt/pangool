@@ -28,7 +28,7 @@ import org.junit.Test;
 
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
@@ -37,11 +37,11 @@ public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 
 	private static class Mapy1 extends InputProcessor<Text,NullWritable>{
 		
-		private Tuple outputTuple;
+		private DoubleBufferPangolinTuple outputTuple;
 		
 		@Override
 		public void setup(Schema schema, Context context) throws IOException,InterruptedException {
-			this.outputTuple = new Tuple();
+			this.outputTuple = new DoubleBufferPangolinTuple();
 		}
 		
 		
@@ -64,11 +64,11 @@ public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 	
 	private static class Mapy2 extends InputProcessor<Text,NullWritable>{
 		
-		private Tuple outputTuple;
+		private DoubleBufferPangolinTuple outputTuple;
 		
 		@Override
 		public void setup(Schema schema, Context context) throws IOException,InterruptedException {
-			this.outputTuple = new Tuple();
+			this.outputTuple = new DoubleBufferPangolinTuple();
 		}
 		
 		
@@ -143,7 +143,7 @@ public class TestMultipleInputs extends AbstractHadoopTestLibrary{
 		grouper.setSortCriteria(sortCriteria);
 		grouper.setFieldsToGroupBy("id");
 		
-		grouper.setOutputKeyClass(Tuple.class);
+		grouper.setOutputKeyClass(DoubleBufferPangolinTuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
 		grouper.addInput(new Path("input1"), SequenceFileInputFormat.class, Mapy1.class);
 		grouper.addInput(new Path("input2"), SequenceFileInputFormat.class, Mapy2.class);

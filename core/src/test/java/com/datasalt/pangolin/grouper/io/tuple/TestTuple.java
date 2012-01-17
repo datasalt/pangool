@@ -27,8 +27,8 @@ public class TestTuple extends BaseTest{
 	
 	@Test
 	public void testRandomTupleSerialization() throws IOException {
-			BaseTuple baseTuple = new BaseTuple();
-			Tuple doubleBufferedTuple = new Tuple();
+			Tuple baseTuple = new Tuple();
+			DoubleBufferPangolinTuple doubleBufferedTuple = new DoubleBufferPangolinTuple();
 			ITuple[] tuples = new ITuple[]{baseTuple,doubleBufferedTuple};
 			int NUM_ITERATIONS=10000;
 			for (int i=0 ; i < NUM_ITERATIONS; i++){
@@ -59,10 +59,10 @@ public class TestTuple extends BaseTest{
 		
 		int length = schemaPrimitives.getFields().length;
 		for (int i=length-2 ; i >= 0; i--){
-			ITuple tuple = new BaseTuple();
+			ITuple tuple = new Tuple();
 			fillTuple(true,schemaPrimitives, tuple, 0, i);
 			assertNonSerializable(tuple,false);
-			tuple = new Tuple();
+			tuple = new DoubleBufferPangolinTuple();
 			fillTuple(true,schemaPrimitives, tuple, 0, i);
 			assertNonSerializable(tuple,false);
 		}
@@ -88,7 +88,7 @@ public class TestTuple extends BaseTest{
 	  ser.close();
     
 	  input.reset(output.getData(),0,output.getLength());
-		ITuple deserializedTuple = new BaseTuple();
+		ITuple deserializedTuple = new Tuple();
 		deser.open(input);
 		deserializedTuple = (ITuple) deser.deserialize(deserializedTuple);
 		if (debug){
@@ -96,7 +96,7 @@ public class TestTuple extends BaseTest{
 		}
 		deser.close();
 		assertEquals(tuple,deserializedTuple);
-	  deserializedTuple = new Tuple();
+	  deserializedTuple = new DoubleBufferPangolinTuple();
 	  
 	  input.reset(output.getData(),0,output.getLength());
 	  deser.open(input);
@@ -117,13 +117,13 @@ public class TestTuple extends BaseTest{
 		ser.ser(tuple, output);
 		
 	  input.reset(output.getData(),0,output.getLength());
-		ITuple deserializedTuple = new BaseTuple();
+		ITuple deserializedTuple = new Tuple();
 		deserializedTuple = ser.deser(deserializedTuple, input);
 		if (debug){
 			System.out.println("D:" + deserializedTuple);
 		}
 		assertEquals(tuple,deserializedTuple);
-	  deserializedTuple = new Tuple();
+	  deserializedTuple = new DoubleBufferPangolinTuple();
 	  
 	  input.reset(output.getData(),0,output.getLength());
 	  deserializedTuple = ser.deser(deserializedTuple,input);

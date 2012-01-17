@@ -18,9 +18,11 @@ import org.junit.Test;
 import com.datasalt.pangolin.commons.HadoopUtils;
 import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.api.GroupHandler;
+import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
@@ -28,8 +30,6 @@ import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.SortingBuilder;
-import com.datasalt.pangool.mapreduce.GroupHandler;
-import com.datasalt.pangool.mapreduce.InputProcessor;
 import com.google.common.io.Files;
 
 public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
@@ -37,10 +37,9 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 	public static class FirstInputProcessor extends InputProcessor<LongWritable, Text> {
 
 		@Override
-		public void process(LongWritable key, Text value, Collector collector) throws IOException, InterruptedException,
-		    GrouperException {
+		public void process(LongWritable key, Text value, Collector collector) throws IOException, InterruptedException  {
 
-			BaseTuple tuple = new BaseTuple();
+			Tuple tuple = new Tuple();
 			tuple.setString("name", "Pere");
 			tuple.setInt("money", 100);
 			tuple.setString("country", "ES");
@@ -59,7 +58,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
 			collector.write(0, tuple);
 
-			tuple = new BaseTuple();
+			tuple = new Tuple();
 			tuple.setString("country", "ES");
 			tuple.setInt("averageSalary", 1000);
 

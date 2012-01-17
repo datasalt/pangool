@@ -29,12 +29,11 @@ import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.TupleIterator;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
-import com.datasalt.pangool.io.tuple.DoubleBufferedSourcedTuple;
 
 /**
  * 
@@ -94,7 +93,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			firstIteration = true;
 			while(context.nextKey()) {
 				reduce(context.getCurrentKey(), context.getValues(), context);
-				((Tuple)context.getCurrentKey()).swapInstances();
+				((DoubleBufferPangolinTuple)context.getCurrentKey()).swapInstances();
 				// TODO look if this matches super.run() implementation
 			}
 
@@ -116,7 +115,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
 			iterator.next();
-			DoubleBufferedSourcedTuple currentKey = (DoubleBufferedSourcedTuple) context.getCurrentKey();
+			DoubleBufferPangolinTuple currentKey = (DoubleBufferPangolinTuple) context.getCurrentKey();
 			int indexMismatch;
 			if(firstIteration) {
 				indexMismatch = minDepth;

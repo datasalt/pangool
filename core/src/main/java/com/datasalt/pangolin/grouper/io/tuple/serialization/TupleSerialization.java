@@ -33,9 +33,9 @@ import com.datasalt.pangolin.commons.io.ProtoStuffSerialization;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.Schema.Field;
-import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 
 /**
  * A {@link Serialization} for types Tuples
@@ -60,7 +60,7 @@ public class TupleSerialization implements Serialization,Configurable{
 	
 	@Override
   public boolean accept(Class c) {
-		return (c == Tuple.class || c == BaseTuple.class);
+		return (c == DoubleBufferPangolinTuple.class || c == Tuple.class);
   }
 
   

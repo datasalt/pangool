@@ -38,7 +38,7 @@ import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
@@ -61,7 +61,7 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 		@Override
 		public void process(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
 			try {
-				Tuple outputKey = createTuple(key.toString(), schema);
+				DoubleBufferPangolinTuple outputKey = createTuple(key.toString(), schema);
 				collector.write(outputKey);
 			} catch (InvalidFieldException e) {
 				throw new RuntimeException(e);
@@ -131,8 +131,8 @@ public class TestMapRedCounter extends AbstractHadoopTestLibrary{
 	}
 	
 	
-	private static Tuple createTuple(String text,Schema schema) throws InvalidFieldException{
-		Tuple tuple = new Tuple();
+	private static DoubleBufferPangolinTuple createTuple(String text,Schema schema) throws InvalidFieldException{
+		DoubleBufferPangolinTuple tuple = new DoubleBufferPangolinTuple();
 		String[] tokens = text.split(",");
 		String user = tokens[0];
 		Integer day = Integer.parseInt(tokens[1]);

@@ -32,7 +32,7 @@ import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.GrouperException;
 
 /**
- * This is the common interface implemented by {@link BaseTuple} and {@link Tuple}.
+ * This is the common interface implemented by {@link Tuple} and {@link DoubleBufferPangolinTuple}.
  * A Tuple is basically a hadoop-serializable object containing fields according to the schema defined in 
  * {@link Schema}. Tuples are used in intermediate {@link org.apache.hadoop.mapreduce.Mapper}
  * outputs in {@link Grouper} and {@link Grouper}

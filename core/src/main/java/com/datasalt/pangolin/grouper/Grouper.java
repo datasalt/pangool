@@ -35,7 +35,7 @@ import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
 import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
@@ -261,7 +261,7 @@ public class Grouper {
 		Grouper.setGroupHandler(job.getConfiguration(), outputHandler);
 		job.setJarByClass((jarByClass != null) ? jarByClass : outputHandler);
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(Tuple.class);
+		job.setMapOutputKeyClass(DoubleBufferPangolinTuple.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(Partitioner.class);
 		job.setGroupingComparatorClass(GroupComparator.class);

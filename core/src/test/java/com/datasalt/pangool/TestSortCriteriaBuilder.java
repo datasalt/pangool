@@ -5,7 +5,7 @@ import junit.framework.Assert;
 import org.apache.hadoop.io.RawComparator;
 import org.junit.Test;
 
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.SortCriteria;
 import com.datasalt.pangool.SortCriteriaBuilder;
 import com.datasalt.pangool.SortCriteria.SortOrder;

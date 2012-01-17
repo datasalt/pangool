@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.datasalt.pangool.mapreduce.SortComparator;
+
 /**
  * This is the basic implementation of {@link ITuple}. It extends
  * a HashMap<String, Object>

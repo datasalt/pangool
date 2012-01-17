@@ -12,7 +12,7 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.StatusReporter;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 
 public class PangoolContext extends Mapper.Context {
 
@@ -21,7 +21,7 @@ public class PangoolContext extends Mapper.Context {
 	  mapper.super(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
   }
 
-	public void write(Tuple tuple) throws IOException,InterruptedException {
+	public void write(DoubleBufferPangolinTuple tuple) throws IOException,InterruptedException {
 		write(tuple, NullWritable.get());
 	}
 }

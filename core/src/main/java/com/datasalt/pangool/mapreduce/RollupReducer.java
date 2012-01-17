@@ -22,30 +22,24 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangolin.grouper.Schema;
-import com.datasalt.pangolin.grouper.TupleIterator;
-import com.datasalt.pangolin.grouper.io.tuple.FilteredReadOnlyTuple;
-import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
-import com.datasalt.pangool.mapreduce.GroupHandler.State;
+import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.api.GroupHandlerWithRollup;
+import com.datasalt.pangool.api.GroupHandler.State;
+import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
+import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
+import com.datasalt.pangool.io.tuple.ITuple;
 
 /**
  * 
  * This {@link Reducer} implements a similar functionality than {@link SimpleReducer} but adding a Rollup feature.
- * 
- * @author eric
- *
-
  */
 public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
@@ -69,8 +63,8 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.groupByFields = pangoolConfig.getGroupByFields();
 			
-			String[] groupFields = GroupComparator.getGroupComparatorFields(conf);
-			this.maxDepth = groupFields.length - 1;
+			List<String> groupFields = pangoolConfig.getGroupByFields();
+			this.maxDepth = groupFields.size() - 1;
 			String[] partitionerFields = Partitioner.getPartitionerFields(conf);
 			this.minDepth = partitionerFields.length - 1;
 
@@ -83,10 +77,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			handler.setup(state, context);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
-		} catch(InvalidFieldException e) {
-			throw new RuntimeException(e);
-    }
-  	
+		} 
   }
   
   public void cleanup(Context context) throws IOException,InterruptedException {
@@ -105,7 +96,6 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			firstIteration = true;
 			while(context.nextKey()) {
 				reduce(context.getCurrentKey(), context.getValues(), context);
-				((Tuple)context.getCurrentKey()).swapInstances();
 				// TODO look if this matches super.run() implementation
 			}
 
@@ -120,6 +110,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
   }
   
   
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
 	public final void reduce(ITuple key, Iterable<NullWritable> values, Context context) throws IOException,
 	    InterruptedException {
@@ -127,7 +118,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
 			iterator.next();
-			Tuple currentTuple = (Tuple) context.getCurrentKey();
+			DoubleBufferedTuple currentTuple = (DoubleBufferedTuple) context.getCurrentKey();
 			int indexMismatch;
 			if(firstIteration) {
 				indexMismatch = minDepth;
@@ -170,9 +161,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 	 */
 	private int indexMismatch(ITuple tuple1,ITuple tuple2,int minFieldIndex,int maxFieldIndex){
 			for(int i = minFieldIndex; i <= maxFieldIndex; i++) {
-				String fieldName = schema.getFields()[i].getName();
-				Object object1 = tuple1.getObject(fieldName);
-				Object object2 = tuple2.getObject(fieldName);
+				String fieldName = schema.getFields().get(i).getName();
 				if(!tuple1.getObject(fieldName).equals(tuple2.getObject(fieldName))) {
 					return i;
 				}

@@ -19,11 +19,11 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
 
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 
 
 
-public class RollupCombiner extends RollupReducer<Tuple,NullWritable>{
+public class RollupCombiner extends RollupReducer<DoubleBufferPangolinTuple,NullWritable>{
 	
 	@Override
 	public void setup(Context context) throws IOException,InterruptedException {

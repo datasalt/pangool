@@ -13,32 +13,26 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangolin.commons.HadoopUtils;
-import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.SchemaBuilder;
-import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SortingBuilder;
-import com.datasalt.pangool.mapreduce.GroupHandler;
-import com.datasalt.pangool.mapreduce.GroupHandler.State;
-import com.datasalt.pangool.mapreduce.InputProcessor;
-import com.datasalt.pangool.mapreduce.InputProcessor.Collector;
+import com.datasalt.pangool.api.GroupHandler;
+import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Tuple;
 
 public class WordCount {
 
 	private static final String WORD_FIELD = "word";
 	
 	public static class Split extends InputProcessor<LongWritable, Text>{
-		BaseTuple tuple = new BaseTuple();
+		Tuple tuple = new Tuple();
 		
 		@Override
-    public void process(LongWritable key, Text value, Collector collector) throws IOException, InterruptedException,
-        GrouperException {
+    public void process(LongWritable key, Text value, Collector collector) throws IOException, InterruptedException {
 			String words[] = value.toString().split("\\s+");
 			for(String word : words) {
 				tuple.setString(WORD_FIELD, word);
@@ -62,7 +56,7 @@ public class WordCount {
 
 	private static final String HELP = "Usage: WordCount [input_path] [output_path]";
 	
-	public static void main(String args[]) throws InvalidFieldException, CoGrouperException, IOException, InterruptedException, ClassNotFoundException {
+	public static void main(String args[]) throws CoGrouperException, IOException, InterruptedException, ClassNotFoundException {
 		if (args.length != 2) {
 			System.err.println("Wrong number of arguments");
 			System.err.println(HELP);

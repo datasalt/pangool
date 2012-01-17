@@ -34,7 +34,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 import com.datasalt.pangolin.commons.Buffer;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 import com.datasalt.pangolin.io.Serialization;
 
 
@@ -69,7 +69,7 @@ class TupleDeserializer implements Deserializer {
 	public ITuple deserialize(Object t) throws IOException {
 		
 		if (t == null) {
-			t = ReflectionUtils.newInstance(Tuple.class, null);
+			t = ReflectionUtils.newInstance(DoubleBufferPangolinTuple.class, null);
 		}
 		
 //		if (result instanceof Tuple){

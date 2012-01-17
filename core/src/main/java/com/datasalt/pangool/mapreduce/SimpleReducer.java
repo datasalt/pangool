@@ -21,28 +21,19 @@ import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.TupleIterator;
-import com.datasalt.pangolin.grouper.Schema;
-import com.datasalt.pangolin.grouper.io.tuple.FilteredReadOnlyTuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
-import com.datasalt.pangool.io.tuple.ISourcedTuple;
-import com.datasalt.pangool.mapreduce.GroupHandler.State;
+import com.datasalt.pangool.api.GroupHandler;
+import com.datasalt.pangool.api.GroupHandler.State;
+import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
+import com.datasalt.pangool.io.tuple.ITuple;
 
-/**
- * TODO
- * @author eric
- *
- */
 public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
 
 	private PangoolConfig pangoolConfig;
@@ -51,7 +42,7 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 	private FilteredReadOnlyTuple groupTuple; // Tuple view over the group
 	
-  @SuppressWarnings({"unchecked","rawtypes"})
+  @SuppressWarnings("unchecked")
   public void setup(Context context) throws IOException,InterruptedException {
 		super.setup(context);
 		try {
@@ -69,8 +60,6 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
-    } catch(InvalidFieldException e) {
-    	throw new RuntimeException(e);
     }
   }
   

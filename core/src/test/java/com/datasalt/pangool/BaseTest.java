@@ -14,13 +14,13 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Before;
 
 import com.datasalt.pangolin.commons.test.AbstractBaseTest;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria.SortOrder;
-import com.datasalt.pangool.io.tuple.SourcedTuple;
+import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.io.tuple.Tuple;
 
 public abstract class BaseTest extends AbstractBaseTest {
 
@@ -87,7 +87,7 @@ public abstract class BaseTest extends AbstractBaseTest {
 		ser.ser(tuple, output);
 
 		input.reset(output.getData(), 0, output.getLength());
-		SourcedTuple deserializedTuple = new SourcedTuple();
+		ITuple deserializedTuple = new Tuple();
 		deserializedTuple = ser.deser(deserializedTuple, input);
 		if(debug) {
 			System.out.println("D:" + deserializedTuple);

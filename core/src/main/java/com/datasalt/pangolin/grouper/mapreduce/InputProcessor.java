@@ -25,14 +25,14 @@ import org.apache.hadoop.mapreduce.Mapper;
 import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 
 /**
  * TODO doc
  * @author eric
  *
  */
-public class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
+public class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT_VALUE,DoubleBufferPangolinTuple,NullWritable>{
 	
 	private Schema schema;
 	private Collector collector;
@@ -45,7 +45,7 @@ public class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPU
 		}
 		
 		
-		public void write(Tuple tuple) throws IOException,InterruptedException {
+		public void write(DoubleBufferPangolinTuple tuple) throws IOException,InterruptedException {
 			context.write(tuple, nullValue);
 		}
 		

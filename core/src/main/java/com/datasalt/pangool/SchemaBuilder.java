@@ -3,14 +3,11 @@ package com.datasalt.pangool;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.Schema.Field;
 
 /**
  * Builds one inmutable {@link Schema} instance.
- * 
- * @author pere
- *
  */
 public class SchemaBuilder {
 

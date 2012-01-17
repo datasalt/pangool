@@ -8,8 +8,9 @@ import java.util.Random;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.BaseTest;
 import com.datasalt.pangool.CoGrouperException;
@@ -61,12 +62,12 @@ public class TestSourcedTuple extends BaseTest{
 			int NUM_ITERATIONS=100000;
 			
 			List<Integer> sourceIds = new ArrayList<Integer>(pangoolConf.getSchemes().keySet());
-			SourcedTuple baseTuple = new SourcedTuple(new BaseTuple());
-			ISourcedTuple dbTuple = new DoubleBufferedSourcedTuple(new BaseTuple());
-			ISourcedTuple[] tuples = new ISourcedTuple[]{baseTuple,dbTuple};
+			Tuple baseTuple = new Tuple();
+			ITuple dbTuple = new DoubleBufferedTuple();
+			ITuple[] tuples = new ITuple[]{baseTuple,dbTuple};
 			for (int i=0 ; i < NUM_ITERATIONS; i++){
 				int sourceId = sourceIds.get(random.nextInt(sourceIds.size()));
-				for (ISourcedTuple tuple : tuples){
+				for (ITuple tuple : tuples){
 					tuple.clear();
 					tuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);
 					Schema schema = pangoolConf.getSchemaBySourceId(sourceId);

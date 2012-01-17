@@ -67,7 +67,7 @@ public class TestComparators extends BaseTest {
 		int maxIndex = SCHEMA.getFields().length - 1;
 		TupleSerialization serialization = new TupleSerialization();
 		serialization.setConf(getConf());
-		Serializer ser = serialization.getSerializer(Tuple.class);
+		Serializer ser = serialization.getSerializer(DoubleBufferPangolinTuple.class);
 
 		Map<String, Class> customComparators = new HashMap<String, Class>();
 		customComparators.put("thrift_field", AComparator.class);
@@ -89,10 +89,10 @@ public class TestComparators extends BaseTest {
 				groupComparator.setConf(conf);
 				for (int i = 0; i < MAX_RANDOMS_PER_INDEX; i++) {
 
-					ITuple base1 = new BaseTuple();
-					ITuple base2 = new BaseTuple();
-					ITuple doubleBuffered1 = new Tuple(); // double buffered
-					ITuple doubleBuffered2 = new Tuple(); // double buffered
+					ITuple base1 = new Tuple();
+					ITuple base2 = new Tuple();
+					ITuple doubleBuffered1 = new DoubleBufferPangolinTuple(); // double buffered
+					ITuple doubleBuffered2 = new DoubleBufferPangolinTuple(); // double buffered
 
 					ITuple[] tuples = new ITuple[] { base1, base2, doubleBuffered1,
 							doubleBuffered2 };

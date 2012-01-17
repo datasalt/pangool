@@ -13,7 +13,7 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.Schema.Fields;
 import com.datasalt.pangool.SortCriteria.SortElement;
@@ -235,8 +235,23 @@ public class PangoolConfigBuilder {
 		return configBuilder.build();
 	}
 	
-	public static PangoolConfig get(Configuration conf) throws JsonParseException, JsonMappingException, IOException, CoGrouperException, NumberFormatException, InvalidFieldException {
+	public static PangoolConfig get(Configuration conf) throws CoGrouperException {
 		ObjectMapper jsonSerDe = new ObjectMapper();
-		return fromJSON(conf.get(PangoolConfig.CONF_PANGOOL_CONF), jsonSerDe);
+		try {
+	    return fromJSON(conf.get(PangoolConfig.CONF_PANGOOL_CONF), jsonSerDe);
+    } catch (JsonParseException e) {
+    	fail(e);
+    } catch(JsonMappingException e) {
+    	fail(e);
+    } catch(NumberFormatException e) {
+    	fail(e);
+    } catch(IOException e) {
+    	fail(e);
+    }
+		return null;
+	}
+	
+	private static void fail(Exception e) throws CoGrouperException {
+		throw new CoGrouperException(e);
 	}
 }
