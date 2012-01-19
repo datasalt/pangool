@@ -48,8 +48,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * When comparing, we save the source Ids, if we find them
 	 * TODO: These tho variables does not seems thread safe. Solve!
 	 */
-	int firstSourceId  = 0;
-	int secondSourceId = 0;
+	Integer firstSourceId  = 0;
+	Integer secondSourceId = 0;
 
 	int offset1 = 0;
 	int offset2 = 0;
@@ -132,7 +132,9 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			}
 
 			firstSourceId  = tuple1.getInt(Field.SOURCE_ID_FIELD_NAME);
+			firstSourceId = (firstSourceId == null ? 0 : firstSourceId);
 			secondSourceId = tuple2.getInt(Field.SOURCE_ID_FIELD_NAME);
+			secondSourceId = (secondSourceId == null ? 0 : secondSourceId);
 			
 			if(comparison != 0) {
 				return (sort == SortOrder.ASC) ? comparison : -comparison;

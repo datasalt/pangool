@@ -19,11 +19,6 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datasalt.pangool.io.tuple.Tuple;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangool.mapreduce.GroupComparator;
-import com.datasalt.pangool.mapreduce.SortComparator;
 import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.BaseTest;
@@ -38,6 +33,9 @@ import com.datasalt.pangool.SortCriteria.SortElement;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.Sorting;
 import com.datasalt.pangool.SortingBuilder;
+import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
+import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 /**
  * This tests either {@link SortComparator} or {@link GroupComparator}.It checks that the binary comparison is coherent
@@ -48,6 +46,7 @@ import com.datasalt.pangool.SortingBuilder;
 public class TestComparators extends BaseTest {
 
 	int MAX_RANDOM_SCHEMAS = 50;
+	Serialization ser;
 
 	@Test
 	public void test() throws CoGrouperException, IOException {
@@ -65,10 +64,10 @@ public class TestComparators extends BaseTest {
 			Sorting sortCriteria = createRandomSortCriteria(schema, customComparators, maxIndex + 1);
 			String[] groupFields = getFirstFields(sortCriteria.getSortCriteria(), random.nextInt(sortCriteria.getSortCriteria().getSortElements().length));
 
-			Tuple base1 = new Tuple();
-			Tuple base2 = new Tuple();
+			DoubleBufferedTuple base1 = new DoubleBufferedTuple();
+			DoubleBufferedTuple base2 = new DoubleBufferedTuple();
 
-			Tuple[] tuples = new Tuple[] { base1, base2 };
+			DoubleBufferedTuple[] tuples = new DoubleBufferedTuple[] { base1, base2 };
 			for(ITuple tuple: tuples) {
 				fillTuple(false, schema, tuple, 0, maxIndex);
 			}
@@ -83,6 +82,8 @@ public class TestComparators extends BaseTest {
 				builder.addSchema(0, schema);
 				PangoolConfig config = builder.build();
 				PangoolConfig.setPangoolConfig(config, conf);
+				// config has changed -> we need a new Serialization object
+				ser = new Serialization(conf);
 				
 				SortComparator sortComparator = new SortComparator();
 				GroupComparator groupComparator = new GroupComparator();
@@ -95,8 +96,8 @@ public class TestComparators extends BaseTest {
 				}
 				for(int indexTuple1 = 0; indexTuple1 < tuples.length; indexTuple1++) {
 					for(int indexTuple2 = indexTuple1 + 1; indexTuple2 < tuples.length; indexTuple2++) {
-						Tuple tuple1 = tuples[indexTuple1];
-						Tuple tuple2 = tuples[indexTuple2];
+						DoubleBufferedTuple tuple1 = tuples[indexTuple1];
+						DoubleBufferedTuple tuple2 = tuples[indexTuple2];
 						assertSameComparison("Sort comparator", sortComparator, tuple1, tuple2);
 						assertOppositeOrEqualsComparison(sortComparator, tuple1, tuple2);
 						assertSameComparison("Group comparator", groupComparator, tuple1, tuple2);
@@ -107,9 +108,7 @@ public class TestComparators extends BaseTest {
 		}
 	}
 
-	private int compareInBinary1(SortComparator comp, Tuple tuple1, Tuple tuple2) throws IOException {
-	  Serialization ser = new Serialization(getConf());	
-		
+	private int compareInBinary1(SortComparator comp, DoubleBufferedTuple tuple1, DoubleBufferedTuple tuple2) throws IOException {
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.ser(tuple1, buffer1);
 		
@@ -124,7 +123,7 @@ public class TestComparators extends BaseTest {
 	 * Checks that the binary comparison matches the comparison by objects.
 	 * 
 	 */
-	private void assertSameComparison(String alias, SortComparator comparator, Tuple tuple1, Tuple tuple2)
+	private void assertSameComparison(String alias, SortComparator comparator, DoubleBufferedTuple tuple1, DoubleBufferedTuple tuple2)
 	    throws IOException {
 
 		int compObjects = comparator.compare(tuple1, tuple2);
@@ -143,7 +142,7 @@ public class TestComparators extends BaseTest {
 	/**
 	 * Checks that comp(tuple1,tuple2) is -comp(tuple2,tuple1)
 	 */
-	private void assertOppositeOrEqualsComparison(SortComparator comp, Tuple tuple1, Tuple tuple2) throws IOException {
+	private void assertOppositeOrEqualsComparison(SortComparator comp, DoubleBufferedTuple tuple1, DoubleBufferedTuple tuple2) throws IOException {
 		int comp1 = comp.compare(tuple1, tuple2);
 		int comp2 = comp.compare(tuple2, tuple1);
 		if(comp1 > 0 && comp2 > 0 || comp1 < 0 && comp2 < 0) {
