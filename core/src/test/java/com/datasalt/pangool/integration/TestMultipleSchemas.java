@@ -90,7 +90,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		PangoolConfig config = new PangoolConfigBuilder()
 		    .addSchema(0, Schema.parse("name:string, money:int, country:string"))
 		    .addSchema(1, Schema.parse("country:string, averageSalary:int")).setGroupByFields("country")
-		    .setSorting(new SortingBuilder().add("country").addSourceId(SortOrder.DESC).secondarySort(0).add("money").buildSorting())
+		    .setSorting(new SortingBuilder().add("country").addSourceId(SortOrder.ASC).secondarySort(0).add("money").buildSorting())
 		    .build();
 
 		Files.write("foo", new File("test-input"), Charset.forName("UTF-8"));
