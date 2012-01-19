@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.io.tuple;
+package com.datasalt.pangool.io.tuple.ser;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
@@ -37,9 +37,11 @@ import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
+import com.datasalt.pangool.io.tuple.ITupleInternal;
 
 
-class SourcedTupleDeserializer implements Deserializer<ISourcedTuple> {
+class TupleInternalDeserializer implements Deserializer<ITupleInternal> {
 
 	private PangoolConfig pangoolConf;
 	private DataInputStream in;
@@ -48,14 +50,14 @@ class SourcedTupleDeserializer implements Deserializer<ISourcedTuple> {
 	private Map<String,Enum<?>[]> cachedEnums = new HashMap<String,Enum<?>[]>();
 	
 	private Buffer tmpInputBuffer = new Buffer();
-	private Class<? extends ISourcedTuple> instanceClazz;
+	private Class<? extends ITupleInternal> instanceClazz;
 	//private 
 	
 	
-	SourcedTupleDeserializer(Serialization ser,PangoolConfig pangoolConfig,Class<? extends ISourcedTuple> instanceClass){
+	TupleInternalDeserializer(Serialization ser,PangoolConfig pangoolConfig,Class<? extends ITupleInternal> instanceClass){
 		this.pangoolConf = pangoolConfig;
 		this.ser = ser;
-		this.cachedEnums = SourcedTupleSerialization.getEnums(pangoolConfig);
+		this.cachedEnums = TupleInternalSerialization.getEnums(pangoolConfig);
 		this.instanceClazz =instanceClass;
 	}
 	
@@ -65,12 +67,12 @@ class SourcedTupleDeserializer implements Deserializer<ISourcedTuple> {
 	}
 
 	@Override
-	public ISourcedTuple deserialize(ISourcedTuple t) throws IOException {
+	public ITupleInternal deserialize(ITupleInternal t) throws IOException {
 		if (t == null) {
 			t = ReflectionUtils.newInstance(instanceClazz, null);
 		}
-		if (t instanceof DoubleBufferedSourcedTuple) {
-			((DoubleBufferedSourcedTuple) t).swapInstances();
+		if (t instanceof DoubleBufferedTuple) {
+			((DoubleBufferedTuple) t).swapInstances();
 		}
 		t.clear();
 		Schema commonSchema = pangoolConf.getCommonOrderedSchema();
@@ -78,7 +80,7 @@ class SourcedTupleDeserializer implements Deserializer<ISourcedTuple> {
 		int numSchemas = pangoolConf.getSchemes().size();
 		if (numSchemas > 1){
 			// in this step source should be set 
-			Schema specificSchema = pangoolConf.getSpecificOrderedSchema(t.getSource());
+			Schema specificSchema = pangoolConf.getSpecificOrderedSchema(t.getInt(Field.SOURCE_ID_FIELD_NAME));
 			readFields(specificSchema,t,in);
 		}
 		return t;
@@ -86,7 +88,7 @@ class SourcedTupleDeserializer implements Deserializer<ISourcedTuple> {
 	
 	
 	
-	public void readFields(Schema schema,ISourcedTuple tuple ,DataInput input) throws IOException {
+	public void readFields(Schema schema,ITupleInternal tuple ,DataInput input) throws IOException {
 		for (int i =0 ; i < schema.getFields().size(); i++) {
 			Class<?> fieldType = schema.getField(i).getType();
 			String fieldName = schema.getField(i).getName();

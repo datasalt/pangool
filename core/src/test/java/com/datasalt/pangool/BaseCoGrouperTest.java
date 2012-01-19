@@ -3,14 +3,14 @@ package com.datasalt.pangool;
 import java.io.IOException;
 
 import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.api.GroupHandler;
+import com.datasalt.pangool.api.GroupHandlerWithRollup;
+import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Sorting;
 import com.datasalt.pangool.SortingBuilder;
 import com.datasalt.pangool.SortCriteria.SortOrder;
-import com.datasalt.pangool.mapreduce.GroupHandler;
-import com.datasalt.pangool.mapreduce.GroupHandlerWithRollup;
-import com.datasalt.pangool.mapreduce.InputProcessor;
 
 @SuppressWarnings("rawtypes")
 public class BaseCoGrouperTest {
@@ -22,8 +22,7 @@ public class BaseCoGrouperTest {
 	protected InputProcessor myInputProcessor = new InputProcessor() {
 
 		@Override
-    public void process(Object key, Object value, Collector collector) throws IOException, InterruptedException,
-        GrouperException {
+    public void process(Object key, Object value, Collector collector) {
     }		
 	};
 	

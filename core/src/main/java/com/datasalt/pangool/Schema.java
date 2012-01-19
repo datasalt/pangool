@@ -11,7 +11,7 @@ import org.apache.commons.collections.bidimap.DualHashBidiMap;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 /**
  * Encapsulates one Pangool schame composed of {@link Field} instances.

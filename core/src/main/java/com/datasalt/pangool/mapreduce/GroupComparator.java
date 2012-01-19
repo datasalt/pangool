@@ -1,6 +1,8 @@
-package com.datasalt.pangool.io.tuple;
+package com.datasalt.pangool.mapreduce;
 
 import org.apache.hadoop.conf.Configuration;
+
+import com.datasalt.pangool.io.tuple.ITuple;
 
 /**
  * 
@@ -12,7 +14,7 @@ public class GroupComparator extends SortComparator {
 	private int numFieldsCompared;
 
 	@Override
-	public int compare(SourcedTuple w1, SourcedTuple w2) {
+	public int compare(ITuple w1, ITuple w2) {
 		return compare(numFieldsCompared, commonSchema, commonCriteria, w1, w2);
 	}
 

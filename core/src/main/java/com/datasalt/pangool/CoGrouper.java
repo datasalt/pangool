@@ -16,15 +16,16 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.SimpleCombiner;
-import com.datasalt.pangool.io.tuple.DoubleBufferedSourcedTuple;
-import com.datasalt.pangool.io.tuple.GroupComparator;
-import com.datasalt.pangool.io.tuple.Partitioner;
-import com.datasalt.pangool.io.tuple.SortComparator;
-import com.datasalt.pangool.mapreduce.GroupHandler;
-import com.datasalt.pangool.mapreduce.GroupHandlerWithRollup;
-import com.datasalt.pangool.mapreduce.InputProcessor;
+import com.datasalt.pangool.api.GroupHandler;
+import com.datasalt.pangool.api.GroupHandlerWithRollup;
+import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
+import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
+import com.datasalt.pangool.mapreduce.GroupComparator;
+import com.datasalt.pangool.mapreduce.Partitioner;
 import com.datasalt.pangool.mapreduce.RollupReducer;
 import com.datasalt.pangool.mapreduce.SimpleReducer;
+import com.datasalt.pangool.mapreduce.SortComparator;
 
 /**
  * 
@@ -196,9 +197,12 @@ public class CoGrouper {
 		// Set Reducer Handler
 		job.getConfiguration().setClass(CONF_REDUCER_HANDLER, reduceHandler, GroupHandler.class);
 
-		job.setJarByClass((jarByClass != null) ? jarByClass : reduceHandler);
+		// Enabling serialization
+		TupleInternalSerialization.enableSerialization(job.getConfiguration());
+		
+		job.setJarByClass((jarByClass != null) ? jarByClass : reduceHandler);		
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(DoubleBufferedSourcedTuple.class);
+		job.setMapOutputKeyClass(DoubleBufferedTuple.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(Partitioner.class);
 		job.setGroupingComparatorClass(GroupComparator.class);

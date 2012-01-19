@@ -1,4 +1,4 @@
-package com.datasalt.pangool.io.tuple;
+package com.datasalt.pangool.mapreduce;
 
 import static org.apache.hadoop.io.WritableComparator.compareBytes;
 import static org.apache.hadoop.io.WritableComparator.readDouble;
@@ -20,7 +20,7 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.Schema;
@@ -29,13 +29,8 @@ import com.datasalt.pangool.SortCriteria;
 import com.datasalt.pangool.SortCriteria.SortElement;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 
-/**
- * 
- * @author pere
- *
- */
 @SuppressWarnings("rawtypes")
-public class SortComparator implements RawComparator<SourcedTuple>, Configurable {
+public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	private Configuration conf;
 	protected PangoolConfig config; // so that GroupComparator can access it
@@ -51,6 +46,7 @@ public class SortComparator implements RawComparator<SourcedTuple>, Configurable
 
 	/*
 	 * When comparing, we save the source Ids, if we find them
+	 * TODO: These tho variables does not seems thread safe. Solve!
 	 */
 	int firstSourceId  = 0;
 	int secondSourceId = 0;
@@ -76,7 +72,7 @@ public class SortComparator implements RawComparator<SourcedTuple>, Configurable
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
 	@Override
-	public int compare(SourcedTuple w1, SourcedTuple w2) {
+	public int compare(ITuple w1, ITuple w2) {
 		resetSourceIds();
 		
 		int fieldsToCompare = commonCriteria.getSortElements().length;
@@ -92,7 +88,7 @@ public class SortComparator implements RawComparator<SourcedTuple>, Configurable
 		}
 		
 		// Otherwise, continue comparing
-		int firstSourceId = w1.getSource();
+		int firstSourceId = w1.getInt(Field.SOURCE_ID_FIELD_NAME);
 		
 		SortCriteria particularCriteria = config.getSorting().getSpecificCriteriaByName(firstSourceId);
 		if(particularCriteria != null) {
@@ -108,7 +104,7 @@ public class SortComparator implements RawComparator<SourcedTuple>, Configurable
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
 	@SuppressWarnings("unchecked")
-	public int compare(int fieldsToCompare, Schema schema, SortCriteria sortCriteria, SourcedTuple tuple1, SourcedTuple tuple2) {
+	public int compare(int fieldsToCompare, Schema schema, SortCriteria sortCriteria, ITuple tuple1, ITuple tuple2) {
 		
 		for(int depth = 0; depth < fieldsToCompare; depth++) {
 			Field field = schema.getField(depth);
@@ -135,8 +131,8 @@ public class SortComparator implements RawComparator<SourcedTuple>, Configurable
 				comparison = compareObjects(object1, object2);
 			}
 
-			firstSourceId  = tuple1.getSource();
-			secondSourceId = tuple2.getSource();
+			firstSourceId  = tuple1.getInt(Field.SOURCE_ID_FIELD_NAME);
+			secondSourceId = tuple2.getInt(Field.SOURCE_ID_FIELD_NAME);
 			
 			if(comparison != 0) {
 				return (sort == SortOrder.ASC) ? comparison : -comparison;

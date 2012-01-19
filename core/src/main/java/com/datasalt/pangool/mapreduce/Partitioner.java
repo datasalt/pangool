@@ -1,4 +1,4 @@
-package com.datasalt.pangool.io.tuple;
+package com.datasalt.pangool.mapreduce;
 
 import java.util.List;
 
@@ -6,13 +6,8 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.ITuple;
 
-/**
- * 
- * @author pere
- *
- */
 public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<ITuple, NullWritable> implements Configurable {
 
 	private static final String CONF_PARTITIONER_FIELDS = Partitioner.class.getName() + ".partitioner.fields";

@@ -13,44 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangolin.grouper.io.tuple;
+package com.datasalt.pangool.io.tuple;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Map;
 
-import org.apache.hadoop.conf.Configurable;
-import org.apache.hadoop.io.WritableComparable;
-import org.apache.thrift.TBase;
-
-import com.datasalt.pangolin.grouper.Schema;
-import com.datasalt.pangolin.grouper.Grouper;
-import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangool.CoGrouperException;
 
 /**
  * This is the common interface implemented by {@link Tuple} and {@link DoubleBufferPangolinTuple}.
- * A Tuple is basically a hadoop-serializable object containing fields according to the schema defined in 
- * {@link Schema}. Tuples are used in intermediate {@link org.apache.hadoop.mapreduce.Mapper}
- * outputs in {@link Grouper} and {@link Grouper}
- * 
- * @author eric
- *
+ * A Tuple is basically a map that can be used in Pangool for carrying data. 
  */
 public interface ITuple extends Map<String,Object>,Comparable<ITuple>/*extends WritableComparable<ITuple>,Configurable*/{
 	
-	//public Schema getSchema();
-	
 	public int partialHashCode(String[] fields);
-	
-	//public void setSchema(Schema schema);
-	
-	
-	//Getters
-	
 	
 	public int size();
 	
@@ -94,17 +70,12 @@ public interface ITuple extends Map<String,Object>,Comparable<ITuple>/*extends W
 	
 	public String toString(Collection<String> fields);
 		
-	
-	
-//	public void write(Schema schema,DataOutput output) throws IOException;
-//	public void readFields(Schema schema,DataInput input) throws IOException;
-//	
 	/**
 	 * Thrown when a field is not present in schema
 	 * 
 	 *
 	 */
-	public static class InvalidFieldException extends GrouperException {
+	public static class InvalidFieldException extends CoGrouperException {
     private static final long serialVersionUID = 1L;
 
 		public InvalidFieldException(String s,Throwable e) {
@@ -118,6 +89,5 @@ public interface ITuple extends Map<String,Object>,Comparable<ITuple>/*extends W
 		public InvalidFieldException(Throwable e) {
 			super(e);
 		}
-	}
-	
+	}	
 }

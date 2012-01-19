@@ -1,16 +1,15 @@
-package com.datasalt.pangool.mapreduce;
+package com.datasalt.pangool.api;
 
 import java.io.IOException;
 
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
-import com.datasalt.pangolin.grouper.mapreduce.SimpleReducer;
+import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.mapreduce.RollupReducer;
+import com.datasalt.pangool.mapreduce.SimpleReducer;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
-import com.datasalt.pangool.Schema;
 
 /**
  * 

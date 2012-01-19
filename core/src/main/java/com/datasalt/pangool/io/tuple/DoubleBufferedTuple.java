@@ -5,54 +5,38 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
+import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.tuple.ITuple;
 
-import com.datasalt.pangolin.grouper.Schema;
-import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
+public class DoubleBufferedTuple implements ITuple, ITupleInternal{
 
-public class DoubleBufferedSourcedTuple implements ISourcedTuple{
-
-  private ISourcedTuple currentTuple;
-  private ISourcedTuple previousTuple;
+  private ITuple currentTuple;
+  private ITuple previousTuple;
   
-  public DoubleBufferedSourcedTuple(ITuple tuple){
-  	this.currentTuple = new SourcedTuple(tuple);
-		this.previousTuple = new SourcedTuple(new BaseTuple());
+  public DoubleBufferedTuple(ITuple tuple){
+  	this.currentTuple = tuple;
+		this.previousTuple = new Tuple();
   }
 	
-	public DoubleBufferedSourcedTuple(){
-		this.currentTuple = new SourcedTuple(new BaseTuple());
-		this.previousTuple = new SourcedTuple(new BaseTuple());
+	public DoubleBufferedTuple(){
+		this.currentTuple = new Tuple();
+		this.previousTuple = new Tuple();
 	}
-	
-	public DoubleBufferedSourcedTuple(ISourcedTuple containedTuple){
-		this.currentTuple = containedTuple;
-	}
-		
+			
 	public void setContainedTuple(ITuple tuple){
-		this.currentTuple.setContainedTuple(tuple);
+		this.currentTuple = tuple;
 	}
 	
 	public void swapInstances() throws IOException {
-		ISourcedTuple tmpTuple = previousTuple;
+		ITuple tmpTuple = previousTuple;
 		previousTuple = currentTuple;
 		currentTuple = tmpTuple;
 	}
-	
-	public int getSource(){
-		return currentTuple.getSource();
-	}
-	
-	public void setSource(int sourceId){
-		this.currentTuple.setSource(sourceId);
-	}
-	
-	public ISourcedTuple getPreviousTuple() {
+		
+	public ITuple getPreviousTuple() {
 		return previousTuple;
 	}
-	
-	
+		
 	@Override
 	public void clear() {
 		currentTuple.clear();
@@ -218,11 +202,6 @@ public class DoubleBufferedSourcedTuple implements ISourcedTuple{
 	@Override
 	public boolean equals(Object that){
 		return currentTuple.equals(that);
-	}
-
-	@Override
-	public ITuple getContainedTuple() {
-		return currentTuple.getContainedTuple();
 	}
 
 	@Override

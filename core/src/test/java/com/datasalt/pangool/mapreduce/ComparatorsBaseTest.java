@@ -1,4 +1,4 @@
-package com.datasalt.pangool.io.tuple;
+package com.datasalt.pangool.mapreduce;
 
 import java.io.IOException;
 
@@ -6,8 +6,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 
-import com.datasalt.pangolin.grouper.io.tuple.BaseTuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.mapreduce.SortComparator;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
@@ -18,7 +20,7 @@ import com.datasalt.pangool.SortCriteria.SortOrder;
 
 public class ComparatorsBaseTest {
 
-	protected void setConf(SortComparator comparator) throws InvalidFieldException, CoGrouperException, JsonGenerationException, JsonMappingException, IOException {
+	protected void setConf(SortComparator comparator) throws InvalidFieldException, CoGrouperException, JsonGenerationException, JsonMappingException, IOException, InvalidFieldException {
 		Configuration conf = new Configuration();
 		PangoolConfig config = new PangoolConfigBuilder()
 		.setGroupByFields("booleanField", "intField")
@@ -37,23 +39,21 @@ public class ComparatorsBaseTest {
 		comparator.setConf(conf);
 	}
 	
-	protected SourcedTuple getTuple1(boolean booleanValue, int intValue, String strValue) {
-		SourcedTuple tuple = new SourcedTuple(new BaseTuple());
+	protected Tuple getTuple1(boolean booleanValue, int intValue, String strValue) {
+		Tuple tuple = new Tuple();
 		tuple.setBoolean("booleanField", booleanValue);
 		tuple.setInt("intField", intValue);
 		tuple.setString("strField", strValue);
 		tuple.setInt(Field.SOURCE_ID_FIELD_NAME, 1);
-		tuple.setSource(1);
 		return tuple;
 	}
 	
-	protected SourcedTuple getTuple2(boolean booleanValue, int intValue, long longValue) {
-		SourcedTuple tuple = new SourcedTuple(new BaseTuple());
+	protected Tuple getTuple2(boolean booleanValue, int intValue, long longValue) {
+		Tuple tuple = new Tuple();
 		tuple.setBoolean("booleanField", booleanValue);
 		tuple.setInt("intField", intValue);
 		tuple.setLong("longField", longValue);
 		tuple.setInt(Field.SOURCE_ID_FIELD_NAME, 2);
-		tuple.setSource(2);
 		return tuple;
 	}
 }

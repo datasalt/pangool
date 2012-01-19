@@ -15,10 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.io.tuple;
+package com.datasalt.pangool.io.tuple.ser;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -29,32 +30,33 @@ import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 
-
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
+import com.datasalt.pangool.io.tuple.ITupleInternal;
 
 /**
- * A {@link Serialization} for types {@link SourcedTuple}
+ * A {@link Serialization} for types that implements {@link ITupleInternal}
  * <p>
- * To use this serialization, make sure that the Hadoop property
- * <code>io.serializations</code> includes the fully-qualified classname of this class
+ * To use this serialization with Hadoop, use the method
+ * {@link #enableSerialization(Configuration)} over the
+ * Hadoop configuration. 
  */
-public class SourcedTupleSerialization implements Serialization<ISourcedTuple>,Configurable{
+public class TupleInternalSerialization implements Serialization<ITupleInternal>,Configurable{
 	
 	private Configuration conf;
 	private com.datasalt.pangolin.io.Serialization ser;
 	private PangoolConfig pangoolConfig;
 	
-	public SourcedTupleSerialization(){
+	public TupleInternalSerialization(){
 	}
 	
 	@Override
   public boolean accept(Class<?> c) {
-		return (ISourcedTuple.class.isAssignableFrom(c));
+		return (DoubleBufferedTuple.class.isAssignableFrom(c));
   }
 
 	@Override
@@ -65,32 +67,30 @@ public class SourcedTupleSerialization implements Serialization<ISourcedTuple>,C
 	@Override
 	public void setConf(Configuration thatConf) {
 		try{
-		if (thatConf != null){
-			this.conf = new Configuration(thatConf);
-			disableSourcedTupleSerialization(this.conf); // !!! MEGA TRICKY!!!!
-			
-			this.pangoolConfig = PangoolConfigBuilder.get(conf);
-			this.ser= new com.datasalt.pangolin.io.Serialization(this.conf);
-		}
+			if (thatConf != null){
+				this.conf = new Configuration(thatConf);
+				
+				// Mega tricky!!!!. This is to avoid recursive serialization instantiation!!
+				disableSerialization(this.conf);
+				
+				this.pangoolConfig = PangoolConfigBuilder.get(conf);
+				this.ser= new com.datasalt.pangolin.io.Serialization(this.conf);
+			}
 		} catch(CoGrouperException e){
 			throw new RuntimeException(e); 
-		} catch(IOException e){
+		} catch(IOException e) {
 			throw new RuntimeException(e);
-		} catch(NumberFormatException e) {
-			throw new RuntimeException(e);
-		} catch (InvalidFieldException e) {
-			throw new RuntimeException(e);
-		}
+		} 
 	}
 
 	@Override
-	public Serializer<ISourcedTuple> getSerializer(Class<ISourcedTuple> c) {
-		return new SourcedTupleSerializer(this.ser,this.pangoolConfig);
+	public Serializer<ITupleInternal> getSerializer(Class<ITupleInternal> c) {
+		return new TupleInternalSerializer(this.ser,this.pangoolConfig);
 	}
 
 	@Override
-	public Deserializer<ISourcedTuple> getDeserializer(Class<ISourcedTuple> c) {
-		return new SourcedTupleDeserializer(this.ser,this.pangoolConfig,c);
+	public Deserializer<ITupleInternal> getDeserializer(Class<ITupleInternal> c) {
+		return new TupleInternalDeserializer(this.ser,this.pangoolConfig,c);
 	}
 	
 	
@@ -115,7 +115,7 @@ public class SourcedTupleSerialization implements Serialization<ISourcedTuple>,C
 				for(Field field : schema.getFields()) {
 					Class<?> type = field.getType();
 					if(type.isEnum()) {
-						Method method = type.getMethod("values",null);
+						Method method = type.getMethod("values", (Class<?>[]) null);
 						Object values = method.invoke(null);
 						mapToFill.put(field.getName(),(Enum[])values);
 					}
@@ -126,24 +126,31 @@ public class SourcedTupleSerialization implements Serialization<ISourcedTuple>,C
 			}
 		}
 		
-		
-		public static void enableSourcedTupleSerialization(Configuration conf) {
-			String ser = conf.get("io.serializations").trim();
-			if (ser.length() !=0 ) {
-				ser += ",";
+		/**
+		 * Use this method to enable this serialization in Hadoop
+		 */
+		public static void enableSerialization(Configuration conf) {
+			String serClass = TupleInternalSerialization.class.getName();
+			Collection<String> currentSers = conf.getStringCollection("io.serializations");
+			
+			if (currentSers.size() == 0) {
+				conf.set("io.serializations", serClass);
+				return;
 			}
-			//Adding the Tuple serialization
-			ser += SourcedTupleSerialization.class.getName();
-			conf.set("io.serializations", ser);
+
+			// Check if it is already present
+			if (!currentSers.contains(serClass)) {
+				currentSers.add(serClass);
+				conf.setStrings("io.serializations", currentSers.toArray(new String[]{}));
+			}
 	  }
 		
 		/**
-		 * Mega tricky!!!!. This is to avoid recursive serialization instantiation!!
-		 * @param conf
+		 * Use this method to disable this serialization in Hadoop
 		 */
-		public static void disableSourcedTupleSerialization(Configuration conf){
+		public static void disableSerialization(Configuration conf){
 			String ser = conf.get("io.serializations").trim();
-			String stToSearch = Pattern.quote("," + SourcedTupleSerialization.class.getName());
+			String stToSearch = Pattern.quote("," + TupleInternalSerialization.class.getName());
 			ser = ser.replaceAll(stToSearch, "");
 			conf.set("io.serializations", ser);
 		}

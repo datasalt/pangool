@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangool.mapreduce;
+package com.datasalt.pangool.api;
 
 import java.io.IOException;
 
@@ -22,42 +22,35 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 
-import com.datasalt.pangolin.grouper.GrouperException;
-import com.datasalt.pangolin.grouper.Schema;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
-import com.datasalt.pangool.io.tuple.DoubleBufferedSourcedTuple;
-import com.datasalt.pangool.io.tuple.SourcedTuple;
+import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.PangoolConfig;
+import com.datasalt.pangool.PangoolConfigBuilder;
+import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
+import com.datasalt.pangool.io.tuple.ITuple;
 
 /**
  * TODO doc
  */
 @SuppressWarnings("rawtypes") 
-public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT_VALUE,Tuple,NullWritable>{
+public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT_KEY,INPUT_VALUE,DoubleBufferedTuple,NullWritable>{
 	
 	private Collector collector;
 	
 	public static final class Collector {
-		private NullWritable nullValue = NullWritable.get();
     private Mapper.Context context;
-    private Schema schema;
+    private PangoolConfig pangoolConfig;
     
-    private ThreadLocal<DoubleBufferedSourcedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedSourcedTuple>() {
+    private ThreadLocal<DoubleBufferedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedTuple>() {
 
-    	DoubleBufferedSourcedTuple cachedTuple;
-    	
     	@Override
-    	public DoubleBufferedSourcedTuple get() {
-    		return cachedTuple;
-    	}
-    	
-    	public void set(DoubleBufferedSourcedTuple cachedTuple) {
-    		this.cachedTuple = cachedTuple;
-    	}
+      protected DoubleBufferedTuple initialValue() {
+	      return new DoubleBufferedTuple();
+      }
     };
     
-		Collector(Schema schema, Mapper.Context context){
-			this.schema = schema;
+		Collector(PangoolConfig pangoolConfig, Mapper.Context context){
+			this.pangoolConfig = pangoolConfig;
 			this.context = context;
 		}
 		
@@ -68,20 +61,23 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 			return context;
 		}
 		
-		@SuppressWarnings("unchecked")
-    public void write(ITuple tuple) throws IOException,InterruptedException {
-			context.write(tuple, nullValue);
+		public PangoolConfig getPangoolConfig() {
+			return pangoolConfig;
 		}
 		
-		public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
-			DoubleBufferedSourcedTuple sTuple = cachedSourcedTuple.get();
-			if(sTuple == null) {
-				sTuple = new DoubleBufferedSourcedTuple();
-				cachedSourcedTuple.set(sTuple);
-			}
+		@SuppressWarnings("unchecked")
+    public void write(ITuple tuple) throws IOException,InterruptedException {
+			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
 			sTuple.setContainedTuple(tuple);
-			sTuple.setSource(sourceId);
-			write(sTuple);
+			context.write(sTuple, NullWritable.get());
+		}
+		
+		@SuppressWarnings("unchecked")
+    public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
+			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
+			sTuple.setContainedTuple(tuple);
+			sTuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);		
+			context.write(sTuple, NullWritable.get());
 		}
 	}
 	
@@ -90,21 +86,25 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 	 */
   @Override
 	public final void setup(org.apache.hadoop.mapreduce.Mapper.Context context) throws IOException,InterruptedException {
-		try {
+  	try {
 			Configuration conf = context.getConfiguration();
-			Schema schema = Schema.parse(conf);
-			this.collector = new Collector(schema, context);
+			PangoolConfig pangoolConfig;
+	    
+			pangoolConfig = PangoolConfigBuilder.get(conf);
+			this.collector = new Collector(pangoolConfig, context);
 			setup(collector);
-		} catch(GrouperException e) {
-			throw new RuntimeException(e);
-		}
+			
+    } catch(CoGrouperException e) {
+    	throw new RuntimeException(e);
+    }
+
 	}
 
   /**
    * Called once at the start of the task. Override it to implement
 	 * your custom logic. 
    */
-	public void setup(Collector collector) throws IOException,InterruptedException,GrouperException {
+	public void setup(Collector collector) throws IOException,InterruptedException {
 		
 	}	
 
@@ -128,16 +128,12 @@ public abstract class InputProcessor<INPUT_KEY,INPUT_VALUE> extends Mapper<INPUT
 	 */
 	@Override
 	public final void map(INPUT_KEY key, INPUT_VALUE value, Context context) throws IOException,InterruptedException {
-		try{
-			process(key,value,collector);
-		} catch(GrouperException e){
-			throw new RuntimeException(e);
-		}
+		process(key,value,collector);
 	}
 	
 	/**
 	 * Called once per each input pair of key/values. Override it to implement
 	 * your custom logic. 
 	 */
-	public abstract void process(INPUT_KEY key,INPUT_VALUE value,Collector collector) throws IOException,InterruptedException,GrouperException;
+	public abstract void process(INPUT_KEY key,INPUT_VALUE value,Collector collector) throws IOException,InterruptedException;
 }

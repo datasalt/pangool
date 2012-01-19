@@ -13,28 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangolin.grouper.mapreduce;
+package com.datasalt.pangool.io.tuple;
 
-import java.io.IOException;
-
-import org.apache.hadoop.io.NullWritable;
-
-import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
+import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
 
 
-
-public class RollupCombiner extends RollupReducer<DoubleBufferPangolinTuple,NullWritable>{
-	
-	@Override
-	public void setup(Context context) throws IOException,InterruptedException {
-		super.setup(context);
-
-	}
-	
-	@Override
-	public void cleanup(Context context) throws IOException,InterruptedException {
-		super.cleanup(context);
-	}
-	
+/**
+ * {@link ITuple} that supports internal Pangool serialization 
+ * implements this interface. That serves Hadoop
+ * to know that they should be serialized with {@link TupleInternalSerialization}   
+ */
+public interface ITupleInternal extends ITuple {
 	
 }

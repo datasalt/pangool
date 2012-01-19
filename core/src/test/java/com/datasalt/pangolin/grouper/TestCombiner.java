@@ -34,7 +34,7 @@ import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.io.tuple.Tuple;
+import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
 
@@ -43,12 +43,12 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 
 	private static class Mapy extends InputProcessor<Text,NullWritable>{
 		
-		private Tuple outputTuple;
+		private DoubleBufferPangolinTuple outputTuple;
 		
     @Override
 		public void setup(Schema schema,Context context) throws IOException,InterruptedException {
 			//super.setup(schema,context);
-			this.outputTuple = new Tuple();
+			this.outputTuple = new DoubleBufferPangolinTuple();
 			
 		}
 		
@@ -167,7 +167,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		grouper.setRollupBaseFieldsToGroupBy("country");
 		grouper.setFieldsToGroupBy("country","age","name");
 		grouper.setCombinerHandler(Combi.class);
-		grouper.setOutputKeyClass(Tuple.class);
+		grouper.setOutputKeyClass(DoubleBufferPangolinTuple.class);
 		grouper.setOutputValueClass(NullWritable.class);
 		grouper.addInput(new Path("input"),SequenceFileInputFormat.class, Mapy.class);
 		grouper.setOutputPath(new Path("output"));
