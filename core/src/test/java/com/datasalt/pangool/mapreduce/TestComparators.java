@@ -19,7 +19,6 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.BaseTest;
 import com.datasalt.pangool.CoGrouperException;
@@ -33,6 +32,7 @@ import com.datasalt.pangool.SortCriteria.SortElement;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.Sorting;
 import com.datasalt.pangool.SortingBuilder;
+import com.datasalt.pangool.io.Serialization;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;

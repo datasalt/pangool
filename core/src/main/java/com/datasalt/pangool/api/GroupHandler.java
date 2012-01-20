@@ -2,6 +2,7 @@ package com.datasalt.pangool.api;
 
 import java.io.IOException;
 
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 
@@ -35,20 +36,12 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 		}
 	}
 	
-	/**
-	 * 
-	 * @param schema
-	 *          The schema from the tuples
-	 * @param context
-	 *          See {@link Reducer.Context}
-	 */
-	public void setup(State state, Reducer.Context context) throws IOException, InterruptedException, CoGrouperException {
+	public void setup(State state, Context context) throws IOException, InterruptedException, CoGrouperException {
 
 	}
 
-	public void cleanup(State state, Reducer.Context context) throws IOException, InterruptedException,
+	public void cleanup(State state, Context context) throws IOException, InterruptedException,
 	    CoGrouperException {
-
 	}
 
 	/**
@@ -65,5 +58,4 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 	    InterruptedException, CoGrouperException {
 		
 	}
-
 }

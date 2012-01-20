@@ -16,7 +16,7 @@ import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
-import com.datasalt.pangolin.io.Serialization;
+import com.datasalt.pangool.io.Serialization;
 
 public class TestTuple extends BaseTest{
 

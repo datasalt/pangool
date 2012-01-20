@@ -4,11 +4,6 @@ import org.apache.hadoop.conf.Configuration;
 
 import com.datasalt.pangool.io.tuple.ITuple;
 
-/**
- * 
- * @author pere
- *
- */
 public class GroupComparator extends SortComparator {
 
 	private int numFieldsCompared;

@@ -31,12 +31,12 @@ import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangolin.commons.Buffer;
 
-import com.datasalt.pangolin.io.Serialization;
 import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.io.Buffer;
+import com.datasalt.pangool.io.Serialization;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITupleInternal;
 

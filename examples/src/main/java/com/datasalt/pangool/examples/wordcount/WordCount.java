@@ -7,13 +7,14 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangolin.commons.HadoopUtils;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
@@ -22,6 +23,7 @@ import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SortingBuilder;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
+import com.datasalt.pangool.api.GroupHandler.State;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
@@ -79,7 +81,7 @@ public class WordCount {
 	public Job getJob(Configuration conf, String input, String output) throws InvalidFieldException, CoGrouperException,
 	    IOException {
 		FileSystem fs = FileSystem.get(conf);
-		HadoopUtils.deleteIfExists(fs, new Path(output));
+		fs.delete(new Path(output), true);
 
 		PangoolConfig config = new PangoolConfigBuilder()
 		    .addSchema(0, Schema.parse(WORD_FIELD + ":string, " + COUNT_FIELD + ":int")).setGroupByFields(WORD_FIELD)

@@ -48,7 +48,7 @@ import com.datasalt.pangool.io.tuple.ITupleInternal;
 public class TupleInternalSerialization implements Serialization<ITupleInternal>,Configurable{
 	
 	private Configuration conf;
-	private com.datasalt.pangolin.io.Serialization ser;
+	private com.datasalt.pangool.io.Serialization ser;
 	private PangoolConfig pangoolConfig;
 	
 	public TupleInternalSerialization(){
@@ -74,7 +74,7 @@ public class TupleInternalSerialization implements Serialization<ITupleInternal>
 				disableSerialization(this.conf);
 				
 				this.pangoolConfig = PangoolConfigBuilder.get(conf);
-				this.ser= new com.datasalt.pangolin.io.Serialization(this.conf);
+				this.ser= new com.datasalt.pangool.io.Serialization(this.conf);
 			}
 		} catch(CoGrouperException e){
 			throw new RuntimeException(e); 
