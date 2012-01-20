@@ -32,15 +32,14 @@ import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.datasalt.pangolin.grouper.SortCriteria.SortElement;
+import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
-import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
-import com.datasalt.pangool.mapreduce.RollupCombiner;
 import com.datasalt.pangool.mapreduce.SimpleCombiner;
 import com.datasalt.pangool.mapreduce.SimpleReducer;
 
@@ -255,7 +254,7 @@ public class Grouper {
 
 		if(combinerHandler != null) {
 			// TODO this needs to be discussed
-			job.setCombinerClass((rollupBaseGroupFields == null) ? SimpleCombiner.class : RollupCombiner.class);
+			job.setCombinerClass(SimpleCombiner.class);
 			Grouper.setCombinerHandler(job.getConfiguration(), combinerHandler);
 		}
 		Grouper.setGroupHandler(job.getConfiguration(), outputHandler);

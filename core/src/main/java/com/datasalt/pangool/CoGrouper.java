@@ -22,7 +22,6 @@ import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
 import com.datasalt.pangool.mapreduce.GroupComparator;
 import com.datasalt.pangool.mapreduce.Partitioner;
-import com.datasalt.pangool.mapreduce.RollupCombiner;
 import com.datasalt.pangool.mapreduce.RollupReducer;
 import com.datasalt.pangool.mapreduce.SimpleCombiner;
 import com.datasalt.pangool.mapreduce.SimpleReducer;
