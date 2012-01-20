@@ -46,10 +46,10 @@ public class Grep {
 		};
 	}
 	
-	public Job getJob(Configuration conf, String input, String output) throws IOException, CoGrouperException, URISyntaxException {
+	public Job getJob(Configuration conf, String regex, String input, String output) throws IOException, CoGrouperException, URISyntaxException {
 		HadoopUtils.deleteIfExists(FileSystem.get(conf), new Path(output));
 		Processor processor = new Processor(conf);
-		processor.setHandler(new GrepProcessor("foo"));
+		processor.setHandler(new GrepProcessor(regex));
 		processor.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
 		processor.addInput(new Path(input), TextInputFormat.class);
 		return processor.createJob();
