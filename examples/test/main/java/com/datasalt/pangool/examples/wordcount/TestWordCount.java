@@ -7,8 +7,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
+import com.datasalt.pangolin.commons.HadoopUtils;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.google.common.io.Files;
@@ -45,5 +48,8 @@ public class TestWordCount {
 		
 		assertEquals("d", output[3][0]);
 		assertEquals("4", output[3][1]);
+		
+		HadoopUtils.deleteIfExists(FileSystem.get(conf), new Path(INPUT));
+		HadoopUtils.deleteIfExists(FileSystem.get(conf), new Path(OUTPUT));
 	}
 }

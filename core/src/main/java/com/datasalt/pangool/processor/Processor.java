@@ -108,7 +108,7 @@ public class Processor {
 			if(fS.exists(toHdfs)) { // Optionally, copy to DFS if
 				fS.delete(toHdfs, true);
 			}
-			FileUtil.copy(FileSystem.getLocal(conf), toHdfs, FileSystem.get(conf), toHdfs, false, conf);
+			FileUtil.copy(FileSystem.getLocal(conf), toHdfs, FileSystem.get(conf), toHdfs, true, conf);
 		}
 		
 		conf.set(ProcessorMapper.PROCESSOR_HANDLER, file + "");
