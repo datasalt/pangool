@@ -8,6 +8,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
+import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.api.GroupHandler.State;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;

@@ -21,6 +21,10 @@ public class SortingBuilder extends SortCriteriaBuilder {
 	private Map<Integer, SortCriteriaBuilder> secondarySortBuilders;
 	boolean sourceIdFieldAdded = false;
 	
+	public static SortingBuilder newOne() {
+		return new SortingBuilder();
+	}
+	
 	public SortingBuilder() {
 		super(null);
 		secondarySortBuilders = new HashMap<Integer, SortCriteriaBuilder>();

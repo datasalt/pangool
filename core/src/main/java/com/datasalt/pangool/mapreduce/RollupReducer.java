@@ -58,6 +58,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 		try {
 			Configuration conf = context.getConfiguration();
 			this.pangoolConfig = PangoolConfigBuilder.get(conf);
+			this.schema = pangoolConfig.getSchemes().values().iterator().next();
 			this.state = new State(pangoolConfig);
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.groupByFields = pangoolConfig.getGroupByFields();

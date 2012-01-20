@@ -28,6 +28,10 @@ public class PangoolConfigBuilder {
 
 	private PangoolConfig config = new PangoolConfig();
 	
+	public static PangoolConfigBuilder newOne() {
+		return new PangoolConfigBuilder();
+	}
+	
 	public PangoolConfigBuilder setSorting(Sorting sorting) {
 		config.setSorting( sorting );
 		return this;

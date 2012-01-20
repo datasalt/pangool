@@ -1,4 +1,4 @@
-package com.datasalt.pangolin.commons.test;
+package com.datasalt.pangool.test;
 
 public class Pair<T1, T2> {
 

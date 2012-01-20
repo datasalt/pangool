@@ -1,14 +1,10 @@
-package com.datasalt.pangolin.commons.test;
-
-
+package com.datasalt.pangool.test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -25,16 +21,10 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 
-
 import com.datasalt.pangolin.commons.HadoopUtils;
-
-
 
 /**
  * Niceties and utilities for making Hadoop unit tests less painfully. 
- * 
- * @author pere
- *
  */
 public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 

@@ -1,4 +1,4 @@
-package com.datasalt.pangolin.commons.test;
+package com.datasalt.pangool.test;
 
 import java.io.IOException;
 
@@ -38,11 +38,7 @@ public abstract class AbstractBaseTest {
 	
 	private static void configureSerialization(Configuration conf) {
 		ThriftSerialization.enableThriftSerialization(conf);
-		ProtoStuffSerialization.enableProtoStuffSerialization(conf);
-		//TupleSerialization.enableTupleSerialization(conf);
-		
-		TupleInternalSerialization.enableSerialization(conf);
-		
+		ProtoStuffSerialization.enableProtoStuffSerialization(conf);		
 	}
 	
 	private Configuration createConf(){

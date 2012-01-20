@@ -1,4 +1,4 @@
-package com.datasalt.pangolin.grouper;
+package com.datasalt.pangool.test;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -9,15 +9,19 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Before;
 
-import com.datasalt.pangolin.commons.test.AbstractBaseTest;
+import com.datasalt.pangolin.grouper.GrouperException;
+import com.datasalt.pangolin.grouper.Schema;
+import com.datasalt.pangolin.grouper.SortCriteria;
 import com.datasalt.pangolin.grouper.Schema.Field;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.thrift.test.A;
+import com.datasalt.pangool.test.AbstractBaseTest;
 
 public abstract class BaseTest extends AbstractBaseTest{
 
 	public static Schema SCHEMA;
+	private static long randomSeed = 123;
 
 	@Before
 	public void prepare2() throws GrouperException, IOException {
@@ -43,7 +47,7 @@ public abstract class BaseTest extends AbstractBaseTest{
 	 */
 	public static void fillTuple(boolean isRandom,Schema schema,ITuple tuple, int minIndex, int maxIndex) {
 		try {
-			Random random = new Random();
+			Random random = new Random(randomSeed);
 			//Schema schema = tuple.getSchema();
 			for (int i = minIndex; i <= maxIndex; i++) {
 				Field field = schema.getField(i);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.grouper;
+package com.datasalt.pangool;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -32,63 +32,57 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
-import com.datasalt.pangolin.commons.test.AbstractHadoopTestLibrary;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple;
-import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
-import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
-import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
-
+import com.datasalt.pangool.api.GroupHandler;
+import com.datasalt.pangool.api.GroupHandlerWithRollup;
+import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.api.InputProcessor.Collector;
+import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 
 public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
+	
+	public static final String TEST_OUT = "TEST-OUTPUT-" + TestGrouperWithRollup.class.getName(); 
 
 	private static class Mapy extends InputProcessor<Text,NullWritable>{
 		
-
-		private Schema schema;
-		
+		private PangoolConfig pangoolConfig;
+		private Schema schema;		
 		
     @SuppressWarnings("unchecked")
 		@Override
-		public void setup(Schema schema,Context context) throws IOException,InterruptedException,GrouperException  {
-			this.schema = schema;
-			
-			
+		public void setup(Collector collector) throws IOException,InterruptedException {
+    	pangoolConfig = collector.getPangoolConfig();
+			this.schema = pangoolConfig.getSchemes().entrySet().iterator().next().getValue();			
 		}
 		
 		
 		@SuppressWarnings("unchecked")
 		@Override
 		public void process(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
-			try {
-				DoubleBufferPangolinTuple outputKey = createTuple(key.toString(), schema);
-				collector.write(outputKey);
-			} catch (InvalidFieldException e) {
-				throw new RuntimeException(e);
-			}
+			Tuple outputKey = createTuple(key.toString(), schema);
+			collector.write(outputKey);
 		}
 	}
 	
-	private static class IdentityRed extends GroupHandler<Text,Text>{
+	private static class IdentityRed extends GroupHandlerWithRollup<Text,Text>{
 
 		//private Reducer.Context context;
 		private Text outputKey = new Text();
 		private Text outputValue = new Text();
 		
 		@Override
-		public void setup(Schema schema,@SuppressWarnings("rawtypes") Reducer.Context context) throws IOException,InterruptedException {
-			//this.context = context;
+		public void setup(State state, Reducer.Context context) throws IOException,InterruptedException {
 		}
 		
 
 		@Override
-		public void cleanup(Schema schema,Reducer.Context context) throws IOException,InterruptedException {
-			
+		public void cleanup(State state, Reducer.Context context) throws IOException,InterruptedException {			
 		}
 		
 		@SuppressWarnings("unchecked")
 		@Override
-    public void onOpenGroup(int depth,String field,ITuple firstElement,Reducer.Context context) throws IOException, InterruptedException {
+    public void onOpenGroup(int depth,String field,ITuple firstElement,State state, Reducer.Context context) throws IOException, InterruptedException {
 			outputKey.set("OPEN "+ depth);
 			outputValue.set(firstElement.toString());
 	    context.write(outputKey, outputValue);
@@ -97,7 +91,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 
 		@SuppressWarnings("unchecked")
 		@Override
-    public void onCloseGroup(int depth,String field,ITuple lastElement,Reducer.Context context) throws IOException, InterruptedException {
+    public void onCloseGroup(int depth,String field,ITuple lastElement,State state, Reducer.Context context) throws IOException, InterruptedException {
 			outputKey.set("CLOSE "+ depth);
 			outputValue.set(lastElement.toString());
 	    context.write(outputKey, outputValue);
@@ -106,7 +100,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public void onGroupElements(Iterable<ITuple> tuples,Reducer.Context context) throws IOException,InterruptedException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples,State state, Reducer.Context context) throws IOException,InterruptedException {
 			Iterator<ITuple> iterator = tuples.iterator();
 			outputKey.set("ELEMENT");
 			while ( iterator.hasNext()){
@@ -119,8 +113,8 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	}
 	
 	
-	private static DoubleBufferPangolinTuple createTuple(String text,Schema schema) throws InvalidFieldException{
-		DoubleBufferPangolinTuple tuple = new DoubleBufferPangolinTuple();
+	private static Tuple createTuple(String text,Schema schema){
+		Tuple tuple = new Tuple();
 		String[] tokens = text.split("\\s+");
 		String country = tokens[0];
 		Integer age = Integer.parseInt(tokens[1]);
@@ -135,7 +129,10 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	}
 	
 	@Test
-	public void test() throws IOException, InterruptedException, ClassNotFoundException, GrouperException, InstantiationException, IllegalAccessException{
+	public void test() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException, IllegalAccessException, CoGrouperException{
+		
+		String input = TEST_OUT + "/input";
+		String output = TEST_OUT + "/output";				
 		
 		String[] inputElements = new String[]{
 				"ES 20 listo 250",
@@ -151,35 +148,32 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		Schema schema = Schema.parse("country:string,age:vint,name:string,height:int");
 		int i=0; 
 		for (String inputElement : inputElements){
-			withInput("input",writable(inputElement));
+			withInput(input,writable(inputElement));
 			tuples[i++]=createTuple(inputElement, schema);
 		}
+		Path outputPath = new Path(output);
 		
-		Grouper grouper = new Grouper(getConf());
-		grouper.setOutputFormat(SequenceFileOutputFormat.class);
+		PangoolConfigBuilder builder = new PangoolConfigBuilder();
+		builder.addSchema(0, schema);
+		builder.setSorting(Sorting.parse("country ASC,age ASC,name ASC"));
+		builder.setRollupFrom("country");
+		builder.setGroupByFields("country", "age", "name");
+		
+		CoGrouper grouper = new CoGrouper(builder.build(), getConf());
+		
 		grouper.setOutputHandler(IdentityRed.class);
+		grouper.setOutput(outputPath, SequenceFileOutputFormat.class, Text.class, Text.class);		
+		grouper.addInput(new Path(input), SequenceFileInputFormat.class, Mapy.class);
 		
-		grouper.setSchema(schema);
-		SortCriteria sortCriteria = SortCriteria.parse("country ASC,age ASC,name ASC");
-		grouper.setSortCriteria(sortCriteria);
-		grouper.setRollupBaseFieldsToGroupBy("country");
-		grouper.setFieldsToGroupBy("country","age","name");
-		
-		grouper.setOutputKeyClass(Text.class);
-		grouper.setOutputValueClass(Text.class);
-		grouper.addInput(new Path("input"), SequenceFileInputFormat.class, Mapy.class);
-		Path outputPath = new Path("output");
-		grouper.setOutputPath(outputPath);
 		Job job = grouper.createJob();
 		job.setNumReduceTasks(1);
-
 		
 		assertRun(job);
 		
 		FileSystem fs = FileSystem.get(getConf());
-		Path output = new Path(outputPath + "/part-r-00000");
-		checkGrouperWithRollupOutput(output,0,2);
-		SequenceFile.Reader reader = new SequenceFile.Reader(fs,output,getConf());
+		Path outputFile = new Path(output + "/part-r-00000");
+		checkGrouperWithRollupOutput(outputFile,0,2);
+		SequenceFile.Reader reader = new SequenceFile.Reader(fs,outputFile,getConf());
 		
 		assertOutput(reader,"OPEN 0",tuples[0]);
 		assertOutput(reader,"OPEN 1",tuples[0]);
@@ -221,7 +215,9 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		assertOutput(reader,"CLOSE 2",tuples[6]);
 		assertOutput(reader,"CLOSE 1",tuples[6]);
 		assertOutput(reader,"CLOSE 0",tuples[6]);
-		
+
+		cleanUp();
+		trash(TEST_OUT);
 	}
 	
 	private enum State{

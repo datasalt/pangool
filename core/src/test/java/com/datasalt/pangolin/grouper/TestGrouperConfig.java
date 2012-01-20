@@ -14,6 +14,7 @@ import org.junit.Test;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
+import com.datasalt.pangool.test.BaseTest;
 
 /**
  * This test pretends to check if {@link Grouper} complains correctly about incoherence about {@link SortCriteria}, {@link Schema} and fields to be groupped.

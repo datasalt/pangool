@@ -13,7 +13,6 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Before;
 
-import com.datasalt.pangolin.commons.test.AbstractBaseTest;
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria.SortOrder;
@@ -21,6 +20,7 @@ import com.datasalt.pangool.io.Serialization;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.test.AbstractBaseTest;
 
 public abstract class BaseTest extends AbstractBaseTest {
 

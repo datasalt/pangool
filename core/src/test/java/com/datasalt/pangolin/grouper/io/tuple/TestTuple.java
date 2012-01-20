@@ -11,12 +11,12 @@ import org.apache.hadoop.io.serializer.Serializer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datasalt.pangolin.grouper.BaseTest;
 import com.datasalt.pangolin.grouper.GrouperException;
 import com.datasalt.pangolin.grouper.Schema;
 import com.datasalt.pangolin.grouper.SortCriteria.SortOrder;
 import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangool.io.Serialization;
+import com.datasalt.pangool.test.BaseTest;
 
 public class TestTuple extends BaseTest{
 
