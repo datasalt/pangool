@@ -1,5 +1,7 @@
 package com.datasalt.pangool.examples.wordcount;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -18,10 +20,30 @@ public class TestWordCount {
 	
 	@Test
 	public void test() throws IOException, InvalidFieldException, CoGrouperException, InterruptedException, ClassNotFoundException {
-		Files.write("a b b c c c", new File(INPUT), Charset.forName("UTF-8"));
+		Files.write("a b b c c c\nd d d d", new File(INPUT), Charset.forName("UTF-8"));
 		Configuration conf = new Configuration();
 		WordCount wordCount = new WordCount();
 		wordCount.getJob(conf, INPUT, OUTPUT).waitForCompletion(true);
-		System.out.println(Files.toString(new File(OUTPUT + "/part-r-00000"), Charset.forName("UTF-8")));
+		
+		String[][] output = new String[4][];
+		int count = 0;
+		
+		for(String line: Files.readLines(new File(OUTPUT + "/part-r-00000"), Charset.forName("UTF-8"))) {
+			String[] fields = line.split("\t");
+			output[count] = fields;
+			count++;
+		}
+		
+		assertEquals("a", output[0][0]);
+		assertEquals("1", output[0][1]);
+		
+		assertEquals("b", output[1][0]);
+		assertEquals("2", output[1][1]);
+		
+		assertEquals("c", output[2][0]);
+		assertEquals("3", output[2][1]);
+		
+		assertEquals("d", output[3][0]);
+		assertEquals("4", output[3][1]);
 	}
 }

@@ -52,6 +52,14 @@ public class CombinerHandler {
 			sTuple.setContainedTuple(tuple);
 			context.write(sTuple, NullWritable.get());
 		}
+		
+		@SuppressWarnings("unchecked")
+    public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
+			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
+			sTuple.setContainedTuple(tuple);
+			sTuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);		
+			context.write(sTuple, NullWritable.get());
+		}
 	}
 	
 	public void setup(State state, Reducer.Context context) throws IOException, InterruptedException, CoGrouperException {
