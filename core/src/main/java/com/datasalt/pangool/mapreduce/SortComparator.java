@@ -132,7 +132,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			}
 
 			firstSourceId  = tuple1.getInt(Field.SOURCE_ID_FIELD_NAME);
-			firstSourceId = (firstSourceId == null ? 0 : firstSourceId);
+			firstSourceId  = (firstSourceId  == null ? 0 : firstSourceId);
 			secondSourceId = tuple2.getInt(Field.SOURCE_ID_FIELD_NAME);
 			secondSourceId = (secondSourceId == null ? 0 : secondSourceId);
 			

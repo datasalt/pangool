@@ -34,16 +34,18 @@ import com.datasalt.pangool.api.GroupHandler.State;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
-public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY,OUTPUT_VALUE> {
+public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
-	private PangoolConfig pangoolConfig;
-	private State state;	
-	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
+	// Following variables protected to be shared by Combiners
+	protected PangoolConfig pangoolConfig;
+	protected TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
+	protected FilteredReadOnlyTuple groupTuple; // Tuple view over the group
+	protected State state;
+
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
-	private FilteredReadOnlyTuple groupTuple; // Tuple view over the group
-	
-  @SuppressWarnings("unchecked")
-  public void setup(Context context) throws IOException,InterruptedException {
+
+	@SuppressWarnings("unchecked")
+	public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
 			Configuration conf = context.getConfiguration();
@@ -52,53 +54,63 @@ public class SimpleReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
-			Class<? extends GroupHandler> handlerClass = CoGrouper.getGroupHandler(conf);
 
-			this.handler = ReflectionUtils.newInstance(handlerClass, conf);
+			loadHandler(conf, context);
 
-			handler.setup(state, context);
-			
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
-    }
-  }
-  
-  @Override
-  public void cleanup(Context context) throws IOException,InterruptedException {
-  	try{
-  		super.cleanup(context);
-  		handler.cleanup(state,context);
+		}
+	}
+
+	protected void loadHandler(Configuration conf, Context context) throws IOException, InterruptedException,
+	    CoGrouperException {
+		Class<? extends GroupHandler> handlerClass = CoGrouper.getGroupHandler(conf);
+		handler = ReflectionUtils.newInstance(handlerClass, conf);
+		handler.setup(state, context);
+	}
+
+	@Override
+	public void cleanup(Context context) throws IOException, InterruptedException {
+		super.cleanup(context);
+		cleanupHandler(context);
+	}
+
+	protected void cleanupHandler(Context context) throws IOException, InterruptedException {
+		try {
+			handler.cleanup(state, context);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
-    }
-  }
-  
+		}
+	}
 
-  @Override
-  public final void run(Context context) throws IOException,InterruptedException {
-  	super.run(context);
-  }
-  
-  @Override
-	public final void reduce(ITuple key, Iterable<NullWritable> values,Context context) throws IOException, InterruptedException {
+	@Override
+	public final void run(Context context) throws IOException, InterruptedException {
+		super.run(context);
+	}
+
+	@Override
+	public final void reduce(ITuple key, Iterable<NullWritable> values, Context context) throws IOException,
+	    InterruptedException {
 		Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
-		
+
 		// We get the firts tuple, to create the groupTuple view
 		iterator.next();
 		ITuple firstTupleGroup = (ITuple) context.getCurrentKey();
 
 		// we consumed the first element , so needs to comunicate to iterator
 		grouperIterator.setFirstTupleConsumed(true);
-		
+
 		// A view is created over the first tuple to give the user the group fields
 		groupTuple.setDelegatedTuple(firstTupleGroup);
-		
-		try{
+		callHandler(context);
+	}
+
+	protected void callHandler(Context context) throws IOException, InterruptedException {
+		try {
 			handler.onGroupElements(groupTuple, grouperIterator, state, context);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
-    }
+		}
 	}
-  
 }

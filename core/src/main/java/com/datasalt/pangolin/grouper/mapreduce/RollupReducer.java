@@ -34,6 +34,7 @@ import com.datasalt.pangolin.grouper.io.tuple.GroupComparator;
 import com.datasalt.pangolin.grouper.io.tuple.Partitioner;
 import com.datasalt.pangolin.grouper.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
+import com.datasalt.pangool.mapreduce.SimpleReducer;
 
 /**
  * 

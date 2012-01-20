@@ -69,15 +69,19 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 			this.minDepth = partitionerFields.length - 1;
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
-			
-			Class<? extends GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE>> handlerClass = 
-					(Class<? extends GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE>>) 
-					CoGrouper.getGroupHandler(conf);
-			this.handler = ReflectionUtils.newInstance(handlerClass, conf);
+		
+			loadHandler(conf);
 			handler.setup(state, context);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		} 
+  }
+  
+  protected void loadHandler(Configuration conf) {
+		Class<? extends GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE>> handlerClass = 
+			(Class<? extends GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE>>) 
+			CoGrouper.getGroupHandler(conf);
+		this.handler = ReflectionUtils.newInstance(handlerClass, conf);  	
   }
   
   public void cleanup(Context context) throws IOException,InterruptedException {

@@ -38,11 +38,11 @@ import com.datasalt.pangolin.grouper.io.tuple.SortComparator;
 import com.datasalt.pangolin.grouper.io.tuple.DoubleBufferPangolinTuple;
 import com.datasalt.pangolin.grouper.io.tuple.serialization.TupleSerialization;
 import com.datasalt.pangolin.grouper.mapreduce.InputProcessor;
-import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
 import com.datasalt.pangolin.grouper.mapreduce.RollupReducer;
-import com.datasalt.pangolin.grouper.mapreduce.SimpleCombiner;
-import com.datasalt.pangolin.grouper.mapreduce.SimpleReducer;
 import com.datasalt.pangolin.grouper.mapreduce.handler.GroupHandler;
+import com.datasalt.pangool.mapreduce.RollupCombiner;
+import com.datasalt.pangool.mapreduce.SimpleCombiner;
+import com.datasalt.pangool.mapreduce.SimpleReducer;
 
 /**
  * GrouperWithRollup is the factory for creating MapReduce jobs that need to use TODO doc

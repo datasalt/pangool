@@ -14,8 +14,7 @@ import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.datasalt.pangolin.grouper.mapreduce.RollupCombiner;
-import com.datasalt.pangolin.grouper.mapreduce.SimpleCombiner;
+import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.api.InputProcessor;
@@ -23,7 +22,9 @@ import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
 import com.datasalt.pangool.mapreduce.GroupComparator;
 import com.datasalt.pangool.mapreduce.Partitioner;
+import com.datasalt.pangool.mapreduce.RollupCombiner;
 import com.datasalt.pangool.mapreduce.RollupReducer;
+import com.datasalt.pangool.mapreduce.SimpleCombiner;
 import com.datasalt.pangool.mapreduce.SimpleReducer;
 import com.datasalt.pangool.mapreduce.SortComparator;
 
@@ -61,7 +62,7 @@ public class CoGrouper {
 	
 	private Class<? extends GroupHandler> reduceHandler;
 	private Class<? extends OutputFormat> outputFormat;
-	private Class<? extends GroupHandler> combinerHandler;
+	private Class<? extends CombinerHandler> combinerHandler;
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass;
 	private Class<?> outputValueClass;
@@ -93,7 +94,7 @@ public class CoGrouper {
 		return this;
 	}
 
-	public CoGrouper setCombinerHandler(Class<? extends GroupHandler> combinerHandler) {
+	public CoGrouper setCombinerHandler(Class<? extends CombinerHandler> combinerHandler) {
 		this.combinerHandler = combinerHandler;
 		return this;
 	}
@@ -118,8 +119,8 @@ public class CoGrouper {
 	}
 	
 	@SuppressWarnings("unchecked")
-  public static Class<? extends GroupHandler> getCombinerHandler(Configuration conf) {
-		return (Class<? extends GroupHandler>) conf.getClass(CONF_COMBINER_HANDLER, null);
+  public static Class<? extends CombinerHandler> getCombinerHandler(Configuration conf) {
+		return (Class<? extends CombinerHandler>) conf.getClass(CONF_COMBINER_HANDLER, null);
 	}
 
 	// ------------------------------------------------------------------------- //
@@ -190,9 +191,9 @@ public class CoGrouper {
 		Partitioner.setPartitionerFields(job.getConfiguration(), partitionerFields);
 
 		if(combinerHandler != null) {
-			job.setCombinerClass((config.getRollupFrom() == null) ? SimpleCombiner.class : RollupCombiner.class);
+			job.setCombinerClass(SimpleCombiner.class); // not rollup by now 
 			// Set Combiner Handler
-			job.getConfiguration().setClass(CONF_COMBINER_HANDLER, combinerHandler, GroupHandler.class);
+			job.getConfiguration().setClass(CONF_COMBINER_HANDLER, combinerHandler, CombinerHandler.class);
 		}
 		// Set Reducer Handler
 		job.getConfiguration().setClass(CONF_REDUCER_HANDLER, reduceHandler, GroupHandler.class);

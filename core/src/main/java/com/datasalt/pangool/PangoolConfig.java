@@ -14,6 +14,8 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 /**
@@ -112,6 +114,31 @@ public class PangoolConfig {
 	
 	public Schema getSpecificOrderedSchema(int sourceId){
 		return specificOrderedSchemas.get(sourceId);
+	}
+	
+	/**
+	 * Get the schema of this tuple.
+	 * 
+	 * @param tuple
+	 */
+	public Schema getSchema(ITuple tuple) {
+		return getSchemes().get(getSourceId(tuple));
+	}
+	
+	/**
+	 * Get the source Id for this tuple
+	 * 
+	 * @param tuple
+	 * @return
+	 */
+	public int getSourceId(ITuple tuple) {
+		Integer schemeId = tuple.getInt(Field.SOURCE_ID_FIELD_NAME);
+		if(schemeId == null) { // single Schema config
+			return getSchemes().entrySet().iterator().next().getKey();
+		} else { 
+			return schemeId;
+		}
+		
 	}
 	
 	public String toString() {
