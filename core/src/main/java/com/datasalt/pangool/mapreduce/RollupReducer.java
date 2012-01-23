@@ -52,7 +52,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	private GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> handler;
     	
-  @SuppressWarnings({ "unchecked", "rawtypes" })
+
   @Override  	
   public void setup(Context context) throws IOException,InterruptedException {
 		try {

@@ -5,17 +5,17 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Before;
 
-import com.datasalt.pangolin.commons.io.ProtoStuffSerialization;
-import com.datasalt.pangolin.serialization.thrift.ThriftSerialization;
 import com.datasalt.pangool.io.Serialization;
 import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
+import com.datasalt.pangool.serialization.protostuff.ProtoStuffSerialization;
+import com.datasalt.pangool.serialization.thrift.ThriftSerialization;
 
 
 
 public abstract class AbstractBaseTest {
 	
 	private Configuration conf;
-	protected Serialization ser; 
+	private Serialization ser; 
 
 	public Serialization getSer() throws IOException {
 		if (ser == null) {
@@ -39,6 +39,7 @@ public abstract class AbstractBaseTest {
 	private static void configureSerialization(Configuration conf) {
 		ThriftSerialization.enableThriftSerialization(conf);
 		ProtoStuffSerialization.enableProtoStuffSerialization(conf);		
+		TupleInternalSerialization.enableSerialization(conf);
 	}
 	
 	private Configuration createConf(){

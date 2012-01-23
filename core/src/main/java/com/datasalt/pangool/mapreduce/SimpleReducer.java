@@ -43,7 +43,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
-	@SuppressWarnings("unchecked")
+
 	public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {

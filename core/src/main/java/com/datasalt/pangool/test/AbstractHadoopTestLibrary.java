@@ -21,18 +21,18 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 
-import com.datasalt.pangolin.commons.HadoopUtils;
+import com.datasalt.pangool.commons.HadoopUtils;
 
 /**
  * Niceties and utilities for making Hadoop unit tests less painfully. 
  */
 public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 
-	//protected Configuration conf;
-	FileSystem fS;
+
+	protected FileSystem fS;
 	
-	Map<String, List<Pair<Object, Object>>> outputs = new HashMap<String, List<Pair<Object, Object>>>();
-	Map<String, SequenceFile.Writer> inputs = new HashMap<String, SequenceFile.Writer>();
+	protected Map<String, List<Pair<Object, Object>>> outputs = new HashMap<String, List<Pair<Object, Object>>>();
+	protected Map<String, SequenceFile.Writer> inputs = new HashMap<String, SequenceFile.Writer>();
 	
 	@Before
 	public void initHadoop() throws IOException {

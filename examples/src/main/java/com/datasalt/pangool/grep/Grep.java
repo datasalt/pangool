@@ -15,8 +15,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangolin.commons.HadoopUtils;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.processor.Processor;
 import com.datasalt.pangool.processor.ProcessorHandler;
 

@@ -1,4 +1,4 @@
-package com.datasalt.pangolin.commons;
+package com.datasalt.pangool.commons;
 
 import java.util.Collection;
 

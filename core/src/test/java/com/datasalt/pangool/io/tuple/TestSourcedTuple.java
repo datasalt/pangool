@@ -62,9 +62,9 @@ public class TestSourcedTuple extends BaseTest{
 			int NUM_ITERATIONS=100000;
 			
 			List<Integer> sourceIds = new ArrayList<Integer>(pangoolConf.getSchemes().keySet());
-			Tuple baseTuple = new Tuple();
+			//Tuple baseTuple = new Tuple();
 			ITuple dbTuple = new DoubleBufferedTuple();
-			ITuple[] tuples = new ITuple[]{baseTuple,dbTuple};
+			ITuple[] tuples = new ITuple[]{dbTuple};
 			for (int i=0 ; i < NUM_ITERATIONS; i++){
 				int sourceId = sourceIds.get(random.nextInt(sourceIds.size()));
 				for (ITuple tuple : tuples){

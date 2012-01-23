@@ -24,7 +24,7 @@ import com.datasalt.pangool.CoGrouperException;
  * This is the common interface implemented by {@link Tuple} and {@link DoubleBufferPangolinTuple}.
  * A Tuple is basically a map that can be used in Pangool for carrying data. 
  */
-public interface ITuple extends Map<String,Object>,Comparable<ITuple>/*extends WritableComparable<ITuple>,Configurable*/{
+public interface ITuple extends Map<String,Object>,Comparable<ITuple>{
 	
 	public int partialHashCode(String[] fields);
 	

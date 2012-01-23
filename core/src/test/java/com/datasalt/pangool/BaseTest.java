@@ -17,6 +17,7 @@ import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.io.Serialization;
+import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
@@ -87,20 +88,12 @@ public abstract class BaseTest extends AbstractBaseTest {
 		ser.ser(tuple, output);
 
 		input.reset(output.getData(), 0, output.getLength());
-		ITuple deserializedTuple = new Tuple();
+		ITuple deserializedTuple = new DoubleBufferedTuple();
 		deserializedTuple = ser.deser(deserializedTuple, input);
 		if(debug) {
 			System.out.println("D:" + deserializedTuple);
 		}
 		assertEquals(tuple, deserializedTuple);
-		// deserializedTuple = new Tuple();
-		//
-		// input.reset(output.getData(),0,output.getLength());
-		// deserializedTuple = ser.deser(deserializedTuple,input);
-		// if (debug){
-		// System.out.println("D2:" + deserializedTuple);
-		// }
-		// assertEquals(tuple,deserializedTuple);
 	}
 
 }

@@ -29,8 +29,8 @@ import com.datasalt.pangool.io.tuple.ITuple;
 
 public class SimpleCombiner extends SimpleReducer<ITuple, NullWritable> {
 
-	CombinerHandler handler;
-	Collector collector;
+	private CombinerHandler handler;
+	private Collector collector;
 
 	@Override
 	public void setup(Context context) throws IOException, InterruptedException {

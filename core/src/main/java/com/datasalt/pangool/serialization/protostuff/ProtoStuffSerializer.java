@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangolin.commons.io;
+package com.datasalt.pangool.serialization.protostuff;
 
 import java.io.IOException;
 import java.io.OutputStream;
