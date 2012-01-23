@@ -10,6 +10,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -74,7 +75,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 	public static class MyGroupHandler extends GroupHandler {
 
     @Override
-    public void onGroupElements(ITuple group, Iterable tuples, State state, Context context) throws IOException,
+    public void onGroupElements(ITuple group, Iterable tuples, State state, ReduceContext context) throws IOException,
         InterruptedException, CoGrouperException {
     	System.out.println("Group " + group);
     	for (Object tuple : tuples){

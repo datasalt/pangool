@@ -8,6 +8,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -52,8 +53,9 @@ public class SecondarySort {
 	public static class Handler extends GroupHandler<Text, NullWritable> {
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, State state, Context context)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, State state,
+		    ReduceContext<ITuple, NullWritable, Text, NullWritable> context) throws IOException, InterruptedException,
+		    CoGrouperException {
 
 			for(ITuple tuple : tuples) {
 				context.write(new Text(tuple.getInt(FIRST) + "\t" + tuple.getInt(SECOND)), NullWritable.get());
