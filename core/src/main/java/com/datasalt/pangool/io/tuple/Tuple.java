@@ -15,10 +15,8 @@
  */
 package com.datasalt.pangool.io.tuple;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.datasalt.pangool.mapreduce.SortComparator;
@@ -191,19 +189,12 @@ public class Tuple extends HashMap<String,Object> implements ITuple {
 		return toString(keySet());		
 	}
 	
-	/**
-	 * If schema null then outputs the fields in order
-	 * TODO this method needs to be reimplemented
-	 */
+	
 	@Override
 	public String toString(Collection<String> fields) {
 		
 			StringBuilder b = new StringBuilder("{"); // TODO not optimized,should be cached
 			boolean first = true;
-			
-			List<String> orderedFields = new ArrayList<String>();
-			orderedFields.addAll(keySet());
-			
 			for(String fieldName : fields) {
 
 				Object element = get(fieldName);

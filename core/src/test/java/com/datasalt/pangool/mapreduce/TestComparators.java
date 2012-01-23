@@ -45,8 +45,7 @@ import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class TestComparators extends BaseTest {
 
-	int MAX_RANDOM_SCHEMAS = 50;
-	Serialization ser;
+	private int MAX_RANDOM_SCHEMAS = 50;
 
 	@Test
 	public void test() throws CoGrouperException, IOException {
@@ -83,7 +82,7 @@ public class TestComparators extends BaseTest {
 				PangoolConfig config = builder.build();
 				PangoolConfig.setPangoolConfig(config, conf);
 				// config has changed -> we need a new Serialization object
-				ser = new Serialization(conf);
+				//ser = new Serialization(conf);
 				
 				SortComparator sortComparator = new SortComparator();
 				GroupComparator groupComparator = new GroupComparator();
@@ -110,10 +109,10 @@ public class TestComparators extends BaseTest {
 
 	private int compareInBinary1(SortComparator comp, DoubleBufferedTuple tuple1, DoubleBufferedTuple tuple2) throws IOException {
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
-		ser.ser(tuple1, buffer1);
+		getSer().ser(tuple1, buffer1);
 		
 		DataOutputBuffer buffer2 = new DataOutputBuffer();
-		ser.ser(tuple2, buffer2);
+		getSer().ser(tuple2, buffer2);
 		
 		return comp.compare(buffer1.getData(), 0, buffer1.getLength(), buffer2.getData(), 0, buffer2.getLength());
 	}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangolin.serialization.thrift;
+package com.datasalt.pangool.serialization.thrift;
 
 import org.apache.thrift.TBase;
 import org.apache.thrift.TException;
@@ -36,7 +36,7 @@ import java.io.IOException;
  * <p>
  * To use this serialization, make sure that the Hadoop property
  * <code>io.serializations</code> includes the fully-qualified classname of this
- * class: <code>com.datasalt.pangolin.serialization.thrift.ThriftSerialization</code>.
+ * class: <code>com.datasalt.pangool.serialization.thrift.ThriftSerialization</code>.
  */
 public class ThriftSerialization implements org.apache.hadoop.io.serializer.Serialization<TBase> {
   public boolean accept(Class<?> c) {

@@ -10,7 +10,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Mapper;
 
-import com.datasalt.pangolin.commons.HadoopUtils;
+import com.datasalt.pangool.commons.HadoopUtils;
 
 public class ProcessorMapper<I1, I2, O1, O2> extends Mapper<I1, I2, O1, O2> {
 

@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangolin.commons.io;
+package com.datasalt.pangool.serialization.protostuff;
 
-import com.datasalt.pangolin.commons.io.ProtoStuffDeserializer;
-import com.datasalt.pangolin.commons.io.ProtoStuffSerializer;
-import com.datasalt.pangolin.serialization.thrift.ThriftSerialization;
+import com.datasalt.pangool.serialization.protostuff.ProtoStuffDeserializer;
+import com.datasalt.pangool.serialization.protostuff.ProtoStuffSerializer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Deserializer;

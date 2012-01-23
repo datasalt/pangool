@@ -19,6 +19,8 @@ package com.datasalt.pangool.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataInputBuffer;
@@ -47,14 +49,34 @@ public class Serialization {
 			return new DataInputBuffer();
     }
 	};
+	
+	private ThreadLocal<Map<Class,Serializer>> cachedSerializers = new ThreadLocal<Map<Class,Serializer>>() {
+		@Override
+    protected Map<Class,Serializer> initialValue() {
+			return new HashMap<Class,Serializer>();
+    }
+	};
+	
+	private ThreadLocal<Map<Class,Deserializer>> cachedDeserializers = new ThreadLocal<Map<Class,Deserializer>>() {
+		@Override
+    protected Map<Class,Deserializer> initialValue() {
+			return new HashMap<Class,Deserializer>();
+    }
+	};
+	
 
 	/**
 	 * Serializes the given object using the Hadoop 
 	 * serialization system.
 	 */
 	public void ser(Object datum,OutputStream output) throws IOException {
-    Serializer ser = serialization.getSerializer(datum.getClass());
-		ser.open(output);
+		Map<Class,Serializer> serializers = cachedSerializers.get();
+		Serializer ser = serializers.get(datum.getClass());
+		if (ser == null){
+			ser = serialization.getSerializer(datum.getClass());
+			serializers.put(datum.getClass(), ser);
+		}
+    ser.open(output);
 		ser.serialize(datum);
 		ser.close();
 	}
@@ -64,7 +86,12 @@ public class Serialization {
 	 * serialization system. Object cannot be null.
 	 */
 	public <T> T deser(Object obj,InputStream in) throws IOException {
-		Deserializer deSer = serialization.getDeserializer(obj.getClass());
+		Map<Class,Deserializer> deserializers = cachedDeserializers.get();
+		Deserializer deSer = deserializers.get(obj.getClass());
+		if (deSer == null){
+			deSer = serialization.getDeserializer(obj.getClass());
+			deserializers.put(obj.getClass(),deSer);
+		}
 		deSer.open(in);
 		obj = deSer.deserialize(obj);
 		deSer.close();
@@ -76,7 +103,13 @@ public class Serialization {
 	 * deserialized data from the input stream. 
 	 */
 	public <T> T deser(Class clazz,InputStream in) throws IOException {
-		Deserializer deSer = serialization.getDeserializer(clazz);
+		Map<Class,Deserializer> deserializers = cachedDeserializers.get();
+		Deserializer deSer = deserializers.get(clazz);
+		if (deSer == null){
+			deSer = serialization.getDeserializer(clazz);
+			deserializers.put(clazz,deSer);
+		}
+		
 		deSer.open(in);
 		Object obj = deSer.deserialize(null);
 		deSer.close();
@@ -88,7 +121,12 @@ public class Serialization {
 	 * The object cannot be null. 
 	 */
 	public <T> T deser(Object obj, byte[] array, int offset, int length) throws IOException {
-	  Deserializer deSer = serialization.getDeserializer(obj.getClass());
+		Map<Class,Deserializer> deserializers = cachedDeserializers.get();
+		Deserializer deSer = deserializers.get(obj.getClass());
+		if (deSer == null){
+			deSer = serialization.getDeserializer(obj.getClass());
+			deserializers.put(obj.getClass(),deSer);
+		}
 		DataInputBuffer baIs = cachedInputStream.get();
 		baIs.reset(array, offset,length);
 		deSer.open(baIs);

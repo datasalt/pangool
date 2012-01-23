@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangolin.commons;
+package com.datasalt.pangool.commons;
 
 import java.io.BufferedReader;
 import java.io.IOException;

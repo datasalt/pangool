@@ -5,9 +5,7 @@ import java.io.IOException;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.Reducer.Context;
 
-import com.datasalt.pangolin.grouper.Grouper;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.PangoolConfig;
@@ -23,28 +21,28 @@ import com.datasalt.pangool.mapreduce.SimpleReducer;
  * @author eric
  * 
  */
-@SuppressWarnings("rawtypes")
 public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 
-	// To be added state info here, 
+	// To be added state info here,
 	public static class State {
 		private PangoolConfig pangoolConfig;
-		
+
 		public State(PangoolConfig pangoolConfig) {
 			this.pangoolConfig = pangoolConfig;
-		}		
-		
+		}
+
 		public PangoolConfig getPangoolConfig() {
 			return pangoolConfig;
 		}
 	}
-	
-	public void setup(State state, ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) throws IOException, InterruptedException, CoGrouperException {
+
+	public void setup(State state, ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context)
+	    throws IOException, InterruptedException, CoGrouperException {
 
 	}
 
-	public void cleanup(State state, ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) throws IOException, InterruptedException,
-	    CoGrouperException {
+	public void cleanup(State state, ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context)
+	    throws IOException, InterruptedException, CoGrouperException {
 	}
 
 	/**
@@ -57,8 +55,9 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 	 * @param context
 	 *          The reducer context as in {@link Reducer}
 	 */
-	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, State state, ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) throws IOException,
-	    InterruptedException, CoGrouperException {
-		
+	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, State state,
+	    ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) throws IOException, InterruptedException,
+	    CoGrouperException {
+
 	}
 }

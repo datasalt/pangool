@@ -12,7 +12,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
-import com.datasalt.pangolin.commons.HadoopUtils;
+import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.grep.Grep;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
