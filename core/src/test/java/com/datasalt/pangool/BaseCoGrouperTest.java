@@ -7,7 +7,7 @@ import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 @SuppressWarnings("rawtypes")
-public class BaseCoGrouperTest {
+public abstract class BaseCoGrouperTest {
 
 	protected GroupHandler myGroupHandler = new GroupHandler();
 	

@@ -48,8 +48,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * When comparing, we save the source Ids, if we find them
 	 * TODO: These tho variables does not seems thread safe. Solve!
 	 */
-	Integer firstSourceId  = 0;
-	Integer secondSourceId = 0;
+	private Integer firstSourceId  = 0;
+	private Integer secondSourceId = 0;
 
 	int offset1 = 0;
 	int offset2 = 0;

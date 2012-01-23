@@ -80,8 +80,8 @@ public abstract class BaseTest extends AbstractBaseTest {
 		}
 	}
 
-	protected void assertSerializable(ITuple tuple, boolean debug) throws IOException {
-		Serialization ser = getSer();
+	protected void assertSerializable(Serialization ser,ITuple tuple, boolean debug) throws IOException {
+
 		DataInputBuffer input = new DataInputBuffer();
 		DataOutputBuffer output = new DataOutputBuffer();
 

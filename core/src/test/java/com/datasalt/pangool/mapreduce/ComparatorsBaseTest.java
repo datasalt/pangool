@@ -18,7 +18,7 @@ import com.datasalt.pangool.SortingBuilder;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 
-public class ComparatorsBaseTest {
+public abstract class ComparatorsBaseTest {
 
 	protected void setConf(SortComparator comparator) throws InvalidFieldException, CoGrouperException, JsonGenerationException, JsonMappingException, IOException, InvalidFieldException {
 		Configuration conf = new Configuration();

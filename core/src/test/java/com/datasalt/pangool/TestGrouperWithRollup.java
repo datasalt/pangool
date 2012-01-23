@@ -42,32 +42,21 @@ import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 
 public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	
-	public static final String TEST_OUT = "TEST-OUTPUT-" + TestGrouperWithRollup.class.getName(); 
+	public static final String TEST_OUT = "TEST-OUTPUT";
 
 	private static class Mapy extends InputProcessor<Text,NullWritable>{
-		
-		private PangoolConfig pangoolConfig;
-		private Schema schema;		
-		
-    @SuppressWarnings("unchecked")
 		@Override
 		public void setup(Collector collector) throws IOException,InterruptedException {
-    	pangoolConfig = collector.getPangoolConfig();
-			this.schema = pangoolConfig.getSchemes().entrySet().iterator().next().getValue();			
+    	
 		}
-		
-		
-		@SuppressWarnings("unchecked")
 		@Override
 		public void process(Text key,NullWritable value,Collector collector) throws IOException,InterruptedException{
-			Tuple outputKey = createTuple(key.toString(), schema);
+			Tuple outputKey = createTuple(key.toString());
 			collector.write(outputKey);
 		}
 	}
 	
 	private static class IdentityRed extends GroupHandlerWithRollup<Text,Text>{
-
-		//private Reducer.Context context;
 		private Text outputKey = new Text();
 		private Text outputValue = new Text();
 		
@@ -113,7 +102,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 	}
 	
 	
-	private static Tuple createTuple(String text,Schema schema){
+	private static Tuple createTuple(String text){
 		Tuple tuple = new Tuple();
 		String[] tokens = text.split("\\s+");
 		String country = tokens[0];
@@ -145,16 +134,15 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		};
 		
 		ITuple[] tuples = new ITuple[inputElements.length];
-		Schema schema = Schema.parse("country:string,age:vint,name:string,height:int");
 		int i=0; 
 		for (String inputElement : inputElements){
 			withInput(input,writable(inputElement));
-			tuples[i++]=createTuple(inputElement, schema);
+			tuples[i++]=createTuple(inputElement);
 		}
 		Path outputPath = new Path(output);
 		
 		PangoolConfigBuilder builder = new PangoolConfigBuilder();
-		builder.addSchema(0, schema);
+		builder.addSchema(0,  Schema.parse("country:string,age:vint,name:string,height:int"));
 		builder.setSorting(Sorting.parse("country ASC,age ASC,name ASC"));
 		builder.setRollupFrom("country");
 		builder.setGroupByFields("country", "age", "name");
