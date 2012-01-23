@@ -10,8 +10,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.Reducer.Context;
+import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
@@ -23,7 +22,6 @@ import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SortingBuilder;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.GroupHandler.State;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
@@ -47,13 +45,13 @@ public class WordCount {
 			}
 		}
 	}
-	
+
 	public static class CountCombiner extends CombinerHandler {
 		Tuple tuple = new Tuple();
-		
+
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, Collector collector) throws IOException, InterruptedException,
-		    CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, Collector collector) throws IOException,
+		    InterruptedException, CoGrouperException {
 
 			int count = 0;
 			this.tuple.setString(WORD_FIELD, group.getString(WORD_FIELD));
@@ -65,11 +63,12 @@ public class WordCount {
 		}
 	}
 
-	public static class Count extends GroupHandler<Text, Text> {
+	public static class Count extends GroupHandler<Text, IntWritable> {
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, State state, Context context)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, State state,
+		    ReduceContext<ITuple, NullWritable, Text, IntWritable> context) throws IOException, InterruptedException,
+		    CoGrouperException {
 			int count = 0;
 			for(ITuple tuple : tuples) {
 				count += tuple.getInt(COUNT_FIELD);
