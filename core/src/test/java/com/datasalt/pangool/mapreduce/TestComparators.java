@@ -38,7 +38,7 @@ import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 /**
- * This tests either {@link SortComparator} or {@link GroupComparator}.It checks that the binary comparison is coherent
+ * This tests either {@link SortComparator} or {@link MyAvroGroupComparator}.It checks that the binary comparison is coherent
  * with the objects comparison.It also checks that the custom comparators are correctly used.
  * 
  */

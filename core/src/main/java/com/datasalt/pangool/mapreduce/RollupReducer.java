@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.ReflectionUtils;
 
@@ -46,12 +45,13 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 	private boolean firstIteration = true;
 	private PangoolConfig pangoolConfig;
 	private State state;
-	private Schema schema;
+	private Schema commonSchema;
 	private List<String> groupByFields;
 	private int minDepth, maxDepth;
 	private FilteredReadOnlyTuple groupTuple;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	private GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> handler;
+	private SortComparator sortComparator;
     	
 
   @Override  	
@@ -59,7 +59,8 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 		try {
 			Configuration conf = context.getConfiguration();
 			this.pangoolConfig = PangoolConfigBuilder.get(conf);
-			this.schema = pangoolConfig.getSchemes().values().iterator().next();
+			this.commonSchema = this.pangoolConfig.getCommonOrderedSchema();
+			//this.schema = pangoolConfig.getSchemes().values().iterator().next();
 			this.state = new State(pangoolConfig);
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.groupByFields = pangoolConfig.getGroupByFields();
@@ -115,7 +116,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
   }
   
   
-  @SuppressWarnings({ "rawtypes", "unchecked" })
+
   @Override
 	public final void reduce(ITuple key, Iterable<NullWritable> values, Context context) throws IOException,
 	    InterruptedException {
@@ -166,7 +167,7 @@ public class RollupReducer<OUTPUT_KEY,OUTPUT_VALUE> extends Reducer<ITuple, Null
 	 */
 	private int indexMismatch(ITuple tuple1,ITuple tuple2,int minFieldIndex,int maxFieldIndex){
 			for(int i = minFieldIndex; i <= maxFieldIndex; i++) {
-				String fieldName = schema.getFields().get(i).getName();
+				String fieldName = commonSchema.getFields().get(i).getName();
 				if(!tuple1.getObject(fieldName).equals(tuple2.getObject(fieldName))) {
 					return i;
 				}

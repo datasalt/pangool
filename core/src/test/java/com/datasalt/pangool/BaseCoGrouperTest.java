@@ -21,6 +21,9 @@ public abstract class BaseCoGrouperTest {
 	};
 	
 	protected Sorting getTestSorting() throws InvalidFieldException, CoGrouperException {
+		
+		
+		
 		return new SortingBuilder()
 			.add("url", SortOrder.ASC)
 			.add("date", SortOrder.DESC)

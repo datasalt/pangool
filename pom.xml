@@ -4,7 +4,7 @@
 
   <groupId>com.datasalt.pangool</groupId>
   <artifactId>pangool</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.40-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Pangool</name>

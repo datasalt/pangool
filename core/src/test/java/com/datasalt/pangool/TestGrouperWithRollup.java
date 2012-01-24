@@ -27,6 +27,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -61,26 +62,25 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		private Text outputValue = new Text();
 		
 		@Override
-		public void setup(State state, Reducer.Context context) throws IOException,InterruptedException {
+		public void setup(State state, ReduceContext<ITuple,NullWritable,Text,Text> context) throws IOException,InterruptedException {
 		}
 		
 
 		@Override
-		public void cleanup(State state, Reducer.Context context) throws IOException,InterruptedException {			
+		public void cleanup(State state, ReduceContext<ITuple,NullWritable,Text,Text> context) throws IOException,InterruptedException {			
 		}
 		
-		@SuppressWarnings("unchecked")
+
 		@Override
-    public void onOpenGroup(int depth,String field,ITuple firstElement,State state, Reducer.Context context) throws IOException, InterruptedException {
+    public void onOpenGroup(int depth,String field,ITuple firstElement,State state, ReduceContext<ITuple,NullWritable,Text,Text> context) throws IOException, InterruptedException {
 			outputKey.set("OPEN "+ depth);
 			outputValue.set(firstElement.toString());
 	    context.write(outputKey, outputValue);
 	    System.out.println(outputKey +" => " + outputValue);
     }
 
-		@SuppressWarnings("unchecked")
 		@Override
-    public void onCloseGroup(int depth,String field,ITuple lastElement,State state, Reducer.Context context) throws IOException, InterruptedException {
+    public void onCloseGroup(int depth,String field,ITuple lastElement,State state, ReduceContext<ITuple,NullWritable,Text,Text> context) throws IOException, InterruptedException {
 			outputKey.set("CLOSE "+ depth);
 			outputValue.set(lastElement.toString());
 	    context.write(outputKey, outputValue);
@@ -89,7 +89,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary{
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples,State state, Reducer.Context context) throws IOException,InterruptedException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples,State state, ReduceContext<ITuple,NullWritable,Text,Text> context) throws IOException,InterruptedException {
 			Iterator<ITuple> iterator = tuples.iterator();
 			outputKey.set("ELEMENT");
 			while ( iterator.hasNext()){
