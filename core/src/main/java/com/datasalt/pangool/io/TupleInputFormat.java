@@ -8,7 +8,6 @@ import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.mapred.AvroWrapper;
 import org.apache.avro.mapred.FsInput;
 import org.apache.avro.specific.SpecificDatumReader;
-import org.apache.avro.util.Utf8;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
@@ -82,14 +81,7 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> {
 				return false;
 						
 			wrapper.datum(reader.next(wrapper.datum()));
-			org.apache.avro.Schema schema = reader.getSchema();
-			for(org.apache.avro.Schema.Field field: schema.getFields()) {
-				Object obj = wrapper.datum().get(field.name());
-				if(obj instanceof Utf8) {
-					tuple.setString(field.name(), ((Utf8)obj).toString());
-				}
-				// etc
-			}
+			AvroUtils.toTuple(wrapper.datum(), tuple, reader.getSchema());
 
 			return true;
 		}

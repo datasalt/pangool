@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.avro.mapred.AvroWrapper;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
@@ -18,7 +19,11 @@ import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.io.AvroUtils;
+import com.datasalt.pangool.io.TupleInputFormat;
+import com.datasalt.pangool.io.TupleOutputFormat;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
+import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
 import com.datasalt.pangool.mapreduce.GroupComparator;
 import com.datasalt.pangool.mapreduce.Partitioner;
@@ -49,6 +54,12 @@ public class CoGrouper {
 		Class<? extends InputFormat> inputFormat;
 		Class<? extends InputProcessor> inputProcessor;
 
+		Input(Path path, Class<? extends InputProcessor<ITuple, NullWritable>> inputProcessor) {
+			this.path = path;
+			this.inputProcessor = inputProcessor;
+			this.inputFormat = TupleInputFormat.class;
+		}
+		
 		Input(Path path, Class<? extends InputFormat> inputFormat, Class<? extends InputProcessor> inputProcessor) {
 			this.path = path;
 			this.inputFormat = inputFormat;
@@ -82,6 +93,12 @@ public class CoGrouper {
 		return this;
 	}
 
+	public CoGrouper addTupleInput(Path path, Class<? extends InputProcessor<ITuple, NullWritable>> inputProcessor) {
+		this.multiInputs.add(new Input(path, inputProcessor));
+		AvroUtils.addAvroSerialization(conf);
+		return this;
+	}
+	
 	public CoGrouper addInput(Path path, Class<? extends InputFormat> inputFormat,
 	    Class<? extends InputProcessor> inputProcessor) {
 		this.multiInputs.add(new Input(path, inputFormat, inputProcessor));
@@ -104,6 +121,16 @@ public class CoGrouper {
 		this.outputKeyClass = outputKeyClass;
 		this.outputValueClass = outputValueClass;
 		this.outputPath = outputPath;
+		return this;
+	}
+	
+	public CoGrouper setTupleOutput(Path outputPath, Schema schema) {
+		this.outputPath = outputPath;
+		this.outputFormat = TupleOutputFormat.class;
+		this.outputKeyClass = AvroWrapper.class;
+		this.outputValueClass = NullWritable.class;
+		conf.set(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, schema.toString());
+		AvroUtils.addAvroSerialization(conf);
 		return this;
 	}
 
