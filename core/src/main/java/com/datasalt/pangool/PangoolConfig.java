@@ -151,21 +151,30 @@ public class PangoolConfig {
 	}
 
 	@SuppressWarnings("unchecked")
-	void fromJSON(String json, ObjectMapper mapper) throws JsonParseException, JsonMappingException, IOException, NumberFormatException, CoGrouperException, InvalidFieldException {
-		HashMap<String, Object> jsonData = mapper.readValue(json, HashMap.class);
+	void fromJSON(String json, ObjectMapper mapper) throws CoGrouperException {
 		
-		setRollupFrom((String) jsonData.get("rollupFrom"));
-		
-		ArrayList<String> list = (ArrayList<String>) jsonData.get("groupByFields");
-		setGroupByFields(list.toArray(new String[0]));
-		
-    Map<String, String> jsonSchemes = (Map<String, String>) jsonData.get("schemes");
-		
-		for(Map.Entry<String, String> jsonScheme: jsonSchemes.entrySet()) {
-			addSchema(Integer.parseInt(jsonScheme.getKey()), Schema.parse(jsonScheme.getValue()));
+		if (json == null){
+			throw new CoGrouperException("Non existing pangool config set in Configuration");
 		}
 		
-		setSorting(Sorting.fromJSON((String) jsonData.get("sorting"), mapper));
+		try{
+			HashMap<String, Object> jsonData = mapper.readValue(json, HashMap.class);
+			
+			setRollupFrom((String) jsonData.get("rollupFrom"));
+			
+			ArrayList<String> list = (ArrayList<String>) jsonData.get("groupByFields");
+			setGroupByFields(list.toArray(new String[0]));
+			
+	    Map<String, String> jsonSchemes = (Map<String, String>) jsonData.get("schemes");
+			
+			for(Map.Entry<String, String> jsonScheme: jsonSchemes.entrySet()) {
+				addSchema(Integer.parseInt(jsonScheme.getKey()), Schema.parse(jsonScheme.getValue()));
+			}
+			
+			setSorting(Sorting.fromJSON((String) jsonData.get("sorting"), mapper));
+		} catch(Exception e){
+			throw new CoGrouperException(e);
+		}
 	}
 	
 	public String toStringAsJSON(ObjectMapper mapper) throws JsonGenerationException, JsonMappingException, IOException {

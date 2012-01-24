@@ -33,7 +33,7 @@ import com.datasalt.pangool.SortCriteria.SortOrder;
 public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	private Configuration conf;
-	protected PangoolConfig config; // so that GroupComparator can access it
+	protected PangoolConfig config; // so that MyAvroGroupComparator can access it
 
 	private Map<Class, RawComparator> instancedComparators;
 
@@ -48,13 +48,16 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * When comparing, we save the source Ids, if we find them
 	 * TODO: These tho variables does not seems thread safe. Solve!
 	 */
-	Integer firstSourceId  = 0;
-	Integer secondSourceId = 0;
+	private Integer firstSourceId  = 0;
+	private Integer secondSourceId = 0;
 
 	int offset1 = 0;
 	int offset2 = 0;
 	
 	int nSchemas = 0; // Cached number of schemas
+	
+	private int indexMismatch;
+	
 	
 	public SortComparator() {
 
@@ -104,9 +107,9 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
 	@SuppressWarnings("unchecked")
-	public int compare(int fieldsToCompare, Schema schema, SortCriteria sortCriteria, ITuple tuple1, ITuple tuple2) {
+	public int compare(int numFieldsToCompare, Schema schema, SortCriteria sortCriteria, ITuple tuple1, ITuple tuple2) {
 		
-		for(int depth = 0; depth < fieldsToCompare; depth++) {
+		for(int depth = 0; depth < numFieldsToCompare; depth++) {
 			Field field = schema.getField(depth);
 			String fieldName = field.getName();
 			SortElement sortElement = sortCriteria.getSortElementByFieldName(field.getName());

@@ -7,7 +7,7 @@ import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 @SuppressWarnings("rawtypes")
-public class BaseCoGrouperTest {
+public abstract class BaseCoGrouperTest {
 
 	protected GroupHandler myGroupHandler = new GroupHandler();
 	
@@ -21,6 +21,9 @@ public class BaseCoGrouperTest {
 	};
 	
 	protected Sorting getTestSorting() throws InvalidFieldException, CoGrouperException {
+		
+		
+		
 		return new SortingBuilder()
 			.add("url", SortOrder.ASC)
 			.add("date", SortOrder.DESC)

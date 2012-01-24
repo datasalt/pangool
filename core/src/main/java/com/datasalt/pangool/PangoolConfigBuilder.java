@@ -242,7 +242,8 @@ public class PangoolConfigBuilder {
 	public static PangoolConfig get(Configuration conf) throws CoGrouperException {
 		ObjectMapper jsonSerDe = new ObjectMapper();
 		try {
-	    return fromJSON(conf.get(PangoolConfig.CONF_PANGOOL_CONF), jsonSerDe);
+			String serialized =conf.get(PangoolConfig.CONF_PANGOOL_CONF);
+	    return (serialized == null || serialized.isEmpty()) ? null : fromJSON(serialized, jsonSerDe);
     } catch (JsonParseException e) {
     	fail(e);
     } catch(JsonMappingException e) {

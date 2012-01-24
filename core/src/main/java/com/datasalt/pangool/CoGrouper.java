@@ -32,22 +32,14 @@ import com.datasalt.pangool.mapreduce.SimpleCombiner;
 import com.datasalt.pangool.mapreduce.SimpleReducer;
 import com.datasalt.pangool.mapreduce.SortComparator;
 
-/**
- * 
- * @author pere
- * 
- */
+
 @SuppressWarnings("rawtypes")
 public class CoGrouper {
 
 	private final static String CONF_REDUCER_HANDLER = CoGrouper.class.getName() + ".reducer.handler";
 	private final static String CONF_COMBINER_HANDLER = CoGrouper.class.getName() + ".combiner.handler";
 
-	/**
-	 * 
-	 * @author pere
-	 * 
-	 */
+
 	private static final class Input {
 
 		Path path;
