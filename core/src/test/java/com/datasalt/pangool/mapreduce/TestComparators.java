@@ -22,8 +22,8 @@ import org.junit.Test;
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.BaseTest;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.PangoolConfig;
-import com.datasalt.pangool.PangoolConfigBuilder;
+import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SchemaBuilder;
@@ -76,12 +76,12 @@ public class TestComparators extends BaseTest {
 				/*
 				 * Set everything into the Hadoop Conf.
 				 */
-				PangoolConfigBuilder builder = new PangoolConfigBuilder();
+				CoGrouperConfigBuilder builder = new CoGrouperConfigBuilder();
 				builder.setGroupByFields(groupFields);
 				builder.setSorting(sortCriteria);
 				builder.addSchema(0, schema);
-				PangoolConfig config = builder.build();
-				PangoolConfig.setPangoolConfig(config, conf);
+				CoGrouperConfig config = builder.build();
+				CoGrouperConfig.setPangoolConfig(config, conf);
 				// config has changed -> we need a new Serialization object
 				ser = new Serialization(conf);
 				

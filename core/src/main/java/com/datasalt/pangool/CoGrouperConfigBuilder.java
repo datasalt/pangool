@@ -24,20 +24,20 @@ import com.datasalt.pangool.SortCriteria.SortElement;
  *
  */
 @SuppressWarnings("rawtypes")
-public class PangoolConfigBuilder {
+public class CoGrouperConfigBuilder {
 
-	private PangoolConfig config = new PangoolConfig();
+	private CoGrouperConfig config = new CoGrouperConfig();
 	
-	public static PangoolConfigBuilder newOne() {
-		return new PangoolConfigBuilder();
+	public static CoGrouperConfigBuilder newOne() {
+		return new CoGrouperConfigBuilder();
 	}
 	
-	public PangoolConfigBuilder setSorting(Sorting sorting) {
+	public CoGrouperConfigBuilder setSorting(Sorting sorting) {
 		config.setSorting( sorting );
 		return this;
 	}
 
-	public PangoolConfigBuilder addSchema(Integer schemaId, Schema schema) throws CoGrouperException {
+	public CoGrouperConfigBuilder addSchema(Integer schemaId, Schema schema) throws CoGrouperException {
 		if(config.getSchemes().containsKey(schemaId)) {
 			throw new CoGrouperException("Schema already present: " + schemaId);
 		}
@@ -50,12 +50,12 @@ public class PangoolConfigBuilder {
 		return this;
 	}
 
-	public PangoolConfigBuilder setGroupByFields(String... groupByFields) {
+	public CoGrouperConfigBuilder setGroupByFields(String... groupByFields) {
 		config.setGroupByFields(groupByFields);
 		return this;
 	}
 	
-	public PangoolConfigBuilder setRollupFrom(String rollupFrom) {
+	public CoGrouperConfigBuilder setRollupFrom(String rollupFrom) {
 		config.setRollupFrom(rollupFrom);
 		return this;
 	}
@@ -76,7 +76,7 @@ public class PangoolConfigBuilder {
 	 * build() called to finally calculate things like the common schema
 	 * and perform sanity validation
 	 */
-	public PangoolConfig build() throws CoGrouperException {
+	public CoGrouperConfig build() throws CoGrouperException {
 		
 		raiseExceptionIfEmpty(config.getSchemes().values(), "Need to set at least one schema");
 		raiseExceptionIfNull(config.getSorting(), "Need to set sorting");
@@ -233,16 +233,16 @@ public class PangoolConfigBuilder {
 		}
 	}
 	
-  public static PangoolConfig fromJSON(String json, ObjectMapper mapper) throws JsonParseException, JsonMappingException, IOException, CoGrouperException, NumberFormatException, InvalidFieldException {
-		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
+  public static CoGrouperConfig fromJSON(String json, ObjectMapper mapper) throws JsonParseException, JsonMappingException, IOException, CoGrouperException, NumberFormatException, InvalidFieldException {
+		CoGrouperConfigBuilder configBuilder = new CoGrouperConfigBuilder();
 		configBuilder.config.fromJSON(json, mapper);
 		return configBuilder.build();
 	}
 	
-	public static PangoolConfig get(Configuration conf) throws CoGrouperException {
+	public static CoGrouperConfig get(Configuration conf) throws CoGrouperException {
 		ObjectMapper jsonSerDe = new ObjectMapper();
 		try {
-			String serialized =conf.get(PangoolConfig.CONF_PANGOOL_CONF);
+			String serialized =conf.get(CoGrouperConfig.CONF_PANGOOL_CONF);
 	    return (serialized == null || serialized.isEmpty()) ? null : fromJSON(serialized, jsonSerDe);
     } catch (JsonParseException e) {
     	fail(e);

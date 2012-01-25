@@ -32,7 +32,7 @@ import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.util.ReflectionUtils;
 
 
-import com.datasalt.pangool.PangoolConfig;
+import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.Buffer;
@@ -42,7 +42,7 @@ import com.datasalt.pangool.io.tuple.ITupleInternal;
 
 class TupleInternalDeserializer implements Deserializer<ITupleInternal> {
 
-	private PangoolConfig pangoolConf;
+	private CoGrouperConfig pangoolConf;
 	private DataInputStream in;
 	private Text text = new Text();
 	private Serialization ser;
@@ -53,7 +53,7 @@ class TupleInternalDeserializer implements Deserializer<ITupleInternal> {
 
 	// private
 
-	TupleInternalDeserializer(Serialization ser, PangoolConfig pangoolConfig,
+	TupleInternalDeserializer(Serialization ser, CoGrouperConfig pangoolConfig,
 	    Class<? extends ITupleInternal> instanceClass) {
 		this.pangoolConf = pangoolConfig;
 		this.ser = ser;

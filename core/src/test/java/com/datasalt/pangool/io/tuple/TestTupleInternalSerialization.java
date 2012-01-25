@@ -11,8 +11,8 @@ import org.junit.Test;
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.BaseTest;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.PangoolConfig;
-import com.datasalt.pangool.PangoolConfigBuilder;
+import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria.SortOrder;
@@ -22,7 +22,7 @@ import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 public class TestTupleInternalSerialization extends BaseTest{
 
-	PangoolConfig pangoolConf;
+	CoGrouperConfig pangoolConf;
 	
 	public static enum TestEnum {
 		A,B,C
@@ -30,7 +30,7 @@ public class TestTupleInternalSerialization extends BaseTest{
 	
 	@Before
 	public void prepare2() throws InvalidFieldException, CoGrouperException{
-		pangoolConf = new PangoolConfigBuilder()
+		pangoolConf = new CoGrouperConfigBuilder()
 		.setGroupByFields("booleanField", "intField")
 		.setSorting(new SortingBuilder().add("booleanField", SortOrder.ASC)
 			.add("intField", SortOrder.DESC)
@@ -51,7 +51,7 @@ public class TestTupleInternalSerialization extends BaseTest{
 	
 	@Test
 	public void testRandomTupleSerialization() throws IOException, InvalidFieldException, CoGrouperException {
-		PangoolConfig.setPangoolConfig(pangoolConf, getConf());
+		CoGrouperConfig.setPangoolConfig(pangoolConf, getConf());
 		Serialization ser = new Serialization(getConf());
 			Random random = new Random();
 			int NUM_ITERATIONS=100000;

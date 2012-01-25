@@ -23,9 +23,9 @@ import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
  * @author pere
  *
  */
-public class PangoolConfig {
+public class CoGrouperConfig {
 
-	final static String CONF_PANGOOL_CONF = PangoolConfig.class.getName() + ".pangool.conf";
+	final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
 
 	private Sorting sorting;
 	private Map<Integer, Schema> schemes; // key is schema Id
@@ -35,7 +35,7 @@ public class PangoolConfig {
 	private Schema commonOrderedSchema;
 	private Map<Integer, Schema> specificOrderedSchemas;
 
-	PangoolConfig() {
+	CoGrouperConfig() {
 		schemes = new HashMap<Integer, Schema>();
 	}
 
@@ -75,7 +75,7 @@ public class PangoolConfig {
 		return schemes.get(sourceId);
 	}
 	
-	public static void setPangoolConfig(PangoolConfig config, Configuration conf) throws JsonGenerationException, JsonMappingException, IOException {
+	public static void setPangoolConfig(CoGrouperConfig config, Configuration conf) throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper jsonSerDe = new ObjectMapper();
 		conf.set(CONF_PANGOOL_CONF, config.toStringAsJSON(jsonSerDe));
 	}

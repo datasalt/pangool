@@ -10,16 +10,14 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.ReduceContext;
-import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangool.CoGrouper;
+import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.PangoolConfig;
-import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.SortingBuilder;
@@ -37,7 +35,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 	public static class FirstInputProcessor extends InputProcessor<LongWritable, Text> {
 
 		@Override
-		public void process(LongWritable key, Text value, Collector collector) throws IOException, InterruptedException  {
+		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
 
 			Tuple tuple = new Tuple();
 			tuple.setString("name", "Pere");
@@ -66,42 +64,45 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
 			tuple.setString("country", "FR");
 			tuple.setInt("averageSalary", 1500);
-			
+
 			collector.write(1, tuple);
 		}
 	}
 
-	public static class MyGroupHandler extends GroupHandler {
+	public static class MyGroupHandler extends GroupHandler<Object, Object> {
 
-    @Override
-    public void onGroupElements(ITuple group, Iterable tuples, State state, ReduceContext context) throws IOException,
-        InterruptedException, CoGrouperException {
-    	System.out.println("Group " + group);
-    	for (Object tuple : tuples){
-    		System.out.println(tuple);
-    	}
-    }
-  }
-	@SuppressWarnings("rawtypes")
+		@Override
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Object, Object> context, 
+		    Collector<Object, Object> collector) throws IOException, InterruptedException, CoGrouperException {
+			
+			System.out.println("Group " + group);
+			for(Object tuple : tuples) {
+				System.out.println(tuple);
+			}
+		}
+	}
+
 	@Test
-	public void test() throws CoGrouperException, InvalidFieldException, IOException, InterruptedException, ClassNotFoundException {
-		PangoolConfig config = new PangoolConfigBuilder()
+	public void test() throws CoGrouperException, InvalidFieldException, IOException, InterruptedException,
+	    ClassNotFoundException {
+		CoGrouperConfig config = new CoGrouperConfigBuilder()
 		    .addSchema(0, Schema.parse("name:string, money:int, country:string"))
-		    .addSchema(1, Schema.parse("country:string, averageSalary:int")).setGroupByFields("country")
-		    .setSorting(new SortingBuilder().add("country").addSourceId(SortOrder.ASC).secondarySort(0).add("money").buildSorting())
+		    .addSchema(1, Schema.parse("country:string, averageSalary:int"))
+		    .setGroupByFields("country")
+		    .setSorting(
+		        new SortingBuilder().add("country").addSourceId(SortOrder.ASC).secondarySort(0).add("money").buildSorting())
 		    .build();
 
 		Files.write("foo", new File("test-input"), Charset.forName("UTF-8"));
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
-		
+
 		Job job = new CoGrouper(config, getConf())
 		    .addInput(new Path("test-input"), TextInputFormat.class, FirstInputProcessor.class)
 		    .setGroupHandler(MyGroupHandler.class)
-		    .setOutput(new Path("test-output"), TextOutputFormat.class, NullWritable.class, NullWritable.class)
-		    .createJob();
+		    .setOutput(new Path("test-output"), TextOutputFormat.class, NullWritable.class, NullWritable.class).createJob();
 
 		job.waitForCompletion(true);
-		
+
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-input"));
 	}
 }

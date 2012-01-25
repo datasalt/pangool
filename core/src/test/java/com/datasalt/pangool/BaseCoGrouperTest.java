@@ -1,5 +1,7 @@
 package com.datasalt.pangool;
 
+import java.io.IOException;
+
 import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
@@ -10,26 +12,28 @@ import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 public abstract class BaseCoGrouperTest {
 
 	protected GroupHandler myGroupHandler = new GroupHandler();
-	
+
 	protected GroupHandler myGroupHandlerWithRollup = new GroupHandlerWithRollup();
 
 	protected InputProcessor myInputProcessor = new InputProcessor() {
 
 		@Override
-    public void process(Object key, Object value, Collector collector) {
-    }		
+		public void process(Object key, Object value, CoGrouperContext context, Collector collector) throws IOException,
+		    InterruptedException {
+
+		}
 	};
-	
+
 	protected Sorting getTestSorting() throws InvalidFieldException, CoGrouperException {
-		
-		
-		
+
 		return new SortingBuilder()
 			.add("url", SortOrder.ASC)
 			.add("date", SortOrder.DESC)
 			.addSourceId(SortOrder.ASC)
-			.secondarySort(1).add("content", SortOrder.ASC)
-			.secondarySort(2).add("name", SortOrder.ASC)
-			.buildSorting();
+		  .secondarySort(1)
+		  	.add("content", SortOrder.ASC)
+		  .secondarySort(2)
+		   	.add("name", SortOrder.ASC)
+		  .buildSorting();
 	}
 }

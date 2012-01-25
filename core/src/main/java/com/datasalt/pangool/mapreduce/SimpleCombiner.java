@@ -43,12 +43,12 @@ public class SimpleCombiner extends SimpleReducer<ITuple, NullWritable> {
 	    CoGrouperException {
 		Class<? extends CombinerHandler> handlerClass = CoGrouper.getCombinerHandler(conf);
 		handler = ReflectionUtils.newInstance(handlerClass, conf);
-		handler.setup(state, context);
+		handler.setup(this.context, collector);
 	}
 
 	protected void callHandler(Context context) throws IOException, InterruptedException {
 		try {
-			handler.onGroupElements(groupTuple, grouperIterator, collector);
+			handler.onGroupElements(groupTuple, grouperIterator, this.context, collector);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
@@ -56,7 +56,7 @@ public class SimpleCombiner extends SimpleReducer<ITuple, NullWritable> {
 
 	protected void cleanupHandler(Context context) throws IOException, InterruptedException {
 		try {
-			handler.cleanup(state, context);
+			handler.cleanup(this.context, collector);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}

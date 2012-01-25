@@ -3,23 +3,22 @@ package com.datasalt.pangool.api;
 import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 
+import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.api.GroupHandler.State;
+import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 public class CombinerHandler {
 
-	public static final class Collector {
+  @SuppressWarnings("rawtypes")
+	public static final class Collector extends MultipleOutputsCollector {
 		
     private Reducer.Context context;
-    private PangoolConfig pangoolConfig;
-    
+
     private ThreadLocal<DoubleBufferedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedTuple>() {
 
     	@Override
@@ -28,20 +27,9 @@ public class CombinerHandler {
       }
     };
     
-		public Collector(PangoolConfig pangoolConfig, Reducer.Context context){
-			this.pangoolConfig = pangoolConfig;
+		public Collector(CoGrouperConfig pangoolConfig, Reducer.Context context){
+			super(context);
 			this.context = context;
-		}
-		
-		/**
-		 * Return the Hadoop {@link Mapper.Context}.  
-		 */
-		public Reducer.Context getHadoopContext() {
-			return context;
-		}
-		
-		public PangoolConfig getPangoolConfig() {
-			return pangoolConfig;
 		}
 		
 		@SuppressWarnings("unchecked")
@@ -59,17 +47,17 @@ public class CombinerHandler {
 			context.write(sTuple, NullWritable.get());
 		}
 	}
-	
-	public void setup(State state, Reducer.Context context) throws IOException, InterruptedException, CoGrouperException {
+  
+	public void setup(CoGrouperContext<ITuple, NullWritable> context, Collector collector) throws IOException, InterruptedException, CoGrouperException {
 
 	}
 
-	public void cleanup(State state, Reducer.Context context) throws IOException, InterruptedException,
+	public void cleanup(CoGrouperContext<ITuple, NullWritable> context, Collector collector) throws IOException, InterruptedException,
 	    CoGrouperException {
 
 	}
 
-	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, Collector collector) throws IOException,
+	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<ITuple, NullWritable> context, Collector collector) throws IOException,
 	    InterruptedException, CoGrouperException {
 		
 	}

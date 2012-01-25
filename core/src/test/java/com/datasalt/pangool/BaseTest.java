@@ -20,9 +20,9 @@ import com.datasalt.pangool.io.Serialization;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractBaseTest;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public abstract class BaseTest extends AbstractBaseTest {
 
 	public static Schema SCHEMA;
@@ -62,7 +62,7 @@ public abstract class BaseTest extends AbstractBaseTest {
 						tuple.setString(fieldName, random.nextLong() + "");
 					}
 				} else if(fieldType.isEnum()) {
-					Method method = fieldType.getMethod("values", null);
+          Method method = fieldType.getMethod("values", (Class[])null);
 					Enum[] values = (Enum[]) method.invoke(null);
 					tuple.setEnum(fieldName, values[isRandom ? random.nextInt(values.length) : 0]);
 				} else {

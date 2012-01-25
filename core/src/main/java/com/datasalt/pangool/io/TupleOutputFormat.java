@@ -1,20 +1,17 @@
 package com.datasalt.pangool.io;
 
 import java.io.IOException;
-import java.text.NumberFormat;
 
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.mapred.AvroOutputFormat;
-import org.apache.avro.mapred.AvroWrapper;
 import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.datasalt.pangool.CoGrouperException;
@@ -27,27 +24,27 @@ import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
  * An Avro-based output format for {@link ITuple}s
  * 
  * @author pere
- *
+ * 
  */
 public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
-	
+
 	public final static String CONF_TUPLE_OUTPUT_SCHEMA = TupleOutputFormat.class.getName() + ".output.schema";
 	public final static String FILE_PREFIX = "tuple";
-	
-  public static final String DEFLATE_CODEC = "deflate";
-  public static final String SNAPPY_CODEC = "snappy";
 
-  private static final int SYNC_SIZE = 16;
-  private static final int DEFAULT_SYNC_INTERVAL = 1000*SYNC_SIZE; 
-  
+	public static final String DEFLATE_CODEC = "deflate";
+	public static final String SNAPPY_CODEC = "snappy";
+
+	private static final int SYNC_SIZE = 16;
+	private static final int DEFAULT_SYNC_INTERVAL = 1000 * SYNC_SIZE;
+
 	public static class TupleRecordWriter extends RecordWriter<ITuple, NullWritable> {
 
-		AvroWrapper<Record> wrapper = new AvroWrapper<Record>();
+		Record record;
 		DataFileWriter<Record> writer;
 		Schema pangoolSchema;
-		
+
 		public TupleRecordWriter(org.apache.avro.Schema schema, Schema pangoolSchema, DataFileWriter<Record> writer) {
-			wrapper.datum(new Record(schema));
+			record = new Record(schema);
 			this.writer = writer;
 			this.pangoolSchema = pangoolSchema;
 		}
@@ -60,10 +57,10 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
 		@Override
 		public void write(ITuple tuple, NullWritable ignore) throws IOException, InterruptedException {
 			// Convert Tuple to Record
-			for(Field field: pangoolSchema.getFields()) {
-				wrapper.datum().put(field.getName(), tuple.getObject(field.getName()));
+			for(Field field : pangoolSchema.getFields()) {
+				record.put(field.getName(), tuple.getObject(field.getName()));
 			}
-			writer.append(wrapper.datum());
+			writer.append(record);
 		}
 	}
 
@@ -72,19 +69,19 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
 	    InterruptedException {
 
 		Schema pangoolOutputSchema;
-    try {
-	    pangoolOutputSchema = Schema.parse(context.getConfiguration().get(CONF_TUPLE_OUTPUT_SCHEMA));
-    } catch(InvalidFieldException e) {
-	    throw new RuntimeException(e);
-    } catch(CoGrouperException e) {
-	    throw new RuntimeException(e);
-    }
+		try {
+			pangoolOutputSchema = Schema.parse(context.getConfiguration().get(CONF_TUPLE_OUTPUT_SCHEMA));
+		} catch(InvalidFieldException e) {
+			throw new RuntimeException(e);
+		} catch(CoGrouperException e) {
+			throw new RuntimeException(e);
+		}
 
-    org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(pangoolOutputSchema);
+		org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(pangoolOutputSchema);
 		DataFileWriter<Record> writer = new DataFileWriter<Record>(new ReflectDatumWriter<Record>());
 
 		// Compression etc - use Avro codecs
-		
+
 		Configuration conf = context.getConfiguration();
 		if(conf.getBoolean("mapred.output.compress", false)) {
 			String codec = conf.get("mapred.output.compression");
@@ -95,22 +92,9 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
 		}
 		writer.setSyncInterval(conf.getInt(AvroOutputFormat.SYNC_INTERVAL_KEY, DEFAULT_SYNC_INTERVAL));
 
-		Path path = new Path(FileOutputFormat.getOutputPath(context), getOutFileName(context, FILE_PREFIX));
-		writer.create(avroSchema, path.getFileSystem(context.getConfiguration()).create(path));
+		Path file = getDefaultWorkFile(context, "");
+		writer.create(avroSchema, file.getFileSystem(context.getConfiguration()).create(file));
 
 		return new TupleRecordWriter(avroSchema, pangoolOutputSchema, writer);
-	}
-
-	private static String getOutFileName(TaskAttemptContext context, String prefix) {
-		TaskID taskId = context.getTaskAttemptID().getTaskID();
-		int partition = taskId.getId();
-		NumberFormat nf = NumberFormat.getInstance();
-		nf.setMinimumIntegerDigits(5);
-		nf.setGroupingUsed(false);
-		StringBuilder result = new StringBuilder();
-		result.append(prefix);
-		result.append("-");
-		result.append(nf.format(partition));
-		return result.toString();
 	}
 }

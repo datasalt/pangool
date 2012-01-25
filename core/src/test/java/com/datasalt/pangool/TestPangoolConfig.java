@@ -20,7 +20,7 @@ public class TestPangoolConfig {
 		/*
 		 * fetched:long and fetched:vlong can't be sorted in common sorting
 		 */
-		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
+		CoGrouperConfigBuilder configBuilder = new CoGrouperConfigBuilder();
 
 		configBuilder.addSchema(0, Schema.parse("url:string, fetched:long, content:string"));
 		configBuilder.addSchema(1, Schema.parse("url:string, fetched:vlong, name:string"));
@@ -34,7 +34,7 @@ public class TestPangoolConfig {
 		/*
 		 * We can't add #source# sorting if we only have one schema
 		 */
-		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
+		CoGrouperConfigBuilder configBuilder = new CoGrouperConfigBuilder();
 
 		configBuilder.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
 		configBuilder.setSorting(Sorting.parse("url asc, fetched desc, " + Field.SOURCE_ID_FIELD_NAME + " desc"));
@@ -47,7 +47,7 @@ public class TestPangoolConfig {
 		/*
 		 * If we sort by url all schemas, we can't sort by url one specific schema
 		 */
-		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
+		CoGrouperConfigBuilder configBuilder = new CoGrouperConfigBuilder();
 
 		configBuilder.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
 		configBuilder.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
@@ -63,7 +63,7 @@ public class TestPangoolConfig {
 		 * Sorting by common fields in specific sortings is allowed
 		 * Types may differ
 		 */
-		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
+		CoGrouperConfigBuilder configBuilder = new CoGrouperConfigBuilder();
 
 		configBuilder.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
 		configBuilder.addSchema(1, Schema.parse("fetched:vlong, url:string, name:string"));
@@ -71,7 +71,7 @@ public class TestPangoolConfig {
 		    .secondarySort(1).add("fetched", SortOrder.ASC).buildSorting());
 		configBuilder.setGroupByFields("url");
 		
-		PangoolConfig config = configBuilder.build();
+		CoGrouperConfig config = configBuilder.build();
 		
 		Assert.assertEquals(Schema.parse("url:string, " + Field.SOURCE_ID_FIELD_NAME + ":vint").toString(),
 		    config.getCommonOrderedSchema().toString());
@@ -85,13 +85,13 @@ public class TestPangoolConfig {
 		 * Test that if we don't have specific sortings and we haven't added #source#, 
 		 * then it is automatically added to the end of common sorting
 		 */
-		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
+		CoGrouperConfigBuilder configBuilder = new CoGrouperConfigBuilder();
 
 		configBuilder.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
 		configBuilder.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
 		configBuilder.setSorting(Sorting.parse("url asc, fetched desc"));
 		configBuilder.setGroupByFields("url");
-		PangoolConfig config = configBuilder.build();
+		CoGrouperConfig config = configBuilder.build();
 
 		Assert.assertEquals(Schema.parse("url:string, fetched:long, " + Field.SOURCE_ID_FIELD_NAME + ":vint").toString(),
 		    config.getCommonOrderedSchema().toString());
@@ -106,7 +106,7 @@ public class TestPangoolConfig {
 		/*
 		 * We can put #source# sorting anywhere in the middle of common sorting
 		 */
-		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
+		CoGrouperConfigBuilder configBuilder = new CoGrouperConfigBuilder();
 
 		configBuilder.addSchema(0, Schema.parse("url:string, date:long, fetched:long, content:string"));
 		configBuilder.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
@@ -115,7 +115,7 @@ public class TestPangoolConfig {
 		    .buildSorting());
 
 		configBuilder.setGroupByFields("url");
-		PangoolConfig config = configBuilder.build();
+		CoGrouperConfig config = configBuilder.build();
 
 		Assert.assertEquals(Schema.parse("url:string, " + Field.SOURCE_ID_FIELD_NAME + ":vint" + ", fetched:long").toString(),
 		    config.getCommonOrderedSchema().toString());
@@ -128,7 +128,7 @@ public class TestPangoolConfig {
 	@Test
 	public void testSerDeEquality() throws JsonGenerationException, JsonMappingException, IOException,
 	    CoGrouperException, InvalidFieldException {
-		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder();
+		CoGrouperConfigBuilder configBuilder = new CoGrouperConfigBuilder();
 
 		SchemaBuilder builder1 = new SchemaBuilder();
 		builder1.add("url", String.class).add("date", Long.class).add("content", String.class);
@@ -145,11 +145,11 @@ public class TestPangoolConfig {
 		configBuilder.setSorting(sorting);
 		configBuilder.setRollupFrom("url");
 		configBuilder.setGroupByFields("url", "date");
-		PangoolConfig config = configBuilder.build();
+		CoGrouperConfig config = configBuilder.build();
 
 		ObjectMapper mapper = new ObjectMapper();
 		String jsonConfig = config.toStringAsJSON(mapper);
-		PangoolConfig config2 = PangoolConfigBuilder.fromJSON(jsonConfig, mapper);
+		CoGrouperConfig config2 = CoGrouperConfigBuilder.fromJSON(jsonConfig, mapper);
 
 		Assert.assertEquals(jsonConfig, config2.toStringAsJSON(mapper));
 	}

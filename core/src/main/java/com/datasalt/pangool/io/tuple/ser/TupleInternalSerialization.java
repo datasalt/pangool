@@ -31,8 +31,8 @@ import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.PangoolConfig;
-import com.datasalt.pangool.PangoolConfigBuilder;
+import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
@@ -49,7 +49,7 @@ public class TupleInternalSerialization implements Serialization<ITupleInternal>
 	
 	private Configuration conf;
 	private com.datasalt.pangool.io.Serialization ser;
-	private PangoolConfig pangoolConfig;
+	private CoGrouperConfig pangoolConfig;
 	
 	public TupleInternalSerialization(){
 	}
@@ -73,7 +73,7 @@ public class TupleInternalSerialization implements Serialization<ITupleInternal>
 				// Mega tricky!!!!. This is to avoid recursive serialization instantiation!!
 				disableSerialization(this.conf);
 				
-				this.pangoolConfig = PangoolConfigBuilder.get(conf);
+				this.pangoolConfig = CoGrouperConfigBuilder.get(conf);
 				this.ser= new com.datasalt.pangool.io.Serialization(this.conf);
 			}
 		} catch(CoGrouperException e){
@@ -98,7 +98,7 @@ public class TupleInternalSerialization implements Serialization<ITupleInternal>
 		 * Caches the values from the enum fields. This is done just once for efficiency since it uses reflection. 
 		 * 
 		 */
-		public static Map<String,Enum<?>[]> getEnums(PangoolConfig pangoolConfig) {
+		public static Map<String,Enum<?>[]> getEnums(CoGrouperConfig pangoolConfig) {
 			Map<String,Enum<?>[]> result = new HashMap<String,Enum<?>[]>();
 			Schema schema = pangoolConfig.getCommonOrderedSchema();
 			extractEnumsFromSchema(result, schema);

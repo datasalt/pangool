@@ -10,18 +10,18 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
+import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.PangoolConfig;
-import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SortingBuilder;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
+import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
@@ -33,10 +33,12 @@ public class WordCount {
 	private static final String COUNT_FIELD = "count";
 
 	public static class Split extends InputProcessor<LongWritable, Text> {
+		
 		Tuple tuple = new Tuple();
 
 		@Override
-		public void process(LongWritable key, Text value, Collector collector) throws IOException, InterruptedException {
+		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
+		    throws IOException, InterruptedException {
 			String words[] = value.toString().split("\\s+");
 			for(String word : words) {
 				tuple.setString(WORD_FIELD, word);
@@ -47,11 +49,12 @@ public class WordCount {
 	}
 
 	public static class CountCombiner extends CombinerHandler {
+		
 		Tuple tuple = new Tuple();
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, Collector collector) throws IOException,
-		    InterruptedException, CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<ITuple, NullWritable> context,
+		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
 
 			int count = 0;
 			this.tuple.setString(WORD_FIELD, group.getString(WORD_FIELD));
@@ -66,14 +69,13 @@ public class WordCount {
 	public static class Count extends GroupHandler<Text, IntWritable> {
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, State state,
-		    ReduceContext<ITuple, NullWritable, Text, IntWritable> context) throws IOException, InterruptedException,
-		    CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Text, IntWritable> context,
+		    Collector<Text, IntWritable> collector) throws IOException, InterruptedException, CoGrouperException {
 			int count = 0;
 			for(ITuple tuple : tuples) {
 				count += tuple.getInt(COUNT_FIELD);
 			}
-			context.write(new Text(group.getString(WORD_FIELD)), new IntWritable(count));
+			collector.write(new Text(group.getString(WORD_FIELD)), new IntWritable(count));
 		}
 	}
 
@@ -82,7 +84,7 @@ public class WordCount {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);
 
-		PangoolConfig config = new PangoolConfigBuilder()
+		CoGrouperConfig config = new CoGrouperConfigBuilder()
 		    .addSchema(0, Schema.parse(WORD_FIELD + ":string, " + COUNT_FIELD + ":int")).setGroupByFields(WORD_FIELD)
 		    .setSorting(new SortingBuilder().add(WORD_FIELD).buildSorting()).build();
 

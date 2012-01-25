@@ -11,8 +11,8 @@ import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.mapreduce.SortComparator;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.PangoolConfig;
-import com.datasalt.pangool.PangoolConfigBuilder;
+import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SortingBuilder;
 import com.datasalt.pangool.Schema.Field;
@@ -22,7 +22,7 @@ public abstract class ComparatorsBaseTest {
 
 	protected void setConf(SortComparator comparator) throws InvalidFieldException, CoGrouperException, JsonGenerationException, JsonMappingException, IOException, InvalidFieldException {
 		Configuration conf = new Configuration();
-		PangoolConfig config = new PangoolConfigBuilder()
+		CoGrouperConfig config = new CoGrouperConfigBuilder()
 		.setGroupByFields("booleanField", "intField")
 		.setSorting(new SortingBuilder()
 			.add("booleanField", SortOrder.ASC)
@@ -35,7 +35,7 @@ public abstract class ComparatorsBaseTest {
 		.addSchema(1, Schema.parse("booleanField:boolean, intField:int, strField:string"))
 		.addSchema(2, Schema.parse("booleanField:boolean, intField:int, longField:long"))
 		.build();
-		PangoolConfig.setPangoolConfig(config, conf);
+		CoGrouperConfig.setPangoolConfig(config, conf);
 		comparator.setConf(conf);
 	}
 	
