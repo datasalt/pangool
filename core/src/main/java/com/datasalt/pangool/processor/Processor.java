@@ -126,11 +126,6 @@ public class Processor {
 
 		job.setJarByClass((jarByClass != null) ? jarByClass : processorHandler.getClass());
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(DoubleBufferedTuple.class);
-		job.setMapOutputValueClass(NullWritable.class);
-		job.setPartitionerClass(Partitioner.class);
-		job.setGroupingComparatorClass(GroupComparator.class);
-		job.setSortComparatorClass(SortComparator.class);
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);

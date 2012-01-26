@@ -129,16 +129,16 @@ import org.apache.hadoop.util.ReflectionUtils;
 @SuppressWarnings("rawtypes")
 public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 
-	private static final String MULTIPLE_OUTPUTS = "mapreduce.multipleoutputs";
+	private static final String MULTIPLE_OUTPUTS = "pangool.multipleoutputs";
 
-	private static final String MO_PREFIX = "mapreduce.multipleoutputs.namedOutput.";
+	private static final String MO_PREFIX = "pangool.multipleoutputs.namedOutput.";
 
 	private static final String FORMAT = ".format";
 	private static final String KEY = ".key";
 	private static final String VALUE = ".value";
 	private static final String CONF = ".conf"; // Added to allow specific Configuration properties for named outputs
 
-	private static final String COUNTERS_ENABLED = "mapreduce.multipleoutputs.counters";
+	private static final String COUNTERS_ENABLED = "pangool.multipleoutputs.counters";
 
 	/**
 	 * Counters group used by the counters of MultipleOutputs.

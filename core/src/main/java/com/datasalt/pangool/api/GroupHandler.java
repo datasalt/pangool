@@ -3,7 +3,6 @@ package com.datasalt.pangool.api;
 import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 
@@ -36,13 +35,6 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 		
 		public void write(OUTPUT_KEY key, OUTPUT_VALUE value) throws IOException, InterruptedException {
 			context.write(key, value);
-		}
-
-		/**
-		 * Return the Hadoop {@link Mapper.Context}.  
-		 */
-		public Reducer.Context getHadoopContext() {
-			return context;
 		}
 	}
 	
@@ -79,7 +71,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 
 	/**
 	 * 
-	 * This is method is called with an iterable that contains all the tuples that have been grouped by the fields defined
+	 * This method is called with an iterable that contains all the tuples that have been grouped by the fields defined
 	 * in {@link Grouper#setFieldsToGroupBy(String...)}
 	 * 
 	 * @param tuples

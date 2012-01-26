@@ -11,6 +11,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -50,9 +51,15 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 			tuple.setString("country", "ES");
 
 			// We use the multiple outputs here -
-			collector.getNamedOutput(OUTPUT_1).write(new Text(tuple.getString("name")), new Text(tuple.getString("country")));
-			collector.getNamedOutput(OUTPUT_2).write(new IntWritable(tuple.getInt("money")), NullWritable.get());
-			collector.getNamedOutput(TUPLEOUTPUT_1).write(tuple, NullWritable.get());
+			RecordWriter writer = collector.getNamedOutput(OUTPUT_1);
+			System.out.println(writer);
+			writer.write(new Text(tuple.getString("name")), new Text(tuple.getString("country")));
+			writer = collector.getNamedOutput(OUTPUT_2);
+			System.out.println(writer);
+			writer.write(new IntWritable(tuple.getInt("money")), NullWritable.get());
+			writer = collector.getNamedOutput(TUPLEOUTPUT_1);
+			System.out.println(writer);
+			writer.write(tuple, NullWritable.get());
 
 			collector.write(tuple);
 		}
@@ -100,7 +107,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		// Configure extra outputs
 		coGrouper.addNamedOutput(OUTPUT_1, TextOutputFormat.class, Text.class, Text.class);
 		coGrouper.addNamedOutput(OUTPUT_2, SequenceFileOutputFormat.class, IntWritable.class, NullWritable.class);
-		coGrouper.addTupleOutput(TUPLEOUTPUT_1, baseSchema);
+		coGrouper.addNamedTupleOutput(TUPLEOUTPUT_1, baseSchema);
 
 		Job job = coGrouper.createJob();
 		// One file with one line - context will be ignored

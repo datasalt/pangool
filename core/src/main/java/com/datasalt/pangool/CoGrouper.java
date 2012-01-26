@@ -152,11 +152,11 @@ public class CoGrouper {
 	public CoGrouper addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
 	    Class valueClass) throws CoGrouperException {
 		validateNamedOutput(namedOutput);
-		namedOutputs.add(new Output(namedOutput, outputFormat, keyClass, valueClass));
+		namedOutputs.add(new Output(namedOutput, outputFormatClass, keyClass, valueClass));
 		return this;
 	}
 
-	public CoGrouper addTupleOutput(String namedOutput, Schema outputSchema) throws CoGrouperException {
+	public CoGrouper addNamedTupleOutput(String namedOutput, Schema outputSchema) throws CoGrouperException {
 		validateNamedOutput(namedOutput);
 		Output output = new Output(namedOutput, TupleOutputFormat.class, ITuple.class, NullWritable.class);
 		output.specificContext.put(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, outputSchema.toString());
