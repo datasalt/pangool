@@ -7,7 +7,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 /**
  * Class to be extended by handlers that interact with {@link Processor} API.
  * 
- * @author pere
+ * 
  *
  * @param <I1>
  * @param <I2>

@@ -33,6 +33,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.avrool.commons.HadoopUtils;
+import com.datasalt.avrool.mapreduce.GroupComparator;
 
 public class AvroTest {
 
@@ -47,31 +48,8 @@ public class AvroTest {
 		    .setFields(Arrays.asList(new Field("my_animal", Schema.create(Type.INT), null, null, Field.Order.ASCENDING)));
 	}
 
-	public static final String CONF_GROUP_SCHEMA = "guachu_group_schema";
-
-	public static class MyAvroGroupComparator extends AvroKeyComparator<Record> {
-
-		private Schema schema;
-
-		@Override
-		public void setConf(Configuration conf) {
-			super.setConf(conf);
-			if(conf != null) {
-				schema = Schema.parse(conf.get(CONF_GROUP_SCHEMA));
-				System.out.println("My avro group comparator schema : " + schema);
-
-				// schema = Pair.getKeySchema(AvroJob.getMapOutputSchema(conf));
-			}
-		}
-
-		public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-			return BinaryData.compare(b1, s1, l1, b2, s2, l2, schema);
-		}
-
-		public int compare(AvroWrapper<Record> x, AvroWrapper<Record> y) {
-			return ReflectData.get().compare(x.datum(), y.datum(), schema);
-		}
-	}
+	
+	
 
 	
 	
@@ -191,7 +169,7 @@ public class AvroTest {
 		Schema pairSchema = Pair.getPairSchema(intermediateSchema, nullSchema);
 		AvroJob.setMapOutputSchema(conf, pairSchema);
 		
-		conf.set(CONF_GROUP_SCHEMA, groupSchema.toString());
+		conf.set(GroupComparator.CONF_GROUP_SCHEMA, groupSchema.toString());
 
 		Job job = new Job(conf);
 		job.setMapperClass(Mapy.class);
@@ -202,7 +180,7 @@ public class AvroTest {
 		job.setOutputValueClass(Text.class);
 		job.setMapOutputKeyClass(AvroKey.class);
 		job.setMapOutputValueClass(AvroValue.class);
-		job.setGroupingComparatorClass(MyAvroGroupComparator.class);
+		job.setGroupingComparatorClass(GroupComparator.class);
 		job.setPartitionerClass(Part.class);
 		
 		FileInputFormat.addInputPath(job, new Path("avro_input.txt"));

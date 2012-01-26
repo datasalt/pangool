@@ -5,7 +5,7 @@ package com.datasalt.avrool;
 // * Builds an inmutable {@link Sorting} instance.
 // * May have childs {@link SortCriteriaBuilder}.
 // * 
-// * @author pere
+// * 
 // * 
 // */
 //@SuppressWarnings("rawtypes")

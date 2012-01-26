@@ -11,7 +11,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * 
- * @author pere
+ * 
  *
  */
 @SuppressWarnings("rawtypes")
@@ -237,30 +237,11 @@ public class CoGrouperConfigBuilder {
 //		}
 //	}
 	
-  public static CoGrouperConfig fromJSON(String json, ObjectMapper mapper) throws JsonParseException, JsonMappingException, IOException, CoGrouperException, NumberFormatException {
-		CoGrouperConfigBuilder configBuilder = new CoGrouperConfigBuilder();
-		configBuilder.config.fromJSON(json, mapper);
-		return configBuilder.build();
-	}
+//  public static CoGrouperConfig fromJSON(String json, ObjectMapper mapper) throws JsonParseException, JsonMappingException, IOException, CoGrouperException, NumberFormatException {
+//		CoGrouperConfigBuilder configBuilder = new CoGrouperConfigBuilder();
+//		configBuilder.config.fromJSON(json, mapper);
+//		return configBuilder.build();
+//	}
 	
-	public static CoGrouperConfig get(Configuration conf) throws CoGrouperException {
-		ObjectMapper jsonSerDe = new ObjectMapper();
-		try {
-			String serialized =conf.get(CoGrouperConfig.CONF_PANGOOL_CONF);
-	    return (serialized == null || serialized.isEmpty()) ? null : fromJSON(serialized, jsonSerDe);
-    } catch (JsonParseException e) {
-    	fail(e);
-    } catch(JsonMappingException e) {
-    	fail(e);
-    } catch(NumberFormatException e) {
-    	fail(e);
-    } catch(IOException e) {
-    	fail(e);
-    }
-		return null;
-	}
-	
-	private static void fail(Exception e) throws CoGrouperException {
-		throw new CoGrouperException(e);
-	}
+
 }

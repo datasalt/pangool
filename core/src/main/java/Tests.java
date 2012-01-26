@@ -14,6 +14,7 @@ import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperConfigBuilder;
 import com.datasalt.avrool.CoGrouperException;
 import com.datasalt.avrool.Ordering;
+import com.datasalt.avrool.SerializationInfo;
 
 
 public class Tests {
@@ -46,13 +47,34 @@ public class Tests {
 		b.setGroupByFields("user_id");
 		b.setCommonOrdering(new Ordering().add("user_id",Order.DESCENDING));
 		b.setInterSourcesOrdering(Order.DESCENDING);
-		b.setIndividualSourceOrdering("usuarios", new Ordering().add("name",Order.ASCENDING).add("age",Order.DESCENDING));
+		b.setIndividualSourceOrdering("usuarios", new Ordering().add("name",Order.DESCENDING).add("age",Order.DESCENDING));
 		b.setIndividualSourceOrdering("countries",new Ordering().add("country", Order.DESCENDING));
 		
 		CoGrouperConfig config = b.build();
 		
+		
+		
+		
+		
+		
 		ObjectMapper mapper = new ObjectMapper();
-		config.toStringAsJSON(mapper);
+		
+		System.out.println(config.toString());
+		System.out.println(config.toJSON(mapper));
+		
+		
+		
+		CoGrouperConfig deserializedConfig = CoGrouperConfig.parseJSON(config.toJSON(mapper), mapper);
+		
+		
+		System.out.println("deserialized");
+		System.out.println(deserializedConfig.toString());
+		
+		SerializationInfo serInfo = SerializationInfo.get(config);
+		System.out.println("Common schema " + serInfo.getCommonSchema());
+		System.out.println("Particular schemas " + serInfo.getParticularSchemas());
+		System.out.println("Intermediate schema " + serInfo.getIntermediateSchema());
+		
 		
 	}
 	

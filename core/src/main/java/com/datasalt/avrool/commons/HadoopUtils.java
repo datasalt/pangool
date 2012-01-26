@@ -40,7 +40,7 @@ import org.apache.hadoop.mapreduce.TaskInputOutputContext;
  * Put here usefull methods for manipulating things in the HDFS, etc.
  * </p>
  * 
- * @author pere
+ * 
  * 
  */
 public class HadoopUtils {

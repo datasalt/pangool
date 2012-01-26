@@ -23,7 +23,7 @@
 ///**
 // * An Avro-based output format for {@link ITuple}s
 // * 
-// * @author pere
+// * 
 // * 
 // */
 //public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {

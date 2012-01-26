@@ -12,7 +12,7 @@
 ///**
 // * Encapsulates one sorting configuration composed of {@link SortElement}s.
 // * 
-// * @author pere
+// * 
 // *
 // */
 //@SuppressWarnings("rawtypes")

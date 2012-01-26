@@ -9,7 +9,7 @@ import com.datasalt.avrool.CoGrouperException;
 
 /**
  * 
- * @author pere
+ * 
  * 
  */
 public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {

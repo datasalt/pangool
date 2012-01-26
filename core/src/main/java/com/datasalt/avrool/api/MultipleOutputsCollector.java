@@ -9,7 +9,7 @@ import org.apache.hadoop.mapreduce.lib.output.MultipleOutputsPatched;
 
 /**
  * 
- * @author pere
+ * 
  *
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })

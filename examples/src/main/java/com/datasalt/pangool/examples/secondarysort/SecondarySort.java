@@ -26,7 +26,7 @@
 // * Like original Hadoop's SecondarySort example. Reads a tabulated text file with two numbers, groups by the first and
 // * sorts by both.
 // * 
-// * @author pere
+// * 
 // * 
 // */
 //public class SecondarySort {

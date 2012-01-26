@@ -48,7 +48,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<Record, Nul
 		super.setup(context);
 		try {
 			Configuration conf = context.getConfiguration();
-			this.pangoolConfig = CoGrouperConfigBuilder.get(conf);
+			this.pangoolConfig = CoGrouperConfig.get(conf);
 			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, pangoolConfig);
 			//TODO 
 			//this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());

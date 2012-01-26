@@ -99,7 +99,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	public final void setup(org.apache.hadoop.mapreduce.Mapper.Context context) throws IOException, InterruptedException {
 		try {
 			Configuration conf = context.getConfiguration();
-			CoGrouperConfig pangoolConfig = CoGrouperConfigBuilder.get(conf);
+			CoGrouperConfig pangoolConfig = CoGrouperConfig.get(conf);
 			this.context = new CoGrouperContext(context, pangoolConfig);
 			this.collector = new Collector(context);
 			setup(this.context, this.collector);

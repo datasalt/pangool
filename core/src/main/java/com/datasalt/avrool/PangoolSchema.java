@@ -16,7 +16,7 @@
 ///**
 // * Encapsulates one Pangool schame composed of {@link Field} instances.
 // * 
-// * @author pere
+// * 
 // *
 // */
 //public class PangoolSchema {
@@ -49,7 +49,7 @@
 //	/**
 //	 * Convenience class for dealing with lists of Field
 //	 * 
-//	 * @author pere
+//	 * 
 //	 *
 //	 */
 //	public static class Fields extends ArrayList<Field> {

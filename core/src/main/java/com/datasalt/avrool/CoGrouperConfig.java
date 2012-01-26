@@ -5,29 +5,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field.Order;
 import org.apache.hadoop.conf.Configuration;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-/**
- * 
- * @author pere
- *
- */
 public class CoGrouperConfig {
 
-	final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
+	public final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
 
 	Ordering commonOrdering;
-	Schema.Field.Order interSourcesOrdering;
-	Map<String,Ordering> particularOrderings = new HashMap<String,Ordering>();
+	Schema.Field.Order interSourcesOrdering = Order.IGNORE;
+	Map<String,Ordering> particularOrderings = new LinkedHashMap<String,Ordering>();
 	
-	Map<String, Schema> schemasBySource = new HashMap<String,Schema>();
+	Map<String, Schema> schemasBySource = new LinkedHashMap<String,Schema>();
 	private List<String> groupByFields;
 	private String rollupFrom;
 	
@@ -68,7 +65,7 @@ public class CoGrouperConfig {
 	
 	public static void toConfig(CoGrouperConfig config, Configuration conf) throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper jsonSerDe = new ObjectMapper();
-		conf.set(CONF_PANGOOL_CONF, config.toStringAsJSON(jsonSerDe));
+		conf.set(CONF_PANGOOL_CONF, config.toJSON(jsonSerDe));
 	}
 
 	
@@ -77,52 +74,79 @@ public class CoGrouperConfig {
 		StringBuilder b = new StringBuilder();
 		b.append("schemasBySource: ").append(schemasBySource.toString()).append("\n");
 		b.append("groupByFields: ").append(groupByFields).append("\n");
-		b.append("rollupFrom: ").append(rollupFrom);
+		b.append("rollupFrom: ").append(rollupFrom).append("\n");
 		b.append("commonOrdering: ").append(commonOrdering.toString()).append("\n");
 		b.append("interSourcesOrdering: ").append(interSourcesOrdering.toString()).append("\n");
-		b.append("individualSourcesOrdering: ").append(particularOrderings.toString()).append("\n");
+		b.append("particularSourcesOrdering: ").append(particularOrderings.toString()).append("\n");
 		return b.toString();
 	}
 
 	@SuppressWarnings("unchecked")
-	void fromJSON(String json, ObjectMapper mapper) throws CoGrouperException {
+	public static CoGrouperConfig parseJSON(String json, ObjectMapper mapper) throws CoGrouperException {
 		
 		if (json == null){
 			throw new CoGrouperException("Non existing pangool config set in Configuration");
 		}
 		
+		CoGrouperConfig result = new CoGrouperConfig();
+		
 		try{
 			HashMap<String, Object> jsonData = mapper.readValue(json, HashMap.class);
-			
-			setRollupFrom((String) jsonData.get("rollupFrom"));
-			
+			result.setRollupFrom((String) jsonData.get("rollupFrom"));
 			ArrayList<String> list = (ArrayList<String>) jsonData.get("groupByFields");
-			setGroupByFields(list.toArray(new String[0]));
-			
-	    Map<String, String> jsonSchemes = (Map<String, String>) jsonData.get("schemasBySource");
-			
-			for(Map.Entry<String, String> jsonScheme: jsonSchemes.entrySet()) {
-				addSource(jsonScheme.getKey(), Schema.parse(jsonScheme.getValue()));
+			result.setGroupByFields(list.toArray(new String[0]));
+	    Map<String, String> jsonSources = (Map<String, String>) jsonData.get("schemasBySource");
+	    result.interSourcesOrdering = Schema.Field.Order.valueOf((String) jsonData.get("interSourcesOrdering"));
+	    
+			for(Map.Entry<String, String> jsonSchema: jsonSources.entrySet()) {
+				result.addSource(jsonSchema.getKey(), Schema.parse(jsonSchema.getValue()));
 			}
 			
-			setCommonOrdering(Ordering.parse((String) jsonData.get("commonOrdering")));
+			result.setCommonOrdering(new Ordering((List)jsonData.get("commonOrdering")));
+			Map<String, List> jsonParticularOrderings = (Map<String, List>) jsonData.get("particularOrderings");
+			
+			for(Map.Entry<String, List> entry: jsonParticularOrderings.entrySet()) {
+				result.particularOrderings.put(entry.getKey(), new Ordering((List)entry.getValue()));
+			}
+			return result;
 		} catch(Exception e){
 			throw new CoGrouperException(e);
 		}
 	}
 	
-	public String toStringAsJSON(ObjectMapper mapper) throws JsonGenerationException, JsonMappingException, IOException {
+	
+	public static CoGrouperConfig get(Configuration conf) throws CoGrouperException {
+		ObjectMapper jsonSerDe = new ObjectMapper();
+			String serialized =conf.get(CoGrouperConfig.CONF_PANGOOL_CONF);
+	    return (serialized == null || serialized.isEmpty()) ? null : CoGrouperConfig.parseJSON(serialized, jsonSerDe);
+	}
+	
+	
+	
+	public String toJSON(ObjectMapper mapper) throws JsonGenerationException, JsonMappingException, IOException {
 		Map<String, Object> jsonableData = new HashMap<String, Object>();
-		jsonableData.put("commonOrdering", commonOrdering.toString());
-		Map<String, String> jsonableSchemes = new HashMap<String, String>();
+		
+		Map<String, String> jsonableSources = new HashMap<String, String>();
 		
 		for(Map.Entry<String, Schema> schemaEntry : schemasBySource.entrySet()) {
-			jsonableSchemes.put(schemaEntry.getKey(), schemaEntry.getValue().toString());
+			jsonableSources.put(schemaEntry.getKey(), schemaEntry.getValue().toString());
 		}
 		
-		jsonableData.put("schemasBySource", jsonableSchemes);
+		jsonableData.put("schemasBySource", jsonableSources);
+		jsonableData.put("commonOrdering", commonOrdering.getElements());
+		jsonableData.put("interSourcesOrdering", interSourcesOrdering);
+		
+		Map<String, List> jsonableParticularOrderings = new HashMap<String, List>();
+		
+		for(Map.Entry<String, Ordering> entry : particularOrderings.entrySet()) {
+			jsonableParticularOrderings.put(entry.getKey(), entry.getValue().getElements());
+		}
+		
+		jsonableData.put("particularOrderings", jsonableParticularOrderings);
 		jsonableData.put("groupByFields", groupByFields);
 		jsonableData.put("rollupFrom", rollupFrom);
 		return mapper.writeValueAsString(jsonableData);
 	}	
+	
+	
 }

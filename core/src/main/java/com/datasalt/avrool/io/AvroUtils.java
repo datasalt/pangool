@@ -2,6 +2,8 @@ package com.datasalt.avrool.io;
 
 import java.util.Collection;
 
+import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.mapred.AvroSerialization;
 import org.apache.hadoop.conf.Configuration;
 
@@ -14,6 +16,11 @@ public class AvroUtils {
 			conf.setStrings("io.serializations", serializations.toArray(new String[0]));
 		}
 	}
+	
+	public static Field cloneField(Field f){
+		return new Field(f.name(),f.schema(),f.doc(),f.defaultValue(),f.order());
+	}
+	
 	
 //	public static org.apache.avro.Schema toAvroSchema(PangoolSchema pangoolSchema) {
 //		List<org.apache.avro.Schema.Field> avroFields = new ArrayList<org.apache.avro.Schema.Field>();

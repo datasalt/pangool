@@ -14,7 +14,7 @@
 // * Builds an individual {@link SortCriteria} inmutable instance.
 // * Links to a parent {@link SortingBuilder}.
 // * 
-// * @author pere
+// * 
 // * 
 // */
 //@SuppressWarnings("rawtypes")

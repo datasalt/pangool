@@ -10,7 +10,7 @@
 //
 ///**
 // * 
-// * @author pere
+// * 
 // *
 // */
 //public class TestSchemaBuilder {

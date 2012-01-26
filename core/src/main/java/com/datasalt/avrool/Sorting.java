@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 ///**
 // * Encapsulates the sorting configuration
 // * 
-// * @author pere
+// * 
 // * 
 // */
 //public class Sorting {

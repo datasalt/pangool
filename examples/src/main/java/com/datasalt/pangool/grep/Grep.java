@@ -24,7 +24,7 @@ import com.datasalt.avrool.processor.ProcessorHandler;
  * Example of performing a map-only Job with {@link Processor}. You give a regex to GrepProcessor and it will emit
  * the lines that match that regex.
  * 
- * @author pere
+ * 
  *
  */
 public class Grep {

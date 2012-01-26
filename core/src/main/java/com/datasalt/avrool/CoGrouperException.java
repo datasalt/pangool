@@ -2,7 +2,7 @@ package com.datasalt.avrool;
 
 /**
  * 
- * @author pere
+ * 
  *
  */
 public class CoGrouperException extends Exception {

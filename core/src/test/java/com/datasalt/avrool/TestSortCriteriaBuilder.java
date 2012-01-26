@@ -12,7 +12,7 @@
 //
 ///**
 // * 
-// * @author pere
+// * 
 // *
 // */
 //public class TestSortCriteriaBuilder {

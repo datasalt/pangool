@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.avro.Schema.Field.Order;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -21,6 +22,11 @@ public class Ordering {
 		public Ordering(){
 			
 		}
+		
+		public List<SortElement> getElements(){
+			return elements;
+		}
+		
 		
 		
 		public static class SortElement {
@@ -60,6 +66,9 @@ public class Ordering {
 			List elements = mapper.readValue(json, ArrayList.class);
 			return new Ordering(elements);
 		}
+		
+		
+		
 		
 	
 }
