@@ -121,8 +121,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
-			iterator.next();
-			DoubleBufferedTuple currentTuple = (DoubleBufferedTuple) context.getCurrentKey();
+			DoubleBufferedTuple currentTuple = (DoubleBufferedTuple) key;
 			int indexMismatch;
 			if(firstIteration) {
 				indexMismatch = minDepth;
@@ -138,9 +137,6 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 			for(int i = indexMismatch; i <= maxDepth; i++) {
 				handler.onOpenGroup(i, groupByFields.get(i), currentTuple, this.context, collector);
 			}
-
-			// we consumed the first element , so needs to comunicate to iterator
-			grouperIterator.setFirstTupleConsumed(true);
 
 			// We set a view over the group fields to the method.
 			groupTuple.setDelegatedTuple(currentTuple);

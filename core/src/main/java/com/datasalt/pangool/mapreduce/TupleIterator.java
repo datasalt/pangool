@@ -40,13 +40,7 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>,
 
 	private Iterator<NullWritable> iterator;
 	private ReduceContext<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
-	
-	/**
-	 *  used to mark that the first element from the {@link Iterator} was already consumed.
-	 *  This prevents calling {@link Iterator#next()} twice for the first element.
-	 */
-	private boolean firstTupleConsumed=false;
-	
+		
 	public TupleIterator(ReduceContext<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
 		this.context = context;
 	}
@@ -54,50 +48,25 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>,
 	public void setIterator(Iterator<NullWritable> iterator){
 		this.iterator = iterator;
 	}	
-	
-	/**
-	 *  This is used to mark that the first element from iterable was already consumed, so in next iteration don't call iterator.next().
-	 *  Instead of this reuse the currentKey in {@link ReduceContext#getCurrentKey()} 
-	 *  
-	 *  This method is usually called before {@link GroupHandler#onGroupElements(Iterable,Context)}
-	 */
-	
-	public void setFirstTupleConsumed(boolean available){
-		this.firstTupleConsumed = available;
-	}
-	
+		
 	@Override
   public boolean hasNext() {
-		if (firstTupleConsumed){
-			return true;
-		} else {
-			return iterator.hasNext();
-		}
+		return iterator.hasNext();
   }
 
 	@Override
   public ITuple next() {
-		if (firstTupleConsumed){
-			firstTupleConsumed = false;
-			return context.getCurrentKey();
-		} else {
 			iterator.next(); //advances one key
 			return context.getCurrentKey();
-		}
   }
 
 	@Override
   public void remove() {
-		if (firstTupleConsumed){
-			firstTupleConsumed = false;
-		} else {
 			iterator.remove();
-		}
   }
 
 	@Override
 	public Iterator<ITuple> iterator() {
 		return this;
 	}
-
 }
