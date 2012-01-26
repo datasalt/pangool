@@ -20,6 +20,7 @@ import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.api.ProxyOutputFormat;
 import com.datasalt.pangool.io.AvroUtils;
 import com.datasalt.pangool.io.PangoolMultipleOutputs;
 import com.datasalt.pangool.io.TupleInputFormat;
@@ -280,6 +281,15 @@ public class CoGrouper {
 				PangoolMultipleOutputs.addNamedOutputContext(job, output.name, contextKeyValue.getKey(),
 				    contextKeyValue.getValue());
 			}
+		}
+		if(namedOutputs.size() > 0) {
+			// Configure a {@link ProxyOutputFormat} for Pangool's Multiple Outputs to work: {@link PangoolMultipleOutput}
+			try {
+	      job.getConfiguration().setClass(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, job.getOutputFormatClass(), OutputFormat.class);
+      } catch(ClassNotFoundException e) {
+	      /// will never happen
+      }
+			job.setOutputFormatClass(ProxyOutputFormat.class);
 		}
 		return job;
 	}

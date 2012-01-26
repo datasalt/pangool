@@ -37,96 +37,12 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskInputOutputContext;
 import org.apache.hadoop.util.ReflectionUtils;
 
+import com.datasalt.pangool.api.ProxyOutputFormat.ProxyOutputCommitter;
+
 /**
- * * IMPORTANT!!!
- * 
- * Version of this class patched with https://issues.apache.org/jira/browse/MAPREDUCE-2225 using as base version cdh3
- * hadoop-0.20.1+169.88. Once you change the version of Hadoop to one that includes the patch, please, stop to use this
- * classes.
- * 
- * This class was patched to support Thrift
- * 
- * END IMPORTANT!!!
- * 
- * The MultipleOutputs class simplifies writing output data to multiple outputs
- * 
- * <p>
- * Case one: writing to additional outputs other than the job default output.
- * 
- * Each additional output, or named output, may be configured with its own <code>OutputFormat</code>, with its own key
- * class and with its own value class.
- * 
- * <p>
- * Case two: to write data to different files provided by user
- * </p>
- * 
- * <p>
- * MultipleOutputs supports counters, by default they are disabled. The counters group is the
- * {@link PangoolMultipleOutputs} class name. The names of the counters are the same as the output name. These count the
- * number records written to each output name.
- * </p>
- * 
- * Usage pattern for job submission:
- * 
- * <pre>
- * 
- * Job job = new Job();
- * 
- * FileInputFormat.setInputPath(job, inDir);
- * FileOutputFormat.setOutputPath(job, outDir);
- * 
- * job.setMapperClass(MOMap.class);
- * job.setReducerClass(MOReduce.class);
- * ...
- * 
- * // Defines additional single text based output 'text' for the job
- * MultipleOutputs.addNamedOutput(job, "text", TextOutputFormat.class,
- * LongWritable.class, Text.class);
- * 
- * // Defines additional sequence-file based output 'sequence' for the job
- * MultipleOutputs.addNamedOutput(job, "seq",
- *   SequenceFileOutputFormat.class,
- *   LongWritable.class, Text.class);
- * ...
- * 
- * job.waitForCompletion(true);
- * ...
- * </pre>
- * <p>
- * Usage in Reducer:
- * 
- * <pre>
- * <K, V> String generateFileName(K k, V v) {
- *   return k.toString() + "_" + v.toString();
- * }
- * 
- * public class MOReduce extends
- *   Reducer&lt;WritableComparable, Writable,WritableComparable, Writable&gt; {
- * private MultipleOutputs mos;
- * public void setup(Context context) {
- * ...
- * mos = new MultipleOutputs(context);
- * }
- * 
- * public void reduce(WritableComparable key, Iterator&lt;Writable&gt; values,
- * Context context)
- * throws IOException {
- * ...
- * mos.write("text", , key, new Text("Hello"));
- * mos.write("seq", LongWritable(1), new Text("Bye"), "seq_a");
- * mos.write("seq", LongWritable(2), key, new Text("Chau"), "seq_b");
- * mos.write(key, new Text("value"), generateFileName(key, new Text("value")));
- * ...
- * }
- * 
- * public void cleanup(Context) throws IOException {
- * mos.close();
- * ...
- * }
- * 
- * }
- * </pre>
- */
+ * This class is inspired by the MultipleOutputs class of Hadoop.
+ * The difference is that it allows an arbitrary OutputFormat to be written in sub-folders of the output path.
+ **/
 @SuppressWarnings("rawtypes")
 public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 
@@ -183,8 +99,6 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	 *           if the output name is not valid.
 	 */
 	private static void checkBaseOutputPath(String outputPath) {
-		// TODO this was patched in order to not use Cloudera distro
-		// if (outputPath.equals(FileOutputFormat.PART))
 		if(outputPath.equals("part")) {
 			throw new IllegalArgumentException("output name cannot be 'part'");
 		}
@@ -451,6 +365,17 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			
 			context = new OutputContext();
 
+			OutputFormat mainOutputFormat;
+			
+			try {
+				mainOutputFormat = ((OutputFormat) ReflectionUtils.newInstance(this.context.getOutputFormatClass(),
+	      		this.context.getConfiguration()));
+      } catch(ClassNotFoundException e1) {
+	      throw new RuntimeException(e1);
+      }
+      
+      ProxyOutputCommitter baseOutputCommitter = ((ProxyOutputCommitter)mainOutputFormat.getOutputCommitter(this.context));
+
 			// The trick is to create a new Job for each output
 			Job job = new Job(this.context.getConfiguration());
 			job.setOutputFormatClass(getNamedOutputFormatClass(this.context, baseFileName));
@@ -459,15 +384,12 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			// Check possible specific context for the output
 			setSpecificNamedOutputContext(this.context.getConfiguration(), job, baseFileName);
 			TaskAttemptContext taskContext = new TaskAttemptContext(job.getConfiguration(), this.context.getTaskAttemptID());
-			context.taskAttemptContext = taskContext;
-			
+						
 			// First we change the output dir for the new OutputFormat that we will create 
-			String outputDir = taskContext.getConfiguration().get("mapred.output.dir");
-			taskContext.getConfiguration().set("mapred.output.dir", outputDir + "/" + baseFileName);
-
-			context = new OutputContext();
+			// We put it inside the main output work path -> in case the Job fails, everything will be discarded
+			taskContext.getConfiguration().set("mapred.output.dir", baseOutputCommitter.getBaseDir() + "/" + baseFileName);
 			context.taskAttemptContext = taskContext;
-			
+
 			try {
 				// Create the new output format with ReflectionUtils
 				OutputFormat outputFormat = ((OutputFormat) ReflectionUtils.newInstance(taskContext.getOutputFormatClass(),
@@ -476,7 +398,7 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 				JobContext jobContext = new JobContext(taskContext.getConfiguration(), taskContext.getJobID());
 				context.jobContext = jobContext;
 				// The contract of the OutputFormat is to check the output specs
-//				outputFormat.checkOutputSpecs(jobContext);
+				outputFormat.checkOutputSpecs(jobContext);
 				// We get the output committer so we can call it later 
 				context.outputCommitter = outputFormat.getOutputCommitter(taskContext);
 				// Save the RecordWriter to cache it

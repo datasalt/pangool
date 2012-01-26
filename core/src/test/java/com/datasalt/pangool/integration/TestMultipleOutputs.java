@@ -11,6 +11,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -23,6 +24,7 @@ import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Sorting;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.api.ProxyOutputFormat;
 import com.datasalt.pangool.io.PangoolMultipleOutputs;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
@@ -102,6 +104,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		coGrouper.addNamedOutput(OUTPUT_2, SequenceFileOutputFormat.class, IntWritable.class, NullWritable.class);
 		coGrouper.addNamedTupleOutput(TUPLEOUTPUT_1, baseSchema);
 
+		getConf().setClass(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, SequenceFileOutputFormat.class, OutputFormat.class);
 		Job job = coGrouper.createJob();
 
 		// One file with one line - context will be ignored
