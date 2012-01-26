@@ -26,6 +26,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapreduce.Partitioner;
+
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -43,10 +45,10 @@ public class AvroTest {
 	private static final Schema union1 = Schema.createRecord("union1", null, NAMESPACE, false);
 	private static final Schema union2 = Schema.createRecord("union2", null, NAMESPACE, false);
 	static {
-		union1.setFields(Arrays.asList(new Field("my_pueblo", Schema.create(Type.STRING), null, null,
-		    Field.Order.DESCENDING)));
+		union1.setFields(Arrays.asList(new Field("my_animal", Schema.create(Type.INT), null, null,
+		    Field.Order.ASCENDING)));
 		union2
-		    .setFields(Arrays.asList(new Field("my_animal", Schema.create(Type.INT), null, null, Field.Order.DESCENDING)));
+		    .setFields(Arrays.asList(new Field("my_animal", Schema.create(Type.INT), null, null, Field.Order.ASCENDING)));
 	}
 
 	public static final String CONF_GROUP_SCHEMA = "guachu_group_schema";
@@ -75,6 +77,10 @@ public class AvroTest {
 		}
 	}
 
+	
+	
+	
+	
 	public static class Mapy extends Mapper<LongWritable, Text, AvroKey<Record>, AvroValue> {
 
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -90,22 +96,23 @@ public class AvroTest {
 			recordKey.put("user_id", userId);
 			recordKey.put("name", name);
 			recordKey.put("age", age);
+			recordKey.put("my_bytes", new byte[]{23,23,25});
 
 			List<Integer> myArray = new ArrayList<Integer>();
 			myArray.add(new Random().nextInt());
 			recordKey.put("my_array", myArray);
 			//recordKey.put("my_map", new HashMap());
-			recordKey.put("my_enum", SortOrder.ASCENDING.toString());
+			//recordKey.put("my_enum", SortOrder.ASCENDING.toString());
 
 			for(int i = 0; i < 10; i++) {
 				if(new Random().nextBoolean()) {
 
 					Record unionObject = new Record(union1);
-					unionObject.put("my_pueblo", "zamora");
+					unionObject.put("my_animal", new Random().nextInt());
 					recordKey.put("my_union", unionObject);
 				} else {
 					Record unionObject = new Record(union2);
-					unionObject.put("my_animal", 123123);
+					unionObject.put("my_animal", new Random().nextInt());
 					recordKey.put("my_union", unionObject);
 				}
 
@@ -134,34 +141,49 @@ public class AvroTest {
 
 	public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
 
+//		printSchemaTest();
+//		System.exit(0);
+		
+		
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(new Field("user_id", Schema.create(Type.INT), null, null, Field.Order.DESCENDING));
 		fields.add(new Field("name", Schema.create(Type.STRING), null, null, Field.Order.DESCENDING));
 		fields.add(new Field("age", Schema.create(Type.INT), null, null, Field.Order.DESCENDING));
+		fields.add(new Field("my_bytes", Schema.create(Type.BYTES), null, null, Field.Order.DESCENDING));
+		
+		
+		
+		
+//		List<Field> fields = new ArrayList<Field>();
+//		fields.add(new Field("user_id", Schema.create(Type.INT), null, null));
+//		fields.add(new Field("name", Schema.create(Type.STRING), null, null));
+//		fields.add(new Field("age", Schema.create(Type.INT), null, null, Field.Order.DESCENDING));
+//		
+		
 		// fields.add(new
 		// Field("otracosa",Schema.createFixed("otracosa",null,null,12),null,null,Field.Order.DESCENDING));
 		fields.add(new Field("my_array", Schema.createArray(Schema.create(Type.INT)), null, null, Field.Order.DESCENDING));
 		//fields.add(new Field("my_map", Schema.createMap(Schema.create(Type.STRING)), null, null, Field.Order.DESCENDING));
 
 		List<Schema> unionSchemas = new ArrayList<Schema>();
-		unionSchemas.add(union2);
 		unionSchemas.add(union1);
+		unionSchemas.add(union2);
 		Schema unionSchema = Schema.createUnion(unionSchemas);
 
-		fields.add(new Field("my_union", unionSchema, null, null, Field.Order.DESCENDING));
+		fields.add(new Field("my_union", unionSchema, null, null, Field.Order.ASCENDING));
 
-		List<String> enumFields = new ArrayList<String>();
+//		List<String> enumFields = new ArrayList<String>();
+//
+//		enumFields.add(SortOrder.ASCENDING.toString());
+//		enumFields.add(SortOrder.DESCENDING.toString());
 
-		enumFields.add(SortOrder.ASCENDING.toString());
-		enumFields.add(SortOrder.DESCENDING.toString());
-
-		fields.add(new Field("my_enum", Schema.createEnum("my_enum", null, NAMESPACE, enumFields), null, null,
-		    Field.Order.DESCENDING));
+//		fields.add(new Field("my_enum", Schema.createEnum("my_enum", null, NAMESPACE, enumFields), null, null,
+//		    Field.Order.DESCENDING));
 
 		Schema intermediateSchema = Schema.createRecord("my_schema", null, NAMESPACE, false);
-
+		//Schema intermediateSchema = Schema.createRecord(fields);
 		intermediateSchema.setFields(fields);
-
+		
 		fields = new ArrayList<Field>();
 		fields.add(new Field("user_id", Schema.create(Type.INT), null, null, Field.Order.DESCENDING));
 
@@ -172,7 +194,7 @@ public class AvroTest {
 		Schema nullSchema = Schema.create(Schema.Type.NULL);
 		Schema pairSchema = Pair.getPairSchema(intermediateSchema, nullSchema);
 		AvroJob.setMapOutputSchema(conf, pairSchema);
-
+		
 		conf.set(CONF_GROUP_SCHEMA, groupSchema.toString());
 
 		Job job = new Job(conf);
@@ -185,7 +207,8 @@ public class AvroTest {
 		job.setMapOutputKeyClass(AvroKey.class);
 		job.setMapOutputValueClass(AvroValue.class);
 		job.setGroupingComparatorClass(MyAvroGroupComparator.class);
-
+		job.setPartitionerClass(Part.class);
+		
 		FileInputFormat.addInputPath(job, new Path("avro_input.txt"));
 		Path outputPath = new Path("avro_output.txt");
 		FileOutputFormat.setOutputPath(job, outputPath);
@@ -194,5 +217,56 @@ public class AvroTest {
 		job.waitForCompletion(true);
 
 	}
+	
+	
+	public static class Part extends Partitioner<AvroKey<Record>,AvroValue> {
+
+		@Override
+    public int getPartition(AvroKey<Record> key, AvroValue value, int numReducers) {
+	    // TODO Auto-generated method stub
+	    return 0;
+    }
+
+		
+
+		
+		
+	}
+	
+	private static void printSchemaTest(){
+		
+		
+		List<Field> usuariosFields = new ArrayList<Field>();
+		usuariosFields.add(new Field("name", Schema.create(Type.STRING), null, null, Field.Order.DESCENDING));
+		usuariosFields.add(new Field("mis_notas", Schema.createArray(Schema.create(Type.INT)), null, null, Field.Order.DESCENDING));
+		usuariosFields.add(new Field("otra_informacion", Schema.createArray(Schema.create(Type.INT)), null, null, Field.Order.DESCENDING));
+		
+		
+		List<Field> countryFields = new ArrayList<Field>();
+		countryFields.add(new Field("country", Schema.create(Type.STRING), null, null, Field.Order.DESCENDING));
+		
+		
+		
+		Schema usuariosSchema = Schema.createRecord("usuarios",null,NAMESPACE,false);
+		usuariosSchema.setFields(usuariosFields);
+		Schema countrySchema = Schema.createRecord("user_countries",null,NAMESPACE,false);
+		countrySchema.setFields(countryFields);
+		
+		List<Schema> unionSchemas = new ArrayList<Schema>();
+		unionSchemas.add(usuariosSchema);
+		unionSchemas.add(countrySchema);
+		Schema unionSchema = Schema.createUnion(unionSchemas);
+		
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(new Field("user_id", Schema.create(Type.INT), null, null));
+		fields.add(new Field("mi_union",unionSchema,null,null,Field.Order.DESCENDING));
+		
+		Schema schemaFinal = Schema.createRecord(fields);
+		
+		System.out.println(schemaFinal);
+		
+		
+	}
+	
 
 }
