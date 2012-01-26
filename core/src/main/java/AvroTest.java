@@ -36,7 +36,7 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.commons.HadoopUtils;
+import com.datasalt.avrool.commons.HadoopUtils;
 
 public class AvroTest {
 

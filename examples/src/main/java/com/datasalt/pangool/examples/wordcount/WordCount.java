@@ -13,19 +13,19 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperConfigBuilder;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.SortingBuilder;
-import com.datasalt.pangool.api.CombinerHandler;
-import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
-import com.datasalt.pangool.api.InputProcessor;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.avrool.CoGrouper;
+import com.datasalt.avrool.CoGrouperConfig;
+import com.datasalt.avrool.CoGrouperConfigBuilder;
+import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.Schema;
+import com.datasalt.avrool.SortingBuilder;
+import com.datasalt.avrool.api.CombinerHandler;
+import com.datasalt.avrool.api.GroupHandler;
+import com.datasalt.avrool.api.InputProcessor;
+import com.datasalt.avrool.api.GroupHandler.CoGrouperContext;
+import com.datasalt.avrool.io.tuple.ITuple;
+import com.datasalt.avrool.io.tuple.Tuple;
+import com.datasalt.avrool.io.tuple.ITuple.InvalidFieldException;
 
 public class WordCount {
 

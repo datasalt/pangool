@@ -7,7 +7,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
 
-import com.datasalt.pangool.io.Serialization;
+import com.datasalt.avrool.io.Serialization;
 
 
 public class SRecord implements GenericRecord {
