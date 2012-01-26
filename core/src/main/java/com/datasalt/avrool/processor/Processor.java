@@ -16,7 +16,6 @@ import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
@@ -24,10 +23,6 @@ import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.datasalt.avrool.CoGrouperException;
-import com.datasalt.avrool.io.tuple.DoubleBufferedTuple;
-import com.datasalt.avrool.mapreduce.GroupComparator;
-import com.datasalt.avrool.mapreduce.Partitioner;
-import com.datasalt.avrool.mapreduce.SortComparator;
 
 /**
  * The Processor is a simple Pangool primitive that executes map-only Jobs. You can implement {@link ProcessorHandler} for using it.
@@ -126,11 +121,11 @@ public class Processor {
 
 		job.setJarByClass((jarByClass != null) ? jarByClass : processorHandler.getClass());
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(DoubleBufferedTuple.class);
-		job.setMapOutputValueClass(NullWritable.class);
-		job.setPartitionerClass(Partitioner.class);
-		job.setGroupingComparatorClass(GroupComparator.class);
-		job.setSortComparatorClass(SortComparator.class);
+//		job.setMapOutputKeyClass(DoubleBufferedTuple.class);
+//		job.setMapOutputValueClass(NullWritable.class);
+//		job.setPartitionerClass(Partitioner.class);
+		//job.setGroupingComparatorClass(GroupComparator.class);
+		//job.setSortComparatorClass(SortComparator.class);
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);

@@ -2,13 +2,12 @@ package com.datasalt.avrool.mapreduce;
 
 import java.util.List;
 
+import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 
-import com.datasalt.avrool.io.tuple.ITuple;
-
-public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<ITuple, NullWritable> implements Configurable {
+public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<Record, NullWritable> implements Configurable {
 
 	private static final String CONF_PARTITIONER_FIELDS = Partitioner.class.getName() + ".partitioner.fields";
 
@@ -16,8 +15,11 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<ITuple,
 	private String[] groupFields;
 
 	@Override
-	public int getPartition(ITuple key, NullWritable value, int numPartitions) {
-		return key.partialHashCode(groupFields) % numPartitions;
+	public int getPartition(Record key, NullWritable value, int numPartitions) {
+		//TODO mimic Record.hashCode
+		return 0;
+		
+		//return key.partialHashCode(groupFields) % numPartitions;
 	}
 
 	@Override

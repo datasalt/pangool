@@ -18,12 +18,12 @@ package com.datasalt.avrool.mapreduce;
 
 import java.util.Iterator;
 
+import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 
 import com.datasalt.avrool.api.GroupHandler;
-import com.datasalt.avrool.io.tuple.ITuple;
 
 /**
  * Iterator used in {@link Grouper},specially in {@link RollupReducer}. Basically it translates an {@link Iterable} containing 
@@ -36,10 +36,10 @@ import com.datasalt.avrool.io.tuple.ITuple;
  * @author eric
  * 
  */
-public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>, Iterable<ITuple>{
+public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Record>, Iterable<Record>{
 
 	private Iterator<NullWritable> iterator;
-	private ReduceContext<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
+	private ReduceContext<Record,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
 	
 	/**
 	 *  used to mark that the first element from the {@link Iterator} was already consumed.
@@ -47,7 +47,7 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>,
 	 */
 	private boolean firstTupleConsumed=false;
 	
-	public TupleIterator(ReduceContext<ITuple,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
+	public TupleIterator(ReduceContext<Record,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
 		this.context = context;
 	}
 	
@@ -76,7 +76,7 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>,
   }
 
 	@Override
-  public ITuple next() {
+  public Record next() {
 		if (firstTupleConsumed){
 			firstTupleConsumed = false;
 			return context.getCurrentKey();
@@ -96,7 +96,7 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>,
   }
 
 	@Override
-	public Iterator<ITuple> iterator() {
+	public Iterator<Record> iterator() {
 		return this;
 	}
 

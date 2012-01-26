@@ -5,8 +5,6 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Before;
 
-import com.datasalt.avrool.io.Serialization;
-import com.datasalt.avrool.io.tuple.ser.TupleInternalSerialization;
 import com.datasalt.avrool.serialization.protostuff.ProtoStuffSerialization;
 import com.datasalt.avrool.serialization.thrift.ThriftSerialization;
 
@@ -39,7 +37,7 @@ public abstract class AbstractBaseTest {
 	private static void configureSerialization(Configuration conf) {
 		ThriftSerialization.enableThriftSerialization(conf);
 		ProtoStuffSerialization.enableProtoStuffSerialization(conf);		
-		TupleInternalSerialization.enableSerialization(conf);
+		//TupleInternalSerialization.enableSerialization(conf);
 	}
 	
 	private Configuration createConf(){

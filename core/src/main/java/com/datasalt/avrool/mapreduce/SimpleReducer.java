@@ -19,6 +19,7 @@ package com.datasalt.avrool.mapreduce;
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -31,16 +32,14 @@ import com.datasalt.avrool.CoGrouperException;
 import com.datasalt.avrool.api.GroupHandler;
 import com.datasalt.avrool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.avrool.api.GroupHandler.Collector;
-import com.datasalt.avrool.io.tuple.FilteredReadOnlyTuple;
-import com.datasalt.avrool.io.tuple.ITuple;
 
-public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
+public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<Record, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	// Following variables protected to be shared by Combiners
 	protected CoGrouperConfig pangoolConfig;
 	protected Collector<OUTPUT_KEY, OUTPUT_VALUE> collector;
 	protected TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
-	protected FilteredReadOnlyTuple groupTuple; // Tuple view over the group
+	protected Record groupTuple; // Tuple view over the group
 	protected CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context;
 
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
@@ -51,7 +50,8 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 			Configuration conf = context.getConfiguration();
 			this.pangoolConfig = CoGrouperConfigBuilder.get(conf);
 			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, pangoolConfig);
-			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
+			//TODO 
+			//this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.collector = new Collector<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
@@ -91,20 +91,20 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	}
 
 	@Override
-	public final void reduce(ITuple key, Iterable<NullWritable> values, Context context) throws IOException,
+	public final void reduce(Record key, Iterable<NullWritable> values, Context context) throws IOException,
 	    InterruptedException {
 		Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
 
 		// We get the firts tuple, to create the groupTuple view
 		iterator.next();
-		ITuple firstTupleGroup = (ITuple) context.getCurrentKey();
+		Record firstTupleGroup = (Record) context.getCurrentKey();
 
 		// we consumed the first element , so needs to comunicate to iterator
 		grouperIterator.setFirstTupleConsumed(true);
 
 		// A view is created over the first tuple to give the user the group fields
-		groupTuple.setDelegatedTuple(firstTupleGroup);
+		//groupTuple.setDelegatedTuple(firstTupleGroup);
 		callHandler(context);
 	}
 

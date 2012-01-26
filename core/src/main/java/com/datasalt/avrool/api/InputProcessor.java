@@ -18,6 +18,7 @@ package com.datasalt.avrool.api;
 
 import java.io.IOException;
 
+import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -25,16 +26,13 @@ import org.apache.hadoop.mapreduce.Mapper;
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperConfigBuilder;
 import com.datasalt.avrool.CoGrouperException;
-import com.datasalt.avrool.Schema.Field;
-import com.datasalt.avrool.io.tuple.DoubleBufferedTuple;
-import com.datasalt.avrool.io.tuple.ITuple;
 
 /**
  * TODO doc
  */
 @SuppressWarnings("rawtypes")
 public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
-    Mapper<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> {
+    Mapper<INPUT_KEY, INPUT_VALUE, Record, NullWritable> {
 
 	private Collector collector;
 	private CoGrouperContext context;
@@ -43,13 +41,13 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		
 		private Mapper.Context context;
 
-		private ThreadLocal<DoubleBufferedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedTuple>() {
-
-			@Override
-			protected DoubleBufferedTuple initialValue() {
-				return new DoubleBufferedTuple();
-			}
-		};
+//		private ThreadLocal<DoubleBufferedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedTuple>() {
+//
+//			@Override
+//			protected DoubleBufferedTuple initialValue() {
+//				return new DoubleBufferedTuple();
+//			}
+//		};
 
 		Collector(Mapper.Context context) {
 			super(context);
@@ -57,19 +55,19 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		}
 
 		@SuppressWarnings("unchecked")
-		public void write(ITuple tuple) throws IOException, InterruptedException {
-			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
-			sTuple.setContainedTuple(tuple);
-			context.write(sTuple, NullWritable.get());
+		public void write(Record tuple) throws IOException, InterruptedException {
+			//DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
+//			sTuple.setContainedTuple(tuple);
+//			context.write(sTuple, NullWritable.get());
 		}
 
-		@SuppressWarnings("unchecked")
-		public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
-			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
-			sTuple.setContainedTuple(tuple);
-			sTuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);
-			context.write(sTuple, NullWritable.get());
-		}
+//		@SuppressWarnings("unchecked")
+//		public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
+//			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
+//			sTuple.setContainedTuple(tuple);
+//			sTuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);
+//			context.write(sTuple, NullWritable.get());
+//		}
 	}
 
 	public static class CoGrouperContext {

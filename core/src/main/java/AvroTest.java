@@ -2,11 +2,8 @@
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-
-import javax.swing.SortOrder;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
@@ -26,10 +23,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapreduce.Partitioner;
-
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -155,15 +151,15 @@ public class AvroTest {
 		
 		
 //		List<Field> fields = new ArrayList<Field>();
-//		fields.add(new Field("user_id", Schema.create(Type.INT), null, null));
-//		fields.add(new Field("name", Schema.create(Type.STRING), null, null));
-//		fields.add(new Field("age", Schema.create(Type.INT), null, null, Field.Order.DESCENDING));
+//		fields.add(new Field("user_id", PangoolSchema.create(Type.INT), null, null));
+//		fields.add(new Field("name", PangoolSchema.create(Type.STRING), null, null));
+//		fields.add(new Field("age", PangoolSchema.create(Type.INT), null, null, Field.Order.DESCENDING));
 //		
 		
 		// fields.add(new
-		// Field("otracosa",Schema.createFixed("otracosa",null,null,12),null,null,Field.Order.DESCENDING));
+		// Field("otracosa",PangoolSchema.createFixed("otracosa",null,null,12),null,null,Field.Order.DESCENDING));
 		fields.add(new Field("my_array", Schema.createArray(Schema.create(Type.INT)), null, null, Field.Order.DESCENDING));
-		//fields.add(new Field("my_map", Schema.createMap(Schema.create(Type.STRING)), null, null, Field.Order.DESCENDING));
+		//fields.add(new Field("my_map", PangoolSchema.createMap(PangoolSchema.create(Type.STRING)), null, null, Field.Order.DESCENDING));
 
 		List<Schema> unionSchemas = new ArrayList<Schema>();
 		unionSchemas.add(union1);
@@ -177,11 +173,11 @@ public class AvroTest {
 //		enumFields.add(SortOrder.ASCENDING.toString());
 //		enumFields.add(SortOrder.DESCENDING.toString());
 
-//		fields.add(new Field("my_enum", Schema.createEnum("my_enum", null, NAMESPACE, enumFields), null, null,
+//		fields.add(new Field("my_enum", PangoolSchema.createEnum("my_enum", null, NAMESPACE, enumFields), null, null,
 //		    Field.Order.DESCENDING));
 
 		Schema intermediateSchema = Schema.createRecord("my_schema", null, NAMESPACE, false);
-		//Schema intermediateSchema = Schema.createRecord(fields);
+		//PangoolSchema intermediateSchema = PangoolSchema.createRecord(fields);
 		intermediateSchema.setFields(fields);
 		
 		fields = new ArrayList<Field>();

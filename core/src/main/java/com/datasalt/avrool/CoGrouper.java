@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.mapred.AvroKey;
+import org.apache.avro.mapred.AvroKeyComparator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
@@ -19,17 +22,9 @@ import com.datasalt.avrool.api.GroupHandler;
 import com.datasalt.avrool.api.GroupHandlerWithRollup;
 import com.datasalt.avrool.api.InputProcessor;
 import com.datasalt.avrool.io.AvroUtils;
-import com.datasalt.avrool.io.TupleInputFormat;
-import com.datasalt.avrool.io.TupleOutputFormat;
-import com.datasalt.avrool.io.tuple.DoubleBufferedTuple;
-import com.datasalt.avrool.io.tuple.ITuple;
-import com.datasalt.avrool.io.tuple.ser.TupleInternalSerialization;
-import com.datasalt.avrool.mapreduce.GroupComparator;
 import com.datasalt.avrool.mapreduce.Partitioner;
-import com.datasalt.avrool.mapreduce.RollupReducer;
 import com.datasalt.avrool.mapreduce.SimpleCombiner;
 import com.datasalt.avrool.mapreduce.SimpleReducer;
-import com.datasalt.avrool.mapreduce.SortComparator;
 
 @SuppressWarnings("rawtypes")
 public class CoGrouper {
@@ -43,11 +38,11 @@ public class CoGrouper {
 		Class<? extends InputFormat> inputFormat;
 		Class<? extends InputProcessor> inputProcessor;
 
-		Input(Path path, Class<? extends InputProcessor<ITuple, NullWritable>> inputProcessor) {
-			this.path = path;
-			this.inputProcessor = inputProcessor;
-			this.inputFormat = TupleInputFormat.class;
-		}
+//		Input(Path path, Class<? extends InputProcessor<Record, NullWritable>> inputProcessor) {
+//			this.path = path;
+//			this.inputProcessor = inputProcessor;
+//			this.inputFormat = TupleInputFormat.class;
+//		}
 		
 		Input(Path path, Class<? extends InputFormat> inputFormat, Class<? extends InputProcessor> inputProcessor) {
 			this.path = path;
@@ -82,11 +77,11 @@ public class CoGrouper {
 		return this;
 	}
 
-	public CoGrouper addTupleInput(Path path, Class<? extends InputProcessor<ITuple, NullWritable>> inputProcessor) {
-		this.multiInputs.add(new Input(path, inputProcessor));
-		AvroUtils.addAvroSerialization(conf);
-		return this;
-	}
+//	public CoGrouper addTupleInput(Path path, Class<? extends InputProcessor<Record, NullWritable>> inputProcessor) {
+//		this.multiInputs.add(new Input(path, inputProcessor));
+//		AvroUtils.addAvroSerialization(conf);
+//		return this;
+//	}
 	
 	public CoGrouper addInput(Path path, Class<? extends InputFormat> inputFormat,
 	    Class<? extends InputProcessor> inputProcessor) {
@@ -113,15 +108,15 @@ public class CoGrouper {
 		return this;
 	}
 	
-	public CoGrouper setTupleOutput(Path outputPath, Schema schema) {
-		this.outputPath = outputPath;
-		this.outputFormat = TupleOutputFormat.class;
-		this.outputKeyClass = ITuple.class;
-		this.outputValueClass = NullWritable.class;
-		conf.set(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, schema.toString());
-		AvroUtils.addAvroSerialization(conf);
-		return this;
-	}
+//	public CoGrouper setTupleOutput(Path outputPath, PangoolSchema pangoolSchema) {
+//		this.outputPath = outputPath;
+//		this.outputFormat = TupleOutputFormat.class;
+//		this.outputKeyClass = ITuple.class;
+//		this.outputValueClass = NullWritable.class;
+//		conf.set(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, pangoolSchema.toString());
+//		AvroUtils.addAvroSerialization(conf);
+//		return this;
+//	}
 
 	public CoGrouper setGroupHandler(Class<? extends GroupHandler> groupHandler) {
 		this.reduceHandler = groupHandler;
@@ -135,12 +130,12 @@ public class CoGrouper {
 		return this;
 	}
 	
-	public CoGrouper addTupleOutput(String namedOutput, Schema outputSchema) {
-		/*
-		 * 
-		 */
-		return this;
-	}
+//	public CoGrouper addTupleOutput(String namedOutput, PangoolSchema outputSchema) {
+//		/*
+//		 * 
+//		 */
+//		return this;
+//	}
 	
 	@SuppressWarnings("unchecked")
   public static Class<? extends GroupHandler> getGroupHandler(Configuration conf) {
@@ -193,22 +188,23 @@ public class CoGrouper {
 		}
 
 		// Serialize PangoolConf in Hadoop Configuration
-		CoGrouperConfig.setPangoolConfig(config, conf);
+		CoGrouperConfig.toConfig(config, conf);
 		Job job = new Job(conf);
 		
 		List<String> partitionerFields;
 
 		if(config.getRollupFrom() != null) {
+			throw new CoGrouperException("Rollup not supported by now!! This is a complete mess!!");
 			// Grouper with rollup: calculate rollupBaseGroupFields from "rollupFrom"
-			List<String> rollupBaseGroupFields = new ArrayList<String>();
-			for(String groupByField : config.getGroupByFields()) {
-				rollupBaseGroupFields.add(groupByField);
-				if(groupByField.equals(config.getRollupFrom())) {
-					break;
-				}
-			}
-			partitionerFields = rollupBaseGroupFields;
-			job.setReducerClass(RollupReducer.class);
+//			List<String> rollupBaseGroupFields = new ArrayList<String>();
+//			for(String groupByField : config.getGroupByFields()) {
+//				rollupBaseGroupFields.add(groupByField);
+//				if(groupByField.equals(config.getRollupFrom())) {
+//					break;
+//				}
+//			}
+//			partitionerFields = rollupBaseGroupFields;
+			//job.setReducerClass(RollupReducer.class);
 		} else {
 			// Simple grouper
 			partitionerFields = config
@@ -228,15 +224,15 @@ public class CoGrouper {
 		job.getConfiguration().setClass(CONF_REDUCER_HANDLER, reduceHandler, GroupHandler.class);
 
 		// Enabling serialization
-		TupleInternalSerialization.enableSerialization(job.getConfiguration());
+		//TupleInternalSerialization.enableSerialization(job.getConfiguration());
 		
 		job.setJarByClass((jarByClass != null) ? jarByClass : reduceHandler);		
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(DoubleBufferedTuple.class);
+		job.setMapOutputKeyClass(AvroKey.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(Partitioner.class);
-		job.setGroupingComparatorClass(GroupComparator.class);
-		job.setSortComparatorClass(SortComparator.class);
+		job.setGroupingComparatorClass(AvroKeyComparator.class); //TODO this is not correct
+		job.setSortComparatorClass(AvroKeyComparator.class);
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);
