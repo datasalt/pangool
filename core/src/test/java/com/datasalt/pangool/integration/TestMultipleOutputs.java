@@ -11,7 +11,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -24,6 +23,7 @@ import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Sorting;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.io.PangoolMultipleOutputs;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
@@ -51,15 +51,9 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 			tuple.setString("country", "ES");
 
 			// We use the multiple outputs here -
-			RecordWriter writer = collector.getNamedOutput(OUTPUT_1);
-			System.out.println(writer);
-			writer.write(new Text(tuple.getString("name")), new Text(tuple.getString("country")));
-			writer = collector.getNamedOutput(OUTPUT_2);
-			System.out.println(writer);
-			writer.write(new IntWritable(tuple.getInt("money")), NullWritable.get());
-			writer = collector.getNamedOutput(TUPLEOUTPUT_1);
-			System.out.println(writer);
-			writer.write(tuple, NullWritable.get());
+			collector.write(OUTPUT_1, new Text(tuple.getString("name")), new Text(tuple.getString("country")));
+			collector.write(OUTPUT_2, new IntWritable(tuple.getInt("money")), NullWritable.get());
+			collector.write(TUPLEOUTPUT_1, tuple, NullWritable.get());
 
 			collector.write(tuple);
 		}
@@ -74,10 +68,9 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 
 			for(ITuple tuple : tuples) {
 				// We also use the multiple outputs here -
-				collector.getNamedOutput(OUTPUT_1).write(new Text(tuple.getString("name")),
-				    new Text(tuple.getString("country")));
-				collector.getNamedOutput(OUTPUT_2).write(new IntWritable(tuple.getInt("money")), NullWritable.get());
-				collector.getNamedOutput(TUPLEOUTPUT_1).write(tuple, NullWritable.get());
+				collector.write(OUTPUT_1, new Text(tuple.getString("name")), new Text(tuple.getString("country")));
+				collector.write(OUTPUT_2, new IntWritable(tuple.getInt("money")), NullWritable.get());
+				collector.write(TUPLEOUTPUT_1, tuple, NullWritable.get());
 			}
 
 			collector.write(new DoubleWritable(1.0), NullWritable.get());
@@ -110,12 +103,13 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		coGrouper.addNamedTupleOutput(TUPLEOUTPUT_1, baseSchema);
 
 		Job job = coGrouper.createJob();
+
 		// One file with one line - context will be ignored
 		// Business logic in {@link MyInputProcessor}
 		Files.write("ignore-me", new File(INPUT), Charset.forName("UTF-8"));
 		job.waitForCompletion(true);
 
-//		trash(INPUT, OUTPUT);
-//		cleanUp();
+		// trash(INPUT, OUTPUT);
+		// cleanUp();
 	}
 }

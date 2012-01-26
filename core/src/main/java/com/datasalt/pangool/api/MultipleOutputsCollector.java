@@ -30,6 +30,10 @@ public class MultipleOutputsCollector {
 		return multipleOutputs.getRecordWriter(namedOutput);
 	}
 	
+	public void write(String namedOutput, Object key, Object value) throws IOException, InterruptedException {
+		multipleOutputs.write(namedOutput, key, value);
+	}
+	
 	public void close() throws IOException, InterruptedException {
 		multipleOutputs.close();
 	}

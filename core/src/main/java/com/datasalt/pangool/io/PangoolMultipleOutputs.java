@@ -30,6 +30,7 @@ import java.util.StringTokenizer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
+import org.apache.hadoop.mapreduce.OutputCommitter;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -146,11 +147,6 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	private static final String COUNTERS_GROUP = PangoolMultipleOutputs.class.getName();
 
 	/**
-	 * Cache for the taskContexts
-	 */
-	private Map<String, TaskAttemptContext> taskContexts = new HashMap<String, TaskAttemptContext>();
-
-	/**
 	 * Checks if a named output name is valid token.
 	 * 
 	 * @param namedOutput
@@ -216,7 +212,8 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	 * Convenience method for validating output names externally.Will throw InvalidArgumentException if parameter name is
 	 * not a valid output name according to this implementation.
 	 * 
-	 * @param namedOutput the name to validate (e.g. "part" not allowed)
+	 * @param namedOutput
+	 *          the name to validate (e.g. "part" not allowed)
 	 */
 	public static void validateOutputName(String namedOutput) {
 		checkTokenName(namedOutput);
@@ -377,8 +374,15 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 
 	private TaskInputOutputContext<?, ?, KEYOUT, VALUEOUT> context;
 	private Set<String> namedOutputs;
-	private Map<String, RecordWriter<?, ?>> recordWriters;
+	private Map<String, OutputContext> outputContexts;
 	private boolean countersEnabled;
+	
+	private static class OutputContext {
+		RecordWriter recordWriter;
+		TaskAttemptContext taskAttemptContext;
+		JobContext jobContext;
+		OutputCommitter outputCommitter;
+	}
 
 	/**
 	 * Creates and initializes multiple outputs support, it should be instantiated in the Mapper/Reducer setup method.
@@ -390,7 +394,7 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 		this.context = context;
 		namedOutputs = Collections
 		    .unmodifiableSet(new HashSet<String>(PangoolMultipleOutputs.getNamedOutputsList(context)));
-		recordWriters = new HashMap<String, RecordWriter<?, ?>>();
+		outputContexts = new HashMap<String, OutputContext>();
 		countersEnabled = getCountersEnabled(context);
 	}
 
@@ -431,71 +435,52 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 		if(!namedOutputs.contains(namedOutput)) {
 			throw new IllegalArgumentException("Undefined named output '" + namedOutput + "'");
 		}
-		TaskAttemptContext taskContext = getContext(namedOutput);
-		getRecordWriter(taskContext, baseOutputPath).write(key, value);
-	}
-
-	/**
-	 * Added this method for convenience in case the user wants to get the RecordWriter instance and keep it.
-	 * 
-	 * @param namedOutput
-	 * @return
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	public RecordWriter getRecordWriter(String namedOutput) throws IOException, InterruptedException {
-		checkNamedOutputName(context, namedOutput, false);
-		checkBaseOutputPath(namedOutput);
-		if(!namedOutputs.contains(namedOutput)) {
-			throw new IllegalArgumentException("Undefined named output '" + namedOutput + "'");
-		}
-		TaskAttemptContext taskContext = getContext(namedOutput);
-		return getRecordWriter(taskContext, namedOutput);
-	}
-
-	/**
-	 * Write key value to an output file name.
-	 * 
-	 * Gets the record writer from job's output format. Job's output format should be a FileOutputFormat.
-	 * 
-	 * @param key
-	 *          the key
-	 * @param value
-	 *          the value
-	 * @param baseOutputPath
-	 *          base-output path to write the record to. Note: Framework will generate unique filename for the
-	 *          baseOutputPath
-	 */
-	@SuppressWarnings("unchecked")
-	public void write(KEYOUT key, VALUEOUT value, String baseOutputPath) throws IOException, InterruptedException {
-		checkBaseOutputPath(baseOutputPath);
-		TaskAttemptContext taskContext = new TaskAttemptContext(context.getConfiguration(), context.getTaskAttemptID());
-		getRecordWriter(taskContext, baseOutputPath).write(key, value);
+		getRecordWriter(baseOutputPath).write(key, value);
 	}
 
 	// by being synchronized MultipleOutputTask can be use with a
 	// MultithreadedMapper.
-	private synchronized RecordWriter getRecordWriter(TaskAttemptContext taskContext, String baseFileName)
+	public synchronized RecordWriter getRecordWriter(String baseFileName)
 	    throws IOException, InterruptedException {
 
-		// look for record-writer in the cache
-		RecordWriter writer = recordWriters.get(baseFileName);
+		// Look for record-writer in the cache
+		OutputContext context = outputContexts.get(baseFileName);
 
 		// If not in cache, create a new one
-		if(writer == null) {
-			// get the record writer from context output format
+		if(context == null) {
+			
+			context = new OutputContext();
 
-			/*
-			 * !!!!!!!!!!!!!!! CHANGED BY IVAN !!!!!!!!!!!!!!!!! OLD LINE: FileOutputFormat.setOutputName(taskContext,
-			 * baseFileName); Changed because this method is protected, and cannot be accessed from a differente Jar, so
-			 * without the patch won't work on production
-			 */
-			taskContext.getConfiguration().set("mapreduce.output.basename", baseFileName);
-			/* END PATCH */
+			// The trick is to create a new Job for each output
+			Job job = new Job(this.context.getConfiguration());
+			job.setOutputFormatClass(getNamedOutputFormatClass(this.context, baseFileName));
+			job.setOutputKeyClass(getNamedOutputKeyClass(this.context, baseFileName));
+			job.setOutputValueClass(getNamedOutputValueClass(this.context, baseFileName));
+			// Check possible specific context for the output
+			setSpecificNamedOutputContext(this.context.getConfiguration(), job, baseFileName);
+			TaskAttemptContext taskContext = new TaskAttemptContext(job.getConfiguration(), this.context.getTaskAttemptID());
+			context.taskAttemptContext = taskContext;
+			
+			// First we change the output dir for the new OutputFormat that we will create 
+			String outputDir = taskContext.getConfiguration().get("mapred.output.dir");
+			taskContext.getConfiguration().set("mapred.output.dir", outputDir + "/" + baseFileName);
 
+			context = new OutputContext();
+			context.taskAttemptContext = taskContext;
+			
 			try {
-				writer = ((OutputFormat) ReflectionUtils.newInstance(taskContext.getOutputFormatClass(),
-				    taskContext.getConfiguration())).getRecordWriter(taskContext);
+				// Create the new output format with ReflectionUtils
+				OutputFormat outputFormat = ((OutputFormat) ReflectionUtils.newInstance(taskContext.getOutputFormatClass(),
+				    taskContext.getConfiguration()));
+				// We have to create a JobContext for meeting the contract of the OutputFormat
+				JobContext jobContext = new JobContext(taskContext.getConfiguration(), taskContext.getJobID());
+				context.jobContext = jobContext;
+				// The contract of the OutputFormat is to check the output specs
+//				outputFormat.checkOutputSpecs(jobContext);
+				// We get the output committer so we can call it later 
+				context.outputCommitter = outputFormat.getOutputCommitter(taskContext);
+				// Save the RecordWriter to cache it
+				context.recordWriter = outputFormat.getRecordWriter(taskContext);
 			} catch(ClassNotFoundException e) {
 				throw new IOException(e);
 			}
@@ -503,34 +488,12 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			// if counters are enabled, wrap the writer with context
 			// to increment counters
 			if(countersEnabled) {
-				writer = new RecordWriterWithCounter(writer, baseFileName, context);
+				context.recordWriter = new RecordWriterWithCounter(context.recordWriter, baseFileName, this.context);
 			}
-
-			// add the record-writer to the cache
-			recordWriters.put(baseFileName, writer);
+			
+			outputContexts.put(baseFileName, context);
 		}
-		return writer;
-	}
-
-	// Create a taskAttemptContext for the named output with
-	// output format and output key/value types put in the context
-	private TaskAttemptContext getContext(String nameOutput) throws IOException {
-		TaskAttemptContext taskContext = taskContexts.get(nameOutput);
-
-		if(taskContext != null) {
-			return taskContext;
-		}
-		// The following trick leverages the instantiation of a record writer via
-		// the job thus supporting arbitrary output formats.
-		Job job = new Job(context.getConfiguration());
-		job.setOutputFormatClass(getNamedOutputFormatClass(context, nameOutput));
-		job.setOutputKeyClass(getNamedOutputKeyClass(context, nameOutput));
-		job.setOutputValueClass(getNamedOutputValueClass(context, nameOutput));
-		// Check possible specific context for the output
-		setSpecificNamedOutputContext(context.getConfiguration(), job, nameOutput);
-		taskContext = new TaskAttemptContext(job.getConfiguration(), context.getTaskAttemptID());
-		taskContexts.put(nameOutput, taskContext);
-		return taskContext;
+		return context.recordWriter;
 	}
 
 	/**
@@ -541,8 +504,10 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	 * 
 	 */
 	public void close() throws IOException, InterruptedException {
-		for(RecordWriter writer : recordWriters.values()) {
-			writer.close(context);
+		for(OutputContext outputContext: this.outputContexts.values()) {
+			outputContext.recordWriter.close(outputContext.taskAttemptContext);
+			outputContext.outputCommitter.commitTask(outputContext.taskAttemptContext);
+			outputContext.outputCommitter.cleanupJob(outputContext.jobContext);
 		}
 	}
 }
