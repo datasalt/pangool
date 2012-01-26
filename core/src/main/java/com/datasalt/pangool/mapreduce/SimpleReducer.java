@@ -98,11 +98,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 		grouperIterator.setIterator(iterator);
 
 		// We get the firts tuple, to create the groupTuple view
-		iterator.next();
-		ITuple firstTupleGroup = (ITuple) context.getCurrentKey();
-
-		// we consumed the first element , so needs to comunicate to iterator
-		grouperIterator.setFirstTupleConsumed(true);
+		ITuple firstTupleGroup = key;
 
 		// A view is created over the first tuple to give the user the group fields
 		groupTuple.setDelegatedTuple(firstTupleGroup);
