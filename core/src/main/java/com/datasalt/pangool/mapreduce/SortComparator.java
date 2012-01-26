@@ -21,8 +21,8 @@ import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.PangoolConfig;
-import com.datasalt.pangool.PangoolConfigBuilder;
+import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria;
@@ -33,14 +33,14 @@ import com.datasalt.pangool.SortCriteria.SortOrder;
 public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	private Configuration conf;
-	protected PangoolConfig config; // so that MyAvroGroupComparator can access it
+	protected CoGrouperConfig config; // so that MyAvroGroupComparator can access it
 
 	private Map<Class, RawComparator> instancedComparators;
 
 	protected SortCriteria commonCriteria;
 	protected Schema commonSchema;
 	
-	PangoolConfig getConfig() {
+	CoGrouperConfig getConfig() {
   	return config;
   }
 
@@ -55,9 +55,6 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	int offset2 = 0;
 	
 	int nSchemas = 0; // Cached number of schemas
-	
-	private int indexMismatch;
-	
 	
 	public SortComparator() {
 
@@ -355,7 +352,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			 * Set PangoolConf
 			 */
 			try {
-	      config = PangoolConfigBuilder.get(conf);
+	      config = CoGrouperConfigBuilder.get(conf);
 	      instanceComparators();
 	      nSchemas = config.getSchemes().values().size();
 	      commonCriteria = config.getSorting().getSortCriteria();

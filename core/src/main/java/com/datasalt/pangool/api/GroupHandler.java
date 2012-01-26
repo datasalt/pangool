@@ -3,12 +3,13 @@ package com.datasalt.pangool.api;
 import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.CoGrouper;
+import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.PangoolConfig;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.mapreduce.RollupReducer;
 import com.datasalt.pangool.mapreduce.SimpleReducer;
@@ -23,25 +24,56 @@ import com.datasalt.pangool.mapreduce.SimpleReducer;
  */
 public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 
-	// To be added state info here,
-	public static class State {
-		private PangoolConfig pangoolConfig;
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static final class Collector<OUTPUT_KEY, OUTPUT_VALUE> extends MultipleOutputsCollector {
 
-		public State(PangoolConfig pangoolConfig) {
-			this.pangoolConfig = pangoolConfig;
+		Reducer.Context context;
+		
+    public Collector(Reducer.Context context) {
+	    super(context);
+	    this.context = context;
+    }
+		
+		public void write(OUTPUT_KEY key, OUTPUT_VALUE value) throws IOException, InterruptedException {
+			context.write(key, value);
 		}
 
-		public PangoolConfig getPangoolConfig() {
-			return pangoolConfig;
+		/**
+		 * Return the Hadoop {@link Mapper.Context}.  
+		 */
+		public Reducer.Context getHadoopContext() {
+			return context;
 		}
 	}
+	
+  public static class CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> {
+  	
+  	private CoGrouperConfig pangoolConfig;
+  	private ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext;
+  	
+  	public CoGrouperContext(ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext, CoGrouperConfig pangoolConfig) {
+  		this.pangoolConfig = pangoolConfig;
+  		this.hadoopContext = hadoopContext;
+  	}
 
-	public void setup(State state, ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context)
+  	public CoGrouperConfig getPangoolConfig() {
+  		return pangoolConfig;
+  	}
+  	
+  	/**
+  	 * Return the Hadoop {@link ReduceContext}.  
+  	 */
+  	public ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> getHadoopContext() {
+  		return hadoopContext;
+  	}
+  }
+	
+	public void setup(CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> pangoolContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
 	    throws IOException, InterruptedException, CoGrouperException {
 
 	}
 
-	public void cleanup(State state, ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context)
+	public void cleanup(CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> pangoolContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
 	    throws IOException, InterruptedException, CoGrouperException {
 	}
 
@@ -55,8 +87,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 	 * @param context
 	 *          The reducer context as in {@link Reducer}
 	 */
-	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, State state,
-	    ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) throws IOException, InterruptedException,
+	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> pangoolContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector) throws IOException, InterruptedException,
 	    CoGrouperException {
 
 	}

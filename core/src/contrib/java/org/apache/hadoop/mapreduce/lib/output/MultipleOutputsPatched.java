@@ -372,6 +372,25 @@ public class MultipleOutputsPatched<KEYOUT, VALUEOUT> {
     TaskAttemptContext taskContext = getContext(namedOutput);
     getRecordWriter(taskContext, baseOutputPath).write(key, value);
   }
+  
+  /**
+   * Added this method for convenience in case the user wants to get the RecordWriter instance and keep it.
+   * 
+   * @param namedOutput
+   * @return
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public RecordWriter getRecordWriter(String namedOutput) throws IOException, InterruptedException {
+    checkNamedOutputName(context, namedOutput, false);
+    checkBaseOutputPath(namedOutput);
+    if (!namedOutputs.contains(namedOutput)) {
+      throw new IllegalArgumentException("Undefined named output '" +
+        namedOutput + "'");
+    }
+    TaskAttemptContext taskContext = getContext(namedOutput);
+    return getRecordWriter(taskContext, namedOutput);
+  }
 
   /**
    * Write key value to an output file name.

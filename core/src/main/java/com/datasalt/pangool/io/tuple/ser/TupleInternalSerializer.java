@@ -31,7 +31,7 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Serializer;
 
-import com.datasalt.pangool.PangoolConfig;
+import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.Serialization;
@@ -42,12 +42,12 @@ class TupleInternalSerializer implements Serializer<ITupleInternal> {
 	private Serialization ser;
 
 	private DataOutputStream out;
-	private PangoolConfig pangoolConfig;
+	private CoGrouperConfig pangoolConfig;
 	private Text text = new Text();
 
 	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 
-	TupleInternalSerializer(Serialization ser, PangoolConfig pangoolConfig) {
+	TupleInternalSerializer(Serialization ser, CoGrouperConfig pangoolConfig) {
 		this.pangoolConfig = pangoolConfig;
 		this.ser = ser;
 	}

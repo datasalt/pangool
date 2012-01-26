@@ -104,7 +104,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 	}
 	
 	private void testCoGrouper(Sorting sorting, String[] groupBy, String rollupFrom) throws CoGrouperException, IOException, InvalidFieldException {
-		PangoolConfigBuilder configBuilder = new PangoolConfigBuilder()
+		CoGrouperConfigBuilder configBuilder = new CoGrouperConfigBuilder()
 			.addSchema(1, Schema.parse("url:string, date:long, fetched:long, content:string"))
 		  .addSchema(2, Schema.parse("url:string, date:long, fetched:long, name:string, surname:string"))
 		  .setSorting(sorting)

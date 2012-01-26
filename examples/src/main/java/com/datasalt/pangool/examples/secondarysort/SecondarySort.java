@@ -8,16 +8,14 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.ReduceContext;
-import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.CoGrouper;
+import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.PangoolConfig;
-import com.datasalt.pangool.PangoolConfigBuilder;
+import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Sorting;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
@@ -41,7 +39,7 @@ public class SecondarySort {
 		Tuple tuple = new Tuple();
 
 		@Override
-		public void process(LongWritable key, Text value, Collector collector) throws IOException, InterruptedException {
+		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
 
 			String[] fields = value.toString().trim().split(" ");
 			tuple.setInt(FIRST, Integer.parseInt(fields[0]));
@@ -53,12 +51,11 @@ public class SecondarySort {
 	public static class Handler extends GroupHandler<Text, NullWritable> {
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, State state,
-		    ReduceContext<ITuple, NullWritable, Text, NullWritable> context) throws IOException, InterruptedException,
-		    CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Text, NullWritable> context,
+		    Collector<Text, NullWritable> collector) throws IOException, InterruptedException, CoGrouperException {
 
 			for(ITuple tuple : tuples) {
-				context.write(new Text(tuple.getInt(FIRST) + "\t" + tuple.getInt(SECOND)), NullWritable.get());
+				collector.write(new Text(tuple.getInt(FIRST) + "\t" + tuple.getInt(SECOND)), NullWritable.get());
 			}
 		}
 	}
@@ -67,7 +64,7 @@ public class SecondarySort {
 		// Configure schema, sort and group by
 		Schema schema = Schema.parse(FIRST + ":int, " + SECOND + ":int");
 		Sorting sort = Sorting.parse(FIRST + " asc, " + SECOND + " asc");
-		PangoolConfig config = new PangoolConfigBuilder().addSchema(0, schema).setGroupByFields(FIRST).setSorting(sort)
+		CoGrouperConfig config = new CoGrouperConfigBuilder().addSchema(0, schema).setGroupByFields(FIRST).setSorting(sort)
 		    .build();
 
 		CoGrouper grouper = new CoGrouper(config, conf);

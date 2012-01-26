@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.avro.mapred.AvroWrapper;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
@@ -32,13 +31,11 @@ import com.datasalt.pangool.mapreduce.SimpleCombiner;
 import com.datasalt.pangool.mapreduce.SimpleReducer;
 import com.datasalt.pangool.mapreduce.SortComparator;
 
-
 @SuppressWarnings("rawtypes")
 public class CoGrouper {
 
 	private final static String CONF_REDUCER_HANDLER = CoGrouper.class.getName() + ".reducer.handler";
 	private final static String CONF_COMBINER_HANDLER = CoGrouper.class.getName() + ".combiner.handler";
-
 
 	private static final class Input {
 
@@ -60,7 +57,7 @@ public class CoGrouper {
 	}
 
 	private Configuration conf;
-	private PangoolConfig config;
+	private CoGrouperConfig config;
 	
 	private Class<? extends GroupHandler> reduceHandler;
 	private Class<? extends OutputFormat> outputFormat;
@@ -73,7 +70,7 @@ public class CoGrouper {
 
 	private List<Input> multiInputs = new ArrayList<Input>();
 
-	public CoGrouper(PangoolConfig config, Configuration conf) {
+	public CoGrouper(CoGrouperConfig config, Configuration conf) {
 		this.conf = conf;
 		this.config = config;
 	}
@@ -119,7 +116,7 @@ public class CoGrouper {
 	public CoGrouper setTupleOutput(Path outputPath, Schema schema) {
 		this.outputPath = outputPath;
 		this.outputFormat = TupleOutputFormat.class;
-		this.outputKeyClass = AvroWrapper.class;
+		this.outputKeyClass = ITuple.class;
 		this.outputValueClass = NullWritable.class;
 		conf.set(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, schema.toString());
 		AvroUtils.addAvroSerialization(conf);
@@ -131,6 +128,20 @@ public class CoGrouper {
 		return this;
 	}
 
+	public CoGrouper addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass, Class valueClass) {
+		/*
+		 * 
+		 */
+		return this;
+	}
+	
+	public CoGrouper addTupleOutput(String namedOutput, Schema outputSchema) {
+		/*
+		 * 
+		 */
+		return this;
+	}
+	
 	@SuppressWarnings("unchecked")
   public static Class<? extends GroupHandler> getGroupHandler(Configuration conf) {
 		return (Class<? extends GroupHandler>) conf.getClass(CONF_REDUCER_HANDLER, null);
@@ -182,7 +193,7 @@ public class CoGrouper {
 		}
 
 		// Serialize PangoolConf in Hadoop Configuration
-		PangoolConfig.setPangoolConfig(config, conf);
+		CoGrouperConfig.setPangoolConfig(config, conf);
 		Job job = new Job(conf);
 		
 		List<String> partitionerFields;

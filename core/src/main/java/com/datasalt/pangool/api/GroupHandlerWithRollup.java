@@ -2,10 +2,7 @@ package com.datasalt.pangool.api;
 
 import java.io.IOException;
 
-import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.Reducer.Context;
 
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -13,9 +10,8 @@ import com.datasalt.pangool.io.tuple.ITuple;
 /**
  * 
  * @author pere
- *
+ * 
  */
-@SuppressWarnings("rawtypes")
 public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 
 	/**
@@ -33,9 +29,9 @@ public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandl
 	 *          The reducer context as in {@link Reducer}
 	 * 
 	 */
-	public void onOpenGroup(int depth, String field, ITuple firstElement, State state, ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context)
+	public void onOpenGroup(int depth, String field, ITuple firstElement, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
 	    throws IOException, InterruptedException, CoGrouperException {
-		
+
 	}
 
 	/**
@@ -53,8 +49,8 @@ public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandl
 	 *          The reducer context as in {@link Reducer}
 	 * 
 	 */
-	public void onCloseGroup(int depth, String field, ITuple lastElement, State state, ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) throws IOException,
-	    InterruptedException, CoGrouperException {
-		
+	public void onCloseGroup(int depth, String field, ITuple lastElement,
+	    CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector) throws IOException, InterruptedException, CoGrouperException {
+
 	}
 }

@@ -25,32 +25,34 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.CoGrouper;
+import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.PangoolConfig;
-import com.datasalt.pangool.PangoolConfigBuilder;
 import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.GroupHandler.State;
+import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
+import com.datasalt.pangool.api.GroupHandler.Collector;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	// Following variables protected to be shared by Combiners
-	protected PangoolConfig pangoolConfig;
+	protected CoGrouperConfig pangoolConfig;
+	protected Collector<OUTPUT_KEY, OUTPUT_VALUE> collector;
 	protected TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	protected FilteredReadOnlyTuple groupTuple; // Tuple view over the group
-	protected State state;
+	protected CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context;
 
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
-
 
 	public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
 			Configuration conf = context.getConfiguration();
-			this.pangoolConfig = PangoolConfigBuilder.get(conf);
-			this.state = new State(pangoolConfig);
+			this.pangoolConfig = CoGrouperConfigBuilder.get(conf);
+			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, pangoolConfig);
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
+			this.collector = new Collector<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
@@ -61,11 +63,12 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 		}
 	}
 
-	protected void loadHandler(Configuration conf, Context context) throws IOException, InterruptedException,
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+  protected void loadHandler(Configuration conf, Context context) throws IOException, InterruptedException,
 	    CoGrouperException {
 		Class<? extends GroupHandler> handlerClass = CoGrouper.getGroupHandler(conf);
 		handler = ReflectionUtils.newInstance(handlerClass, conf);
-		handler.setup(state, context);
+		handler.setup(this.context, collector);
 	}
 
 	@Override
@@ -76,7 +79,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 
 	protected void cleanupHandler(Context context) throws IOException, InterruptedException {
 		try {
-			handler.cleanup(state, context);
+			handler.cleanup(this.context, collector);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
@@ -107,7 +110,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 
 	protected void callHandler(Context context) throws IOException, InterruptedException {
 		try {
-			handler.onGroupElements(groupTuple, grouperIterator, state, context);
+			handler.onGroupElements(groupTuple, grouperIterator, this.context, collector);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
