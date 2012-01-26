@@ -122,7 +122,7 @@ import java.util.*;
  * }
  * </pre>
  * @deprecated Use 
- * {@link org.apache.hadoop.mapreduce.lib.output.MultipleOutputsPatched} instead
+ * {@link com.datasalt.pangool.io.PangoolMultipleOutputs} instead
  */
 @Deprecated
 @SuppressWarnings("rawtypes")

@@ -75,6 +75,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	public void cleanup(Context context) throws IOException, InterruptedException {
 		super.cleanup(context);
 		cleanupHandler(context);
+		collector.close();
 	}
 
 	protected void cleanupHandler(Context context) throws IOException, InterruptedException {

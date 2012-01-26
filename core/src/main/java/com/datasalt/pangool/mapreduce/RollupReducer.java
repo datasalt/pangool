@@ -89,6 +89,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	public void cleanup(Context context) throws IOException, InterruptedException {
 		try {
 			handler.cleanup(this.context, collector);
+			collector.close();
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}

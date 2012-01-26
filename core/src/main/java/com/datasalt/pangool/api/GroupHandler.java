@@ -56,7 +56,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
   		this.hadoopContext = hadoopContext;
   	}
 
-  	public CoGrouperConfig getPangoolConfig() {
+  	public CoGrouperConfig getCoGrouperConfig() {
   		return pangoolConfig;
   	}
   	
@@ -68,12 +68,12 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
   	}
   }
 	
-	public void setup(CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> pangoolContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
+	public void setup(CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> coGrouperContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
 	    throws IOException, InterruptedException, CoGrouperException {
 
 	}
 
-	public void cleanup(CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> pangoolContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
+	public void cleanup(CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> coGrouperContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
 	    throws IOException, InterruptedException, CoGrouperException {
 	}
 
@@ -87,7 +87,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 	 * @param context
 	 *          The reducer context as in {@link Reducer}
 	 */
-	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> pangoolContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector) throws IOException, InterruptedException,
+	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> coGrouperContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector) throws IOException, InterruptedException,
 	    CoGrouperException {
 
 	}

@@ -125,6 +125,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	@Override
 	public final void cleanup(Context context) throws IOException, InterruptedException {
 		cleanup(this.context, collector);
+		collector.close();
 	}
 
 	/**

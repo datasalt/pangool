@@ -37,7 +37,20 @@ public class CoGrouperConfigBuilder {
 		return this;
 	}
 
+	public CoGrouperConfigBuilder setSchema(Schema schema) throws CoGrouperException {
+		int schemaId = 0;
+		validateSchema(schemaId, schema);
+		config.addSchema(schemaId, schema);
+		return this;
+	}
+	
 	public CoGrouperConfigBuilder addSchema(Integer schemaId, Schema schema) throws CoGrouperException {
+		validateSchema(schemaId, schema);
+		config.addSchema(schemaId, schema);
+		return this;
+	}
+
+	private void validateSchema(Integer schemaId, Schema schema) throws CoGrouperException {
 		if(config.getSchemes().containsKey(schemaId)) {
 			throw new CoGrouperException("Schema already present: " + schemaId);
 		}
@@ -45,11 +58,8 @@ public class CoGrouperConfigBuilder {
 		if(schema == null) {
 			throw new CoGrouperException("Schema may not be null");
 		}
-
-		config.addSchema(schemaId, schema);
-		return this;
 	}
-
+	
 	public CoGrouperConfigBuilder setGroupByFields(String... groupByFields) {
 		config.setGroupByFields(groupByFields);
 		return this;
