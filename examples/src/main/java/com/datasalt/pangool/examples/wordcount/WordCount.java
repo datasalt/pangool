@@ -61,7 +61,7 @@ public class WordCount {
 		Tuple tuple = new Tuple();
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<ITuple, NullWritable> context,
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context,
 		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
 
 			int count = 0;
@@ -82,7 +82,7 @@ public class WordCount {
     private static final long serialVersionUID = 1L;
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Text, IntWritable> context,
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context,
 		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
 			int count = 0;
 			for(ITuple tuple : tuples) {

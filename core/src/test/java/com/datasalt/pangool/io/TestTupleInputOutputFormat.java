@@ -56,7 +56,7 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
     private static final long serialVersionUID = 1L;
 
     @Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Text, Text> context,
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context,
 		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
 
 			for(ITuple tuple : tuples) {

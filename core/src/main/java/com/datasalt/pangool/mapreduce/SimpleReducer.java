@@ -28,7 +28,6 @@ import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -42,7 +41,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	protected GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	protected TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	protected FilteredReadOnlyTuple groupTuple; // Tuple view over the group
-	protected CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context;
+	protected GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.CoGrouperContext context;
 
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
@@ -51,7 +50,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 		super.setup(context);
 		try {
 			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
-			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, pangoolConfig);
+			
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 			
@@ -62,6 +61,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 			}
 			
 			this.collector = handler.new Collector(context);
+			this.context = handler.new CoGrouperContext(context, pangoolConfig);
 			handler.setup(this.context, collector);		
 			
 		} catch(CoGrouperException e) {

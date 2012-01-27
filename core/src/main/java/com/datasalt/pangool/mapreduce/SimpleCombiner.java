@@ -27,8 +27,8 @@ import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.api.CombinerHandler;
+import com.datasalt.pangool.api.CombinerHandler.CoGrouperContext;
 import com.datasalt.pangool.api.CombinerHandler.Collector;
-import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -41,7 +41,7 @@ public class SimpleCombiner extends Reducer<ITuple, NullWritable, ITuple, NullWr
 	private CoGrouperConfig pangoolConfig;
 	private TupleIterator<ITuple, NullWritable> grouperIterator;
 	private FilteredReadOnlyTuple groupTuple; // Tuple view over the group
-	private CoGrouperContext<ITuple, NullWritable> context;
+	private CoGrouperContext context;
 	private CombinerHandler handler;
 	private Collector collector;
 
@@ -49,7 +49,6 @@ public class SimpleCombiner extends Reducer<ITuple, NullWritable, ITuple, NullWr
 		super.setup(context);
 		try {
 			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
-			this.context = new CoGrouperContext<ITuple, NullWritable>(context, pangoolConfig);
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.grouperIterator = new TupleIterator<ITuple, NullWritable>(context);
 
@@ -59,6 +58,7 @@ public class SimpleCombiner extends Reducer<ITuple, NullWritable, ITuple, NullWr
 			}		
 			
 			collector = new Collector(pangoolConfig, context);
+			this.context = handler.new CoGrouperContext(context, pangoolConfig);
 			handler.setup(this.context, collector);
 			
 		} catch(CoGrouperException e) {

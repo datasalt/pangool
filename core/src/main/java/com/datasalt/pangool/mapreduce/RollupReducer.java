@@ -45,7 +45,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 
 	private boolean firstIteration = true;
 	private CoGrouperConfig pangoolConfig;
-	private CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context;
+	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.CoGrouperContext context;
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	private Schema commonSchema;
 	private List<String> groupByFields;
@@ -54,12 +54,12 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	private GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
-	@Override
+	@SuppressWarnings("unchecked")
+  @Override
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
 			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
 			this.commonSchema = this.pangoolConfig.getCommonOrderedSchema();
-			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, pangoolConfig);
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.groupByFields = pangoolConfig.getGroupByFields();
 
@@ -70,30 +70,24 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
-			loadHandlerAndCollector(context);
+			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandlerWithRollup.class, SimpleReducer.CONF_REDUCER_HANDLER);
+			if(handler instanceof Configurable) {
+				((Configurable) handler).setConf(context.getConfiguration());
+			}
+			collector = handler.new Collector(context);
+			this.context = handler.new CoGrouperContext(context, pangoolConfig);
+			handler.setup(this.context, collector);
+			
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	/**
-	 * Loads the handler and the collector to be used in the rest of the fields. 
-	 */
-	@SuppressWarnings("unchecked")
-  protected void loadHandlerAndCollector(Context context) throws IOException, InterruptedException, CoGrouperException {
-
-		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandlerWithRollup.class, SimpleReducer.CONF_REDUCER_HANDLER);
-		if(handler instanceof Configurable) {
-			((Configurable) handler).setConf(context.getConfiguration());
-		}
-		collector = handler.new Collector(context);
-		handler.setup(this.context, collector);
 	}
 
 	public void cleanup(Context context) throws IOException, InterruptedException {
 		try {
 			handler.cleanup(this.context, collector);
 			collector.close();
+			super.cleanup(context);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}

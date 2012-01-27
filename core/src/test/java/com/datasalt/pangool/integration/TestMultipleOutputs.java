@@ -87,7 +87,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples,
-		    CoGrouperContext<DoubleWritable, NullWritable> pangoolContext, Collector collector)
+		    CoGrouperContext pangoolContext, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
 
 			for(ITuple tuple : tuples) {
