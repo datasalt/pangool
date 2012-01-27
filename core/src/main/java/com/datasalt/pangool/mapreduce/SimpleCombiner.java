@@ -44,7 +44,8 @@ public class SimpleCombiner extends SimpleReducer<ITuple, NullWritable> {
 	protected void loadHandler(Context context) throws IOException, InterruptedException,
 	    CoGrouperException {
 		
-		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), CombinerHandler.class, CONF_COMBINER_HANDLER);
+		String fileName = context.getConfiguration().get(SimpleCombiner.CONF_COMBINER_HANDLER);
+		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), CombinerHandler.class, fileName);
 		if(handler instanceof Configurable) {
 			((Configurable) handler).setConf(context.getConfiguration());
 		}

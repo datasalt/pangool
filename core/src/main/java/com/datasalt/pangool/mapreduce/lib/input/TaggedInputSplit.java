@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.mapreduce.lib.input;
+package com.datasalt.pangool.mapreduce.lib.input;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
@@ -51,8 +51,7 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
   @SuppressWarnings("unchecked")
   private Class<? extends InputFormat> inputFormatClass;
 
-  @SuppressWarnings("unchecked")
-  private Class<? extends Mapper> mapperClass;
+  private String inputProcessorFile;
 
   private Configuration conf;
 
@@ -71,12 +70,12 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
   @SuppressWarnings("unchecked")
   public TaggedInputSplit(InputSplit inputSplit, Configuration conf,
       Class<? extends InputFormat> inputFormatClass,
-      Class<? extends Mapper> mapperClass) {
+      String inputProcessorFile) {
     this.inputSplitClass = inputSplit.getClass();
     this.inputSplit = inputSplit;
     this.conf = conf;
     this.inputFormatClass = inputFormatClass;
-    this.mapperClass = mapperClass;
+    this.inputProcessorFile = inputProcessorFile;
   }
 
   /**
@@ -98,14 +97,8 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
     return inputFormatClass;
   }
 
-  /**
-   * Retrieves the Mapper class to use for this split.
-   * 
-   * @return The Mapper class to use
-   */
-  @SuppressWarnings("unchecked")
-  public Class<? extends Mapper> getMapperClass() {
-    return mapperClass;
+  public String getInputProcessorFile() {
+    return inputProcessorFile;
   }
 
   public long getLength() throws IOException, InterruptedException {
@@ -120,7 +113,7 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
   public void readFields(DataInput in) throws IOException {
     inputSplitClass = (Class<? extends InputSplit>) readClass(in);
     inputFormatClass = (Class<? extends InputFormat<?, ?>>) readClass(in);
-    mapperClass = (Class<? extends Mapper<?, ?, ?, ?>>) readClass(in);
+    inputProcessorFile = Text.readString(in);
     inputSplit = (InputSplit) ReflectionUtils
        .newInstance(inputSplitClass, conf);
     SerializationFactory factory = new SerializationFactory(conf);
@@ -142,7 +135,7 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
   public void write(DataOutput out) throws IOException {
     Text.writeString(out, inputSplitClass.getName());
     Text.writeString(out, inputFormatClass.getName());
-    Text.writeString(out, mapperClass.getName());
+    Text.writeString(out, inputProcessorFile);
     SerializationFactory factory = new SerializationFactory(conf);
     Serializer serializer = 
           factory.getSerializer(inputSplitClass);

@@ -45,7 +45,6 @@ public class TestSecondarySort {
 			count++;
 		}
 
-		HadoopUtils.deleteIfExists(fS, new Path(Processor.SERIALIZED_HANDLER_LOCAL_FILE));
 		HadoopUtils.deleteIfExists(fS, new Path(INPUT));
 		HadoopUtils.deleteIfExists(fS, new Path(OUTPUT));
 	}

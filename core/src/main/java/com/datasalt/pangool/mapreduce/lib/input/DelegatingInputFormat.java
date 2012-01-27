@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.mapreduce.lib.input;
+package com.datasalt.pangool.mapreduce.lib.input;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,13 +35,14 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.util.ReflectionUtils;
 
 /**
  * An {@link InputFormat} that delegates behavior of paths to multiple other
  * InputFormats.
  * 
- * @see MultipleInputs#addInputPath(Job, Path, Class, Class)
+ * @see PangoolMultipleInputs#addInputPath(Job, Path, Class, Class)
  */
 public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
 
@@ -52,11 +53,13 @@ public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
     Job jobCopy =new Job(conf);
     List<InputSplit> splits = new ArrayList<InputSplit>();
     Map<Path, InputFormat> formatMap = 
-      MultipleInputs.getInputFormatMap(job);
-    Map<Path, Class<? extends Mapper>> mapperMap = MultipleInputs
-       .getMapperTypeMap(job);
+      PangoolMultipleInputs.getInputFormatMap(job);
+    Map<Path, String> mapperMap = PangoolMultipleInputs
+       .getInputProcessorFileMap(job);
     Map<Class<? extends InputFormat>, List<Path>> formatPaths
         = new HashMap<Class<? extends InputFormat>, List<Path>>();
+    System.out.println(formatMap);
+    System.out.println(mapperMap);
 
     // First, build a map of InputFormats to Paths
     for (Entry<Path, InputFormat> entry : formatMap.entrySet()) {
@@ -74,33 +77,29 @@ public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
          formatClass, conf);
       List<Path> paths = formatEntry.getValue();
 
-      Map<Class<? extends Mapper>, List<Path>> mapperPaths
-          = new HashMap<Class<? extends Mapper>, List<Path>>();
+      Map<String, List<Path>> mapperPaths
+          = new HashMap<String, List<Path>>();
 
       // Now, for each set of paths that have a common InputFormat, build
       // a map of Mappers to the paths they're used for
       for (Path path : paths) {
-       Class<? extends Mapper> mapperClass = mapperMap.get(path);
-       if (!mapperPaths.containsKey(mapperClass)) {
-         mapperPaths.put(mapperClass, new LinkedList<Path>());
+       String mapper = mapperMap.get(path);
+       if (!mapperPaths.containsKey(mapper)) {
+         mapperPaths.put(mapper, new LinkedList<Path>());
        }
 
-       mapperPaths.get(mapperClass).add(path);
+       mapperPaths.get(mapper).add(path);
       }
 
       // Now each set of paths that has a common InputFormat and Mapper can
       // be added to the same job, and split together.
-      for (Entry<Class<? extends Mapper>, List<Path>> mapEntry :
+      for (Entry<String, List<Path>> mapEntry :
           mapperPaths.entrySet()) {
        paths = mapEntry.getValue();
-       Class<? extends Mapper> mapperClass = mapEntry.getKey();
+       String mapperClass = mapEntry.getKey();
 
        if (mapperClass == null) {
-         try {
-           mapperClass = job.getMapperClass();
-         } catch (ClassNotFoundException e) {
-           throw new IOException("Mapper class is not found", e);
-         }
+         throw new IOException("Input Processor not found for:" + mapEntry.getValue());
        }
 
        FileInputFormat.setInputPaths(jobCopy, paths.toArray(new Path[paths

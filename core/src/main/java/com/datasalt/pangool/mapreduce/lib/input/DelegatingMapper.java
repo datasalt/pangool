@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.mapreduce.lib.input;
+package com.datasalt.pangool.mapreduce.lib.input;
 
 import java.io.IOException;
 
@@ -24,31 +24,24 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.ReflectionUtils;
 
+import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.commons.DCUtils;
+
 /**
- * An {@link Mapper} that delegates behavior of paths to multiple other
- * mappers.
+ * An {@link Mapper} that delegates behavior of paths to multiple other mappers.
  * 
- * @see MultipleInputs#addInputPath(Job, Path, Class, Class)
+ * @see PangoolMultipleInputs#addInputPath(Job, Path, Class, Class)
  */
-public class DelegatingMapper<K1, V1, K2, V2> extends Mapper<K1, V1, K2, V2> {
+public class DelegatingMapper extends Mapper {
 
-  private Mapper<K1, V1, K2, V2> mapper;
+	Mapper delegate; // The delegate
 
-  @SuppressWarnings("unchecked")
-  protected void setup(Context context)
-      throws IOException, InterruptedException {
-    // Find the Mapper from the TaggedInputSplit.
-    TaggedInputSplit inputSplit = (TaggedInputSplit) context.getInputSplit();
-    mapper = (Mapper<K1, V1, K2, V2>) ReflectionUtils.newInstance(inputSplit
-       .getMapperClass(), context.getConfiguration());
-    
-  }
-
-  @SuppressWarnings("unchecked")
-  public void run(Context context) 
-      throws IOException, InterruptedException {
-    setup(context);
-    mapper.run(context);
-    cleanup(context);
-  }
+	@Override
+	public void run(Context context) throws IOException, InterruptedException {
+		// Find the InputProcessor from the TaggedInputSplit.
+		TaggedInputSplit inputSplit = (TaggedInputSplit) context.getInputSplit();
+		delegate = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), Mapper.class,
+		    inputSplit.getInputProcessorFile());
+		delegate.run(context);
+	}
 }

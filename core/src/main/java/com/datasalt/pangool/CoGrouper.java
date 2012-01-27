@@ -13,14 +13,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
@@ -35,13 +30,13 @@ import com.datasalt.pangool.io.TupleOutputFormat;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
-import com.datasalt.pangool.mapreduce.DelegatingPangoolMapper;
 import com.datasalt.pangool.mapreduce.GroupComparator;
 import com.datasalt.pangool.mapreduce.Partitioner;
 import com.datasalt.pangool.mapreduce.RollupReducer;
 import com.datasalt.pangool.mapreduce.SimpleCombiner;
 import com.datasalt.pangool.mapreduce.SimpleReducer;
 import com.datasalt.pangool.mapreduce.SortComparator;
+import com.datasalt.pangool.mapreduce.lib.input.PangoolMultipleInputs;
 
 @SuppressWarnings("rawtypes")
 public class CoGrouper {
@@ -193,39 +188,6 @@ public class CoGrouper {
 		}
 	}
 
-	/**
-	 * This method implements the needed business logic for associating input Paths with InputProcessors in a way that
-	 * allows us to serialize the instance and deserialize it in the {@link DelegatingPangoolMapper}. This method calls
-	 * the {@link org.apache.hadoop.mapreduce.InputFormat.#getSplits(org.apache.hadoop.mapreduce.JobContext) to find out
-	 * what splits will be processed. Then, it associates each of them with a given configuration value by appending the
-	 * split to the property {@link DelegatingMapper.#SPLIT_MAPPING_CONF}.
-	 * 
-	 * @param inputFormatClass
-	 *          The input format class (must be FileInputFormat, otherwise will throw an Exception)
-	 * @param path
-	 *          The path associated with this InputFormat
-	 * @param conf
-	 *          The Hadoop Configuration
-	 * @param value
-	 * @throws IOException
-	 */
-	@SuppressWarnings("unchecked")
-	private static void addFileMapping(Class<? extends InputFormat> inputFormatClass, Path path, Configuration conf,
-	    String value) throws IOException {
-		if(!(FileInputFormat.class.isAssignableFrom(inputFormatClass))) {
-			throw new IllegalArgumentException("Delegating multiple InputProcessor is only possible with subclasses of "
-			    + FileInputFormat.class);
-		}
-		FileInputFormat inputFormat = (FileInputFormat) ReflectionUtils.newInstance(inputFormatClass, conf);
-		Job jobCopy = new Job(conf);
-		FileInputFormat.setInputPaths(jobCopy, path);
-		List<InputSplit> pathSplits = inputFormat.getSplits(jobCopy);
-		for(InputSplit split : pathSplits) {
-			FileSplit fileSplit = (FileSplit) split;
-			conf.set(DelegatingPangoolMapper.SPLIT_MAPPING_CONF + fileSplit.getPath(), value);
-		}
-	}
-
 	public Job createJob() throws IOException, CoGrouperException {
 
 		raiseExceptionIfNull(grouperHandler, "Need to set a group handler");
@@ -311,15 +273,7 @@ public class CoGrouper {
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);
 		for(Input input : multiInputs) {
-			MultipleInputs.addInputPath(job, input.path, input.inputFormat, DelegatingPangoolMapper.class);
-			// Serialize the InputProcessor instances
-			String uniqueName = UUID.randomUUID().toString() + '.' + "input-processor.dat";
-			addFileMapping(input.inputFormat, input.path, job.getConfiguration(), uniqueName);
-			try {
-				DCUtils.serializeToDC(input.inputProcessor, uniqueName, null, job.getConfiguration());
-			} catch(URISyntaxException e) {
-				throw new CoGrouperException(e);
-			}
+			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat, input.inputProcessor);
 		}
 		for(Output output : namedOutputs) {
 			PangoolMultipleOutputs.addNamedOutput(job, output.name, output.outputFormat, output.keyClass, output.valueClass);

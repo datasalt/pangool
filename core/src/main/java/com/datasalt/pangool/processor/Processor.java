@@ -10,11 +10,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
-import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.commons.DCUtils;
+import com.datasalt.pangool.mapreduce.lib.input.PangoolMultipleInputs;
 
 /**
  * The Processor is a simple Pangool primitive that executes map-only Jobs. You can implement {@link ProcessorHandler} for using it.
@@ -33,13 +32,6 @@ public class Processor {
 	private Class<? extends OutputFormat> outputFormat;
 	private ProcessorHandler processorHandler;
 	
-	public final static String SERIALIZED_HANDLER_LOCAL_FILE = Processor.class.getName() + ".serialized.handler.dat";
-	private String serializedHandlerLocalFile = SERIALIZED_HANDLER_LOCAL_FILE;
-	
-	public void setSerializedHandlerLocalFile(String serializedHandlerLocalFile) {
-  	this.serializedHandlerLocalFile = serializedHandlerLocalFile;
-  }
-
 	private static final class Input {
 
 		Path path;
@@ -86,8 +78,6 @@ public class Processor {
 
 		// TODO Checks
 		
-		DCUtils.serializeToDC(processorHandler, serializedHandlerLocalFile, ProcessorMapper.PROCESSOR_HANDLER, conf);
-		
 		Job job = new Job(conf);
 		job.setNumReduceTasks(0);
 
@@ -98,7 +88,7 @@ public class Processor {
 		FileOutputFormat.setOutputPath(job, outputPath);
 		
 		for(Input input : multiInputs) {
-			MultipleInputs.addInputPath(job, input.path, input.inputFormat, ProcessorMapper.class);
+			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat, processorHandler);
 		}
 		return job;
 	}

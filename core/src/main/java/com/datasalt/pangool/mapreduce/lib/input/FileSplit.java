@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.mapreduce.lib.input;
+package com.datasalt.pangool.mapreduce.lib.input;
 
 import java.io.IOException;
 import java.io.DataInput;

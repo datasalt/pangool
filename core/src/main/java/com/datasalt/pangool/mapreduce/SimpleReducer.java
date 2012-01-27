@@ -67,7 +67,8 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	@SuppressWarnings({ "unchecked" })
 	protected void loadHandler(Context context) throws IOException, InterruptedException, CoGrouperException {
 
-		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandler.class, CONF_REDUCER_HANDLER);
+		String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
+		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandler.class, fileName);
 		if(handler instanceof Configurable) {
 			((Configurable) handler).setConf(context.getConfiguration());
 		}

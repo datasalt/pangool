@@ -35,7 +35,6 @@ public class TestGrep {
 		assertEquals("foo", Files.toString(new File(OUTPUT + "/part-m-00000"), Charset.forName("UTF-8")).trim());
 		
 		FileSystem fS = FileSystem.get(conf);
-		HadoopUtils.deleteIfExists(fS, new Path(Processor.SERIALIZED_HANDLER_LOCAL_FILE));
 		HadoopUtils.deleteIfExists(fS, new Path(INPUT));
 		HadoopUtils.deleteIfExists(fS, new Path(OUTPUT));
 	}

@@ -52,7 +52,7 @@ public class DCUtils {
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 */
-	public static void serializeToDC(Serializable obj, String serializeToLocalFile,
+	public static void serializeToDC(Object obj, String serializeToLocalFile,
 	    @Nullable String dcConfigurationProperty, Configuration conf) throws FileNotFoundException, IOException,
 	    URISyntaxException {
 		File file = new File(serializeToLocalFile);
@@ -87,14 +87,14 @@ public class DCUtils {
 	 *          The Hadoop Configuration.
 	 * @param objClass
 	 *          The object type class.
-	 * @param propertyInConf
-	 *          The property in the Hadoop Configuration that was used to indentify this instance.
+	 * @param fileName
+	 *          The file name to locate in DC
 	 * @return
 	 * @throws IOException
 	 */
-	public static <T> T loadSerializedObjectInDC(Configuration conf, Class<T> objClass, String propertyInConf)
+	public static <T> T loadSerializedObjectInDC(Configuration conf, Class<T> objClass, String fileName)
 	    throws IOException {
-		Path path = DCUtils.locateFileInDC(conf, conf.get(propertyInConf));
+		Path path = DCUtils.locateFileInDC(conf, fileName);
 		ObjectInput in = new ObjectInputStream(new FileInputStream(new File(path + "")));
 		T obj;
 		try {
