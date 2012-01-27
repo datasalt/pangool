@@ -54,6 +54,7 @@ public class Ordering {
 		
 		public String toString(){
 			ObjectMapper mapper = new ObjectMapper();
+			
 			try {
 	      return mapper.writeValueAsString(elements);
       } catch(Exception e) {

@@ -32,7 +32,7 @@ public class Tests {
 		
 		List<Field> countryFields = new ArrayList<Field>();
 		countryFields.add(new Field("user_id", Schema.create(Type.INT), null, null, Order.DESCENDING));
-		countryFields.add(new Field("name", Schema.create(Type.INT), null, null, Order.DESCENDING));
+		countryFields.add(new Field("name", Schema.create(Type.STRING), null, null, Order.DESCENDING));
 		countryFields.add(new Field("country", Schema.create(Type.STRING), null, null, Order.DESCENDING));
 		countryFields.add(new Field("num_people", Schema.create(Type.INT), null, null, Order.DESCENDING));
 		countryFields.add(new Field("another", Schema.create(Type.BYTES), null, null, Order.IGNORE));
@@ -48,7 +48,7 @@ public class Tests {
 		b.setGroupByFields("user_id");
 		b.setCommonOrdering(new Ordering().add("user_id",Order.DESCENDING).add("name",Order.DESCENDING));
 		b.setInterSourcesOrdering(Order.DESCENDING);
-		b.setIndividualSourceOrdering("usuarios", new Ordering().add("name",Order.DESCENDING).add("age",Order.DESCENDING));
+		b.setIndividualSourceOrdering("usuarios", new Ordering().add("age",Order.DESCENDING));
 		b.setIndividualSourceOrdering("countries",new Ordering().add("country", Order.DESCENDING));
 		
 		CoGrouperConfig config = b.build();

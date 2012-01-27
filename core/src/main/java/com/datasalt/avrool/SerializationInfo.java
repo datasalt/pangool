@@ -76,7 +76,7 @@ public class SerializationInfo {
 				if (schemaType == null){
 					schemaType = currentSchema;
 				} else if (!schemaType.equals(currentSchema)){
-					throw new CoGrouperException("The schema for field '" + fieldName + "' are different among sources");
+					throw new CoGrouperException("The schema for field '" + fieldName + "' is not the same in all sources");
 				}
 			}
 			commonSchemaFields.add(new Field(fieldName,schemaType,null,null,element.getOrder()));

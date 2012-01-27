@@ -16,6 +16,8 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.datasalt.avrool.Ordering.SortElement;
+
 public class CoGrouperConfig {
 
 	public final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
@@ -101,17 +103,30 @@ public class CoGrouperConfig {
 			for(Map.Entry<String, String> jsonSchema: jsonSources.entrySet()) {
 				result.addSource(jsonSchema.getKey(), Schema.parse(jsonSchema.getValue()));
 			}
+			List<Map> listOrderings = (List<Map>)jsonData.get("commonOrdering");
 			
-			result.setCommonOrdering(new Ordering((List)jsonData.get("commonOrdering")));
-			Map<String, List> jsonParticularOrderings = (Map<String, List>) jsonData.get("particularOrderings");
 			
-			for(Map.Entry<String, List> entry: jsonParticularOrderings.entrySet()) {
-				result.particularOrderings.put(entry.getKey(), new Ordering((List)entry.getValue()));
+			
+			result.setCommonOrdering(new Ordering(mapsToSortElements(listOrderings)));
+			Map<String, List<SortElement>> jsonParticularOrderings = (Map<String, List<SortElement>>) jsonData.get("particularOrderings");
+			
+			for(Map.Entry<String, List<SortElement>> entry: jsonParticularOrderings.entrySet()) {
+				result.particularOrderings.put(entry.getKey(), new Ordering(mapsToSortElements((List)entry.getValue())));
 			}
 			return result;
 		} catch(Exception e){
 			throw new CoGrouperException(e);
 		}
+	}
+	
+	private static List<SortElement> mapsToSortElements(List<Map> maps){
+		List<SortElement> result = new ArrayList<SortElement>();
+		for (Map map : maps){
+			SortElement element = new SortElement((String)map.get("name"),Order.valueOf((String)map.get("order")));
+			result.add(element);
+		}
+	
+		return result;
 	}
 	
 	
