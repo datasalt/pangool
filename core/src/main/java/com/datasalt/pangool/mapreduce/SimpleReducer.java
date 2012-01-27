@@ -56,61 +56,43 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 			
 			// setting handler
-			loadHandler(context);
+			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandler.class, CONF_REDUCER_HANDLER);
+			if(handler instanceof Configurable) {
+				((Configurable) handler).setConf(context.getConfiguration());
+			}
+			
+			this.collector = handler.new Collector(context);
+			handler.setup(this.context, collector);		
 			
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	@SuppressWarnings({ "unchecked" })	
-	protected void loadHandler(Context context) throws IOException, InterruptedException, CoGrouperException {
-
-		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandler.class, CONF_REDUCER_HANDLER);
-		if(handler instanceof Configurable) {
-			((Configurable) handler).setConf(context.getConfiguration());
-		}
-		
-		this.collector = handler.new Collector(context);
-		handler.setup(this.context, collector);		
-	}
-
 	@Override
 	public void cleanup(Context context) throws IOException, InterruptedException {
-		super.cleanup(context);
-		cleanupHandler(context);
-		collector.close();
-	}
-
-	protected void cleanupHandler(Context context) throws IOException, InterruptedException {
 		try {
 			handler.cleanup(this.context, collector);
+			collector.close();
+			super.cleanup(context);
+			
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	public final void run(Context context) throws IOException, InterruptedException {
-		super.run(context);
-	}
-
-	@Override
-	public final void reduce(ITuple key, Iterable<NullWritable> values, Context context) throws IOException,
+	public final void reduce(ITuple key, Iterable<NullWritable> values, Context context) throws IOException,	
 	    InterruptedException {
-		Iterator<NullWritable> iterator = values.iterator();
-		grouperIterator.setIterator(iterator);
-
-		// We get the firts tuple, to create the groupTuple view
-		ITuple firstTupleGroup = key;
-
-		// A view is created over the first tuple to give the user the group fields
-		groupTuple.setDelegatedTuple(firstTupleGroup);
-		callHandler(context);
-	}
-
-	protected void callHandler(Context context) throws IOException, InterruptedException {
 		try {
+			Iterator<NullWritable> iterator = values.iterator();
+			grouperIterator.setIterator(iterator);
+	
+			// We get the firts tuple, to create the groupTuple view
+			ITuple firstTupleGroup = key;
+	
+			// A view is created over the first tuple to give the user the group fields
+			groupTuple.setDelegatedTuple(firstTupleGroup);
 			handler.onGroupElements(groupTuple, grouperIterator, this.context, collector);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);

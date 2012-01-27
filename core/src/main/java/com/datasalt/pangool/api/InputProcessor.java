@@ -22,6 +22,7 @@ import java.io.Serializable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Mapper.Context;
 
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.CoGrouperConfig;
@@ -106,6 +107,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	@Override
 	public final void setup(org.apache.hadoop.mapreduce.Mapper.Context context) throws IOException, InterruptedException {
 		try {
+			super.setup(context);
 			Configuration conf = context.getConfiguration();
 			CoGrouperConfig pangoolConfig = CoGrouperConfigBuilder.get(conf);
 			this.context = new CoGrouperContext(context, pangoolConfig);
@@ -130,6 +132,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	public final void cleanup(Context context) throws IOException, InterruptedException {
 		cleanup(this.context, collector);
 		collector.close();
+		super.cleanup(context);
 	}
 
 	/**
@@ -145,7 +148,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	public final void map(INPUT_KEY key, INPUT_VALUE value, Context context) throws IOException, InterruptedException {
 		process(key, value, this.context, collector);
 	}
-
+		
 	/**
 	 * Called once per each input pair of key/values. Override it to implement your custom logic.
 	 */
