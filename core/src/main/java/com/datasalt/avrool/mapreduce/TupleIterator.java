@@ -19,6 +19,9 @@ package com.datasalt.avrool.mapreduce;
 import java.util.Iterator;
 
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.mapred.AvroKey;
+import org.apache.avro.mapred.AvroValue;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer.Context;
@@ -33,13 +36,13 @@ import com.datasalt.avrool.api.GroupHandler;
  * 
  * See {@link Iterable} and {@link ITuple}
  *  
- * @author eric
+ * 
  * 
  */
-public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Record>, Iterable<Record>{
+public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<GenericRecord>, Iterable<GenericRecord>{
 
-	private Iterator<NullWritable> iterator;
-	private ReduceContext<Record,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
+	private Iterator<AvroValue> iterator;
+	private ReduceContext<AvroKey,AvroValue,OUTPUT_KEY,OUTPUT_VALUE> context;
 	
 	/**
 	 *  used to mark that the first element from the {@link Iterator} was already consumed.
@@ -47,11 +50,11 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Record>,
 	 */
 	private boolean firstTupleConsumed=false;
 	
-	public TupleIterator(ReduceContext<Record,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
+	public TupleIterator(ReduceContext<AvroKey,AvroValue,OUTPUT_KEY,OUTPUT_VALUE> context){
 		this.context = context;
 	}
 	
-	public void setIterator(Iterator<NullWritable> iterator){
+	public void setIterator(Iterator<AvroValue> iterator){
 		this.iterator = iterator;
 	}	
 	
@@ -76,13 +79,13 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Record>,
   }
 
 	@Override
-  public Record next() {
+  public GenericRecord next() {
 		if (firstTupleConsumed){
 			firstTupleConsumed = false;
-			return context.getCurrentKey();
+			return (GenericRecord)context.getCurrentKey().datum();
 		} else {
 			iterator.next(); //advances one key
-			return context.getCurrentKey();
+			return (GenericRecord)context.getCurrentKey().datum();
 		}
   }
 
@@ -96,7 +99,7 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Record>,
   }
 
 	@Override
-	public Iterator<Record> iterator() {
+	public Iterator<GenericRecord> iterator() {
 		return this;
 	}
 

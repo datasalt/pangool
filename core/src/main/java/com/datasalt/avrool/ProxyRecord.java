@@ -2,6 +2,7 @@ package com.datasalt.avrool;
 
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -12,6 +13,7 @@ public class ProxyRecord implements GenericRecord,Comparable<ProxyRecord>{
 	private Schema schema;
 	private SerializationInfo serInfo;
 	private GenericRecord contained;
+	private FilterRecord unionRecord;
 	
 	public ProxyRecord(SerializationInfo ser){
 		this.serInfo = ser;
@@ -19,22 +21,37 @@ public class ProxyRecord implements GenericRecord,Comparable<ProxyRecord>{
 		if (schema == null || !Type.RECORD.equals(schema.getType())){
       throw new AvroRuntimeException("Not a record schema: "+schema);
 		}
+		
+		unionRecord = new FilterRecord();
 	}
 	
-	public void setContainedRecord(GenericRecord contained){
+	public void setContainedRecord(GenericRecord contained) throws CoGrouperException{
 		this.contained = contained;
+		this.unionRecord.setContained(contained);
+		String source = contained.getSchema().getFullName();
+		
+		Schema particularSchema = serInfo.getParticularSchema(source);
+		if (particularSchema == null){
+			throw new CoGrouperException("Intermediate schema has no source '" + source + "' present in schema " + schema);
+		}
+		this.unionRecord.setSchema(particularSchema);
+		
 	}
 	
 	@Override
   public void put(int i, Object v) {
-	  // TODO Auto-generated method stub
+	  throw new UnsupportedOperationException("Not able to put to this read-only record");
 	  
   }
 
 	@Override
   public Object get(int i) {
-	  // TODO Auto-generated method stub
-	  return null;
+	  Field f = schema.getFields().get(i);
+	  if (f.name().equals(SerializationInfo.UNION_FIELD_NAME)){
+	  	return unionRecord;
+	  } else {
+	  	return contained.get(f.name());
+	  }
   }
 
 	@Override
@@ -44,14 +61,20 @@ public class ProxyRecord implements GenericRecord,Comparable<ProxyRecord>{
 
 	@Override
   public void put(String key, Object v) {
-	  // TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Not able to put to this read-only record");
 	  
   }
 
 	@Override
   public Object get(String key) {
-	  // TODO Auto-generated method stub
-	  return null;
+		Field f = schema.getField(key);
+		if (f == null){
+			return null;
+		} else if (f.name().equals(SerializationInfo.UNION_FIELD_NAME)){
+			return unionRecord;
+		} else {
+			return contained.get(f.name());
+		}
   }
 	
 	

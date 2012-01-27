@@ -3,17 +3,17 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.datasalt.pangool</groupId>
-    <artifactId>pangool</artifactId>
+    <groupId>com.datasalt.avrool</groupId>
+    <artifactId>avrool</artifactId>
     <version>0.40-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>pangool-core</artifactId>
+  <artifactId>avrool-core</artifactId>
   <packaging>jar</packaging>
 
   <!-- modules inherit parent's group id and version. -->
-  <name>Pangool Core</name>
+  <name>Avrool Core</name>
   <url>http://www.datasalt.com</url>
   <description></description>
 

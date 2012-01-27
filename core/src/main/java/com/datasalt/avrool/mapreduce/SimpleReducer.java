@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.util.Iterator;
 
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.mapred.AvroKey;
+import org.apache.avro.mapred.AvroValue;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -33,7 +36,7 @@ import com.datasalt.avrool.api.GroupHandler;
 import com.datasalt.avrool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.avrool.api.GroupHandler.Collector;
 
-public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<Record, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
+public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<AvroKey, AvroValue, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	// Following variables protected to be shared by Combiners
 	protected CoGrouperConfig pangoolConfig;
@@ -91,14 +94,14 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<Record, Nul
 	}
 
 	@Override
-	public final void reduce(Record key, Iterable<NullWritable> values, Context context) throws IOException,
+	public final void reduce(AvroKey key, Iterable<AvroValue> values, Context context) throws IOException,
 	    InterruptedException {
-		Iterator<NullWritable> iterator = values.iterator();
+		Iterator<AvroValue> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
 
 		// We get the firts tuple, to create the groupTuple view
 		iterator.next();
-		Record firstTupleGroup = (Record) context.getCurrentKey();
+		GenericRecord firstTupleGroup = (GenericRecord) context.getCurrentKey().datum();
 
 		// we consumed the first element , so needs to comunicate to iterator
 		grouperIterator.setFirstTupleConsumed(true);

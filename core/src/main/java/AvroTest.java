@@ -49,12 +49,6 @@ public class AvroTest {
 	}
 
 	
-	
-
-	
-	
-	
-	
 	public static class Mapy extends Mapper<LongWritable, Text, AvroKey<Record>, AvroValue> {
 
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {

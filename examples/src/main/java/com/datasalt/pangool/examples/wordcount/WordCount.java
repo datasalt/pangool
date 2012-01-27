@@ -23,9 +23,7 @@
 //import com.datasalt.avrool.api.GroupHandler;
 //import com.datasalt.avrool.api.InputProcessor;
 //import com.datasalt.avrool.api.GroupHandler.CoGrouperContext;
-//import com.datasalt.avrool.io.tuple.ITuple;
-//import com.datasalt.avrool.io.tuple.Tuple;
-//import com.datasalt.avrool.io.tuple.ITuple.InvalidFieldException;
+//
 //
 //public class WordCount {
 //
@@ -84,7 +82,13 @@
 //		FileSystem fs = FileSystem.get(conf);
 //		fs.delete(new Path(output), true);
 //
+//		CoGrouperConfigBuilder builder = new CoGrouperConfigBuilder();
+//		builder.addSource(sourceName, schema)
+//		
 //		CoGrouperConfig config = new CoGrouperConfigBuilder()
+//		
+//		config.add
+//		
 //		    .addSource(0, PangoolSchema.parse(WORD_FIELD + ":string, " + COUNT_FIELD + ":int")).setGroupByFields(WORD_FIELD)
 //		    .setSorting(new SortingBuilder().add(WORD_FIELD).buildSorting()).build();
 //

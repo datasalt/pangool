@@ -5,12 +5,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.mapred.AvroJob;
 import org.apache.avro.mapred.AvroKey;
 import org.apache.avro.mapred.AvroKeyComparator;
+import org.apache.avro.mapred.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
@@ -51,7 +55,7 @@ public class CoGrouper {
 		}
 	}
 
-	private Configuration conf;
+	private JobConf conf;
 	private CoGrouperConfig config;
 	
 	private Class<? extends GroupHandler> reduceHandler;
@@ -66,7 +70,7 @@ public class CoGrouper {
 	private List<Input> multiInputs = new ArrayList<Input>();
 
 	public CoGrouper(CoGrouperConfig config, Configuration conf) {
-		this.conf = conf;
+		this.conf = new JobConf(conf);
 		this.config = config;
 	}
 
@@ -130,12 +134,7 @@ public class CoGrouper {
 		return this;
 	}
 	
-//	public CoGrouper addTupleOutput(String namedOutput, PangoolSchema outputSchema) {
-//		/*
-//		 * 
-//		 */
-//		return this;
-//	}
+
 	
 	@SuppressWarnings("unchecked")
   public static Class<? extends GroupHandler> getGroupHandler(Configuration conf) {
@@ -189,6 +188,11 @@ public class CoGrouper {
 
 		// Serialize PangoolConf in Hadoop Configuration
 		CoGrouperConfig.toConfig(config, conf);
+		SerializationInfo serInfo = SerializationInfo.get(config);
+		
+		Schema nullSchema = Schema.create(Schema.Type.NULL);
+		Schema pairSchema = Pair.getPairSchema(serInfo.getIntermediateSchema(), nullSchema);
+		AvroJob.setMapOutputSchema(conf, pairSchema);
 		Job job = new Job(conf);
 		
 		List<String> partitionerFields;
@@ -228,11 +232,11 @@ public class CoGrouper {
 		
 		job.setJarByClass((jarByClass != null) ? jarByClass : reduceHandler);		
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(AvroKey.class);
-		job.setMapOutputValueClass(NullWritable.class);
+//		job.setMapOutputKeyClass(AvroKey.class);
+//		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(Partitioner.class);
 		job.setGroupingComparatorClass(AvroKeyComparator.class); //TODO this is not correct
-		job.setSortComparatorClass(AvroKeyComparator.class);
+		//job.setSortComparatorClass(AvroKeyComparator.class);
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);

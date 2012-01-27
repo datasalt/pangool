@@ -3,6 +3,9 @@ package com.datasalt.avrool.api;
 import java.io.IOException;
 
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.mapred.AvroKey;
+import org.apache.avro.mapred.AvroValue;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 
@@ -31,7 +34,7 @@ public class CombinerHandler {
 		}
 		
 		@SuppressWarnings("unchecked")
-    public void write(Record tuple) throws IOException,InterruptedException {
+    public void write(GenericRecord tuple) throws IOException,InterruptedException {
 			//DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
 			//sTuple.setContainedTuple(tuple);
 			//TODO hacer transformacion pertinente
@@ -42,16 +45,16 @@ public class CombinerHandler {
 		
 	}
   
-	public void setup(CoGrouperContext<Record, NullWritable> context, Collector collector) throws IOException, InterruptedException, CoGrouperException {
+	public void setup(CoGrouperContext<AvroKey,AvroValue> context, Collector collector) throws IOException, InterruptedException, CoGrouperException {
 
 	}
 
-	public void cleanup(CoGrouperContext<Record, NullWritable> context, Collector collector) throws IOException, InterruptedException,
+	public void cleanup(CoGrouperContext<AvroKey, AvroValue> context, Collector collector) throws IOException, InterruptedException,
 	    CoGrouperException {
 
 	}
 
-	public void onGroupElements(Record group, Iterable<Record> tuples, CoGrouperContext<Record, NullWritable> context, Collector collector) throws IOException,
+	public void onGroupElements(GenericRecord group, Iterable<GenericRecord> tuples, CoGrouperContext<AvroKey, AvroValue> context, Collector collector) throws IOException,
 	    InterruptedException, CoGrouperException {
 		
 	}

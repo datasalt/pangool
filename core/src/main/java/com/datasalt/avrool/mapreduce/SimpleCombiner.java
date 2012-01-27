@@ -18,6 +18,8 @@ package com.datasalt.avrool.mapreduce;
 import java.io.IOException;
 
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.mapred.AvroKey;
+import org.apache.avro.mapred.AvroValue;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.util.ReflectionUtils;
@@ -27,7 +29,7 @@ import com.datasalt.avrool.CoGrouperException;
 import com.datasalt.avrool.api.CombinerHandler;
 import com.datasalt.avrool.api.CombinerHandler.Collector;
 
-public class SimpleCombiner extends SimpleReducer<Record, NullWritable> {
+public class SimpleCombiner extends SimpleReducer<AvroKey, AvroValue> {
 
 	private CombinerHandler handler;
 	private Collector collector;

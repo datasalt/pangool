@@ -3,6 +3,9 @@ package com.datasalt.avrool.api;
 import java.io.IOException;
 
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.mapred.AvroKey;
+import org.apache.avro.mapred.AvroValue;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.ReduceContext;
@@ -48,9 +51,9 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
   public static class CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> {
   	
   	private CoGrouperConfig pangoolConfig;
-  	private ReduceContext<Record, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext;
+  	private ReduceContext<AvroKey, AvroValue, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext;
   	
-  	public CoGrouperContext(ReduceContext<Record, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext, CoGrouperConfig pangoolConfig) {
+  	public CoGrouperContext(ReduceContext<AvroKey,AvroValue, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext, CoGrouperConfig pangoolConfig) {
   		this.pangoolConfig = pangoolConfig;
   		this.hadoopContext = hadoopContext;
   	}
@@ -62,7 +65,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
   	/**
   	 * Return the Hadoop {@link ReduceContext}.  
   	 */
-  	public ReduceContext<Record, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> getHadoopContext() {
+  	public ReduceContext<AvroKey, AvroValue, OUTPUT_KEY, OUTPUT_VALUE> getHadoopContext() {
   		return hadoopContext;
   	}
   }
@@ -86,7 +89,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
 	 * @param context
 	 *          The reducer context as in {@link Reducer}
 	 */
-	public void onGroupElements(Record group, Iterable<Record> tuples, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> pangoolContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector) throws IOException, InterruptedException,
+	public void onGroupElements(GenericRecord group, Iterable<GenericRecord> tuples, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> pangoolContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector) throws IOException, InterruptedException,
 	    CoGrouperException {
 
 	}

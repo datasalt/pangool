@@ -2,12 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.datasalt.pangool</groupId>
-  <artifactId>pangool</artifactId>
+  <groupId>com.datasalt.avrool</groupId>
+  <artifactId>avrool</artifactId>
   <version>0.40-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Pangool</name>
+  <name>Avrool</name>
   <url>http://www.datasalt.com</url>
 
   <properties>

@@ -18,7 +18,11 @@ package com.datasalt.avrool.api;
 
 import java.io.IOException;
 
+import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.mapred.AvroKey;
+import org.apache.avro.mapred.AvroValue;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -26,6 +30,8 @@ import org.apache.hadoop.mapreduce.Mapper;
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperConfigBuilder;
 import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.ProxyRecord;
+import com.datasalt.avrool.SerializationInfo;
 
 /**
  * TODO doc
@@ -40,34 +46,42 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	public static final class Collector extends MultipleOutputsCollector {
 		
 		private Mapper.Context context;
+		private SerializationInfo serInfo;
+		private AvroKey outputKey = new AvroKey();
+		private AvroValue outputValue = new AvroValue(null);
 
-//		private ThreadLocal<DoubleBufferedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedTuple>() {
-//
-//			@Override
-//			protected DoubleBufferedTuple initialValue() {
-//				return new DoubleBufferedTuple();
-//			}
-//		};
+		private ThreadLocal<ProxyRecord> proxyRecord = new ThreadLocal<ProxyRecord>() {
+
+			@Override
+			protected ProxyRecord initialValue() {
+				return new ProxyRecord(serInfo);
+			}
+		};
 
 		Collector(Mapper.Context context) {
 			super(context);
 			this.context = context;
+			try {
+				CoGrouperConfig config = CoGrouperConfig.get(context.getConfiguration());
+				this.serInfo = SerializationInfo.get(config);
+			} catch(CoGrouperException e){
+				throw new RuntimeException(e); 
+			}
 		}
 
-		@SuppressWarnings("unchecked")
-		public void write(Record tuple) throws IOException, InterruptedException {
-			//DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
-//			sTuple.setContainedTuple(tuple);
-//			context.write(sTuple, NullWritable.get());
+		
+		public void write(GenericRecord tuple) throws IOException, InterruptedException {
+			ProxyRecord outputRecord  = proxyRecord.get();
+			try{
+				outputRecord.setContainedRecord(tuple);
+			} catch(CoGrouperException e){
+				throw new IOException(e); 
+			}
+			outputKey.datum(outputRecord);
+			context.write(outputKey,outputValue); 
 		}
 
-//		@SuppressWarnings("unchecked")
-//		public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
-//			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
-//			sTuple.setContainedTuple(tuple);
-//			sTuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);
-//			context.write(sTuple, NullWritable.get());
-//		}
+
 	}
 
 	public static class CoGrouperContext {
