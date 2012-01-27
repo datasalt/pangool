@@ -71,6 +71,11 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
 	public static class MyGroupHandler extends GroupHandler<Object, Object> {
 
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Object, Object> context, 
 		    Collector<Object, Object> collector) throws IOException, InterruptedException, CoGrouperException {
@@ -98,7 +103,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
 		Job job = new CoGrouper(config, getConf())
 		    .addInput(new Path("test-input"), TextInputFormat.class, FirstInputProcessor.class)
-		    .setGroupHandler(MyGroupHandler.class)
+		    .setGroupHandler(new MyGroupHandler())
 		    .setOutput(new Path("test-output"), TextOutputFormat.class, NullWritable.class, NullWritable.class).createJob();
 
 		job.waitForCompletion(true);

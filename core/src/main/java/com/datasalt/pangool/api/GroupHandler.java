@@ -1,6 +1,7 @@
 package com.datasalt.pangool.api;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
@@ -21,7 +22,12 @@ import com.datasalt.pangool.mapreduce.SimpleReducer;
  * @author eric
  * 
  */
-public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
+public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
+
+	/**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static final class Collector<OUTPUT_KEY, OUTPUT_VALUE> extends MultipleOutputsCollector {

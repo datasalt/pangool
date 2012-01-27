@@ -50,6 +50,11 @@ public class SecondarySort {
 
 	public static class Handler extends GroupHandler<Text, NullWritable> {
 
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Text, NullWritable> context,
 		    Collector<Text, NullWritable> collector) throws IOException, InterruptedException, CoGrouperException {
@@ -69,7 +74,7 @@ public class SecondarySort {
 
 		CoGrouper grouper = new CoGrouper(config, conf);
 		// Input / output and such
-		grouper.setGroupHandler(Handler.class);
+		grouper.setGroupHandler(new Handler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
 		grouper.addInput(new Path(input), TextInputFormat.class, IProcessor.class);
 		return grouper.createJob();

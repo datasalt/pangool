@@ -52,6 +52,11 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 	}
 
 	private static class IdentityRed extends GroupHandlerWithRollup<Text, Text> {
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    
 		private Text outputKey = new Text();
 		private Text outputValue = new Text();
 
@@ -136,7 +141,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 
 		CoGrouper grouper = new CoGrouper(builder.build(), getConf());
 
-		grouper.setOutputHandler(IdentityRed.class);
+		grouper.setGroupHandler(new IdentityRed());
 		grouper.setOutput(outputPath, SequenceFileOutputFormat.class, Text.class, Text.class);
 		grouper.addInput(new Path(input), SequenceFileInputFormat.class, Map.class);
 

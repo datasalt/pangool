@@ -19,18 +19,17 @@ package com.datasalt.pangool.mapreduce;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.pangool.api.GroupHandler.Collector;
+import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
@@ -48,26 +47,27 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
-			Configuration conf = context.getConfiguration();
-			this.pangoolConfig = CoGrouperConfigBuilder.get(conf);
+			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
 			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, pangoolConfig);
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.collector = new Collector<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
-			loadHandler(conf, context);
+			loadHandler(context);
 
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-  protected void loadHandler(Configuration conf, Context context) throws IOException, InterruptedException,
-	    CoGrouperException {
-		Class<? extends GroupHandler> handlerClass = CoGrouper.getGroupHandler(conf);
-		handler = ReflectionUtils.newInstance(handlerClass, conf);
+	@SuppressWarnings({ "unchecked" })
+	protected void loadHandler(Context context) throws IOException, InterruptedException, CoGrouperException {
+
+		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandler.class, "group-handler");
+		if(handler instanceof Configurable) {
+			((Configurable) handler).setConf(context.getConfiguration());
+		}
 		handler.setup(this.context, collector);
 	}
 

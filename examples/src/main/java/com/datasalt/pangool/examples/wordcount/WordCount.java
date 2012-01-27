@@ -68,6 +68,11 @@ public class WordCount {
 
 	public static class Count extends GroupHandler<Text, IntWritable> {
 
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Text, IntWritable> context,
 		    Collector<Text, IntWritable> collector) throws IOException, InterruptedException, CoGrouperException {
@@ -92,7 +97,7 @@ public class WordCount {
 		cg.setJarByClass(WordCount.class);
 		cg.addInput(new Path(input), TextInputFormat.class, Split.class);
 		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class, Text.class);
-		cg.setGroupHandler(Count.class);
+		cg.setGroupHandler(new Count());
 		cg.setCombinerHandler(CountCombiner.class);
 
 		return cg.createJob();

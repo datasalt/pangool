@@ -52,7 +52,9 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
 
 	public static class MyGroupHandler extends GroupHandler<Text, Text> {
 
-		@Override
+    private static final long serialVersionUID = 1L;
+
+    @Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Text, Text> context,
 		    Collector<Text, Text> collector) throws IOException, InterruptedException, CoGrouperException {
 
@@ -82,7 +84,7 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
 		configBuilder.setSorting(Sorting.parse("title asc, content asc"));
 
 		CoGrouper coGrouper = new CoGrouper(configBuilder.build(), conf);
-		coGrouper.setGroupHandler(IdentityGroupHandler.class);
+		coGrouper.setGroupHandler(new IdentityGroupHandler());
 		coGrouper.setTupleOutput(outPath, schema); // setTupleOutput method
 		coGrouper.addInput(inPath, TextInputFormat.class, MyInputProcessor.class);
 
@@ -91,7 +93,7 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
 		// Use output as input of new CoGrouper
 
 		coGrouper = new CoGrouper(configBuilder.build(), conf);
-		coGrouper.setGroupHandler(MyGroupHandler.class);
+		coGrouper.setGroupHandler(new MyGroupHandler());
 		coGrouper.setOutput(outPathText, TextOutputFormat.class, Text.class, Text.class);
 		coGrouper.addTupleInput(outPath, IdentityInputProcessor.class); // addTupleInput method
 		coGrouper.createJob().waitForCompletion(true);

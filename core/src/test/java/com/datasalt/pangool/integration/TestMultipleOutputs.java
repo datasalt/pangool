@@ -72,6 +72,11 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 
 	public static class MyGroupHandler extends GroupHandler<DoubleWritable, NullWritable> {
 
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples,
 		    CoGrouperContext<DoubleWritable, NullWritable> pangoolContext, Collector<DoubleWritable, NullWritable> collector)
@@ -106,7 +111,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 
 		CoGrouper coGrouper = new CoGrouper(config.build(), getConf());
 		coGrouper.addInput(new Path(INPUT), TextInputFormat.class, MyInputProcessor.class);
-		coGrouper.setGroupHandler(MyGroupHandler.class);
+		coGrouper.setGroupHandler(new MyGroupHandler());
 		coGrouper.setOutput(new Path(OUTPUT), SequenceFileOutputFormat.class, DoubleWritable.class, NullWritable.class);
 		// Configure extra outputs
 		coGrouper.addNamedOutput(OUTPUT_1, SequenceFileOutputFormat.class, Text.class, Text.class);
@@ -142,7 +147,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 
 		coGrouper = new CoGrouper(config.build(), getConf());
 		coGrouper.addInput(new Path(OUTPUT + "/part*"), SequenceFileInputFormat.class, MySecondInputProcessor.class);
-		coGrouper.setGroupHandler(IdentityGroupHandler.class);
+		coGrouper.setGroupHandler(new IdentityGroupHandler());
 		coGrouper.setTupleOutput(new Path(OUTPUT + "-2"), baseSchema);
 		coGrouper.createJob().waitForCompletion(true);
 		

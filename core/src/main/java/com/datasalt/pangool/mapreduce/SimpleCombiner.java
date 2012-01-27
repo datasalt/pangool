@@ -17,7 +17,6 @@ package com.datasalt.pangool.mapreduce;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.util.ReflectionUtils;
 
@@ -39,10 +38,11 @@ public class SimpleCombiner extends SimpleReducer<ITuple, NullWritable> {
 	}
 
 	@Override
-	protected void loadHandler(Configuration conf, Context context) throws IOException, InterruptedException,
+	protected void loadHandler(Context context) throws IOException, InterruptedException,
 	    CoGrouperException {
-		Class<? extends CombinerHandler> handlerClass = CoGrouper.getCombinerHandler(conf);
-		handler = ReflectionUtils.newInstance(handlerClass, conf);
+		
+		Class<? extends CombinerHandler> handlerClass = CoGrouper.getCombinerHandler(context.getConfiguration());
+		handler = ReflectionUtils.newInstance(handlerClass, context.getConfiguration());
 		handler.setup(this.context, collector);
 	}
 

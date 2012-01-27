@@ -1,11 +1,13 @@
 package com.datasalt.pangool;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -21,6 +23,7 @@ import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.api.ProxyOutputFormat;
+import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.AvroUtils;
 import com.datasalt.pangool.io.PangoolMultipleOutputs;
 import com.datasalt.pangool.io.TupleInputFormat;
@@ -80,7 +83,7 @@ public class CoGrouper {
 	private Configuration conf;
 	private CoGrouperConfig config;
 
-	private Class<? extends GroupHandler> reduceHandler;
+	private GroupHandler grouperHandler;
 	private Class<? extends OutputFormat> outputFormat;
 	private Class<? extends CombinerHandler> combinerHandler;
 	private Class<?> jarByClass;
@@ -116,11 +119,6 @@ public class CoGrouper {
 		return this;
 	}
 
-	public CoGrouper setOutputHandler(Class<? extends GroupHandler> outputHandler) {
-		this.reduceHandler = outputHandler;
-		return this;
-	}
-
 	public CoGrouper setCombinerHandler(Class<? extends CombinerHandler> combinerHandler) {
 		this.combinerHandler = combinerHandler;
 		return this;
@@ -145,8 +143,8 @@ public class CoGrouper {
 		return this;
 	}
 
-	public CoGrouper setGroupHandler(Class<? extends GroupHandler> groupHandler) {
-		this.reduceHandler = groupHandler;
+	public CoGrouper setGroupHandler(GroupHandler groupHandler) {
+		this.grouperHandler = groupHandler;
 		return this;
 	}
 
@@ -201,7 +199,7 @@ public class CoGrouper {
 
 	public Job createJob() throws IOException, CoGrouperException {
 
-		raiseExceptionIfNull(reduceHandler, "Need to set a group handler");
+		raiseExceptionIfNull(grouperHandler, "Need to set a group handler");
 		raiseExceptionIfEmpty(multiInputs, "Need to add at least one input");
 		raiseExceptionIfNull(outputFormat, "Need to set output format");
 		raiseExceptionIfNull(outputKeyClass, "Need to set outputKeyClass");
@@ -219,8 +217,8 @@ public class CoGrouper {
 
 			// Check that we are using the appropriate Handler
 
-			if(!GroupHandlerWithRollup.class.isAssignableFrom(reduceHandler)) {
-				throw new CoGrouperException("Can't use " + reduceHandler + " with rollup. Please use "
+			if(!(grouperHandler instanceof GroupHandlerWithRollup)) {
+				throw new CoGrouperException("Can't use " + grouperHandler + " with rollup. Please use "
 				    + GroupHandlerWithRollup.class + " instead.");
 			}
 		}
@@ -256,13 +254,19 @@ public class CoGrouper {
 			// Set Combiner Handler
 			job.getConfiguration().setClass(CONF_COMBINER_HANDLER, combinerHandler, CombinerHandler.class);
 		}
-		// Set Reducer Handler
-		job.getConfiguration().setClass(CONF_REDUCER_HANDLER, reduceHandler, GroupHandler.class);
 
+		// Set Group Handler
+		try {
+			String uniqueName = UUID.randomUUID().toString() + '.' + "group-handler.dat"; 
+	    DCUtils.serializeToDC(grouperHandler, uniqueName, "group-handler", job.getConfiguration());
+    } catch(URISyntaxException e1) {
+	    throw new CoGrouperException(e1);
+    }
+		
 		// Enabling serialization
 		TupleInternalSerialization.enableSerialization(job.getConfiguration());
 
-		job.setJarByClass((jarByClass != null) ? jarByClass : reduceHandler);
+		job.setJarByClass((jarByClass != null) ? jarByClass : grouperHandler.getClass());
 		job.setOutputFormatClass(outputFormat);
 		job.setMapOutputKeyClass(DoubleBufferedTuple.class);
 		job.setMapOutputValueClass(NullWritable.class);

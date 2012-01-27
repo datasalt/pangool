@@ -40,7 +40,7 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 		    .addSchema(2, Schema.parse("url:string, date:long, name:string, surname:string"))
 		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
 
-		new CoGrouper(config, new Configuration()).setGroupHandler(myGroupHandler.getClass())
+		new CoGrouper(config, new Configuration()).setGroupHandler(myGroupHandler)
 		    .setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class)
 		    .createJob();
 	}
@@ -55,7 +55,7 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 
 		new CoGrouper(config, new Configuration())
 		    .addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
-		    .setGroupHandler(myGroupHandler.getClass()).createJob();
+		    .setGroupHandler(myGroupHandler).createJob();
 	}
 
 	@Test(expected = CoGrouperException.class)
@@ -82,7 +82,7 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 
 		CoGrouper grouper = new CoGrouper(config, new Configuration())
 		    .addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
-		    .setGroupHandler(myGroupHandler.getClass())
+		    .setGroupHandler(myGroupHandler)
 		    .setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
 
 		grouper.createJob();

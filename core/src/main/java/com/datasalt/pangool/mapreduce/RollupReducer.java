@@ -20,12 +20,10 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
@@ -33,6 +31,7 @@ import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.pangool.api.GroupHandler.Collector;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
+import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -57,8 +56,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	@Override
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
-			Configuration conf = context.getConfiguration();
-			this.pangoolConfig = CoGrouperConfigBuilder.get(conf);
+			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
 			this.commonSchema = this.pangoolConfig.getCommonOrderedSchema();
 			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, pangoolConfig);
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
@@ -66,24 +64,26 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 
 			List<String> groupFields = pangoolConfig.getGroupByFields();
 			this.maxDepth = groupFields.size() - 1;
-			String[] partitionerFields = Partitioner.getPartitionerFields(conf);
+			String[] partitionerFields = Partitioner.getPartitionerFields(context.getConfiguration());
 			this.minDepth = partitionerFields.length - 1;
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 			this.collector = new Collector<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
-			loadHandler(conf);
-			handler.setup(this.context, collector);
+			loadHandler(context);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void loadHandler(Configuration conf) {
-		Class<? extends GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE>> handlerClass = (Class<? extends GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE>>) CoGrouper
-		    .getGroupHandler(conf);
-		this.handler = ReflectionUtils.newInstance(handlerClass, conf);
+	protected void loadHandler(Context context) throws IOException, InterruptedException, CoGrouperException {
+
+		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandlerWithRollup.class, "group-handler");
+		if(handler instanceof Configurable) {
+			((Configurable) handler).setConf(context.getConfiguration());
+		}
+		handler.setup(this.context, collector);
 	}
 
 	public void cleanup(Context context) throws IOException, InterruptedException {
