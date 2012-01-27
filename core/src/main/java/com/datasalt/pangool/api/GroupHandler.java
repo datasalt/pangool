@@ -24,17 +24,13 @@ import com.datasalt.pangool.mapreduce.SimpleReducer;
  */
 public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
 
-	/**
-   * 
-   */
   private static final long serialVersionUID = 1L;
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static final class Collector<OUTPUT_KEY, OUTPUT_VALUE> extends MultipleOutputsCollector {
+	public static class StaticCollector<OUTPUT_KEY, OUTPUT_VALUE> extends MultipleOutputsCollector {
 
-		Reducer.Context context;
+		ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context;
 		
-    public Collector(Reducer.Context context) {
+    public StaticCollector(ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) {
 	    super(context);
 	    this.context = context;
     }
@@ -42,6 +38,17 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
 		public void write(OUTPUT_KEY key, OUTPUT_VALUE value) throws IOException, InterruptedException {
 			context.write(key, value);
 		}
+	}
+	
+	public class Collector extends StaticCollector<OUTPUT_KEY, OUTPUT_VALUE> {
+		/*
+		 * This non static inner class is created to eliminate the need in
+		 * of the extended GroupHandler methods to specify the generic types
+		 * for the Collector meanwhile keeping generics. 
+		 */
+		public Collector(ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) {
+	    super(context);
+    }		
 	}
 	
   public static class CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> {
@@ -66,12 +73,12 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
   	}
   }
 	
-	public void setup(CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> coGrouperContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
+	public void setup(CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> coGrouperContext, Collector collector)
 	    throws IOException, InterruptedException, CoGrouperException {
 
 	}
 
-	public void cleanup(CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> coGrouperContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
+	public void cleanup(CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> coGrouperContext, Collector collector)
 	    throws IOException, InterruptedException, CoGrouperException {
 	}
 
@@ -85,7 +92,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
 	 * @param context
 	 *          The reducer context as in {@link Reducer}
 	 */
-	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> coGrouperContext, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector) throws IOException, InterruptedException,
+	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> coGrouperContext, Collector collector) throws IOException, InterruptedException,
 	    CoGrouperException {
 
 	}

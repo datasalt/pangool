@@ -67,7 +67,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 		private Text outputValue;
 
 		@Override
-		public void setup(CoGrouperContext<Text, Text> context, Collector<Text, Text> collector) throws IOException,
+		public void setup(CoGrouperContext<Text, Text> context, Collector collector) throws IOException,
 		    InterruptedException {
 			
 			outputKey = new Text();
@@ -75,13 +75,13 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 		}
 
 		@Override
-		public void cleanup(CoGrouperContext<Text, Text> context, Collector<Text, Text> collector) throws IOException,
+		public void cleanup(CoGrouperContext<Text, Text> context, Collector collector) throws IOException,
 		    InterruptedException {
 		}
 
 		@Override
 		public void onOpenGroup(int depth, String field, ITuple firstElement, CoGrouperContext<Text, Text> context,
-		    Collector<Text, Text> collector) throws IOException, InterruptedException {
+		    Collector collector) throws IOException, InterruptedException {
 			outputKey.set("OPEN " + depth);
 			outputValue.set(firstElement.toString());
 			collector.write(outputKey, outputValue);
@@ -90,7 +90,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 
 		@Override
 		public void onCloseGroup(int depth, String field, ITuple lastElement, CoGrouperContext<Text, Text> context,
-		    Collector<Text, Text> collector) throws IOException, InterruptedException {
+		    Collector collector) throws IOException, InterruptedException {
 			outputKey.set("CLOSE " + depth);
 			outputValue.set(lastElement.toString());
 			collector.write(outputKey, outputValue);
@@ -99,7 +99,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Text, Text> context,
-		    Collector<Text, Text> collector) throws IOException, InterruptedException {
+		    Collector collector) throws IOException, InterruptedException {
 			Iterator<ITuple> iterator = tuples.iterator();
 			outputKey.set("ELEMENT");
 			while(iterator.hasNext()) {

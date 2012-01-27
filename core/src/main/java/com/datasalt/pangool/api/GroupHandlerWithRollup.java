@@ -29,7 +29,7 @@ public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandl
 	 *          The reducer context as in {@link Reducer}
 	 * 
 	 */
-	public void onOpenGroup(int depth, String field, ITuple firstElement, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
+	public void onOpenGroup(int depth, String field, ITuple firstElement, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context, Collector collector)
 	    throws IOException, InterruptedException, CoGrouperException {
 
 	}
@@ -50,7 +50,7 @@ public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandl
 	 * 
 	 */
 	public void onCloseGroup(int depth, String field, ITuple lastElement,
-	    CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector) throws IOException, InterruptedException, CoGrouperException {
+	    CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context, Collector collector) throws IOException, InterruptedException, CoGrouperException {
 
 	}
 }

@@ -29,7 +29,6 @@ import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
-import com.datasalt.pangool.api.GroupHandler.Collector;
 import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -40,38 +39,40 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 
 	// Following variables protected to be shared by Combiners
 	protected CoGrouperConfig pangoolConfig;
-	protected Collector<OUTPUT_KEY, OUTPUT_VALUE> collector;
+	protected GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	protected TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	protected FilteredReadOnlyTuple groupTuple; // Tuple view over the group
 	protected CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context;
 
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
-	public void setup(Context context) throws IOException, InterruptedException {
+	@SuppressWarnings("unchecked")
+  public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
 			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
 			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, pangoolConfig);
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
-			this.collector = new Collector<OUTPUT_KEY, OUTPUT_VALUE>(context);
-
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
-
+			
+			// setting handler
 			loadHandler(context);
-
+			
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({ "unchecked" })	
 	protected void loadHandler(Context context) throws IOException, InterruptedException, CoGrouperException {
 
 		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandler.class, CONF_REDUCER_HANDLER);
 		if(handler instanceof Configurable) {
 			((Configurable) handler).setConf(context.getConfiguration());
 		}
-		handler.setup(this.context, collector);
+		
+		this.collector = handler.new Collector(context);
+		handler.setup(this.context, collector);		
 	}
 
 	@Override

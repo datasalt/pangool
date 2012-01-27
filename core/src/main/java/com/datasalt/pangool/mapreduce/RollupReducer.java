@@ -28,6 +28,7 @@ import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.pangool.api.GroupHandler.Collector;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
@@ -45,7 +46,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	private boolean firstIteration = true;
 	private CoGrouperConfig pangoolConfig;
 	private CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context;
-	private Collector<OUTPUT_KEY, OUTPUT_VALUE> collector;
+	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	private Schema commonSchema;
 	private List<String> groupByFields;
 	private int minDepth, maxDepth;
@@ -68,21 +69,24 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 			this.minDepth = partitionerFields.length - 1;
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
-			this.collector = new Collector<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
-			loadHandler(context);
+			loadHandlerAndCollector(context);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
+	/**
+	 * Loads the handler and the collector to be used in the rest of the fields. 
+	 */
 	@SuppressWarnings("unchecked")
-	protected void loadHandler(Context context) throws IOException, InterruptedException, CoGrouperException {
+  protected void loadHandlerAndCollector(Context context) throws IOException, InterruptedException, CoGrouperException {
 
 		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandlerWithRollup.class, SimpleReducer.CONF_REDUCER_HANDLER);
 		if(handler instanceof Configurable) {
 			((Configurable) handler).setConf(context.getConfiguration());
 		}
+		collector = handler.new Collector(context);
 		handler.setup(this.context, collector);
 	}
 

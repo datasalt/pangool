@@ -83,7 +83,7 @@ public class WordCount {
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Text, IntWritable> context,
-		    Collector<Text, IntWritable> collector) throws IOException, InterruptedException, CoGrouperException {
+		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
 			int count = 0;
 			for(ITuple tuple : tuples) {
 				count += tuple.getInt(COUNT_FIELD);

@@ -2,8 +2,10 @@ package com.datasalt.pangool.api;
 
 import java.io.IOException;
 
+import org.apache.hadoop.mapreduce.MapContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.RecordWriter;
+import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.io.PangoolMultipleOutputs;
@@ -18,11 +20,11 @@ public class MultipleOutputsCollector {
 
   PangoolMultipleOutputs multipleOutputs;
 	
-	public MultipleOutputsCollector(Mapper.Context context) {
+	public MultipleOutputsCollector(MapContext context) {
 		multipleOutputs = new PangoolMultipleOutputs(context);
 	}
 	
-	public MultipleOutputsCollector(Reducer.Context context) {
+	public MultipleOutputsCollector(ReduceContext context) {
 		multipleOutputs = new PangoolMultipleOutputs(context);
 	}
 	

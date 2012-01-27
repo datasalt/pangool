@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.CoGrouperConfig;
@@ -15,15 +16,11 @@ import com.datasalt.pangool.io.tuple.ITuple;
 
 public class CombinerHandler implements Serializable {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 1L;
 
-	@SuppressWarnings("rawtypes")
 	public static final class Collector {
 		
-    private Reducer.Context context;
+    private ReduceContext<ITuple, NullWritable, ITuple, NullWritable> context;
 
     private ThreadLocal<DoubleBufferedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedTuple>() {
 
@@ -33,18 +30,16 @@ public class CombinerHandler implements Serializable {
       }
     };
     
-		public Collector(CoGrouperConfig pangoolConfig, Reducer.Context context){
+		public Collector(CoGrouperConfig pangoolConfig, ReduceContext<ITuple, NullWritable, ITuple, NullWritable> context){
 			this.context = context;
 		}
 		
-		@SuppressWarnings("unchecked")
     public void write(ITuple tuple) throws IOException,InterruptedException {
 			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
 			sTuple.setContainedTuple(tuple);
 			context.write(sTuple, NullWritable.get());
 		}
 		
-		@SuppressWarnings("unchecked")
     public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
 			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
 			sTuple.setContainedTuple(tuple);

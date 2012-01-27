@@ -83,7 +83,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Object, Object> context, 
-		    Collector<Object, Object> collector) throws IOException, InterruptedException, CoGrouperException {
+		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
 			
 			System.out.println("Group " + group);
 			for(Object tuple : tuples) {

@@ -23,6 +23,7 @@ import org.apache.hadoop.io.NullWritable;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.api.CombinerHandler;
+import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.CombinerHandler.Collector;
 import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -37,7 +38,6 @@ public class SimpleCombiner extends SimpleReducer<ITuple, NullWritable> {
 	@Override
 	public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
-		collector = new Collector(pangoolConfig, context);
 	}
 
 	@Override
@@ -47,8 +47,10 @@ public class SimpleCombiner extends SimpleReducer<ITuple, NullWritable> {
 		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), CombinerHandler.class, CONF_COMBINER_HANDLER);
 		if(handler instanceof Configurable) {
 			((Configurable) handler).setConf(context.getConfiguration());
-		}
-		handler.setup(this.context, collector);
+		}		
+		
+		collector = new Collector(pangoolConfig, context);
+		handler.setup(this.context, collector);		
 	}
 
 	protected void callHandler(Context context) throws IOException, InterruptedException {
