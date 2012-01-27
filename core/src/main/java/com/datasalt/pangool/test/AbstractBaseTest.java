@@ -15,14 +15,6 @@ import com.datasalt.pangool.serialization.thrift.ThriftSerialization;
 public abstract class AbstractBaseTest {
 	
 	private Configuration conf;
-//	private Serialization ser; 
-
-//	public Serialization getSer() throws IOException {
-//		if (ser == null) {
-//			ser = new Serialization(getConf());	
-//		}
-//		return ser;
-//	}
 
 	public Configuration getConf() throws IOException {
 		if (conf == null){

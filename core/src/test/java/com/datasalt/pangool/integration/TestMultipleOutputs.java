@@ -12,7 +12,6 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
-import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
@@ -23,7 +22,6 @@ import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Sorting;
 import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.IdentityGroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.api.ProxyOutputFormat;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -42,6 +40,11 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 	public final static String TUPLEOUTPUT_1 = "tuple1";
 
 	public static class MyInputProcessor extends InputProcessor<LongWritable, Text> {
+
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
@@ -62,6 +65,11 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 	}
 
 	public static class MySecondInputProcessor extends InputProcessor<DoubleWritable, NullWritable> {
+
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
 		@Override
 		public void process(DoubleWritable key, NullWritable value, CoGrouperContext context, Collector collector)
@@ -109,8 +117,12 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		config.setGroupByFields("country");
 		config.setSorting(sorting);
 
+		// One file with one line - context will be ignored
+		// Business logic in {@link MyInputProcessor}
+		Files.write("ignore-me", new File(INPUT), Charset.forName("UTF-8"));
+
 		CoGrouper coGrouper = new CoGrouper(config.build(), getConf());
-		coGrouper.addInput(new Path(INPUT), TextInputFormat.class, MyInputProcessor.class);
+		coGrouper.addInput(new Path(INPUT), TextInputFormat.class, new MyInputProcessor());
 		coGrouper.setGroupHandler(new MyGroupHandler());
 		coGrouper.setOutput(new Path(OUTPUT), SequenceFileOutputFormat.class, DoubleWritable.class, NullWritable.class);
 		// Configure extra outputs
@@ -121,10 +133,6 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		getConf()
 		    .setClass(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, SequenceFileOutputFormat.class, OutputFormat.class);
 		Job job = coGrouper.createJob();
-
-		// One file with one line - context will be ignored
-		// Business logic in {@link MyInputProcessor}
-		Files.write("ignore-me", new File(INPUT), Charset.forName("UTF-8"));
 		job.waitForCompletion(true);
 
 		// Check outputs
@@ -142,16 +150,8 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		
 		withTupleOutput(firstMapOutput(OUTPUT + "/" + TUPLEOUTPUT_1), tuple);
 		withTupleOutput(firstReducerOutput(OUTPUT + "/" + TUPLEOUTPUT_1), tuple);
-
-		// Check that we can use main output as input for another Job
-
-		coGrouper = new CoGrouper(config.build(), getConf());
-		coGrouper.addInput(new Path(OUTPUT + "/part*"), SequenceFileInputFormat.class, MySecondInputProcessor.class);
-		coGrouper.setGroupHandler(new IdentityGroupHandler());
-		coGrouper.setTupleOutput(new Path(OUTPUT + "-2"), baseSchema);
-		coGrouper.createJob().waitForCompletion(true);
 		
-		trash(INPUT, OUTPUT, OUTPUT + "-2");
+		trash(INPUT, OUTPUT);
 		cleanUp();
 	}
 }

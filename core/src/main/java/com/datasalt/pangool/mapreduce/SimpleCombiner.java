@@ -17,16 +17,19 @@ package com.datasalt.pangool.mapreduce;
 
 import java.io.IOException;
 
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.CombinerHandler.Collector;
+import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 public class SimpleCombiner extends SimpleReducer<ITuple, NullWritable> {
+
+	public final static String CONF_COMBINER_HANDLER = CoGrouper.class.getName() + ".combiner.handler";
 
 	private CombinerHandler handler;
 	private Collector collector;
@@ -41,8 +44,10 @@ public class SimpleCombiner extends SimpleReducer<ITuple, NullWritable> {
 	protected void loadHandler(Context context) throws IOException, InterruptedException,
 	    CoGrouperException {
 		
-		Class<? extends CombinerHandler> handlerClass = CoGrouper.getCombinerHandler(context.getConfiguration());
-		handler = ReflectionUtils.newInstance(handlerClass, context.getConfiguration());
+		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), CombinerHandler.class, CONF_COMBINER_HANDLER);
+		if(handler instanceof Configurable) {
+			((Configurable) handler).setConf(context.getConfiguration());
+		}
 		handler.setup(this.context, collector);
 	}
 

@@ -39,6 +39,10 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
 
 	public static class MyInputProcessor extends InputProcessor<LongWritable, Text> {
 
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 		Tuple tuple = new Tuple();
 
 		@Override
@@ -86,7 +90,7 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
 		CoGrouper coGrouper = new CoGrouper(configBuilder.build(), conf);
 		coGrouper.setGroupHandler(new IdentityGroupHandler());
 		coGrouper.setTupleOutput(outPath, schema); // setTupleOutput method
-		coGrouper.addInput(inPath, TextInputFormat.class, MyInputProcessor.class);
+		coGrouper.addInput(inPath, TextInputFormat.class, new MyInputProcessor());
 
 		coGrouper.createJob().waitForCompletion(true);
 
@@ -95,7 +99,7 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
 		coGrouper = new CoGrouper(configBuilder.build(), conf);
 		coGrouper.setGroupHandler(new MyGroupHandler());
 		coGrouper.setOutput(outPathText, TextOutputFormat.class, Text.class, Text.class);
-		coGrouper.addTupleInput(outPath, IdentityInputProcessor.class); // addTupleInput method
+		coGrouper.addTupleInput(outPath, new IdentityInputProcessor()); // addTupleInput method
 		coGrouper.createJob().waitForCompletion(true);
 
 		Assert.assertEquals("title\tbar2 foo2\ntitle\tfoo1 bar1",

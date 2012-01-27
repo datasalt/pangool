@@ -45,7 +45,7 @@ import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class TestComparators extends BaseTest {
 
-	private int MAX_RANDOM_SCHEMAS = 5000;
+	private int MAX_RANDOM_SCHEMAS = 50;
 	private Serialization ser;
 
 	@Test

@@ -34,6 +34,10 @@ public class WordCount {
 
 	public static class Split extends InputProcessor<LongWritable, Text> {
 		
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 		Tuple tuple = new Tuple();
 
 		@Override
@@ -50,6 +54,10 @@ public class WordCount {
 
 	public static class CountCombiner extends CombinerHandler {
 		
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 		Tuple tuple = new Tuple();
 
 		@Override
@@ -95,10 +103,10 @@ public class WordCount {
 
 		CoGrouper cg = new CoGrouper(config, conf);
 		cg.setJarByClass(WordCount.class);
-		cg.addInput(new Path(input), TextInputFormat.class, Split.class);
+		cg.addInput(new Path(input), TextInputFormat.class, new Split());
 		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class, Text.class);
 		cg.setGroupHandler(new Count());
-		cg.setCombinerHandler(CountCombiner.class);
+		cg.setCombinerHandler(new CountCombiner());
 
 		return cg.createJob();
 	}

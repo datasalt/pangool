@@ -44,8 +44,14 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 
 	private static class Map extends InputProcessor<Text, NullWritable> {
 
+		/**
+     * 
+     */
+		private static final long serialVersionUID = 1L;
+
 		@Override
-		public void process(Text key, NullWritable value, CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
+		public void process(Text key, NullWritable value, CoGrouperContext context, Collector collector)
+		    throws IOException, InterruptedException {
 			Tuple outputKey = createTuple(key.toString());
 			collector.write(outputKey);
 		}
@@ -55,14 +61,17 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 		/**
      * 
      */
-    private static final long serialVersionUID = 1L;
-    
-		private Text outputKey = new Text();
-		private Text outputValue = new Text();
+		private static final long serialVersionUID = 1L;
+
+		private Text outputKey;
+		private Text outputValue;
 
 		@Override
 		public void setup(CoGrouperContext<Text, Text> context, Collector<Text, Text> collector) throws IOException,
 		    InterruptedException {
+			
+			outputKey = new Text();
+			outputValue = new Text();
 		}
 
 		@Override
@@ -71,7 +80,8 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 		}
 
 		@Override
-		public void onOpenGroup(int depth, String field, ITuple firstElement, CoGrouperContext<Text, Text> context, Collector<Text, Text> collector) throws IOException, InterruptedException {
+		public void onOpenGroup(int depth, String field, ITuple firstElement, CoGrouperContext<Text, Text> context,
+		    Collector<Text, Text> collector) throws IOException, InterruptedException {
 			outputKey.set("OPEN " + depth);
 			outputValue.set(firstElement.toString());
 			collector.write(outputKey, outputValue);
@@ -79,7 +89,8 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 		}
 
 		@Override
-		public void onCloseGroup(int depth, String field, ITuple lastElement, CoGrouperContext<Text, Text> context, Collector<Text, Text> collector) throws IOException, InterruptedException {
+		public void onCloseGroup(int depth, String field, ITuple lastElement, CoGrouperContext<Text, Text> context,
+		    Collector<Text, Text> collector) throws IOException, InterruptedException {
 			outputKey.set("CLOSE " + depth);
 			outputValue.set(lastElement.toString());
 			collector.write(outputKey, outputValue);
@@ -143,7 +154,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 
 		grouper.setGroupHandler(new IdentityRed());
 		grouper.setOutput(outputPath, SequenceFileOutputFormat.class, Text.class, Text.class);
-		grouper.addInput(new Path(input), SequenceFileInputFormat.class, Map.class);
+		grouper.addInput(new Path(input), SequenceFileInputFormat.class, new Map());
 
 		Job job = grouper.createJob();
 		job.setNumReduceTasks(1);

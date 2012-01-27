@@ -34,6 +34,11 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
 	public static class FirstInputProcessor extends InputProcessor<LongWritable, Text> {
 
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
 
@@ -102,7 +107,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 
 		Job job = new CoGrouper(config, getConf())
-		    .addInput(new Path("test-input"), TextInputFormat.class, FirstInputProcessor.class)
+		    .addInput(new Path("test-input"), TextInputFormat.class, new FirstInputProcessor())
 		    .setGroupHandler(new MyGroupHandler())
 		    .setOutput(new Path("test-output"), TextOutputFormat.class, NullWritable.class, NullWritable.class).createJob();
 

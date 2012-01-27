@@ -36,6 +36,10 @@ public class SecondarySort {
 
 	public static class IProcessor extends InputProcessor<LongWritable, Text> {
 
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 		Tuple tuple = new Tuple();
 
 		@Override
@@ -76,7 +80,7 @@ public class SecondarySort {
 		// Input / output and such
 		grouper.setGroupHandler(new Handler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
-		grouper.addInput(new Path(input), TextInputFormat.class, IProcessor.class);
+		grouper.addInput(new Path(input), TextInputFormat.class, new IProcessor());
 		return grouper.createJob();
 	}
 }

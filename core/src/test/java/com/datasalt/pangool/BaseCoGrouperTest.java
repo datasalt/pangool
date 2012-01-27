@@ -1,6 +1,10 @@
 package com.datasalt.pangool;
 
+import java.io.File;
 import java.io.IOException;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.api.GroupHandler;
@@ -11,11 +15,14 @@ import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 @SuppressWarnings("rawtypes")
 public abstract class BaseCoGrouperTest {
 
-	protected GroupHandler myGroupHandler = new GroupHandler();
+	protected static GroupHandler myGroupHandler = new GroupHandler();
+	protected static GroupHandler myGroupHandlerWithRollup = new GroupHandlerWithRollup();
+	protected static InputProcessor myInputProcessor = new InputProcessor() {
 
-	protected GroupHandler myGroupHandlerWithRollup = new GroupHandlerWithRollup();
-
-	protected InputProcessor myInputProcessor = new InputProcessor() {
+		/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
 		@Override
 		public void process(Object key, Object value, CoGrouperContext context, Collector collector) throws IOException,
@@ -35,5 +42,16 @@ public abstract class BaseCoGrouperTest {
 		  .secondarySort(2)
 		   	.add("name", SortOrder.ASC)
 		  .buildSorting();
+	}
+	
+	
+	@BeforeClass
+	public static void files() throws IOException {
+		new File("input").createNewFile();
+	}
+	
+	@AfterClass
+	public static void deleteFiles() {
+		new File("input").delete();
 	}
 }

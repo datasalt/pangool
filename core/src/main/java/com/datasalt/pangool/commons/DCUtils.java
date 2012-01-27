@@ -13,6 +13,8 @@ import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javax.annotation.Nullable;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
@@ -42,16 +44,17 @@ public class DCUtils {
 	 * @param serializeToLocalFile
 	 *          The local file where the instance will be serialized. It will be copied to the HDFS and removed.
 	 * @param dcConfigurationProperty
-	 *          The Hadoop Configuration property that we will use to locate the instance in the Distributed Cache later
-	 *          on.
+	 *          (Optional) The Hadoop Configuration property that we will use to locate the instance in the Distributed
+	 *          Cache later on. May be null if you don't want to do this here.
 	 * @param conf
 	 *          The Hadoop Configuration.
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 */
-	public static void serializeToDC(Serializable obj, String serializeToLocalFile, String dcConfigurationProperty,
-	    Configuration conf) throws FileNotFoundException, IOException, URISyntaxException {
+	public static void serializeToDC(Serializable obj, String serializeToLocalFile,
+	    @Nullable String dcConfigurationProperty, Configuration conf) throws FileNotFoundException, IOException,
+	    URISyntaxException {
 		File file = new File(serializeToLocalFile);
 		ObjectOutput out = new ObjectOutputStream(new FileOutputStream(file));
 		out.writeObject(obj);
@@ -67,7 +70,9 @@ public class DCUtils {
 			FileUtil.copy(FileSystem.getLocal(conf), toHdfs, FileSystem.get(conf), toHdfs, true, conf);
 		}
 
-		conf.set(dcConfigurationProperty, file + "");
+		if(dcConfigurationProperty != null) {
+			conf.set(dcConfigurationProperty, file + "");
+		}
 		DistributedCache.addCacheFile(new URI(serializeToLocalFile), conf);
 	}
 

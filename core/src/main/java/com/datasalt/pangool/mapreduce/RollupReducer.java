@@ -79,7 +79,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	@SuppressWarnings("unchecked")
 	protected void loadHandler(Context context) throws IOException, InterruptedException, CoGrouperException {
 
-		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandlerWithRollup.class, "group-handler");
+		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandlerWithRollup.class, SimpleReducer.CONF_REDUCER_HANDLER);
 		if(handler instanceof Configurable) {
 			((Configurable) handler).setConf(context.getConfiguration());
 		}

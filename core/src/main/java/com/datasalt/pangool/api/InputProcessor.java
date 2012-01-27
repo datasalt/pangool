@@ -17,6 +17,7 @@
 package com.datasalt.pangool.api;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -34,13 +35,18 @@ import com.datasalt.pangool.io.tuple.ITuple;
  */
 @SuppressWarnings("rawtypes")
 public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
-    Mapper<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> {
+    Mapper<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> implements Serializable {
 
+	/**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  
 	private Collector collector;
 	private CoGrouperContext context;
 
 	public static final class Collector extends MultipleOutputsCollector {
-		
+
 		private Mapper.Context context;
 
 		private ThreadLocal<DoubleBufferedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedTuple>() {
@@ -73,27 +79,27 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	}
 
 	public static class CoGrouperContext {
-		
+
 		private Mapper.Context context;
-  	private CoGrouperConfig pangoolConfig;
-  	
+		private CoGrouperConfig pangoolConfig;
+
 		CoGrouperContext(Mapper.Context context, CoGrouperConfig pangoolConfig) {
 			this.context = context;
 			this.pangoolConfig = pangoolConfig;
 		}
-		
+
 		/**
 		 * Return the Hadoop {@link Mapper.Context}.
 		 */
 		public Mapper.Context getHadoopContext() {
 			return context;
 		}
-		
-  	public CoGrouperConfig getPangoolConfig() {
-  		return pangoolConfig;
-  	}
+
+		public CoGrouperConfig getPangoolConfig() {
+			return pangoolConfig;
+		}
 	}
-	
+
 	/**
 	 * Do not override. Override {@link InputProcessor#setup(Collector)} instead.
 	 */
@@ -105,11 +111,9 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 			this.context = new CoGrouperContext(context, pangoolConfig);
 			this.collector = new Collector(context);
 			setup(this.context, this.collector);
-
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
-
 	}
 
 	/**
@@ -145,6 +149,6 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	/**
 	 * Called once per each input pair of key/values. Override it to implement your custom logic.
 	 */
-	public abstract void process(INPUT_KEY key, INPUT_VALUE value, CoGrouperContext context, Collector collector) throws IOException,
-	    InterruptedException;
+	public abstract void process(INPUT_KEY key, INPUT_VALUE value, CoGrouperContext context, Collector collector)
+	    throws IOException, InterruptedException;
 }

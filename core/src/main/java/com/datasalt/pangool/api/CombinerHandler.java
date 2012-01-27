@@ -1,6 +1,7 @@
 package com.datasalt.pangool.api;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -12,10 +13,15 @@ import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
-public class CombinerHandler {
+public class CombinerHandler implements Serializable {
 
-  @SuppressWarnings("rawtypes")
-	public static final class Collector extends MultipleOutputsCollector {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+
+	@SuppressWarnings("rawtypes")
+	public static final class Collector {
 		
     private Reducer.Context context;
 
@@ -28,7 +34,6 @@ public class CombinerHandler {
     };
     
 		public Collector(CoGrouperConfig pangoolConfig, Reducer.Context context){
-			super(context);
 			this.context = context;
 		}
 		

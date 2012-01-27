@@ -13,10 +13,14 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputFormat;
+import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
@@ -31,6 +35,7 @@ import com.datasalt.pangool.io.TupleOutputFormat;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
+import com.datasalt.pangool.mapreduce.DelegatingPangoolMapper;
 import com.datasalt.pangool.mapreduce.GroupComparator;
 import com.datasalt.pangool.mapreduce.Partitioner;
 import com.datasalt.pangool.mapreduce.RollupReducer;
@@ -41,9 +46,6 @@ import com.datasalt.pangool.mapreduce.SortComparator;
 @SuppressWarnings("rawtypes")
 public class CoGrouper {
 
-	private final static String CONF_REDUCER_HANDLER = CoGrouper.class.getName() + ".reducer.handler";
-	private final static String CONF_COMBINER_HANDLER = CoGrouper.class.getName() + ".combiner.handler";
-
 	private static final class Output {
 
 		String name;
@@ -53,11 +55,15 @@ public class CoGrouper {
 
 		Map<String, String> specificContext = new HashMap<String, String>();
 
-		Output(String name, Class<? extends OutputFormat> outputFormat, Class keyClass, Class valueClass) {
+		Output(String name, Class<? extends OutputFormat> outputFormat, Class keyClass, Class valueClass,
+		    Map<String, String> specificContext) {
 			this.outputFormat = outputFormat;
 			this.keyClass = keyClass;
 			this.valueClass = valueClass;
 			this.name = name;
+			if(specificContext != null) {
+				this.specificContext = specificContext;
+			}
 		}
 	}
 
@@ -65,15 +71,9 @@ public class CoGrouper {
 
 		Path path;
 		Class<? extends InputFormat> inputFormat;
-		Class<? extends InputProcessor> inputProcessor;
+		InputProcessor inputProcessor;
 
-		Input(Path path, Class<? extends InputProcessor<ITuple, NullWritable>> inputProcessor) {
-			this.path = path;
-			this.inputProcessor = inputProcessor;
-			this.inputFormat = TupleInputFormat.class;
-		}
-
-		Input(Path path, Class<? extends InputFormat> inputFormat, Class<? extends InputProcessor> inputProcessor) {
+		Input(Path path, Class<? extends InputFormat> inputFormat, InputProcessor inputProcessor) {
 			this.path = path;
 			this.inputFormat = inputFormat;
 			this.inputProcessor = inputProcessor;
@@ -84,8 +84,8 @@ public class CoGrouper {
 	private CoGrouperConfig config;
 
 	private GroupHandler grouperHandler;
+	private CombinerHandler combinerHandler;
 	private Class<? extends OutputFormat> outputFormat;
-	private Class<? extends CombinerHandler> combinerHandler;
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass;
 	private Class<?> outputValueClass;
@@ -107,19 +107,18 @@ public class CoGrouper {
 		return this;
 	}
 
-	public CoGrouper addTupleInput(Path path, Class<? extends InputProcessor<ITuple, NullWritable>> inputProcessor) {
-		this.multiInputs.add(new Input(path, inputProcessor));
+	public CoGrouper addTupleInput(Path path, InputProcessor<ITuple, NullWritable> inputProcessor) {
+		this.multiInputs.add(new Input(path, TupleInputFormat.class, inputProcessor));
 		AvroUtils.addAvroSerialization(conf);
 		return this;
 	}
 
-	public CoGrouper addInput(Path path, Class<? extends InputFormat> inputFormat,
-	    Class<? extends InputProcessor> inputProcessor) {
+	public CoGrouper addInput(Path path, Class<? extends InputFormat> inputFormat, InputProcessor inputProcessor) {
 		this.multiInputs.add(new Input(path, inputFormat, inputProcessor));
 		return this;
 	}
 
-	public CoGrouper setCombinerHandler(Class<? extends CombinerHandler> combinerHandler) {
+	public CoGrouper setCombinerHandler(CombinerHandler combinerHandler) {
 		this.combinerHandler = combinerHandler;
 		return this;
 	}
@@ -150,15 +149,22 @@ public class CoGrouper {
 
 	public CoGrouper addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
 	    Class valueClass) throws CoGrouperException {
+
+		return addNamedOutput(namedOutput, outputFormatClass, keyClass, valueClass, null);
+	}
+
+	public CoGrouper addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
+	    Class valueClass, Map<String, String> specificContext) throws CoGrouperException {
 		validateNamedOutput(namedOutput);
-		namedOutputs.add(new Output(namedOutput, outputFormatClass, keyClass, valueClass));
+		namedOutputs.add(new Output(namedOutput, outputFormatClass, keyClass, valueClass, specificContext));
 		return this;
 	}
 
 	public CoGrouper addNamedTupleOutput(String namedOutput, Schema outputSchema) throws CoGrouperException {
 		validateNamedOutput(namedOutput);
-		Output output = new Output(namedOutput, TupleOutputFormat.class, ITuple.class, NullWritable.class);
-		output.specificContext.put(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, outputSchema.toString());
+		Map<String, String> specificContext = new HashMap<String, String>();
+		specificContext.put(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, outputSchema.toString());
+		Output output = new Output(namedOutput, TupleOutputFormat.class, ITuple.class, NullWritable.class, specificContext);
 		AvroUtils.addAvroSerialization(conf);
 		namedOutputs.add(output);
 		return this;
@@ -173,16 +179,6 @@ public class CoGrouper {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public static Class<? extends GroupHandler> getGroupHandler(Configuration conf) {
-		return (Class<? extends GroupHandler>) conf.getClass(CONF_REDUCER_HANDLER, null);
-	}
-
-	@SuppressWarnings("unchecked")
-	public static Class<? extends CombinerHandler> getCombinerHandler(Configuration conf) {
-		return (Class<? extends CombinerHandler>) conf.getClass(CONF_COMBINER_HANDLER, null);
-	}
-
 	// ------------------------------------------------------------------------- //
 
 	private void raiseExceptionIfNull(Object ob, String message) throws CoGrouperException {
@@ -194,6 +190,39 @@ public class CoGrouper {
 	private void raiseExceptionIfEmpty(Collection ob, String message) throws CoGrouperException {
 		if(ob == null || ob.isEmpty()) {
 			throw new CoGrouperException(message);
+		}
+	}
+
+	/**
+	 * This method implements the needed business logic for associating input Paths with InputProcessors in a way that
+	 * allows us to serialize the instance and deserialize it in the {@link DelegatingPangoolMapper}. This method calls
+	 * the {@link org.apache.hadoop.mapreduce.InputFormat.#getSplits(org.apache.hadoop.mapreduce.JobContext) to find out
+	 * what splits will be processed. Then, it associates each of them with a given configuration value by appending the
+	 * split to the property {@link DelegatingMapper.#SPLIT_MAPPING_CONF}.
+	 * 
+	 * @param inputFormatClass
+	 *          The input format class (must be FileInputFormat, otherwise will throw an Exception)
+	 * @param path
+	 *          The path associated with this InputFormat
+	 * @param conf
+	 *          The Hadoop Configuration
+	 * @param value
+	 * @throws IOException
+	 */
+	@SuppressWarnings("unchecked")
+	private static void addFileMapping(Class<? extends InputFormat> inputFormatClass, Path path, Configuration conf,
+	    String value) throws IOException {
+		if(!(FileInputFormat.class.isAssignableFrom(inputFormatClass))) {
+			throw new IllegalArgumentException("Delegating multiple InputProcessor is only possible with subclasses of "
+			    + FileInputFormat.class);
+		}
+		FileInputFormat inputFormat = (FileInputFormat) ReflectionUtils.newInstance(inputFormatClass, conf);
+		Job jobCopy = new Job(conf);
+		FileInputFormat.setInputPaths(jobCopy, path);
+		List<InputSplit> pathSplits = inputFormat.getSplits(jobCopy);
+		for(InputSplit split : pathSplits) {
+			FileSplit fileSplit = (FileSplit) split;
+			conf.set(DelegatingPangoolMapper.SPLIT_MAPPING_CONF + fileSplit.getPath(), value);
 		}
 	}
 
@@ -252,17 +281,22 @@ public class CoGrouper {
 		if(combinerHandler != null) {
 			job.setCombinerClass(SimpleCombiner.class); // not rollup by now
 			// Set Combiner Handler
-			job.getConfiguration().setClass(CONF_COMBINER_HANDLER, combinerHandler, CombinerHandler.class);
+			String uniqueName = UUID.randomUUID().toString() + '.' + "combiner-handler.dat";
+			try {
+				DCUtils.serializeToDC(combinerHandler, uniqueName, SimpleCombiner.CONF_COMBINER_HANDLER, job.getConfiguration());
+			} catch(URISyntaxException e1) {
+				throw new CoGrouperException(e1);
+			}
 		}
 
 		// Set Group Handler
 		try {
-			String uniqueName = UUID.randomUUID().toString() + '.' + "group-handler.dat"; 
-	    DCUtils.serializeToDC(grouperHandler, uniqueName, "group-handler", job.getConfiguration());
-    } catch(URISyntaxException e1) {
-	    throw new CoGrouperException(e1);
-    }
-		
+			String uniqueName = UUID.randomUUID().toString() + '.' + "group-handler.dat";
+			DCUtils.serializeToDC(grouperHandler, uniqueName, SimpleReducer.CONF_REDUCER_HANDLER, job.getConfiguration());
+		} catch(URISyntaxException e1) {
+			throw new CoGrouperException(e1);
+		}
+
 		// Enabling serialization
 		TupleInternalSerialization.enableSerialization(job.getConfiguration());
 
@@ -277,7 +311,15 @@ public class CoGrouper {
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);
 		for(Input input : multiInputs) {
-			MultipleInputs.addInputPath(job, input.path, input.inputFormat, input.inputProcessor);
+			MultipleInputs.addInputPath(job, input.path, input.inputFormat, DelegatingPangoolMapper.class);
+			// Serialize the InputProcessor instances
+			String uniqueName = UUID.randomUUID().toString() + '.' + "input-processor.dat";
+			addFileMapping(input.inputFormat, input.path, job.getConfiguration(), uniqueName);
+			try {
+				DCUtils.serializeToDC(input.inputProcessor, uniqueName, null, job.getConfiguration());
+			} catch(URISyntaxException e) {
+				throw new CoGrouperException(e);
+			}
 		}
 		for(Output output : namedOutputs) {
 			PangoolMultipleOutputs.addNamedOutput(job, output.name, output.outputFormat, output.keyClass, output.valueClass);
@@ -289,10 +331,11 @@ public class CoGrouper {
 		if(namedOutputs.size() > 0) {
 			// Configure a {@link ProxyOutputFormat} for Pangool's Multiple Outputs to work: {@link PangoolMultipleOutput}
 			try {
-	      job.getConfiguration().setClass(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, job.getOutputFormatClass(), OutputFormat.class);
-      } catch(ClassNotFoundException e) {
-	      /// will never happen
-      }
+				job.getConfiguration().setClass(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, job.getOutputFormatClass(),
+				    OutputFormat.class);
+			} catch(ClassNotFoundException e) {
+				// / will never happen
+			}
 			job.setOutputFormatClass(ProxyOutputFormat.class);
 		}
 		return job;

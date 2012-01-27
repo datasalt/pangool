@@ -116,7 +116,7 @@ public class TestCoGrouperComplexChecks extends BaseCoGrouperTest {
 
 		CoGrouper grouper = new CoGrouper(configBuilder.build(), new Configuration());
 
-		grouper.addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
+		grouper.addInput(new Path("input"), TextInputFormat.class, myInputProcessor)
 		  .setGroupHandler(myGroupHandlerWithRollup)
 		  .setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class)
 		  .createJob();

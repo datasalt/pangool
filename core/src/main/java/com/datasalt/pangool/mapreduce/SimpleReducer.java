@@ -23,6 +23,7 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 
+import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
@@ -34,6 +35,8 @@ import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
+
+	public final static String CONF_REDUCER_HANDLER = CoGrouper.class.getName() + ".reducer.handler";
 
 	// Following variables protected to be shared by Combiners
 	protected CoGrouperConfig pangoolConfig;
@@ -64,7 +67,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	@SuppressWarnings({ "unchecked" })
 	protected void loadHandler(Context context) throws IOException, InterruptedException, CoGrouperException {
 
-		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandler.class, "group-handler");
+		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandler.class, CONF_REDUCER_HANDLER);
 		if(handler instanceof Configurable) {
 			((Configurable) handler).setConf(context.getConfiguration());
 		}

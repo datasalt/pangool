@@ -9,8 +9,6 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperException;
 
 public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 
@@ -54,7 +52,7 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
 
 		new CoGrouper(config, new Configuration())
-		    .addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
+		    .addInput(new Path("input"), TextInputFormat.class, myInputProcessor)
 		    .setGroupHandler(myGroupHandler).createJob();
 	}
 
@@ -67,7 +65,7 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
 
 		CoGrouper grouper = new CoGrouper(config, new Configuration()).addInput(new Path("input"), TextInputFormat.class,
-		    myInputProcessor.getClass()).setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
+		    myInputProcessor).setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
 
 		grouper.createJob();
 	}
@@ -81,7 +79,7 @@ public class TestCoGrouperBasicChecks extends BaseCoGrouperTest {
 		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
 
 		CoGrouper grouper = new CoGrouper(config, new Configuration())
-		    .addInput(new Path("input"), TextInputFormat.class, myInputProcessor.getClass())
+		    .addInput(new Path("input"), TextInputFormat.class, myInputProcessor)
 		    .setGroupHandler(myGroupHandler)
 		    .setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
 
