@@ -49,7 +49,7 @@
 //	
 //	private Configuration conf;
 //	private com.datasalt.avrool.io.Serialization ser;
-//	private CoGrouperConfig pangoolConfig;
+//	private CoGrouperConfig grouperConfig;
 //	
 //	public TupleInternalSerialization(){
 //	}
@@ -98,11 +98,11 @@
 //		 * Caches the values from the enum fields. This is done just once for efficiency since it uses reflection. 
 //		 * 
 //		 */
-//		public static Map<String,Enum<?>[]> getEnums(CoGrouperConfig pangoolConfig) {
+//		public static Map<String,Enum<?>[]> getEnums(CoGrouperConfig grouperConfig) {
 //			Map<String,Enum<?>[]> result = new HashMap<String,Enum<?>[]>();
-//			PangoolSchema pangoolSchema = pangoolConfig.getCommonOrderedSchema();
+//			PangoolSchema pangoolSchema = grouperConfig.getCommonOrderedSchema();
 //			extractEnumsFromSchema(result, pangoolSchema);
-//			Map<Integer,PangoolSchema> specificSchemas = pangoolConfig.getSpecificOrderedSchemas();
+//			Map<Integer,PangoolSchema> specificSchemas = grouperConfig.getSpecificOrderedSchemas();
 //			for (PangoolSchema s : specificSchemas.values()){
 //				extractEnumsFromSchema(result,s);
 //			}

@@ -53,11 +53,11 @@
 //
 //	// private
 //
-//	TupleInternalDeserializer(Serialization ser, CoGrouperConfig pangoolConfig,
+//	TupleInternalDeserializer(Serialization ser, CoGrouperConfig grouperConfig,
 //	    Class<? extends ITupleInternal> instanceClass) {
-//		this.pangoolConf = pangoolConfig;
+//		this.pangoolConf = grouperConfig;
 //		this.ser = ser;
-//		this.cachedEnums = TupleInternalSerialization.getEnums(pangoolConfig);
+//		this.cachedEnums = TupleInternalSerialization.getEnums(grouperConfig);
 //		this.instanceClazz = instanceClass;
 //	}
 //

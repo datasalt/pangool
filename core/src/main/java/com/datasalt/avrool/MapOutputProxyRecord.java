@@ -8,14 +8,14 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericData.Record;
 
-public class ProxyRecord implements GenericRecord,Comparable<ProxyRecord>{
+public class MapOutputProxyRecord implements GenericRecord,Comparable<MapOutputProxyRecord>{
 
 	private Schema schema;
 	private SerializationInfo serInfo;
 	private GenericRecord contained;
 	private FilterRecord unionRecord;
 	
-	public ProxyRecord(SerializationInfo ser){
+	public MapOutputProxyRecord(SerializationInfo ser){
 		this.serInfo = ser;
 		this.schema = serInfo.getIntermediateSchema();
 		if (schema == null || !Type.RECORD.equals(schema.getType())){
@@ -80,7 +80,7 @@ public class ProxyRecord implements GenericRecord,Comparable<ProxyRecord>{
 	
 	@Override public boolean equals(Object o) {
     if (o == this) return true;                 // identical object
-    if (!(o instanceof ProxyRecord)) return false;   // not a record
+    if (!(o instanceof MapOutputProxyRecord)) return false;   // not a record
     Record that = (Record)o;
     if (!schema.getFullName().equals(that.getSchema().getFullName()))
       return false;                             // not the same schema
@@ -89,7 +89,7 @@ public class ProxyRecord implements GenericRecord,Comparable<ProxyRecord>{
   @Override public int hashCode() {
     return GenericData.get().hashCode(this, schema);
   }
-  @Override public int compareTo(ProxyRecord that) {
+  @Override public int compareTo(MapOutputProxyRecord that) {
     return GenericData.get().compare(this, that, schema);
   }
   @Override public String toString() {

@@ -45,7 +45,7 @@ public class FilterRecord implements GenericRecord, Comparable<FilterRecord> {
 	public boolean equals(Object o) {
 		if(o == this)
 			return true; // identical object
-		if(!(o instanceof ProxyRecord))
+		if(!(o instanceof MapOutputProxyRecord))
 			return false; // not a record
 		Record that = (Record) o;
 		if(!schema.getFullName().equals(that.getSchema().getFullName()))

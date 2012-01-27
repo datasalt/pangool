@@ -40,17 +40,17 @@ public class CoGrouperConfigBuilder {
 	}
 	
 
-	public CoGrouperConfigBuilder addSource(String sourceName, Schema schema) throws CoGrouperException {
+	public CoGrouperConfigBuilder addSource(Schema schema) throws CoGrouperException {
 		//TODO sourceName must match schema.getName()
-		if(config.getSchemaBySource(sourceName) != null) {
-			throw new CoGrouperException("Source already present: '" + sourceName + "'");
+		if(config.getSchemaBySource(schema.getFullName()) != null) {
+			throw new CoGrouperException("Source already present: '" + schema.getFullName() + "'");
 		}
 
 		if(schema == null) {
-			throw new CoGrouperException("Schema for source '" + sourceName + "' must not be null");
+			throw new CoGrouperException("Schema for source '" + schema.getFullName() + "' must not be null");
 		}
 
-		config.addSource(sourceName, schema);
+		config.addSource(schema.getFullName(), schema);
 		return this;
 	}
 

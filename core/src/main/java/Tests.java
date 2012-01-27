@@ -43,8 +43,8 @@ public class Tests {
 		Schema countriesSchema = Schema.createRecord("countries", null, NAMESPACE, false);
 		countriesSchema.setFields(countryFields);
 		
-		b.addSource("usuarios", usersSchema);
-		b.addSource("countries",countriesSchema);
+		b.addSource(usersSchema);
+		b.addSource(countriesSchema);
 		b.setGroupByFields("user_id");
 		b.setCommonOrdering(new Ordering().add("user_id",Order.DESCENDING).add("name",Order.DESCENDING));
 		b.setInterSourcesOrdering(Order.DESCENDING);

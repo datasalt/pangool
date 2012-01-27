@@ -30,7 +30,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperConfigBuilder;
 import com.datasalt.avrool.CoGrouperException;
-import com.datasalt.avrool.ProxyRecord;
+import com.datasalt.avrool.MapOutputProxyRecord;
 import com.datasalt.avrool.SerializationInfo;
 
 /**
@@ -50,11 +50,11 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		private AvroKey outputKey = new AvroKey();
 		private AvroValue outputValue = new AvroValue(null);
 
-		private ThreadLocal<ProxyRecord> proxyRecord = new ThreadLocal<ProxyRecord>() {
+		private ThreadLocal<MapOutputProxyRecord> mapOutputProxyRecord = new ThreadLocal<MapOutputProxyRecord>() {
 
 			@Override
-			protected ProxyRecord initialValue() {
-				return new ProxyRecord(serInfo);
+			protected MapOutputProxyRecord initialValue() {
+				return new MapOutputProxyRecord(serInfo);
 			}
 		};
 
@@ -71,7 +71,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 
 		
 		public void write(GenericRecord tuple) throws IOException, InterruptedException {
-			ProxyRecord outputRecord  = proxyRecord.get();
+			MapOutputProxyRecord outputRecord  = mapOutputProxyRecord.get();
 			try{
 				outputRecord.setContainedRecord(tuple);
 			} catch(CoGrouperException e){

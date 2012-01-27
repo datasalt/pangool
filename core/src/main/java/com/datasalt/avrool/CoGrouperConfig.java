@@ -65,6 +65,10 @@ public class CoGrouperConfig {
 		return schemasBySource.get(source);
 	}
 	
+	public Map<String,Schema> getSchemasBySource(){
+		return schemasBySource;
+	}
+	
 	public static void toConfig(CoGrouperConfig config, Configuration conf) throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper jsonSerDe = new ObjectMapper();
 		conf.set(CONF_PANGOOL_CONF, config.toJSON(jsonSerDe));

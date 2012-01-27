@@ -44,14 +44,14 @@
 //public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 //
 //	private boolean firstIteration = true;
-//	private CoGrouperConfig pangoolConfig;
+//	private CoGrouperConfig grouperConfig;
 //	private CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context;
 //	private Collector<OUTPUT_KEY, OUTPUT_VALUE> collector;
 //	private PangoolSchema commonSchema;
 //	private List<String> groupByFields;
 //	private int minDepth, maxDepth;
 //	private FilteredReadOnlyTuple groupTuple;
-//	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
+//	private RecordIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 //	private GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> handler;
 //
 //	@Override
@@ -60,16 +60,16 @@
 //			Configuration conf = context.getConfiguration();
 //			this.pangoolConfig = CoGrouperConfigBuilder.get(conf);
 //			//this.commonSchema = this.pangoolConfig.getCommonOrderedSchema();
-//			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, pangoolConfig);
-//			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
-//			this.groupByFields = pangoolConfig.getGroupByFields();
+//			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, grouperConfig);
+//			this.groupTuple = new FilteredReadOnlyTuple(grouperConfig.getGroupByFields());
+//			this.groupByFields = grouperConfig.getGroupByFields();
 //
-//			List<String> groupFields = pangoolConfig.getGroupByFields();
+//			List<String> groupFields = grouperConfig.getGroupByFields();
 //			this.maxDepth = groupFields.size() - 1;
 //			String[] partitionerFields = Partitioner.getPartitionerFields(conf);
 //			this.minDepth = partitionerFields.length - 1;
 //
-//			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
+//			this.grouperIterator = new RecordIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 //			this.collector = new Collector<OUTPUT_KEY, OUTPUT_VALUE>(context);
 //
 //			loadHandler(conf);

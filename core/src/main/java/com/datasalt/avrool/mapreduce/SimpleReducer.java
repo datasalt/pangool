@@ -39,9 +39,9 @@ import com.datasalt.avrool.api.GroupHandler.Collector;
 public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<AvroKey, AvroValue, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	// Following variables protected to be shared by Combiners
-	protected CoGrouperConfig pangoolConfig;
+	protected CoGrouperConfig grouperConfig;
 	protected Collector<OUTPUT_KEY, OUTPUT_VALUE> collector;
-	protected TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
+	protected RecordIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	protected Record groupTuple; // Tuple view over the group
 	protected CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context;
 
@@ -51,13 +51,13 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<AvroKey, Av
 		super.setup(context);
 		try {
 			Configuration conf = context.getConfiguration();
-			this.pangoolConfig = CoGrouperConfig.get(conf);
-			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, pangoolConfig);
+			this.grouperConfig = CoGrouperConfig.get(conf);
+			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, grouperConfig);
 			//TODO 
-			//this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
+			//this.groupTuple = new FilteredReadOnlyTuple(grouperConfig.getGroupByFields());
 			this.collector = new Collector<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
-			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
+			this.grouperIterator = new RecordIterator<OUTPUT_KEY, OUTPUT_VALUE>(context,grouperConfig);
 
 			loadHandler(conf, context);
 
@@ -100,11 +100,11 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<AvroKey, Av
 		grouperIterator.setIterator(iterator);
 
 		// We get the firts tuple, to create the groupTuple view
-		iterator.next();
-		GenericRecord firstTupleGroup = (GenericRecord) context.getCurrentKey().datum();
+		//iterator.next();
+		//GenericRecord firstTupleGroup = (GenericRecord) context.getCurrentKey().datum();
 
 		// we consumed the first element , so needs to comunicate to iterator
-		grouperIterator.setFirstTupleConsumed(true);
+		//grouperIterator.setFirstTupleConsumed(true);
 
 		// A view is created over the first tuple to give the user the group fields
 		//groupTuple.setDelegatedTuple(firstTupleGroup);

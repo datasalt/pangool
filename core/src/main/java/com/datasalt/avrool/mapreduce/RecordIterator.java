@@ -26,6 +26,9 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 
+import com.datasalt.avrool.CoGrouperConfig;
+import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.GroupHandlerProxyRecord;
 import com.datasalt.avrool.api.GroupHandler;
 
 /**
@@ -39,19 +42,22 @@ import com.datasalt.avrool.api.GroupHandler;
  * 
  * 
  */
-public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<GenericRecord>, Iterable<GenericRecord>{
+public class RecordIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<GenericRecord>, Iterable<GenericRecord>{
 
 	private Iterator<AvroValue> iterator;
 	private ReduceContext<AvroKey,AvroValue,OUTPUT_KEY,OUTPUT_VALUE> context;
-	
+	private GroupHandlerProxyRecord proxyRecord;
 	/**
 	 *  used to mark that the first element from the {@link Iterator} was already consumed.
 	 *  This prevents calling {@link Iterator#next()} twice for the first element.
 	 */
 	private boolean firstTupleConsumed=false;
 	
-	public TupleIterator(ReduceContext<AvroKey,AvroValue,OUTPUT_KEY,OUTPUT_VALUE> context){
+	public RecordIterator(ReduceContext<AvroKey,AvroValue,OUTPUT_KEY,OUTPUT_VALUE> context,CoGrouperConfig grouperConfig){
 		this.context = context;
+		
+		this.proxyRecord = new GroupHandlerProxyRecord(grouperConfig);
+		
 	}
 	
 	public void setIterator(Iterator<AvroValue> iterator){
@@ -80,12 +86,16 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<GenericR
 
 	@Override
   public GenericRecord next() {
-		if (firstTupleConsumed){
-			firstTupleConsumed = false;
-			return (GenericRecord)context.getCurrentKey().datum();
-		} else {
-			iterator.next(); //advances one key
-			return (GenericRecord)context.getCurrentKey().datum();
+		try{
+			if (firstTupleConsumed){
+				firstTupleConsumed = false;
+			} else {
+				iterator.next(); //advances one key
+			}
+			proxyRecord.setContainedRecord((GenericRecord)context.getCurrentKey().datum());
+			return proxyRecord;
+		} catch(CoGrouperException e){
+			throw new RuntimeException(e);
 		}
   }
 

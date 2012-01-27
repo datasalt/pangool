@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
@@ -22,6 +23,7 @@ import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperConfigBuilder;
 import com.datasalt.avrool.CoGrouperException;
 import com.datasalt.avrool.Ordering;
+import com.datasalt.avrool.SerializationInfo;
 import com.datasalt.avrool.api.GroupHandler;
 import com.datasalt.avrool.api.InputProcessor;
 import com.datasalt.avrool.commons.HadoopUtils;
@@ -31,7 +33,8 @@ import com.datasalt.avrool.commons.HadoopUtils;
 
 public class TestCoGrouper {
 
-	public static final String NAMESPACE = "com.datasalt";
+	//public static final String NAMESPACE = "com.datasalt";
+	public static final String NAMESPACE = null;
 	
 	public static class MyInputProcessor extends InputProcessor<LongWritable, Text>{
 
@@ -49,12 +52,11 @@ public class TestCoGrouper {
         com.datasalt.avrool.api.InputProcessor.Collector collector) throws IOException, InterruptedException {
 	    Schema schema = conf.getSchemaBySource("usuarios");
 			Record r = new Record(schema);
+			Random random = new Random();
 			r.put("user_id",3);
-			r.put("name", "eric");
-			r.put("age",12);
+			r.put("name",random.nextInt() + "");
+			r.put("age",random.nextInt());
 			r.put("my_bytes",new byte[]{12,3,21});
-			
-			
 	    collector.write(r);
     }
 		
@@ -62,13 +64,15 @@ public class TestCoGrouper {
 	
 	
 	public static final class MyGroupHandler extends GroupHandler<Text,Text> {
-		public void onGroupElements(GenericRecord group, Iterable<GenericRecord> tuples, 
+		public void onGroupElements(GenericRecord group, Iterable<GenericRecord> records, 
 				CoGrouperContext<Text, Text> pangoolContext, Collector<Text, Text> collector) throws IOException, InterruptedException,
     CoGrouperException {
 
 			System.out.println(group);
-			for (GenericRecord r : tuples){
-				System.out.println(r);
+			for (GenericRecord r : records){
+				String i = Integer.toHexString(System.identityHashCode(r));
+
+				System.out.println(r.getClass() +" "+ i  + " " + r);
 			}
 			
 			
@@ -102,17 +106,28 @@ public class TestCoGrouper {
 		Schema countriesSchema = Schema.createRecord("countries", null, NAMESPACE, false);
 		countriesSchema.setFields(countryFields);
 
-		b.addSource("usuarios", usersSchema);
-		b.addSource("countries",countriesSchema);
+		b.addSource(usersSchema);
+		b.addSource(countriesSchema);
 		b.setGroupByFields("user_id");
 		b.setCommonOrdering(new Ordering().add("user_id",Order.DESCENDING).add("name",Order.DESCENDING));
 		b.setInterSourcesOrdering(Order.DESCENDING);
 		
-		b.setIndividualSourceOrdering("usuarios", new Ordering().add("age",Order.DESCENDING).add("my_bytes",Order.DESCENDING));
-		b.setIndividualSourceOrdering("countries",new Ordering().add("country", Order.DESCENDING));
+		b.setIndividualSourceOrdering(usersSchema.getFullName(), new Ordering().add("age",Order.DESCENDING).add("my_bytes",Order.DESCENDING));
+		b.setIndividualSourceOrdering(countriesSchema.getFullName(),new Ordering().add("country", Order.DESCENDING));
 		
 		CoGrouperConfig config = b.build();
 		
+		System.out.println(config.getSchemasBySource());
+		
+		SerializationInfo serInfo = SerializationInfo.get(config);
+		
+		
+		
+		System.out.println("Common : " + serInfo.getCommonSchema());
+		System.out.println("Particular : " + serInfo.getParticularSchemas());
+		System.out.println("Intermediate: " + serInfo.getIntermediateSchema());
+		
+		System.out.println("Intermediat2: " + Schema.parse(serInfo.getIntermediateSchema().toString()));
 		
 		Path outputPath = new Path("avrool_output");
 		CoGrouper coGrouper = new CoGrouper(config,new Configuration());

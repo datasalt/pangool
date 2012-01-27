@@ -16,10 +16,13 @@ import com.datasalt.avrool.io.AvroUtils;
 
 public class SerializationInfo {
 
-		public static final String REGULAR_NAMESPACE="com.datasalt";
-		public static final String INTERMEDIATE_SCHEMA_NAME ="intermediate";
+		//public static final String REGULAR_NAMESPACE="com.datasalt";
+	public static final String REGULAR_NAMESPACE=null;	
+	public static final String INTERMEDIATE_SCHEMA_NAME ="intermediate";
+		
+		
 		public static final String UNION_FIELD_NAME = "our_union";
-		public static final String UNION_FIELD_NAMESPACE="uf_namespace";
+	//	public static final String UNION_FIELD_NAMESPACE="uf_namespace";
 		
 		Schema commonSchema;
 		Map<String,Schema> particularSchemas = new LinkedHashMap<String,Schema>();
@@ -41,6 +44,11 @@ public class SerializationInfo {
 		
 		public Schema getIntermediateSchema(){
 			List<Schema> unionSchemas = new ArrayList<Schema>();
+			for (Map.Entry<String, Schema> entry : particularSchemas.entrySet()){
+				System.out.println("INTERMEDIATE SCHEMA : " + entry.getKey() + "=> " + entry.getValue().getFullName());
+				
+			}
+			
 			unionSchemas.addAll(particularSchemas.values());
 			List<Field> fields = new ArrayList<Field>();
 			for (Field commonField : commonSchema.getFields()){
@@ -49,6 +57,10 @@ public class SerializationInfo {
 			
 			Field unionField =new Field(UNION_FIELD_NAME,Schema.createUnion(unionSchemas),null,null,interSourcesOrder); 
 			fields.add(unionField);
+			
+			System.out.println("INTERMEDIATE SCHEMA : " + unionField.schema().getTypes());
+			
+			
 			Schema result = Schema.createRecord(INTERMEDIATE_SCHEMA_NAME,null,REGULAR_NAMESPACE,false);
 			result.setFields(fields);
 			return result;
@@ -87,7 +99,8 @@ public class SerializationInfo {
 		//initializing particular schemas with empty fields
 		Map<String,List<Field>> particularFields = new HashMap<String,List<Field>>();
 		for (Map.Entry<String,Schema> entry : conf.schemasBySource.entrySet()){
-			Schema s = Schema.createRecord(entry.getKey(), null,null,false);
+			Schema s = Schema.createRecord(entry.getKey(), null,REGULAR_NAMESPACE,false);
+			//System.out.println("Particular schema : " + s.getFullName());
 			result.particularSchemas.put(entry.getKey(),s);
 			particularFields.put(entry.getKey(), new ArrayList<Field>());
 		}

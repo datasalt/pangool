@@ -42,13 +42,13 @@
 //	private Serialization ser;
 //
 //	private DataOutputStream out;
-//	private CoGrouperConfig pangoolConfig;
+//	private CoGrouperConfig grouperConfig;
 //	private Text text = new Text();
 //
 //	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 //
-//	TupleInternalSerializer(Serialization ser, CoGrouperConfig pangoolConfig) {
-//		this.pangoolConfig = pangoolConfig;
+//	TupleInternalSerializer(Serialization ser, CoGrouperConfig grouperConfig) {
+//		this.pangoolConfig = grouperConfig;
 //		this.ser = ser;
 //	}
 //
@@ -72,7 +72,7 @@
 //
 //	public void write(ITupleInternal tuple, DataOutput output) throws IOException {
 //		// First we write common schema
-//		PangoolSchema commonSchema = pangoolConfig.getCommonOrderedSchema();
+//		PangoolSchema commonSchema = grouperConfig.getCommonOrderedSchema();
 //		int presentFields = 0;
 //		presentFields += write(commonSchema, tuple, output);
 //
@@ -80,7 +80,7 @@
 //		presentFields += writeSpecificPart(tuple, output);
 //
 //		if(tuple.size() > presentFields) {
-//			raiseExceptionWrongFields(pangoolConfig.getSchema(tuple), tuple);
+//			raiseExceptionWrongFields(grouperConfig.getSchema(tuple), tuple);
 //		}
 //	}
 //
@@ -88,8 +88,8 @@
 //	 * Writes the specific part of the tuple. Return number of present fields
 //	 */
 //	public int writeSpecificPart(ITupleInternal tuple, DataOutput output) throws IOException {
-//		int sourceId = pangoolConfig.getSourceId(tuple);
-//		PangoolSchema pangoolSchema = pangoolConfig.getSpecificOrderedSchemas().get(sourceId);
+//		int sourceId = grouperConfig.getSourceId(tuple);
+//		PangoolSchema pangoolSchema = grouperConfig.getSpecificOrderedSchemas().get(sourceId);
 //		return write(pangoolSchema, tuple, output);
 //	}
 //

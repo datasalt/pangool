@@ -37,7 +37,7 @@ public class SimpleCombiner extends SimpleReducer<AvroKey, AvroValue> {
 	@Override
 	public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
-		collector = new Collector(pangoolConfig, context);
+		collector = new Collector(grouperConfig, context);
 	}
 
 	@Override
