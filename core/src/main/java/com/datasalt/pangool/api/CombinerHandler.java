@@ -13,10 +13,28 @@ import com.datasalt.pangool.api.GroupHandler.StaticCoGrouperContext;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
+@SuppressWarnings("serial")
 public class CombinerHandler implements Serializable {
 
-  private static final long serialVersionUID = 1L;
+	public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException, CoGrouperException {
 
+	}
+
+	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector) throws IOException,
+  InterruptedException, CoGrouperException {
+
+	}
+	
+	public void cleanup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException,
+	    CoGrouperException {
+
+	}
+
+	/* ------------ INNER CLASSES ------------ */	
+	
+	/**
+	 * A class for collecting data inside a {@link CombinerHandler}
+	 */
 	public static final class Collector {
 		
     private ReduceContext<ITuple, NullWritable, ITuple, NullWritable> context;
@@ -58,18 +76,4 @@ public class CombinerHandler implements Serializable {
       super(hadoopContext, pangoolConfig);
     }    	
   }
-
-	public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException, CoGrouperException {
-
-	}
-
-	public void cleanup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException,
-	    CoGrouperException {
-
-	}
-
-	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector) throws IOException,
-	    InterruptedException, CoGrouperException {
-		
-	}
 }

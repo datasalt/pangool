@@ -18,14 +18,39 @@ import com.datasalt.pangool.mapreduce.SimpleReducer;
  * 
  * This is the common interface that any {@link CoGrouper} job needs to implement. This handler is called in the reducer
  * step by {@link SimpleReducer} or {@link RollupReducer} depending if Roll-up feature is used.
- * 
- * @author eric
- * 
  */
+@SuppressWarnings("serial")
 public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
+	
+	public void setup(CoGrouperContext coGrouperContext, Collector collector)
+	    throws IOException, InterruptedException, CoGrouperException {
 
-  private static final long serialVersionUID = 1L;
+	}
 
+	/**
+	 * 
+	 * This method is called with an iterable that contains all the tuples that have been grouped by the fields defined
+	 * in {@link Grouper#setFieldsToGroupBy(String...)}
+	 * 
+	 * @param tuples
+	 *          Iterable that contains all the tuples from a group
+	 * @param context
+	 *          The reducer context as in {@link Reducer}
+	 */
+	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
+	    CoGrouperException {
+
+	}
+	
+	public void cleanup(CoGrouperContext coGrouperContext, Collector collector)
+	    throws IOException, InterruptedException, CoGrouperException {
+	}
+	
+	/* ------------ INNER CLASSES ------------ */
+	
+	/**
+	 * 	A base class for the {@link GroupHandler.Collector}
+	 */
 	public static class StaticCollector<OUTPUT_KEY, OUTPUT_VALUE> extends MultipleOutputsCollector {
 
 		ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context;
@@ -84,28 +109,4 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
       super(hadoopContext, pangoolConfig);
     }    	
   }
-	
-	public void setup(CoGrouperContext coGrouperContext, Collector collector)
-	    throws IOException, InterruptedException, CoGrouperException {
-
-	}
-
-	public void cleanup(CoGrouperContext coGrouperContext, Collector collector)
-	    throws IOException, InterruptedException, CoGrouperException {
-	}
-
-	/**
-	 * 
-	 * This method is called with an iterable that contains all the tuples that have been grouped by the fields defined
-	 * in {@link Grouper#setFieldsToGroupBy(String...)}
-	 * 
-	 * @param tuples
-	 *          Iterable that contains all the tuples from a group
-	 * @param context
-	 *          The reducer context as in {@link Reducer}
-	 */
-	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
-	    CoGrouperException {
-
-	}
 }

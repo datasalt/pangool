@@ -21,8 +21,8 @@ import java.io.Serializable;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.MapContext;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Mapper.Context;
 
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.CoGrouperConfig;
@@ -34,22 +34,76 @@ import com.datasalt.pangool.io.tuple.ITuple;
 /**
  * TODO doc
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "rawtypes", "serial" })
 public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
     Mapper<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> implements Serializable {
-
-	/**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
   
 	private Collector collector;
 	private CoGrouperContext context;
 
-	public static final class Collector extends MultipleOutputsCollector {
+	/**
+	 * Called once at the start of the task. Override it to implement your custom logic.
+	 */
+	public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
+
+	}
+
+	/**
+	 * Called once at the end of the task. Override it to implement your custom logic.
+	 */
+	public void cleanup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
+		
+	}
+
+	/**
+	 * Called once per each input pair of key/values. Override it to implement your custom logic.
+	 */
+	public abstract void process(INPUT_KEY key, INPUT_VALUE value, CoGrouperContext context, Collector collector)
+	    throws IOException, InterruptedException;
+	
+	/**
+	 * Do not override. Override {@link InputProcessor#setup(Collector)} instead.
+	 */
+	@Override
+	public final void setup(Mapper<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable>.Context context) throws IOException, InterruptedException {
+		try {
+			super.setup(context);
+			Configuration conf = context.getConfiguration();
+			CoGrouperConfig pangoolConfig = CoGrouperConfigBuilder.get(conf);
+			this.context = new CoGrouperContext(context, pangoolConfig);
+			this.collector = new Collector(context);
+			setup(this.context, this.collector);
+		} catch(CoGrouperException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Do not override. Override {@link InputProcessor#cleanup(Collector)} instead.
+	 */
+	@Override
+	public final void cleanup(Context context) throws IOException, InterruptedException {
+		cleanup(this.context, collector);
+		collector.close();
+		super.cleanup(context);
+	}
+
+	/**
+	 * Do not override! Override {@link InputProcessor#process(Object, Object, Collector)} instead.
+	 */
+	@Override
+	public final void map(INPUT_KEY key, INPUT_VALUE value, Context context) throws IOException, InterruptedException {
+		process(key, value, this.context, collector);
+	}	
+	
+	/* ------------ INNER CLASSES ------------ */
+	
+	/**
+	 * Class for collecting data inside a {@link InputProcessor}
+	 */
+	public static class Collector extends MultipleOutputsCollector {
 
 		private Mapper.Context context;
-
 		private ThreadLocal<DoubleBufferedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedTuple>() {
 
 			@Override
@@ -64,35 +118,35 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		}
 
 		@SuppressWarnings("unchecked")
-		public void write(ITuple tuple) throws IOException, InterruptedException {
+    public void write(ITuple tuple) throws IOException, InterruptedException {
 			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
 			sTuple.setContainedTuple(tuple);
 			context.write(sTuple, NullWritable.get());
 		}
 
 		@SuppressWarnings("unchecked")
-		public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
+    public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
 			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
 			sTuple.setContainedTuple(tuple);
 			sTuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);
 			context.write(sTuple, NullWritable.get());
 		}
 	}
+	
+	public static class StaticCoGrouperContext<INPUT_KEY, INPUT_VALUE> {
 
-	public static class CoGrouperContext {
-
-		private Mapper.Context context;
+		private MapContext<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> context;
 		private CoGrouperConfig pangoolConfig;
 
-		CoGrouperContext(Mapper.Context context, CoGrouperConfig pangoolConfig) {
+		StaticCoGrouperContext(MapContext<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> context, CoGrouperConfig pangoolConfig) {
 			this.context = context;
 			this.pangoolConfig = pangoolConfig;
 		}
 
 		/**
-		 * Return the Hadoop {@link Mapper.Context}.
+		 * Return the Hadoop {@link MapContext}.
 		 */
-		public Mapper.Context getHadoopContext() {
+		public MapContext<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> getHadoopContext() {
 			return context;
 		}
 
@@ -100,58 +154,16 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 			return pangoolConfig;
 		}
 	}
-
-	/**
-	 * Do not override. Override {@link InputProcessor#setup(Collector)} instead.
-	 */
-	@Override
-	public final void setup(org.apache.hadoop.mapreduce.Mapper.Context context) throws IOException, InterruptedException {
-		try {
-			super.setup(context);
-			Configuration conf = context.getConfiguration();
-			CoGrouperConfig pangoolConfig = CoGrouperConfigBuilder.get(conf);
-			this.context = new CoGrouperContext(context, pangoolConfig);
-			this.collector = new Collector(context);
-			setup(this.context, this.collector);
-		} catch(CoGrouperException e) {
-			throw new RuntimeException(e);
-		}
+	
+	public class CoGrouperContext extends StaticCoGrouperContext<INPUT_KEY, INPUT_VALUE> {
+		/*
+		 * This non static inner class is created to eliminate the need in
+		 * of the extended GroupHandler methods to specify the generic types
+		 * for the Collector meanwhile keeping generics. 
+		 */
+		CoGrouperContext(MapContext<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> context,
+        CoGrouperConfig pangoolConfig) {
+	    super(context, pangoolConfig);
+    }		
 	}
-
-	/**
-	 * Called once at the start of the task. Override it to implement your custom logic.
-	 */
-	public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-
-	}
-
-	/**
-	 * Do not override. Override {@link InputProcessor#cleanup(Collector)} instead.
-	 */
-	@Override
-	public final void cleanup(Context context) throws IOException, InterruptedException {
-		cleanup(this.context, collector);
-		collector.close();
-		super.cleanup(context);
-	}
-
-	/**
-	 * Called once at the end of the task. Override it to implement your custom logic.
-	 */
-	public void cleanup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-	}
-
-	/**
-	 * Do not override! Override {@link InputProcessor#process(Object, Object, Collector)} instead.
-	 */
-	@Override
-	public final void map(INPUT_KEY key, INPUT_VALUE value, Context context) throws IOException, InterruptedException {
-		process(key, value, this.context, collector);
-	}
-		
-	/**
-	 * Called once per each input pair of key/values. Override it to implement your custom logic.
-	 */
-	public abstract void process(INPUT_KEY key, INPUT_VALUE value, CoGrouperContext context, Collector collector)
-	    throws IOException, InterruptedException;
 }
