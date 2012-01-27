@@ -24,8 +24,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
@@ -159,28 +157,5 @@ public class HadoopUtils {
 	@SuppressWarnings("rawtypes")
 	public static void incCounter(TaskInputOutputContext ctx, String groupName, Enum counter) {
 		ctx.getCounter(groupName, counter.toString()).increment(1);
-	}
-
-	/**
-	 * Given a file post-fix, locate a file in the DistributedCache
-	 * 
-	 * @param conf
-	 * @param filePostFix
-	 * @return
-	 * @throws IOException
-	 */
-	public static Path locateFileInDC(Configuration conf, String filePostFix) throws IOException {
-		Path locatedFile = null;
-		Path[] paths = DistributedCache.getLocalCacheFiles(conf);
-		if(paths == null) {
-			return null;
-		}
-		for(Path p : paths) {
-			if(p.toString().endsWith(filePostFix)) {
-				locatedFile = p;
-				break;
-			}
-		}
-		return locatedFile;
 	}
 }

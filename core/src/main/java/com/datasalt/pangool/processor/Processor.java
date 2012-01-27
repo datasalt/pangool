@@ -1,22 +1,12 @@
 package com.datasalt.pangool.processor;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.filecache.DistributedCache;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
@@ -24,10 +14,7 @@ import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
-import com.datasalt.pangool.mapreduce.GroupComparator;
-import com.datasalt.pangool.mapreduce.Partitioner;
-import com.datasalt.pangool.mapreduce.SortComparator;
+import com.datasalt.pangool.commons.DCUtils;
 
 /**
  * The Processor is a simple Pangool primitive that executes map-only Jobs. You can implement {@link ProcessorHandler} for using it.
@@ -95,31 +82,11 @@ public class Processor {
 		this.conf = conf;
 	}
 
-	private void serializeToDC(ProcessorHandler handler, Configuration conf) throws FileNotFoundException, IOException, URISyntaxException {
-		File file = new File(serializedHandlerLocalFile);
-		ObjectOutput out = new ObjectOutputStream(new FileOutputStream(file));
-		out.writeObject(handler);
-		out.close();
-		
-		FileSystem fS = FileSystem.get(conf);
-		
-		Path toHdfs = new Path(file.toURI());
-		if(!fS.equals(FileSystem.getLocal(conf))) {
-			if(fS.exists(toHdfs)) { // Optionally, copy to DFS if
-				fS.delete(toHdfs, true);
-			}
-			FileUtil.copy(FileSystem.getLocal(conf), toHdfs, FileSystem.get(conf), toHdfs, true, conf);
-		}
-		
-		conf.set(ProcessorMapper.PROCESSOR_HANDLER, file + "");
-		DistributedCache.addCacheFile(new URI(serializedHandlerLocalFile), conf);
-	}
-
 	public Job createJob() throws IOException, CoGrouperException, URISyntaxException {
-		/*
-		 * Checks and blah blah
-		 */
-		serializeToDC(processorHandler, conf);
+
+		// TODO Checks
+		
+		DCUtils.serializeToDC(processorHandler, serializedHandlerLocalFile, ProcessorMapper.PROCESSOR_HANDLER, conf);
 		
 		Job job = new Job(conf);
 		job.setNumReduceTasks(0);

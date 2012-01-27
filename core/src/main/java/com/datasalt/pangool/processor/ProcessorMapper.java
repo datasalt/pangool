@@ -1,16 +1,10 @@
 package com.datasalt.pangool.processor;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Mapper;
 
-import com.datasalt.pangool.commons.HadoopUtils;
+import com.datasalt.pangool.commons.DCUtils;
 
 public class ProcessorMapper<I1, I2, O1, O2> extends Mapper<I1, I2, O1, O2> {
 
@@ -19,19 +13,8 @@ public class ProcessorMapper<I1, I2, O1, O2> extends Mapper<I1, I2, O1, O2> {
 	
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
-		/*
-		 * Load serialized instance (delegate)
-		 */
-		Configuration conf = context.getConfiguration();
-		Path path = HadoopUtils.locateFileInDC(conf, conf.get(PROCESSOR_HANDLER));
-		ObjectInput in = new ObjectInputStream(new FileInputStream(new File(path + "")));
-		try {
-	    delegate = (ProcessorHandler)in.readObject();
-    } catch(ClassNotFoundException e) {
-	    throw new RuntimeException(e);
-    }
-		in.close();
-		// -------------- //
+		// Load serialized instance (delegate)
+		delegate = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), ProcessorHandler.class, PROCESSOR_HANDLER);
 		delegate.setup(context);
 	}
 	
