@@ -20,9 +20,7 @@ import java.util.Iterator;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
-import org.apache.hadoop.mapreduce.Reducer.Context;
 
-import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 /**

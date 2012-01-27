@@ -39,9 +39,6 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
 
 	public static class MyInputProcessor extends InputProcessor<LongWritable, Text> {
 
-		/**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 		Tuple tuple = new Tuple();
 
@@ -59,8 +56,8 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
     private static final long serialVersionUID = 1L;
 
     @Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Text, Text> context,
-		    Collector<Text, Text> collector) throws IOException, InterruptedException, CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context,
+		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
 
 			for(ITuple tuple : tuples) {
 				collector.write(new Text(tuple.getString("title")), new Text(tuple.getString("content")));

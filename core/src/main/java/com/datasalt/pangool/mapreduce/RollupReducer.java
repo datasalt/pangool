@@ -28,8 +28,7 @@ import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
-import com.datasalt.pangool.api.GroupHandler.Collector;
+import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
@@ -44,8 +43,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 
 	private boolean firstIteration = true;
 	private CoGrouperConfig pangoolConfig;
-	private CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context;
-	private Collector<OUTPUT_KEY, OUTPUT_VALUE> collector;
+	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.CoGrouperContext context;
+	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	private Schema commonSchema;
 	private List<String> groupByFields;
 	private int minDepth, maxDepth;
@@ -53,12 +52,12 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	private GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
-	@Override
+	@SuppressWarnings("unchecked")
+  @Override
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
 			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
 			this.commonSchema = this.pangoolConfig.getCommonOrderedSchema();
-			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, pangoolConfig);
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.groupByFields = pangoolConfig.getGroupByFields();
 
@@ -68,29 +67,26 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 			this.minDepth = partitionerFields.length - 1;
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
-			this.collector = new Collector<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
-			loadHandler(context);
+			String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
+			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandlerWithRollup.class, fileName);
+			if(handler instanceof Configurable) {
+				((Configurable) handler).setConf(context.getConfiguration());
+			}
+			collector = handler.new Collector(context);
+			this.context = handler.new CoGrouperContext(context, pangoolConfig);
+			handler.setup(this.context, collector);
+			
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	protected void loadHandler(Context context) throws IOException, InterruptedException, CoGrouperException {
-
-		String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
-		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandlerWithRollup.class, fileName);
-		if(handler instanceof Configurable) {
-			((Configurable) handler).setConf(context.getConfiguration());
-		}
-		handler.setup(this.context, collector);
 	}
 
 	public void cleanup(Context context) throws IOException, InterruptedException {
 		try {
 			handler.cleanup(this.context, collector);
 			collector.close();
+			super.cleanup(context);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
