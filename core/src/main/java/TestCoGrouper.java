@@ -8,6 +8,8 @@ import org.apache.avro.Schema.Field.Order;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.mapred.AvroJob;
+import org.apache.avro.mapred.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -22,6 +24,7 @@ import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperConfigBuilder;
 import com.datasalt.avrool.CoGrouperException;
 import com.datasalt.avrool.Ordering;
+import com.datasalt.avrool.SerializationInfo;
 import com.datasalt.avrool.api.GroupHandler;
 import com.datasalt.avrool.api.InputProcessor;
 import com.datasalt.avrool.commons.HadoopUtils;
@@ -31,7 +34,7 @@ import com.datasalt.avrool.commons.HadoopUtils;
 
 public class TestCoGrouper {
 
-	public static final String NAMESPACE = "com.datasalt";
+	public static final String NAMESPACE = null;
 	
 	public static class MyInputProcessor extends InputProcessor<LongWritable, Text>{
 
@@ -112,6 +115,13 @@ public class TestCoGrouper {
 		b.setIndividualSourceOrdering("countries",new Ordering().add("country", Order.DESCENDING));
 		
 		CoGrouperConfig config = b.build();
+		SerializationInfo serInfo = SerializationInfo.get(config);
+		
+		System.out.println("Common:"+serInfo.getCommonSchema());
+		System.out.println("Particular:"+serInfo.getParticularSchemas());
+		System.out.println("INtermediate::"+serInfo.getIntermediateSchema());
+		
+		
 		
 		
 		Path outputPath = new Path("avrool_output");
@@ -120,6 +130,17 @@ public class TestCoGrouper {
 		coGrouper.setGroupHandler(MyGroupHandler.class);
 		coGrouper.setOutput(outputPath, TextOutputFormat.class, Text.class, Text.class);
 		Job job = coGrouper.createJob();
+		
+		
+		
+		
+		Schema mapOutputSchema = AvroJob.getMapOutputSchema(job.getConfiguration());
+		mapOutputSchema.getNamespace();
+		System.out.println("mapOutput : " + mapOutputSchema);
+		Schema keySchema = Pair.getKeySchema(mapOutputSchema);
+		System.out.println("keySchema:"+ keySchema);
+		Schema valueSchema = Pair.getValueSchema(mapOutputSchema);
+		System.out.println("valueSchema:"+ valueSchema);
 		
 		HadoopUtils.deleteIfExists(FileSystem.get(job.getConfiguration()),outputPath);
 		job.waitForCompletion(true);

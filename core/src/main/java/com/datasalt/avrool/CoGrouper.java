@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.mapred.AvroJob;
 import org.apache.avro.mapred.AvroKey;
@@ -191,8 +192,19 @@ public class CoGrouper {
 		SerializationInfo serInfo = SerializationInfo.get(config);
 		
 		Schema nullSchema = Schema.create(Schema.Type.NULL);
+		
+		//Schema pairSchema = Schema.createRecord("Pair",null,null,false);
+		//Schema pair = Schema.createRecord(PAIR, null, null, false);
+    //List<Field> fields = new ArrayList<Field>();
+    //fields.add(new Field("key", serInfo.getIntermediateSchema(), "", null));
+    //fields.add(new Field("value", nullSchema, "", null, Field.Order.IGNORE));
+    //pairSchema.setFields(fields);
+		
 		Schema pairSchema = Pair.getPairSchema(serInfo.getIntermediateSchema(), nullSchema);
 		AvroJob.setMapOutputSchema(conf, pairSchema);
+		Schema deserializedPairSchema = AvroJob.getMapOutputSchema(conf);
+		boolean e = pairSchema.equals(deserializedPairSchema);
+		
 		Job job = new Job(conf);
 		
 		List<String> partitionerFields;

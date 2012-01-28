@@ -16,10 +16,10 @@ import com.datasalt.avrool.io.AvroUtils;
 
 public class SerializationInfo {
 
-		public static final String REGULAR_NAMESPACE="com.datasalt";
+		public static final String REGULAR_NAMESPACE=null;
 		public static final String INTERMEDIATE_SCHEMA_NAME ="intermediate";
 		public static final String UNION_FIELD_NAME = "our_union";
-		public static final String UNION_FIELD_NAMESPACE="uf_namespace";
+		//public static final String UNION_FIELD_NAMESPACE="uf_namespace";
 		
 		Schema commonSchema;
 		Map<String,Schema> particularSchemas = new LinkedHashMap<String,Schema>();
@@ -28,6 +28,7 @@ public class SerializationInfo {
 		SerializationInfo(){}
 		
 		public Schema getCommonSchema(){
+			
 			return commonSchema;
 		}
 		
@@ -88,6 +89,7 @@ public class SerializationInfo {
 		Map<String,List<Field>> particularFields = new HashMap<String,List<Field>>();
 		for (Map.Entry<String,Schema> entry : conf.schemasBySource.entrySet()){
 			Schema s = Schema.createRecord(entry.getKey(), null,null,false);
+			s.addAlias(entry.getKey());
 			result.particularSchemas.put(entry.getKey(),s);
 			particularFields.put(entry.getKey(), new ArrayList<Field>());
 		}
