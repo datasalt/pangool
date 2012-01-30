@@ -23,6 +23,7 @@ public class SerializationInfo {
 		Schema commonSchema;
 		Schema groupSchema;
 		Schema partitionerSchema;
+		CoGrouperConfig grouperConfig;
 		
 		Map<String,Schema> particularSchemas = new LinkedHashMap<String,Schema>();
 		Order interSourcesOrder;
@@ -68,12 +69,118 @@ public class SerializationInfo {
 			result.setFields(fields);
 			return result;
 		}
+		
+		public static class PositionMapping {
+			
+			public Map<String,int[]> commonTranslation;
+			public Map<String,int[]> particularTranslation;
+			
+			PositionMapping(Map<String,int[]> commonTranslation, Map<String,int[]> particularTranslation){
+				this.commonTranslation = commonTranslation;
+				this.particularTranslation = particularTranslation;
+			}
+			
+			@Override
+			public String toString(){
+				StringBuilder b = new StringBuilder();
+				
+				for (Map.Entry<String,int[]> entry : commonTranslation.entrySet()){
+					String source = entry.getKey();
+					int[] currentArray = entry.getValue();
+					b.append("common source:["+source +"]=>");
+					for (int i=0 ; i < currentArray.length ; i++){
+						b.append(currentArray[i]).append(",");
+					}
+					b.append("\n");
+				
+				}
+				
+				for (Map.Entry<String,int[]> entry : particularTranslation.entrySet()){
+					String source = entry.getKey();
+					int[] currentArray = entry.getValue();
+					b.append("particular source:["+source +"]=>");
+					for (int i=0 ; i < currentArray.length ; i++){
+						b.append(currentArray[i]).append(",");
+					}
+					b.append("\n");
+				}
+				
+				
+				return b.toString();
+			}
+		}
+		
+		
+		
+		public PositionMapping getMapperTranslation(){
+			int numCommonFields = commonSchema.getFields().size();
+			Map<String,int[]> commonTranslation = new HashMap<String,int[]>();
+			Map<String,int[]> particularTranslation = new HashMap<String,int[]>();
+			
+			Schema interSchema = getIntermediateSchema();
+			for (Map.Entry<String,Schema> entry : grouperConfig.getSchemasBySource().entrySet()){
+				String sourceName = entry.getKey();
+				Schema sourceSchema = entry.getValue();
+				Schema particularSchema = particularSchemas.get(sourceName);
+				commonTranslation.put(sourceName,new int[numCommonFields]);
+				particularTranslation.put(sourceName,new int[particularSchema.getFields().size()]);
+				for (Field f: sourceSchema.getFields()){
+					int posSource = f.pos();
+					Field interField =interSchema.getField(f.name());
+					if (interField != null){
+						int posInter = interField.pos();
+						commonTranslation.get(sourceName)[posInter] = posSource;
+					} else {
+						int posParticular = particularSchema.getField(f.name()).pos();
+						particularTranslation.get(sourceName)[posParticular] = posSource; 
+					}
+				}
+				//source++;
+			}
+			
+			return new PositionMapping(commonTranslation, particularTranslation);
+		}
+		
+		
+		public PositionMapping getReducerTranslation(){
+			//int numCommonFields = commonSchema.getFields().size();
+			Map<String,int[]> commonTranslation = new HashMap<String,int[]>();
+			Map<String,int[]> particularTranslation = new HashMap<String,int[]>();
+			
+			Schema interSchema = getIntermediateSchema();
+			for (Map.Entry<String,Schema> entry : grouperConfig.getSchemasBySource().entrySet()){
+				String sourceName = entry.getKey();
+				Schema sourceSchema = entry.getValue();
+				Schema particularSchema = particularSchemas.get(sourceName);
+				commonTranslation.put(sourceName,new int[sourceSchema.getFields().size()]);
+				particularTranslation.put(sourceName,new int[sourceSchema.getFields().size()]);
+				for (Field f: sourceSchema.getFields()){
+					int posSource = f.pos();
+					Field interField =interSchema.getField(f.name());
+					if (interField != null){
+						int posInter = interField.pos();
+						commonTranslation.get(sourceName)[posSource] = posInter;
+					} else {
+						commonTranslation.get(sourceName)[posSource] = -1;
+						int posParticular = particularSchema.getField(f.name()).pos();
+						particularTranslation.get(sourceName)[posSource] = posParticular; 
+					}
+				}
+				//source++;
+			}
+			
+			return new PositionMapping(commonTranslation, particularTranslation);
+		}
+		
+		
+		
 	
 	
 	
 	public static SerializationInfo get(CoGrouperConfig conf) throws CoGrouperException{
 
 		SerializationInfo result = new SerializationInfo();
+		result.grouperConfig = conf;
 		result.interSourcesOrder = conf.interSourcesOrdering;
 		//TODO check that the fields in groupBy are in common ordering
 		List<Field> groupFields = new ArrayList<Field>();
@@ -183,6 +290,8 @@ public class SerializationInfo {
 		
 		return false;
 	}
+	
+	
 	
 	
 }

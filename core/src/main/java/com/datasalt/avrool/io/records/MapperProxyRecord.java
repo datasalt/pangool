@@ -10,6 +10,7 @@ import org.apache.avro.generic.GenericData.Record;
 
 import com.datasalt.avrool.CoGrouperException;
 import com.datasalt.avrool.SerializationInfo;
+import com.datasalt.avrool.SerializationInfo.PositionMapping;
 
 public class MapperProxyRecord implements GenericRecord,Comparable<MapperProxyRecord>{
 
@@ -17,10 +18,18 @@ public class MapperProxyRecord implements GenericRecord,Comparable<MapperProxyRe
 	private SerializationInfo serInfo;
 	private GenericRecord contained;
 	private FilterRecord unionRecord;
+	private PositionMapping positionMapping;
+	private int[] currentParticularTranslation;
+	private int[] currentCommonTranslation;
+	private int unionRecordPos;
 	
 	public MapperProxyRecord(SerializationInfo ser){
 		this.serInfo = ser;
 		this.schema = serInfo.getIntermediateSchema();
+		this.positionMapping = serInfo.getMapperTranslation();
+		//System.out.println(positionMapping);
+		this.unionRecordPos = schema.getField(SerializationInfo.UNION_FIELD_NAME).pos();
+		
 		if (schema == null || !Type.RECORD.equals(schema.getType())){
       throw new AvroRuntimeException("Not a record schema: "+schema);
 		}
@@ -30,14 +39,17 @@ public class MapperProxyRecord implements GenericRecord,Comparable<MapperProxyRe
 	
 	public void setContainedRecord(GenericRecord contained) throws CoGrouperException{
 		this.contained = contained;
-		this.unionRecord.setContained(contained);
+		
 		String source = contained.getSchema().getFullName();
+		this.currentParticularTranslation = positionMapping.particularTranslation.get(source);
+		this.currentCommonTranslation = positionMapping.commonTranslation.get(source);
 		
 		Schema particularSchema = serInfo.getParticularSchema(source);
 		if (particularSchema == null){
 			throw new CoGrouperException("Intermediate schema has no source '" + source + "' present in schema " + schema);
 		}
 		this.unionRecord.setSchema(particularSchema);
+		this.unionRecord.setContained(contained,currentParticularTranslation);
 		
 	}
 	
@@ -50,10 +62,11 @@ public class MapperProxyRecord implements GenericRecord,Comparable<MapperProxyRe
 	@Override
   public Object get(int i) {
 	  Field f = schema.getFields().get(i);
-	  if (f.name().equals(SerializationInfo.UNION_FIELD_NAME)){
+	  if (f.pos() == unionRecordPos){
 	  	return unionRecord;
 	  } else {
-	  	return contained.get(f.name());
+	  	int translatePos = currentCommonTranslation[i];
+	  	return contained.get(translatePos);
 	  }
   }
 
@@ -71,13 +84,14 @@ public class MapperProxyRecord implements GenericRecord,Comparable<MapperProxyRe
 	@Override
   public Object get(String key) {
 		Field f = schema.getField(key);
-		if (f == null){
-			return null;
-		} else if (f.name().equals(SerializationInfo.UNION_FIELD_NAME)){
-			return unionRecord;
-		} else {
-			return contained.get(f.name());
-		}
+		return get(f.pos());
+//		if (f == null){
+//			return null;
+//		} else if (f.name().equals(SerializationInfo.UNION_FIELD_NAME)){
+//			return unionRecord;
+//		} else {
+//			return contained.get(f.name());
+//		}
   }
 	
 	

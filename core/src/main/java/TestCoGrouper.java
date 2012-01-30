@@ -111,16 +111,17 @@ public class TestCoGrouper {
 		CoGrouperConfigBuilder b = CoGrouperConfigBuilder.newOne();
 		
 		List<Field> userFields = new ArrayList<Field>();
-		userFields.add(new Field("user_id", Schema.create(Type.INT),null,null));
+		
 		userFields.add(new Field("name", Schema.create(Type.STRING),null,null));
+		userFields.add(new Field("user_id", Schema.create(Type.INT),null,null));
 		userFields.add(new Field("age", Schema.create(Type.INT),null,null));
 		userFields.add(new Field("my_bytes", Schema.create(Type.BYTES),null,null));
 			
 		List<Field> countryFields = new ArrayList<Field>();
 		countryFields.add(new Field("user_id", Schema.create(Type.INT),null,null));
 		countryFields.add(new Field("name", Schema.create(Type.STRING),null,null));
-		countryFields.add(new Field("country", Schema.create(Type.STRING),null,null));
 		countryFields.add(new Field("num_people", Schema.create(Type.INT),null,null));
+		countryFields.add(new Field("country", Schema.create(Type.STRING),null,null));
 		countryFields.add(new Field("another", Schema.create(Type.BYTES),null,null));
 
 		Schema usersSchema = Schema.createRecord("usuarios", null, NAMESPACE, false);

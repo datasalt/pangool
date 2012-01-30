@@ -9,6 +9,7 @@ import org.apache.avro.generic.GenericRecord;
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperException;
 import com.datasalt.avrool.SerializationInfo;
+import com.datasalt.avrool.SerializationInfo.PositionMapping;
 
 /**
  * 
@@ -20,13 +21,19 @@ public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxy
 	private Schema destinationSchema;
 	private Schema commonSchema;
 	private CoGrouperConfig config;
+	private SerializationInfo serInfo;
 	private GenericRecord contained;
 	private GenericRecord unionRecord;
+	private PositionMapping posMapping;
+	private int[] currentCommonMapping;
+	private int[] currentParticularMapping;
 	
 	public ReducerProxyRecord(CoGrouperConfig  config){
 			this.config = config;
 		try{
-			this.commonSchema = SerializationInfo.get(config).getCommonSchema();
+			this.serInfo = SerializationInfo.get(config);
+			this.posMapping = serInfo.getReducerTranslation();
+			this.commonSchema = serInfo.getCommonSchema();
 		} catch(CoGrouperException e){
 			throw new RuntimeException(e);
 		}
@@ -40,6 +47,11 @@ public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxy
 		if (this.destinationSchema == null){
 			throw new CoGrouperException("Not known source with name '" + source + "'");
 		}
+		
+		this.currentCommonMapping = posMapping.commonTranslation.get(source);
+		this.currentParticularMapping = posMapping.particularTranslation.get(source);
+		
+		
 	}
 	
 	@Override
@@ -50,8 +62,15 @@ public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxy
 
 	@Override
   public Object get(int i) {
-	  Field f = destinationSchema.getFields().get(i);
-	  return (f == null) ? null : get(f.name());
+		int commonPos = currentCommonMapping[i];
+		if (commonPos >=0){
+			return contained.get(commonPos);
+		} else {
+			int particularPos = currentParticularMapping[i];
+			return unionRecord.get(particularPos);
+		}
+//	  Field f = destinationSchema.getFields().get(i);
+//	  return (f == null) ? null : get(f.name());
   }
 
 	@Override
@@ -67,11 +86,13 @@ public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxy
 
 	@Override
   public Object get(String key) {
-		if (commonSchema.getField(key) != null){
-	  	return contained.get(key);
-	  } else {
-	  	return unionRecord.get(key);
-	  }
+		Field f = destinationSchema.getField(key);
+		return get(f.pos());
+//		if (commonSchema.getField(key) != null){
+//	  	return contained.get(key);
+//	  } else {
+//	  	return unionRecord.get(key);
+//	  }
   }
 	
 	
