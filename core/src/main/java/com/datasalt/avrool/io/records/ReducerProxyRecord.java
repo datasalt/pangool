@@ -18,8 +18,7 @@ import com.datasalt.avrool.SerializationInfo.PositionMapping;
  */
 public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxyRecord>{
 
-	private Schema destinationSchema;
-	private Schema commonSchema;
+	private Schema schema;
 	private CoGrouperConfig config;
 	private SerializationInfo serInfo;
 	private GenericRecord contained;
@@ -33,7 +32,6 @@ public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxy
 		try{
 			this.serInfo = SerializationInfo.get(config);
 			this.posMapping = serInfo.getReducerTranslation();
-			this.commonSchema = serInfo.getCommonSchema();
 		} catch(CoGrouperException e){
 			throw new RuntimeException(e);
 		}
@@ -43,8 +41,8 @@ public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxy
 		this.contained = contained;
 		this.unionRecord = (GenericRecord)contained.get(SerializationInfo.UNION_FIELD_NAME);
 		String source = unionRecord.getSchema().getFullName();
-		this.destinationSchema = config.getSchemaBySource(source);
-		if (this.destinationSchema == null){
+		this.schema = config.getSchemaBySource(source);
+		if (this.schema == null){
 			throw new CoGrouperException("Not known source with name '" + source + "'");
 		}
 		
@@ -69,13 +67,12 @@ public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxy
 			int particularPos = currentParticularMapping[i];
 			return unionRecord.get(particularPos);
 		}
-//	  Field f = destinationSchema.getFields().get(i);
-//	  return (f == null) ? null : get(f.name());
+
   }
 
 	@Override
   public Schema getSchema() {
-		return destinationSchema;
+		return schema;
   }
 
 	@Override
@@ -86,13 +83,8 @@ public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxy
 
 	@Override
   public Object get(String key) {
-		Field f = destinationSchema.getField(key);
-		return get(f.pos());
-//		if (commonSchema.getField(key) != null){
-//	  	return contained.get(key);
-//	  } else {
-//	  	return unionRecord.get(key);
-//	  }
+		Field f = schema.getField(key);
+		return (f == null) ? null : get(f.pos());
   }
 	
 	
@@ -100,15 +92,15 @@ public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxy
     if (o == this) return true;                 // identical object
     if (!(o instanceof ReducerProxyRecord)) return false;   // not a record
     Record that = (Record)o;
-    if (!destinationSchema.getFullName().equals(that.getSchema().getFullName()))
+    if (!schema.getFullName().equals(that.getSchema().getFullName()))
       return false;                             // not the same intermediateSchema
-    return GenericData.get().compare(this, that, destinationSchema) == 0;
+    return GenericData.get().compare(this, that, schema) == 0;
   }
   @Override public int hashCode() {
-    return GenericData.get().hashCode(this, destinationSchema);
+    return GenericData.get().hashCode(this, schema);
   }
   @Override public int compareTo(ReducerProxyRecord that) {
-    return GenericData.get().compare(this, that, destinationSchema);
+    return GenericData.get().compare(this, that, schema);
   }
   @Override public String toString() {
     return GenericData.get().toString(this);

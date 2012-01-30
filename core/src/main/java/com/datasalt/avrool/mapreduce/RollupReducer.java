@@ -58,6 +58,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<PangoolKey,
 	private FilterRecord groupTuple;
 	private RecordIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	private GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> handler;
+	private int[] identityMapping;
 
 	@Override
 	public void setup(Context context) throws IOException, InterruptedException {
@@ -76,6 +77,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<PangoolKey,
 
 			this.grouperIterator = new RecordIterator<OUTPUT_KEY, OUTPUT_VALUE>(context, grouperConfig);
 			this.collector = new Collector<OUTPUT_KEY, OUTPUT_VALUE>(context);
+			this.identityMapping = SerializationInfo.getIdentityArray(this.grouperConfig.getGroupByFields().size());
 
 			loadHandler(conf);
 			handler.setup(this.context, collector);
@@ -147,7 +149,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<PangoolKey,
 			//grouperIterator.setFirstTupleConsumed(true);
 
 			// We set a view over the group fields to the method.
-			groupTuple.setContained(currentRecord);
+			groupTuple.setContained(currentRecord,identityMapping);
 
 			handler.onGroupElements(groupTuple, grouperIterator, this.context, collector);
 

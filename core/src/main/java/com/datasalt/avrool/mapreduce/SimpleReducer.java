@@ -47,6 +47,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<PangoolKey,
 	protected RecordIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	protected FilterRecord groupTuple; // Tuple view over the group
 	protected CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context;
+	private int[] identityMapping;
 
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
@@ -63,7 +64,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<PangoolKey,
 			this.collector = new Collector<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
 			this.grouperIterator = new RecordIterator<OUTPUT_KEY, OUTPUT_VALUE>(context,grouperConfig);
-
+			this.identityMapping = SerializationInfo.getIdentityArray(this.grouperConfig.getGroupByFields().size());
 			loadHandler(conf, context);
 
 		} catch(CoGrouperException e) {
@@ -103,7 +104,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<PangoolKey,
 	    InterruptedException {
 		Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
-		groupTuple.setContained((GenericRecord)key.datum());
+		groupTuple.setContained((GenericRecord)key.datum(),identityMapping);
 		callHandler(context);
 	}
 

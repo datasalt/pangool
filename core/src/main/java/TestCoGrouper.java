@@ -86,7 +86,6 @@ public class TestCoGrouper {
 			countryRecord.put("another",ByteBuffer.wrap(new byte[]{12,3,21}));
 			countryRecord.put("num_people",random.nextInt());
 	    collector.write(countryRecord);
-	   
     }
 		
 	}

@@ -48,8 +48,6 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		
 		private Mapper.Context context;
 		private SerializationInfo serInfo;
-		private PangoolKey outputKey = new PangoolKey();
-		//private AvroValue outputValue = new AvroValue(null);
 		private NullWritable outputValue = NullWritable.get();
 		
 		
@@ -60,6 +58,15 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 				return new MapperProxyRecord(serInfo);
 			}
 		};
+		
+		private ThreadLocal<PangoolKey> pangoolKey = new ThreadLocal<PangoolKey>() {
+
+			@Override
+			protected PangoolKey initialValue() {
+				return new PangoolKey();
+			}
+		};
+		
 
 		Collector(Mapper.Context context) {
 			super(context);
@@ -80,6 +87,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 			} catch(CoGrouperException e){
 				throw new IOException(e); 
 			}
+			PangoolKey outputKey = pangoolKey.get();
 			outputKey.datum(outputRecord);
 			context.write(outputKey,outputValue); 
 		}
