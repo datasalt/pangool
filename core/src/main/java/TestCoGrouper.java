@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -7,8 +8,8 @@ import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Field.Order;
 import org.apache.avro.Schema.Type;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -27,13 +28,13 @@ import com.datasalt.avrool.SerializationInfo;
 import com.datasalt.avrool.api.GroupHandler;
 import com.datasalt.avrool.api.InputProcessor;
 import com.datasalt.avrool.commons.HadoopUtils;
+import com.datasalt.avrool.io.Serialization;
 
 
 
 
 public class TestCoGrouper {
 
-	//public static final String NAMESPACE = "com.datasalt";
 	public static final String NAMESPACE = "com.datasalt";
 	
 	public static class MyInputProcessor extends InputProcessor<LongWritable, Text>{
@@ -55,17 +56,21 @@ public class TestCoGrouper {
 	    Random random = new Random();
 			
 	    
+	    //Serialization ser = new Serialization(conf);
+	    
+	     //ByteBuffer.
+	    
 			Record userRecord = new Record(usuariosSchema);
 			userRecord.put("user_id",3);
 			userRecord.put("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			userRecord.put("age",random.nextInt());
-			userRecord.put("my_bytes",new byte[]{12,3,21});
+			userRecord.put("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
 	    collector.write(userRecord);
 	    
 	    userRecord.put("user_id",5);
 			userRecord.put("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			userRecord.put("age",random.nextInt());
-			userRecord.put("my_bytes",new byte[]{12,3,21});
+			userRecord.put("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
 	    collector.write(userRecord);
 	    
 	   
@@ -73,14 +78,14 @@ public class TestCoGrouper {
 			countryRecord.put("user_id",3);
 			countryRecord.put("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			countryRecord.put("country",Integer.toString(random.nextInt()));
-			countryRecord.put("another",new byte[]{12,3,21});
+			countryRecord.put("another",ByteBuffer.wrap(new byte[]{12,3,21},0,1));
 			countryRecord.put("num_people",random.nextInt());
 	    collector.write(countryRecord);
 	    
 	    countryRecord.put("user_id",5);
 			countryRecord.put("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			countryRecord.put("country",Integer.toString(random.nextInt()));
-			countryRecord.put("another",new byte[]{12,3,21});
+			countryRecord.put("another",ByteBuffer.wrap(new byte[]{12,3,21}));
 			countryRecord.put("num_people",random.nextInt());
 	    collector.write(countryRecord);
 	   

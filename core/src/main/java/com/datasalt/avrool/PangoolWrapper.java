@@ -1,29 +1,27 @@
 package com.datasalt.avrool; 
 
 
-
-
-
-
-
 /** The wrapper of data for jobs configured with {@link AvroJob} . */
 public class PangoolWrapper<T> {
-  private T datum;
+  private T currentDatum;
+  private T previousDatum;
 
-  /** Wrap null. Construct {@link AvroWrapper} wrapping no datum. */
+  /** Wrap null. Construct {@link AvroWrapper} wrapping no currentDatum. */
   public PangoolWrapper() { this(null); }
 
-  /** Wrap a datum. */
-  public PangoolWrapper(T datum) { this.datum = datum; }
+  /** Wrap a currentDatum. */
+  public PangoolWrapper(T datum) { this.currentDatum = datum; }
 
-  /** Return the wrapped datum. */
-  public T datum() { return datum; }
+  /** Return the wrapped currentDatum. */
+  public T datum() { return currentDatum; }
 
-  /** Set the wrapped datum. */
-  public void datum(T datum) { this.datum = datum; }
+  public T previousDatum() { return previousDatum; }
+  
+  /** Set the wrapped currentDatum. */
+  public void datum(T datum) { this.currentDatum = datum; }
   
   public int hashCode() {
-    return (datum == null) ? 0 : datum.hashCode();
+    return (currentDatum == null) ? 0 : currentDatum.hashCode();
   }
 
   public boolean equals(Object obj) {
@@ -34,12 +32,19 @@ public class PangoolWrapper<T> {
     if (getClass() != obj.getClass())
       return false;
     PangoolWrapper that = (PangoolWrapper)obj;
-    if (this.datum == null) {
-      if (that.datum != null)
+    if (this.currentDatum == null) {
+      if (that.currentDatum != null)
         return false;
-    } else if (!datum.equals(that.datum))
+    } else if (!currentDatum.equals(that.currentDatum))
       return false;
     return true;
   }
+  
+  public void swapInstances(){
+  	T temp = this.currentDatum;
+  	this.currentDatum = this.previousDatum;
+  	this.previousDatum = temp;
+  }
+  
     
 }
