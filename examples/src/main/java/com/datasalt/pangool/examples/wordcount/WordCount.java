@@ -7,7 +7,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -21,7 +20,6 @@ import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SortingBuilder;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
@@ -32,12 +30,9 @@ public class WordCount {
 	private static final String WORD_FIELD = "word";
 	private static final String COUNT_FIELD = "count";
 
-	public static class Split extends InputProcessor<LongWritable, Text> {
+	@SuppressWarnings("serial")
+  public static class Split extends InputProcessor<LongWritable, Text> {
 		
-		/**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
 		Tuple tuple = new Tuple();
 
 		@Override
@@ -54,9 +49,6 @@ public class WordCount {
 
 	public static class CountCombiner extends CombinerHandler {
 		
-		/**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 		Tuple tuple = new Tuple();
 
@@ -76,10 +68,7 @@ public class WordCount {
 
 	public static class Count extends GroupHandler<Text, IntWritable> {
 
-		/**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context,

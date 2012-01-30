@@ -10,11 +10,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.io.PangoolMultipleOutputs;
 
-/**
- * 
- * @author pere
- *
- */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MultipleOutputsCollector {
 
@@ -28,11 +23,11 @@ public class MultipleOutputsCollector {
 		multipleOutputs = new PangoolMultipleOutputs(context);
 	}
 	
-	public <T, K> RecordWriter<T, K> getNamedOutput(String namedOutput) throws IOException, InterruptedException {
+	public <K, V> RecordWriter<K, V> getNamedOutput(String namedOutput) throws IOException, InterruptedException {
 		return multipleOutputs.getRecordWriter(namedOutput);
 	}
 	
-	public void write(String namedOutput, Object key, Object value) throws IOException, InterruptedException {
+	public <K, V>void write(String namedOutput, K key, V value) throws IOException, InterruptedException {
 		multipleOutputs.write(namedOutput, key, value);
 	}
 	
