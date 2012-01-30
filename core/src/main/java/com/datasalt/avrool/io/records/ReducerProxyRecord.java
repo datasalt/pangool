@@ -1,4 +1,4 @@
-package com.datasalt.avrool;
+package com.datasalt.avrool.io.records;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
@@ -6,7 +6,16 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.GenericRecord;
 
-public class GroupHandlerProxyRecord implements GenericRecord,Comparable<GroupHandlerProxyRecord>{
+import com.datasalt.avrool.CoGrouperConfig;
+import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.SerializationInfo;
+
+/**
+ * 
+ * This record wraps the records recevied in the reducer-step and then projects them to the original source schema specified in {@link CoGrouperConfig} 
+ *
+ */
+public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxyRecord>{
 
 	private Schema destinationSchema;
 	private Schema commonSchema;
@@ -14,7 +23,7 @@ public class GroupHandlerProxyRecord implements GenericRecord,Comparable<GroupHa
 	private GenericRecord contained;
 	private GenericRecord unionRecord;
 	
-	public GroupHandlerProxyRecord(CoGrouperConfig  config){
+	public ReducerProxyRecord(CoGrouperConfig  config){
 			this.config = config;
 		try{
 			this.commonSchema = SerializationInfo.get(config).getCommonSchema();
@@ -26,16 +35,11 @@ public class GroupHandlerProxyRecord implements GenericRecord,Comparable<GroupHa
 	public void setContainedRecord(GenericRecord contained) throws CoGrouperException{
 		this.contained = contained;
 		this.unionRecord = (GenericRecord)contained.get(SerializationInfo.UNION_FIELD_NAME);
-		//String i = Integer.toHexString(System.identityHashCode(unionRecord));
-		//System.out.println("Union record : " + i);
-		
 		String source = unionRecord.getSchema().getFullName();
 		this.destinationSchema = config.getSchemaBySource(source);
 		if (this.destinationSchema == null){
 			throw new CoGrouperException("Not known source with name '" + source + "'");
 		}
-		
-
 	}
 	
 	@Override
@@ -73,7 +77,7 @@ public class GroupHandlerProxyRecord implements GenericRecord,Comparable<GroupHa
 	
 	@Override public boolean equals(Object o) {
     if (o == this) return true;                 // identical object
-    if (!(o instanceof GroupHandlerProxyRecord)) return false;   // not a record
+    if (!(o instanceof ReducerProxyRecord)) return false;   // not a record
     Record that = (Record)o;
     if (!destinationSchema.getFullName().equals(that.getSchema().getFullName()))
       return false;                             // not the same intermediateSchema
@@ -82,7 +86,7 @@ public class GroupHandlerProxyRecord implements GenericRecord,Comparable<GroupHa
   @Override public int hashCode() {
     return GenericData.get().hashCode(this, destinationSchema);
   }
-  @Override public int compareTo(GroupHandlerProxyRecord that) {
+  @Override public int compareTo(ReducerProxyRecord that) {
     return GenericData.get().compare(this, that, destinationSchema);
   }
   @Override public String toString() {

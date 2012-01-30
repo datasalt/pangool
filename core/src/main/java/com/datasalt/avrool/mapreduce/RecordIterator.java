@@ -26,7 +26,8 @@ import org.apache.hadoop.mapreduce.ReduceContext;
 
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperException;
-import com.datasalt.avrool.GroupHandlerProxyRecord;
+import com.datasalt.avrool.PangoolKey;
+import com.datasalt.avrool.io.records.ReducerProxyRecord;
 
 /**
  * Iterator used in {@link Grouper},specially in {@link RollupReducer}. Basically it translates an {@link Iterable} containing 
@@ -41,21 +42,21 @@ import com.datasalt.avrool.GroupHandlerProxyRecord;
  */
 public class RecordIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<GenericRecord>, Iterable<GenericRecord>{
 
-	private Iterator<AvroValue> iterator;
-	private ReduceContext<AvroKey,AvroValue,OUTPUT_KEY,OUTPUT_VALUE> context;
-	private GroupHandlerProxyRecord proxyRecord;
+	private Iterator<NullWritable> iterator;
+	private ReduceContext<PangoolKey,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
+	private ReducerProxyRecord proxyRecord;
 	/**
 	 *  used to mark that the first element from the {@link Iterator} was already consumed.
 	 *  This prevents calling {@link Iterator#next()} twice for the first element.
 	 */
-	public RecordIterator(ReduceContext<AvroKey,AvroValue,OUTPUT_KEY,OUTPUT_VALUE> context,CoGrouperConfig grouperConfig){
+	public RecordIterator(ReduceContext<PangoolKey,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context,CoGrouperConfig grouperConfig){
 		this.context = context;
 		
-		this.proxyRecord = new GroupHandlerProxyRecord(grouperConfig);
+		this.proxyRecord = new ReducerProxyRecord(grouperConfig);
 		
 	}
 	
-	public void setIterator(Iterator<AvroValue> iterator){
+	public void setIterator(Iterator<NullWritable> iterator){
 		this.iterator = iterator;
 	}	
 	

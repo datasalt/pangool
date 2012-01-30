@@ -24,18 +24,16 @@ import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperConfigBuilder;
 import com.datasalt.avrool.CoGrouperException;
 import com.datasalt.avrool.Ordering;
-import com.datasalt.avrool.SerializationInfo;
 import com.datasalt.avrool.api.GroupHandler;
 import com.datasalt.avrool.api.InputProcessor;
 import com.datasalt.avrool.commons.HadoopUtils;
-import com.datasalt.avrool.io.Serialization;
 
 
 
 
 public class TestCoGrouper {
 
-	public static final String NAMESPACE = "com.datasalt";
+	public static final String NAMESPACE = null;
 	
 	public static class MyInputProcessor extends InputProcessor<LongWritable, Text>{
 
@@ -51,8 +49,8 @@ public class TestCoGrouper {
 		@Override
     public void process(LongWritable key, Text value, com.datasalt.avrool.api.InputProcessor.CoGrouperContext context,
         com.datasalt.avrool.api.InputProcessor.Collector collector) throws IOException, InterruptedException {
-	    Schema usuariosSchema = conf.getSchemaBySource(NAMESPACE + ".usuarios");
-	    Schema countriesSchema = conf.getSchemaBySource(NAMESPACE + ".countries");
+	    Schema usuariosSchema = conf.getSchemaBySource("usuarios");
+	    Schema countriesSchema = conf.getSchemaBySource("countries");
 	    Random random = new Random();
 			
 	    

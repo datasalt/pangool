@@ -5,11 +5,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.avro.Schema;
-import org.apache.avro.mapred.AvroJob;
-import org.apache.avro.mapred.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
@@ -21,8 +19,10 @@ import com.datasalt.avrool.api.CombinerHandler;
 import com.datasalt.avrool.api.GroupHandler;
 import com.datasalt.avrool.api.GroupHandlerWithRollup;
 import com.datasalt.avrool.api.InputProcessor;
-import com.datasalt.avrool.mapreduce.GroupComparator;
-import com.datasalt.avrool.mapreduce.Partitioner;
+import com.datasalt.avrool.mapreduce.PangoolGroupComparator;
+import com.datasalt.avrool.mapreduce.PangoolSortComparator;
+import com.datasalt.avrool.mapreduce.PangoolPartitioner;
+import com.datasalt.avrool.mapreduce.RollupReducer;
 import com.datasalt.avrool.mapreduce.SimpleCombiner;
 import com.datasalt.avrool.mapreduce.SimpleReducer;
 
@@ -38,12 +38,6 @@ public class CoGrouper {
 		Class<? extends InputFormat> inputFormat;
 		Class<? extends InputProcessor> inputProcessor;
 
-//		Input(Path path, Class<? extends InputProcessor<Record, NullWritable>> inputProcessor) {
-//			this.path = path;
-//			this.inputProcessor = inputProcessor;
-//			this.inputFormat = TupleInputFormat.class;
-//		}
-		
 		Input(Path path, Class<? extends InputFormat> inputFormat, Class<? extends InputProcessor> inputProcessor) {
 			this.path = path;
 			this.inputFormat = inputFormat;
@@ -52,7 +46,7 @@ public class CoGrouper {
 	}
 
 	private JobConf conf;
-	private CoGrouperConfig config;
+	private CoGrouperConfig grouperConf;
 	
 	private Class<? extends GroupHandler> reduceHandler;
 	private Class<? extends OutputFormat> outputFormat;
@@ -67,7 +61,7 @@ public class CoGrouper {
 
 	public CoGrouper(CoGrouperConfig config, Configuration conf) {
 		this.conf = new JobConf(conf);
-		this.config = config;
+		this.grouperConf = config;
 	}
 
 	// ------------------------------------------------------------------------- //
@@ -77,12 +71,7 @@ public class CoGrouper {
 		return this;
 	}
 
-//	public CoGrouper addTupleInput(Path path, Class<? extends InputProcessor<Record, NullWritable>> inputProcessor) {
-//		this.multiInputs.add(new Input(path, inputProcessor));
-//		AvroUtils.addAvroSerialization(conf);
-//		return this;
-//	}
-	
+
 	public CoGrouper addInput(Path path, Class<? extends InputFormat> inputFormat,
 	    Class<? extends InputProcessor> inputProcessor) {
 		this.multiInputs.add(new Input(path, inputFormat, inputProcessor));
@@ -108,16 +97,6 @@ public class CoGrouper {
 		return this;
 	}
 	
-//	public CoGrouper setTupleOutput(Path outputPath, PangoolSchema pangoolSchema) {
-//		this.outputPath = outputPath;
-//		this.outputFormat = TupleOutputFormat.class;
-//		this.outputKeyClass = ITuple.class;
-//		this.outputValueClass = NullWritable.class;
-//		conf.set(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, pangoolSchema.toString());
-//		AvroUtils.addAvroSerialization(conf);
-//		return this;
-//	}
-
 	public CoGrouper setGroupHandler(Class<? extends GroupHandler> groupHandler) {
 		this.reduceHandler = groupHandler;
 		return this;
@@ -165,13 +144,13 @@ public class CoGrouper {
 		raiseExceptionIfNull(outputValueClass, "Need to set outputValueClass");
 		raiseExceptionIfNull(outputPath, "Need to set outputPath");
 
-		if(config.getRollupFrom() != null) {
+		if(grouperConf.getRollupFrom() != null) {
 			
 			// Check that rollupFrom is contained in groupBy
 			
-			if(!config.getGroupByFields().contains(config.getRollupFrom())) {
-				throw new CoGrouperException("Rollup from [" + config.getRollupFrom() + "] not contained in group by fields "
-				    + config.getGroupByFields());
+			if(!grouperConf.getGroupByFields().contains(grouperConf.getRollupFrom())) {
+				throw new CoGrouperException("Rollup from [" + grouperConf.getRollupFrom() + "] not contained in group by fields "
+				    + grouperConf.getGroupByFields());
 			}
 
 			// Check that we are using the appropriate Handler
@@ -183,56 +162,30 @@ public class CoGrouper {
 		}
 
 		// Serialize PangoolConf in Hadoop Configuration
-		CoGrouperConfig.toConfig(config, conf);
-		SerializationInfo serInfo = SerializationInfo.get(config);
+		CoGrouperConfig.toConfig(grouperConf, conf);
+		//SerializationInfo serInfo = SerializationInfo.get(grouperConf);
 		
-		Schema nullSchema = Schema.create(Schema.Type.NULL);
-		Schema pairSchema = Pair.getPairSchema(serInfo.getIntermediateSchema(), nullSchema);
-		AvroJob.setMapOutputSchema(conf, pairSchema);
+		//Schema nullSchema = Schema.create(Schema.Type.NULL);
+		//Schema pairSchema = Pair.getPairSchema(serInfo.getIntermediateSchema(), nullSchema);
+		//AvroJob.setMapOutputSchema(conf, pairSchema);
+		
 		Job job = new Job(conf);
+		configurePangoolShuffle(job);
 		
-		//List<String> partitionerFields;
-
-		if(config.getRollupFrom() != null) {
-			throw new CoGrouperException("Rollup not supported by now!! This is a complete mess!!");
-			// Grouper with rollup: calculate rollupBaseGroupFields from "rollupFrom"
-//			List<String> rollupBaseGroupFields = new ArrayList<String>();
-//			for(String groupByField : config.getGroupByFields()) {
-//				rollupBaseGroupFields.add(groupByField);
-//				if(groupByField.equals(config.getRollupFrom())) {
-//					break;
-//				}
-//			}
-//			partitionerFields = rollupBaseGroupFields;
-			//job.setReducerClass(RollupReducer.class);
+		if(grouperConf.getRollupFrom() != null) {
+			job.setReducerClass(RollupReducer.class);
 		} else {
-			// Simple grouper
-			//partitionerFields = config
-			//    .getGroupByFields();
 			job.setReducerClass(SimpleReducer.class);
 		}
 
-		// Set fields to partition by in Hadoop Configuration
-		//Partitioner.setPartitionerFields(job.getConfiguration(), partitionerFields);
-
 		if(combinerHandler != null) {
 			job.setCombinerClass(SimpleCombiner.class); // not rollup by now 
-			// Set Combiner Handler
 			job.getConfiguration().setClass(CONF_COMBINER_HANDLER, combinerHandler, CombinerHandler.class);
 		}
 		// Set Reducer Handler
 		job.getConfiguration().setClass(CONF_REDUCER_HANDLER, reduceHandler, GroupHandler.class);
-
-		// Enabling serialization
-		//TupleInternalSerialization.enableSerialization(job.getConfiguration());
-		
 		job.setJarByClass((jarByClass != null) ? jarByClass : reduceHandler);		
 		job.setOutputFormatClass(outputFormat);
-//		job.setMapOutputKeyClass(AvroKey.class);
-//		job.setMapOutputValueClass(NullWritable.class);
-		job.setPartitionerClass(Partitioner.class);
-		job.setGroupingComparatorClass(GroupComparator.class); //TODO this is not correct
-		//job.setSortComparatorClass(AvroKeyComparator.class);
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);
@@ -241,4 +194,26 @@ public class CoGrouper {
 		}
 		return job;
 	}
+	
+	
+	private static void configurePangoolShuffle(Job job) {
+		Configuration conf = job.getConfiguration();
+    job.setSortComparatorClass(PangoolSortComparator.class);
+    job.setMapOutputKeyClass(PangoolKey.class);
+    job.setMapOutputValueClass(NullWritable.class);
+    job.setPartitionerClass(PangoolPartitioner.class);
+    job.setGroupingComparatorClass(PangoolGroupComparator.class);
+
+    // add AvroSerialization to io.serializations
+    Collection<String> serializations =
+      conf.getStringCollection("io.serializations");
+    if (!serializations.contains(PangoolSerialization.class.getName())) {
+      serializations.add(PangoolSerialization.class.getName());
+      conf.setStrings("io.serializations",
+                     serializations.toArray(new String[0]));
+    }
+  }
+	
+	
+	
 }

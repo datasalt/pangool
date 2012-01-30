@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.avro.Schema;
+
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumReader;
@@ -21,16 +22,18 @@ import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 
 /** The {@link Serialization} used by jobs configured with {@link AvroJob}. */
-public class PangoolSerialization<T> implements Serialization<PangoolWrapper<T>>,Configurable {
+public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Configurable {
 
 	private Schema intermediateSchema;
 	private Configuration conf;
+	private boolean isDoubleBuffered;
 	
 	public void setConf(Configuration conf){
 		if (conf != null){
 			try{
 				this.conf = conf;
 				CoGrouperConfig grouperConfig = CoGrouperConfig.get(conf);
+				isDoubleBuffered = grouperConfig.getRollupFrom() != null;
 				SerializationInfo serInfo = SerializationInfo.get(grouperConfig);
 				intermediateSchema = serInfo.getIntermediateSchema();
 			} catch(CoGrouperException e){
@@ -44,31 +47,34 @@ public class PangoolSerialization<T> implements Serialization<PangoolWrapper<T>>
 	}
 	
   public boolean accept(Class<?> c) {
-    return PangoolWrapper.class.isAssignableFrom(c);
+    return PangoolKey.class.isAssignableFrom(c);
   }
   
   /** Returns the specified map output deserializer.  */
-  public Deserializer<PangoolWrapper<T>> getDeserializer(Class<PangoolWrapper<T>> c) {
+  public Deserializer<PangoolKey<T>> getDeserializer(Class<PangoolKey<T>> c) {
 //    DatumReader<T> datumReader =
 //      getConf().getBoolean(AvroJob.MAP_OUTPUT_IS_REFLECT, false)
 //      ? new ReflectDatumReader<T>(intermediateSchema)
 //      : new SpecificDatumReader<T>(intermediateSchema);
   	
+  	//TODO check this
   	DatumReader<T> datumReader = new SpecificDatumReader<T>(intermediateSchema);
   	
-    return new PangoolDeserializer(datumReader);
+    return new PangoolDeserializer(datumReader,isDoubleBuffered);
   }
   
   private static final DecoderFactory FACTORY = DecoderFactory.get();
 
   private class PangoolDeserializer
-    implements Deserializer<PangoolWrapper<T>> {
+    implements Deserializer<PangoolKey<T>> {
 
     private DatumReader<T> reader;
     private BinaryDecoder decoder;
+    private boolean isDoubleBuffered;
     
-    public PangoolDeserializer(DatumReader<T> reader) {
+    public PangoolDeserializer(DatumReader<T> reader,boolean isDoubleBuffered) {
       this.reader = reader;
+      this.isDoubleBuffered = isDoubleBuffered;
 
     }
     
@@ -76,11 +82,14 @@ public class PangoolSerialization<T> implements Serialization<PangoolWrapper<T>>
       this.decoder = FACTORY.directBinaryDecoder(in, decoder);
     }
     
-    public PangoolWrapper<T> deserialize(PangoolWrapper<T> wrapper)
+    public PangoolKey<T> deserialize(PangoolKey<T> wrapper)
       throws IOException {
+    	if (wrapper != null && isDoubleBuffered){
+    		wrapper.swapInstances();
+    	}
       T datum = reader.read(wrapper == null ? null : wrapper.datum(), decoder);
       if (wrapper == null) {
-        wrapper = new PangoolWrapper<T>(datum);
+        wrapper = new PangoolKey<T>(datum);
       } else {
         wrapper.datum(datum);
       }
@@ -94,11 +103,11 @@ public class PangoolSerialization<T> implements Serialization<PangoolWrapper<T>>
   }
   
   /** Returns the specified output serializer. */
-  public Serializer<PangoolWrapper<T>> getSerializer(Class<PangoolWrapper<T>> c) {
+  public Serializer<PangoolKey<T>> getSerializer(Class<PangoolKey<T>> c) {
     return new PangoolSerializer(new ReflectDatumWriter<T>(intermediateSchema));
   }
 
-  private class PangoolSerializer implements Serializer<PangoolWrapper<T>> {
+  private class PangoolSerializer implements Serializer<PangoolKey<T>> {
 
     private DatumWriter<T> writer;
     private OutputStream out;
@@ -114,7 +123,7 @@ public class PangoolSerialization<T> implements Serialization<PangoolWrapper<T>>
           .binaryEncoder(out, null);
     }
 
-    public void serialize(PangoolWrapper<T> wrapper) throws IOException {
+    public void serialize(PangoolKey<T> wrapper) throws IOException {
       writer.write(wrapper.datum(), encoder);
       // would be a lot faster if the Serializer interface had a flush()
       // method and the Hadoop framework called it when needed rather

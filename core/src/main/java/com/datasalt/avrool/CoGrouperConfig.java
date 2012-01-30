@@ -64,8 +64,8 @@ public class CoGrouperConfig {
   	return rollupFrom;
   }
 
-	void addSource(String sourceName, Schema schema) {
-		schemasBySource.put(sourceName, schema);
+	void addSource(Schema schema) {
+		schemasBySource.put(schema.getFullName(), schema);
 	}
 
 	void setGroupByFields(String... groupByFields) {
@@ -120,7 +120,7 @@ public class CoGrouperConfig {
 	    result.interSourcesOrdering = Schema.Field.Order.valueOf((String) jsonData.get("interSourcesOrdering"));
 	    
 			for(Map.Entry<String, String> jsonSchema: jsonSources.entrySet()) {
-				result.addSource(jsonSchema.getKey(), Schema.parse(jsonSchema.getValue()));
+				result.addSource(Schema.parse(jsonSchema.getValue()));
 			}
 			List<Map> listOrderings = (List<Map>)jsonData.get("commonOrdering");
 			

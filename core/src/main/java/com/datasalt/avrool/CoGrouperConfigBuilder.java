@@ -50,7 +50,7 @@ public class CoGrouperConfigBuilder {
 			throw new CoGrouperException("Schema for source '" + schema.getFullName() + "' must not be null");
 		}
 
-		config.addSource(schema.getFullName(), schema);
+		config.addSource(schema);
 		return this;
 	}
 

@@ -123,8 +123,8 @@ public class Processor {
 		job.setOutputFormatClass(outputFormat);
 //		job.setMapOutputKeyClass(DoubleBufferedTuple.class);
 //		job.setMapOutputValueClass(NullWritable.class);
-//		job.setPartitionerClass(Partitioner.class);
-		//job.setGroupingComparatorClass(GroupComparator.class);
+//		job.setPartitionerClass(PangoolPartitioner.class);
+		//job.setGroupingComparatorClass(PangoolGroupComparator.class);
 		//job.setSortComparatorClass(SortComparator.class);
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);

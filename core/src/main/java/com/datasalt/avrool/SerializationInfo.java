@@ -12,15 +12,13 @@ import org.apache.avro.Schema.Field.Order;
 
 
 import com.datasalt.avrool.Ordering.SortElement;
-import com.datasalt.avrool.io.AvroUtils;
+import com.datasalt.avrool.commons.AvroUtils;
 
 public class SerializationInfo {
 
-		//public static final String REGULAR_NAMESPACE="com.datasalt";
 	public static final String REGULAR_NAMESPACE=null;	
 	public static final String INTERMEDIATE_SCHEMA_NAME ="intermediate";
 	public static final String UNION_FIELD_NAME = "our_union";
-	//	public static final String UNION_FIELD_NAMESPACE="uf_namespace";
 		
 		Schema commonSchema;
 		Schema groupSchema;
@@ -55,8 +53,6 @@ public class SerializationInfo {
 		public Schema getIntermediateSchema(){
 			List<Schema> unionSchemas = new ArrayList<Schema>();
 			for (Map.Entry<String, Schema> entry : particularSchemas.entrySet()){
-				//System.out.println("INTERMEDIATE SCHEMA : " + entry.getKey() + "=> " + entry.getValue().getFullName());
-				
 			}
 			
 			unionSchemas.addAll(particularSchemas.values());
@@ -67,9 +63,6 @@ public class SerializationInfo {
 			
 			Field unionField =new Field(UNION_FIELD_NAME,Schema.createUnion(unionSchemas),null,null,interSourcesOrder); 
 			fields.add(unionField);
-			
-			//System.out.println("INTERMEDIATE SCHEMA : " + unionField.schema().getTypes());
-			
 			
 			Schema result = Schema.createRecord(INTERMEDIATE_SCHEMA_NAME,null,REGULAR_NAMESPACE,false);
 			result.setFields(fields);

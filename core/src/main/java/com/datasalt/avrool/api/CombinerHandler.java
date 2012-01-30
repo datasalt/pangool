@@ -2,15 +2,13 @@ package com.datasalt.avrool.api;
 
 import java.io.IOException;
 
-import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.mapred.AvroKey;
-import org.apache.avro.mapred.AvroValue;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.PangoolKey;
 import com.datasalt.avrool.api.GroupHandler.CoGrouperContext;
 
 public class CombinerHandler {
@@ -45,16 +43,16 @@ public class CombinerHandler {
 		
 	}
   
-	public void setup(CoGrouperContext<AvroKey,AvroValue> context, Collector collector) throws IOException, InterruptedException, CoGrouperException {
+	public void setup(CoGrouperContext<PangoolKey,NullWritable> context, Collector collector) throws IOException, InterruptedException, CoGrouperException {
 
 	}
 
-	public void cleanup(CoGrouperContext<AvroKey, AvroValue> context, Collector collector) throws IOException, InterruptedException,
+	public void cleanup(CoGrouperContext<PangoolKey,NullWritable> context, Collector collector) throws IOException, InterruptedException,
 	    CoGrouperException {
 
 	}
 
-	public void onGroupElements(GenericRecord group, Iterable<GenericRecord> tuples, CoGrouperContext<AvroKey, AvroValue> context, Collector collector) throws IOException,
+	public void onGroupElements(GenericRecord group, Iterable<GenericRecord> tuples, CoGrouperContext<PangoolKey,NullWritable> context, Collector collector) throws IOException,
 	    InterruptedException, CoGrouperException {
 		
 	}

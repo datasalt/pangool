@@ -1,4 +1,4 @@
-package com.datasalt.avrool.io;
+package com.datasalt.avrool.commons;
 
 import java.util.Collection;
 

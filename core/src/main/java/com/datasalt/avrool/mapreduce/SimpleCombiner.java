@@ -26,10 +26,11 @@ import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.avrool.CoGrouper;
 import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.PangoolKey;
 import com.datasalt.avrool.api.CombinerHandler;
 import com.datasalt.avrool.api.CombinerHandler.Collector;
 
-public class SimpleCombiner extends SimpleReducer<AvroKey, AvroValue> {
+public class SimpleCombiner extends SimpleReducer<PangoolKey,NullWritable> {
 
 	private CombinerHandler handler;
 	private Collector collector;

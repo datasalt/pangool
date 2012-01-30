@@ -32,13 +32,14 @@ import com.datasalt.avrool.CoGrouper;
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperConfigBuilder;
 import com.datasalt.avrool.CoGrouperException;
-import com.datasalt.avrool.FilterRecord;
+import com.datasalt.avrool.PangoolKey;
 import com.datasalt.avrool.SerializationInfo;
 import com.datasalt.avrool.api.GroupHandler;
 import com.datasalt.avrool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.avrool.api.GroupHandler.Collector;
+import com.datasalt.avrool.io.records.FilterRecord;
 
-public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<AvroKey, AvroValue, OUTPUT_KEY, OUTPUT_VALUE> {
+public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<PangoolKey,NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	// Following variables protected to be shared by Combiners
 	protected CoGrouperConfig grouperConfig;
@@ -98,9 +99,9 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<AvroKey, Av
 	}
 
 	@Override
-	public final void reduce(AvroKey key, Iterable<AvroValue> values, Context context) throws IOException,
+	public final void reduce(PangoolKey key, Iterable<NullWritable> values, Context context) throws IOException,
 	    InterruptedException {
-		Iterator<AvroValue> iterator = values.iterator();
+		Iterator<NullWritable> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
 		groupTuple.setContained((GenericRecord)key.datum());
 		callHandler(context);

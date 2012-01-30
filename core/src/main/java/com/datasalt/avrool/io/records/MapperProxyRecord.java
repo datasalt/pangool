@@ -1,4 +1,4 @@
-package com.datasalt.avrool;
+package com.datasalt.avrool.io.records;
 
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
@@ -8,14 +8,17 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericData.Record;
 
-public class MapOutputProxyRecord implements GenericRecord,Comparable<MapOutputProxyRecord>{
+import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.SerializationInfo;
+
+public class MapperProxyRecord implements GenericRecord,Comparable<MapperProxyRecord>{
 
 	private Schema schema;
 	private SerializationInfo serInfo;
 	private GenericRecord contained;
 	private FilterRecord unionRecord;
 	
-	public MapOutputProxyRecord(SerializationInfo ser){
+	public MapperProxyRecord(SerializationInfo ser){
 		this.serInfo = ser;
 		this.schema = serInfo.getIntermediateSchema();
 		if (schema == null || !Type.RECORD.equals(schema.getType())){
@@ -80,7 +83,7 @@ public class MapOutputProxyRecord implements GenericRecord,Comparable<MapOutputP
 	
 	@Override public boolean equals(Object o) {
     if (o == this) return true;                 // identical object
-    if (!(o instanceof MapOutputProxyRecord)) return false;   // not a record
+    if (!(o instanceof MapperProxyRecord)) return false;   // not a record
     Record that = (Record)o;
     if (!schema.getFullName().equals(that.getSchema().getFullName()))
       return false;                             // not the same schema
@@ -89,7 +92,7 @@ public class MapOutputProxyRecord implements GenericRecord,Comparable<MapOutputP
   @Override public int hashCode() {
     return GenericData.get().hashCode(this, schema);
   }
-  @Override public int compareTo(MapOutputProxyRecord that) {
+  @Override public int compareTo(MapperProxyRecord that) {
     return GenericData.get().compare(this, that, schema);
   }
   @Override public String toString() {

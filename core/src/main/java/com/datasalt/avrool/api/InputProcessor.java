@@ -30,8 +30,9 @@ import org.apache.hadoop.mapreduce.Mapper;
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperConfigBuilder;
 import com.datasalt.avrool.CoGrouperException;
-import com.datasalt.avrool.MapOutputProxyRecord;
+import com.datasalt.avrool.PangoolKey;
 import com.datasalt.avrool.SerializationInfo;
+import com.datasalt.avrool.io.records.MapperProxyRecord;
 
 /**
  * TODO doc
@@ -47,14 +48,16 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		
 		private Mapper.Context context;
 		private SerializationInfo serInfo;
-		private AvroKey outputKey = new AvroKey();
-		private AvroValue outputValue = new AvroValue(null);
-
-		private ThreadLocal<MapOutputProxyRecord> mapOutputProxyRecord = new ThreadLocal<MapOutputProxyRecord>() {
+		private PangoolKey outputKey = new PangoolKey();
+		//private AvroValue outputValue = new AvroValue(null);
+		private NullWritable outputValue = NullWritable.get();
+		
+		
+		private ThreadLocal<MapperProxyRecord> mapperProxyRecord = new ThreadLocal<MapperProxyRecord>() {
 
 			@Override
-			protected MapOutputProxyRecord initialValue() {
-				return new MapOutputProxyRecord(serInfo);
+			protected MapperProxyRecord initialValue() {
+				return new MapperProxyRecord(serInfo);
 			}
 		};
 
@@ -71,7 +74,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 
 		
 		public void write(GenericRecord tuple) throws IOException, InterruptedException {
-			MapOutputProxyRecord outputRecord  = mapOutputProxyRecord.get();
+			MapperProxyRecord outputRecord  = mapperProxyRecord.get();
 			try{
 				outputRecord.setContainedRecord(tuple);
 			} catch(CoGrouperException e){

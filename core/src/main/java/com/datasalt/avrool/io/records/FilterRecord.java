@@ -1,4 +1,4 @@
-package com.datasalt.avrool;
+package com.datasalt.avrool.io.records;
 
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
@@ -45,7 +45,7 @@ public class FilterRecord implements GenericRecord, Comparable<FilterRecord> {
 	public boolean equals(Object o) {
 		if(o == this)
 			return true; // identical object
-		if(!(o instanceof MapOutputProxyRecord))
+		if(!(o instanceof MapperProxyRecord))
 			return false; // not a record
 		Record that = (Record) o;
 		if(!schema.getFullName().equals(that.getSchema().getFullName()))

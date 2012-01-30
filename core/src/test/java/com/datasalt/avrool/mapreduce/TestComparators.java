@@ -35,7 +35,7 @@
 //import com.datasalt.avrool.io.tuple.DoubleBufferedTuple;
 //import com.datasalt.avrool.io.tuple.ITuple;
 //import com.datasalt.avrool.io.tuple.ITuple.InvalidFieldException;
-//import com.datasalt.avrool.mapreduce.GroupComparator;
+//import com.datasalt.avrool.mapreduce.PangoolGroupComparator;
 //import com.datasalt.avrool.mapreduce.SortComparator;
 //import com.datasalt.avrool.thrift.test.A;
 //
@@ -88,7 +88,7 @@
 //				ser = new Serialization(conf);
 //				
 //				SortComparator sortComparator = new SortComparator();
-//				GroupComparator groupComparator = new GroupComparator();
+//				PangoolGroupComparator groupComparator = new PangoolGroupComparator();
 //
 //				sortComparator.setConf(conf);
 //				groupComparator.setConf(conf);

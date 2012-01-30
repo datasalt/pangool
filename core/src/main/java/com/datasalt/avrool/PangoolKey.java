@@ -1,16 +1,23 @@
 package com.datasalt.avrool; 
 
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.record.Record;
+
 
 /** The wrapper of data for jobs configured with {@link AvroJob} . */
-public class PangoolWrapper<T> {
+public class PangoolKey<T> /* implements Configurable */{
   private T currentDatum;
   private T previousDatum;
+  private Configuration conf;
 
   /** Wrap null. Construct {@link AvroWrapper} wrapping no currentDatum. */
-  public PangoolWrapper() { this(null); }
+  public PangoolKey() { this(null); }
 
   /** Wrap a currentDatum. */
-  public PangoolWrapper(T datum) { this.currentDatum = datum; }
+  public PangoolKey(T datum) { this.currentDatum = datum; }
 
   /** Return the wrapped currentDatum. */
   public T datum() { return currentDatum; }
@@ -31,7 +38,7 @@ public class PangoolWrapper<T> {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    PangoolWrapper that = (PangoolWrapper)obj;
+    PangoolKey that = (PangoolKey)obj;
     if (this.currentDatum == null) {
       if (that.currentDatum != null)
         return false;
@@ -45,6 +52,5 @@ public class PangoolWrapper<T> {
   	this.currentDatum = this.previousDatum;
   	this.previousDatum = temp;
   }
-  
     
 }

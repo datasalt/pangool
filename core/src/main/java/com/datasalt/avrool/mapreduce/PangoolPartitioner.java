@@ -7,18 +7,20 @@ import org.apache.avro.mapred.AvroKey;
 import org.apache.avro.mapred.AvroValue;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.NullWritable;
 
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.PangoolKey;
 import com.datasalt.avrool.SerializationInfo;
 
-public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<AvroKey, AvroValue> implements Configurable {
+public class PangoolPartitioner extends org.apache.hadoop.mapreduce.Partitioner<PangoolKey,NullWritable> implements Configurable {
 
 	private Schema schema;
 	private Configuration conf;
 	
 	@Override
-	public int getPartition(AvroKey key, AvroValue value, int numPartitions) {
+	public int getPartition(PangoolKey key, NullWritable value, int numPartitions) {
 		GenericRecord record = (GenericRecord)key.datum();
 		return (Integer.MAX_VALUE & GenericData.get().hashCode(record, schema)) % numPartitions;
 	}

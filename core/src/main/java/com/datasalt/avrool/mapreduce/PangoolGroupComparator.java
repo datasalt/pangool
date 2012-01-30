@@ -12,7 +12,7 @@ import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperException;
 import com.datasalt.avrool.SerializationInfo;
 
-public class GroupComparator extends AvroKeyComparator<Record> {
+public class PangoolGroupComparator extends AvroKeyComparator<Record> {
 
 		private Schema schema;
 

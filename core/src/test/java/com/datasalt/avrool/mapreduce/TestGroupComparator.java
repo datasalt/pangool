@@ -10,13 +10,13 @@
 //import com.datasalt.avrool.CoGrouperException;
 //import com.datasalt.avrool.io.tuple.ITuple;
 //import com.datasalt.avrool.io.tuple.ITuple.InvalidFieldException;
-//import com.datasalt.avrool.mapreduce.GroupComparator;
+//import com.datasalt.avrool.mapreduce.PangoolGroupComparator;
 //
 //public class TestGroupComparator extends ComparatorsBaseTest {
 //
 //	@Test
 //	public void testObjectComparison() throws CoGrouperException, JsonGenerationException, JsonMappingException, IOException, InvalidFieldException {
-//		GroupComparator comparator = new GroupComparator();
+//		PangoolGroupComparator comparator = new PangoolGroupComparator();
 //		setConf(comparator);
 //		
 //		// source 1
