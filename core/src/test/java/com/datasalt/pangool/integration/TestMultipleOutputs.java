@@ -39,12 +39,8 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 	public final static String OUTPUT_2 = "out2";
 	public final static String TUPLEOUTPUT_1 = "tuple1";
 
-	public static class MyInputProcessor extends InputProcessor<LongWritable, Text> {
-
-		/**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+	@SuppressWarnings("serial")
+  public static class MyInputProcessor extends InputProcessor<LongWritable, Text> {
 
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
@@ -64,26 +60,8 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		}
 	}
 
-	public static class MySecondInputProcessor extends InputProcessor<DoubleWritable, NullWritable> {
-
-		/**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-
-		@Override
-		public void process(DoubleWritable key, NullWritable value, CoGrouperContext context, Collector collector)
-		    throws IOException, InterruptedException {
-
-		}
-	}
-
-	public static class MyGroupHandler extends GroupHandler<DoubleWritable, NullWritable> {
-
-		/**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+	@SuppressWarnings("serial")
+  public static class MyGroupHandler extends GroupHandler<DoubleWritable, NullWritable> {
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples,

@@ -39,7 +39,7 @@ import com.datasalt.pangool.commons.DCUtils;
 
 /**
  * This class supports MapReduce jobs that have multiple input paths with a different {@link InputFormat} and
- * {@link Mapper} for each path
+ * {@link Mapper} for each path. It is inspired by the org.apache.hadoop.lib.input.MultipleInputs 
  */
 public class PangoolMultipleInputs {
 

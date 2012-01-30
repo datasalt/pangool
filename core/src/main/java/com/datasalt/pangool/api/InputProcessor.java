@@ -34,14 +34,9 @@ import com.datasalt.pangool.io.tuple.ITuple;
 /**
  * TODO doc
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "rawtypes", "serial" })
 public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
     Mapper<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> implements Serializable {
-
-	/**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
   
 	private Collector collector;
 	private CoGrouperContext context;

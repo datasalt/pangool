@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.annotation.Nullable;
@@ -55,14 +54,14 @@ public class DCUtils {
 	public static void serializeToDC(Object obj, String serializeToLocalFile,
 	    @Nullable String dcConfigurationProperty, Configuration conf) throws FileNotFoundException, IOException,
 	    URISyntaxException {
-		File file = new File(serializeToLocalFile);
+		File file = new File(System.getProperty("java.io.tmpdir"), serializeToLocalFile);
 		ObjectOutput out = new ObjectOutputStream(new FileOutputStream(file));
 		out.writeObject(obj);
 		out.close();
 
 		FileSystem fS = FileSystem.get(conf);
 
-		Path toHdfs = new Path(file.toURI());
+		Path toHdfs = new Path(conf.get("hadoop.tmp.dir"), serializeToLocalFile);
 		if(!fS.equals(FileSystem.getLocal(conf))) { // Warning: if fs is local file is not removed
 			if(fS.exists(toHdfs)) { // Optionally, copy to DFS if
 				fS.delete(toHdfs, true);
@@ -71,9 +70,9 @@ public class DCUtils {
 		}
 
 		if(dcConfigurationProperty != null) {
-			conf.set(dcConfigurationProperty, file + "");
+			conf.set(dcConfigurationProperty, serializeToLocalFile);
 		}
-		DistributedCache.addCacheFile(new URI(serializeToLocalFile), conf);
+		DistributedCache.addCacheFile(file.toURI(), conf);
 	}
 
 	/**

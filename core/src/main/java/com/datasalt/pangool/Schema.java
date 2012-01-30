@@ -52,12 +52,8 @@ public class Schema {
 	 * @author pere
 	 *
 	 */
+	@SuppressWarnings("serial")
 	public static class Fields extends ArrayList<Field> {
-		
-		/**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
 
 		public Field get(String fieldName) {
 			for(int i = 0; i < size(); i++) {

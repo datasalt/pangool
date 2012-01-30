@@ -58,8 +58,6 @@ public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
        .getInputProcessorFileMap(job);
     Map<Class<? extends InputFormat>, List<Path>> formatPaths
         = new HashMap<Class<? extends InputFormat>, List<Path>>();
-    System.out.println(formatMap);
-    System.out.println(mapperMap);
 
     // First, build a map of InputFormats to Paths
     for (Entry<Path, InputFormat> entry : formatMap.entrySet()) {

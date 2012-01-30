@@ -13,9 +13,8 @@ import com.datasalt.pangool.api.GroupHandler.StaticCoGrouperContext;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
+@SuppressWarnings("serial")
 public class CombinerHandler implements Serializable {
-
-  private static final long serialVersionUID = 1L;
 
 	public static final class Collector {
 		

@@ -32,12 +32,8 @@ import com.google.common.io.Files;
 
 public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
-	public static class FirstInputProcessor extends InputProcessor<LongWritable, Text> {
-
-		/**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+	@SuppressWarnings("serial")
+  public static class FirstInputProcessor extends InputProcessor<LongWritable, Text> {
 
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
@@ -74,12 +70,8 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		}
 	}
 
-	public static class MyGroupHandler extends GroupHandler<Object, Object> {
-
-		/**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+	@SuppressWarnings("serial")
+  public static class MyGroupHandler extends GroupHandler<Object, Object> {
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, 
@@ -113,6 +105,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
 		job.waitForCompletion(true);
 
+		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-input"));
 	}
 }

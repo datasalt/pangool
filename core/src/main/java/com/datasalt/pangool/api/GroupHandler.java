@@ -22,9 +22,8 @@ import com.datasalt.pangool.mapreduce.SimpleReducer;
  * @author eric
  * 
  */
+@SuppressWarnings("serial")
 public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
-
-  private static final long serialVersionUID = 1L;
 
 	public static class StaticCollector<OUTPUT_KEY, OUTPUT_VALUE> extends MultipleOutputsCollector {
 
