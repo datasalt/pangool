@@ -23,6 +23,9 @@ import java.io.IOException;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.ReflectionUtils;
+import org.mortbay.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.commons.DCUtils;
@@ -36,12 +39,18 @@ public class DelegatingMapper extends Mapper {
 
 	Mapper delegate; // The delegate
 
+	static Logger log = LoggerFactory.getLogger(DelegatingMapper.class);
+	
 	@Override
 	public void run(Context context) throws IOException, InterruptedException {
 		// Find the InputProcessor from the TaggedInputSplit.
-		TaggedInputSplit inputSplit = (TaggedInputSplit) context.getInputSplit();
-		delegate = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), Mapper.class,
-		    inputSplit.getInputProcessorFile());
+		if(delegate == null) {
+			TaggedInputSplit inputSplit = (TaggedInputSplit) context.getInputSplit();
+			log.info("[profile] Got input split. Going to look at DC.");
+			delegate = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), Mapper.class,
+			    inputSplit.getInputProcessorFile());
+			log.info("[profile] Finished. Calling run() on delegate.");
+		}
 		delegate.run(context);
 	}
 }

@@ -138,7 +138,6 @@ public class CoGrouperConfig {
 		} else { 
 			return schemeId;
 		}
-		
 	}
 	
 	public String toString() {

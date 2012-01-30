@@ -70,7 +70,7 @@
               </descriptors>
 	      <archive>
                 <manifest>
-                  <mainClass>org.sample.App</mainClass>
+                  <mainClass>com.datasalt.pangool.examples.Driver</mainClass>
                 </manifest>
               </archive>
            </configuration>

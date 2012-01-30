@@ -41,6 +41,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 /**
  * An {@link InputFormat} that delegates behavior of paths to multiple other
  * InputFormats.
+ * <p> 
  * 
  * @see PangoolMultipleInputs#addInputPath(Job, Path, Class, Class)
  */

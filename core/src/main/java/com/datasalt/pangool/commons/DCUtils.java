@@ -19,6 +19,11 @@ import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
+import org.mortbay.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.datasalt.pangool.mapreduce.lib.input.DelegatingMapper;
 
 /**
  * This class contains useful methods for dealing with the Hadoop DistributedCache.
@@ -31,6 +36,8 @@ import org.apache.hadoop.fs.Path;
  * 
  */
 public class DCUtils {
+
+	static Logger log = LoggerFactory.getLogger(DelegatingMapper.class);
 
 	/**
 	 * Utility method for serializing an object and saving it in the Distributed Cache.
@@ -66,13 +73,16 @@ public class DCUtils {
 			if(fS.exists(toHdfs)) { // Optionally, copy to DFS if
 				fS.delete(toHdfs, true);
 			}
-			FileUtil.copy(FileSystem.getLocal(conf), toHdfs, FileSystem.get(conf), toHdfs, true, conf);
+			log.info("Copying local file: " + file + " to " + toHdfs);
+			FileUtil.copy(FileSystem.getLocal(conf), new Path(file + ""), FileSystem.get(conf), toHdfs, true, conf);
+			DistributedCache.addCacheFile(toHdfs.toUri(), conf);
+		} else {
+			DistributedCache.addCacheFile(file.toURI(), conf);
 		}
 
 		if(dcConfigurationProperty != null) {
 			conf.set(dcConfigurationProperty, serializeToLocalFile);
 		}
-		DistributedCache.addCacheFile(file.toURI(), conf);
 	}
 
 	/**
@@ -93,7 +103,10 @@ public class DCUtils {
 	 */
 	public static <T> T loadSerializedObjectInDC(Configuration conf, Class<T> objClass, String fileName)
 	    throws IOException {
+		
+		log.info("[profile] Locate file in DC");
 		Path path = DCUtils.locateFileInDC(conf, fileName);
+		log.info("[profile] Deserialize instance");
 		ObjectInput in = new ObjectInputStream(new FileInputStream(new File(path + "")));
 		T obj;
 		try {
@@ -102,6 +115,7 @@ public class DCUtils {
 			throw new RuntimeException(e);
 		}
 		in.close();
+		log.info("[profile] Done deserializing.");
 		return obj;
 	}
 

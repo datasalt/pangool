@@ -1,6 +1,7 @@
 package com.datasalt.pangool.examples.wordcount;
 
 import java.io.IOException;
+import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -31,30 +32,30 @@ public class WordCount {
 	private static final String COUNT_FIELD = "count";
 
 	@SuppressWarnings("serial")
-  public static class Split extends InputProcessor<LongWritable, Text> {
-		
+	public static class Split extends InputProcessor<LongWritable, Text> {
+
 		Tuple tuple = new Tuple();
 
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
-			String words[] = value.toString().split("\\s+");
-			for(String word : words) {
-				tuple.setString(WORD_FIELD, word);
-				tuple.setInt(COUNT_FIELD, 1);
+			StringTokenizer itr = new StringTokenizer(value.toString());
+			tuple.setInt(COUNT_FIELD, 1);
+			while(itr.hasMoreTokens()) {
+				tuple.setString(WORD_FIELD, itr.nextToken());
 				collector.write(tuple);
 			}
 		}
 	}
 
+	@SuppressWarnings("serial")
 	public static class CountCombiner extends CombinerHandler {
-		
-    private static final long serialVersionUID = 1L;
+
 		Tuple tuple = new Tuple();
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context,
-		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
+		    throws IOException, InterruptedException, CoGrouperException {
 
 			int count = 0;
 			this.tuple.setString(WORD_FIELD, group.getString(WORD_FIELD));
@@ -66,13 +67,12 @@ public class WordCount {
 		}
 	}
 
+	@SuppressWarnings("serial")
 	public static class Count extends GroupHandler<Text, IntWritable> {
 
-		private static final long serialVersionUID = 1L;
-
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context,
-		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
+		    throws IOException, InterruptedException, CoGrouperException {
 			int count = 0;
 			for(ITuple tuple : tuples) {
 				count += tuple.getInt(COUNT_FIELD);

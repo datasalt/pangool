@@ -2,6 +2,7 @@ package com.datasalt.pangool.examples;
 
 import org.apache.hadoop.util.ProgramDriver;
 
+import com.datasalt.pangool.examples.wordcount.MapRedWordCount;
 import com.datasalt.pangool.examples.wordcount.WordCount;
 
 
@@ -15,6 +16,7 @@ public class Driver extends ProgramDriver {
 	public Driver() throws Throwable {
 		super();
 		addClass("wordcount", WordCount.class, "Typical word count in Pangool");
+		addClass("mapred-wordcount", MapRedWordCount.class, "Typical word count with Hadoop Map/Red API");
 	}
 	
 	public static void main(String[] args) throws Throwable {

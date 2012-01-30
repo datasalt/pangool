@@ -21,6 +21,8 @@ import java.util.Iterator;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
@@ -35,7 +37,8 @@ import com.datasalt.pangool.io.tuple.ITuple;
 public class SimpleCombiner extends Reducer<ITuple, NullWritable, ITuple, NullWritable> {
 
 	public final static String CONF_COMBINER_HANDLER = SimpleCombiner.class.getName() + ".combiner.handler";
-
+	static Logger log = LoggerFactory.getLogger(SimpleCombiner.class);
+	
 	// Following variables protected to be shared by Combiners
 	private CoGrouperConfig pangoolConfig;
 	private TupleIterator<ITuple, NullWritable> grouperIterator;
