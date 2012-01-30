@@ -19,12 +19,13 @@ public class SerializationInfo {
 		//public static final String REGULAR_NAMESPACE="com.datasalt";
 	public static final String REGULAR_NAMESPACE=null;	
 	public static final String INTERMEDIATE_SCHEMA_NAME ="intermediate";
-		
-		
-		public static final String UNION_FIELD_NAME = "our_union";
+	public static final String UNION_FIELD_NAME = "our_union";
 	//	public static final String UNION_FIELD_NAMESPACE="uf_namespace";
 		
 		Schema commonSchema;
+		Schema groupSchema;
+		Schema partitionerSchema;
+		
 		Map<String,Schema> particularSchemas = new LinkedHashMap<String,Schema>();
 		Order interSourcesOrder;
 		
@@ -33,6 +34,15 @@ public class SerializationInfo {
 		public Schema getCommonSchema(){
 			return commonSchema;
 		}
+		
+		public Schema getGroupSchema(){
+			return groupSchema;
+		}
+		
+		public Schema getPartitionerSchema(){
+			return partitionerSchema;
+		}
+		
 		
 		public Schema getParticularSchema(String source){
 			return particularSchemas.get(source);
@@ -45,7 +55,7 @@ public class SerializationInfo {
 		public Schema getIntermediateSchema(){
 			List<Schema> unionSchemas = new ArrayList<Schema>();
 			for (Map.Entry<String, Schema> entry : particularSchemas.entrySet()){
-				System.out.println("INTERMEDIATE SCHEMA : " + entry.getKey() + "=> " + entry.getValue().getFullName());
+				//System.out.println("INTERMEDIATE SCHEMA : " + entry.getKey() + "=> " + entry.getValue().getFullName());
 				
 			}
 			
@@ -58,7 +68,7 @@ public class SerializationInfo {
 			Field unionField =new Field(UNION_FIELD_NAME,Schema.createUnion(unionSchemas),null,null,interSourcesOrder); 
 			fields.add(unionField);
 			
-			System.out.println("INTERMEDIATE SCHEMA : " + unionField.schema().getTypes());
+			//System.out.println("INTERMEDIATE SCHEMA : " + unionField.schema().getTypes());
 			
 			
 			Schema result = Schema.createRecord(INTERMEDIATE_SCHEMA_NAME,null,REGULAR_NAMESPACE,false);
@@ -72,8 +82,11 @@ public class SerializationInfo {
 
 		SerializationInfo result = new SerializationInfo();
 		result.interSourcesOrder = conf.interSourcesOrdering;
+		//TODO check that the fields in groupBy are in common ordering
+		List<Field> groupFields = new ArrayList<Field>();
+		List<Field> partitionerFields = new ArrayList<Field>();
 		List<Field> commonSchemaFields = new ArrayList<Field>();
-		
+
 		for (SortElement element : conf.commonOrdering.getElements()){
 			String fieldName = element.getName();
 			Schema schemaType = null;
@@ -91,10 +104,24 @@ public class SerializationInfo {
 					throw new CoGrouperException("The schema for field '" + fieldName + "' is not the same in all sources");
 				}
 			}
+			
 			commonSchemaFields.add(new Field(fieldName,schemaType,null,null,element.getOrder()));
+			if (conf.getGroupByFields().contains(fieldName)){
+				groupFields.add(new Field(fieldName,schemaType,null,null,element.getOrder()));
+			}
+			
+			if (conf.getRollupBaseFields().contains(fieldName)){
+				partitionerFields.add(new Field(fieldName,schemaType,null,null,element.getOrder()));
+			}
+			
+			
 		}
 		
 		result.commonSchema = Schema.createRecord(commonSchemaFields);
+		result.groupSchema = Schema.createRecord(groupFields);
+		result.partitionerSchema = Schema.createRecord(partitionerFields);
+		
+		
 		
 		//initializing particular schemas with empty fields
 		Map<String,List<Field>> particularFields = new HashMap<String,List<Field>>();

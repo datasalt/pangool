@@ -1,27 +1,26 @@
 package com.datasalt.avrool.mapreduce;
 
-import java.util.List;
-
-import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.mapred.AvroKey;
 import org.apache.avro.mapred.AvroValue;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.NullWritable;
+
+import com.datasalt.avrool.CoGrouperConfig;
+import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.SerializationInfo;
 
 public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<AvroKey, AvroValue> implements Configurable {
 
-	private static final String CONF_PARTITIONER_FIELDS = Partitioner.class.getName() + ".partitioner.fields";
-
+	private Schema schema;
 	private Configuration conf;
-	private String[] groupFields;
-
+	
 	@Override
 	public int getPartition(AvroKey key, AvroValue value, int numPartitions) {
-		//TODO mimic Record.hashCode
-		return 0;
-		
-		//return key.partialHashCode(groupFields) % numPartitions;
+		GenericRecord record = (GenericRecord)key.datum();
+		return (Integer.MAX_VALUE & GenericData.get().hashCode(record, schema)) % numPartitions;
 	}
 
 	@Override
@@ -33,16 +32,15 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<AvroKey
 	public void setConf(Configuration conf) {
 		if(conf != null) {
 			this.conf = conf;
-			String fieldsGroupStr = conf.get(CONF_PARTITIONER_FIELDS);
-			groupFields = fieldsGroupStr.split(",");
+			CoGrouperConfig grouperConfig;
+      try {
+	      grouperConfig = CoGrouperConfig.get(conf);
+	      SerializationInfo serInfo = SerializationInfo.get(grouperConfig);
+	      this.schema = serInfo.getPartitionerSchema();
+      } catch(CoGrouperException e) {
+	     throw new RuntimeException(e);
+      }
 		}
 	}
-
-	public static void setPartitionerFields(Configuration conf, List<String> fields) {
-		conf.setStrings(CONF_PARTITIONER_FIELDS, fields.toArray(new String[0]));
-	}
-
-	public static String[] getPartitionerFields(Configuration conf) {
-		return conf.getStrings(CONF_PARTITIONER_FIELDS);
-	}
+	
 }

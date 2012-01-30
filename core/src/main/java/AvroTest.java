@@ -163,7 +163,7 @@ public class AvroTest {
 		Schema pairSchema = Pair.getPairSchema(intermediateSchema, nullSchema);
 		AvroJob.setMapOutputSchema(conf, pairSchema);
 		
-		conf.set(GroupComparator.CONF_GROUP_SCHEMA, groupSchema.toString());
+		//conf.set(GroupComparator.CONF_GROUP_SCHEMA, groupSchema.toString());
 
 		Job job = new Job(conf);
 		job.setMapperClass(Mapy.class);

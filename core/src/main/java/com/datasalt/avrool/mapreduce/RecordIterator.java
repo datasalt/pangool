@@ -18,18 +18,15 @@ package com.datasalt.avrool.mapreduce;
 
 import java.util.Iterator;
 
-import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.mapred.AvroKey;
 import org.apache.avro.mapred.AvroValue;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
-import org.apache.hadoop.mapreduce.Reducer.Context;
 
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperException;
 import com.datasalt.avrool.GroupHandlerProxyRecord;
-import com.datasalt.avrool.api.GroupHandler;
 
 /**
  * Iterator used in {@link Grouper},specially in {@link RollupReducer}. Basically it translates an {@link Iterable} containing 
@@ -51,8 +48,6 @@ public class RecordIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Generic
 	 *  used to mark that the first element from the {@link Iterator} was already consumed.
 	 *  This prevents calling {@link Iterator#next()} twice for the first element.
 	 */
-	private boolean firstTupleConsumed=false;
-	
 	public RecordIterator(ReduceContext<AvroKey,AvroValue,OUTPUT_KEY,OUTPUT_VALUE> context,CoGrouperConfig grouperConfig){
 		this.context = context;
 		
@@ -64,36 +59,17 @@ public class RecordIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Generic
 		this.iterator = iterator;
 	}	
 	
-	/**
-	 *  This is used to mark that the first element from iterable was already consumed, so in next iteration don't call iterator.next().
-	 *  Instead of this reuse the currentKey in {@link ReduceContext#getCurrentKey()} 
-	 *  
-	 *  This method is usually called before {@link GroupHandler#onGroupElements(Iterable,Context)}
-	 */
-	
-	public void setFirstTupleConsumed(boolean available){
-		this.firstTupleConsumed = available;
-	}
-	
 	@Override
   public boolean hasNext() {
-		if (firstTupleConsumed){
-			return true;
-		} else {
 			return iterator.hasNext();
-		}
   }
 
 	@Override
   public GenericRecord next() {
 		try{
-			if (firstTupleConsumed){
-				firstTupleConsumed = false;
-			} else {
-				iterator.next(); //advances one key
-			}
-			proxyRecord.setContainedRecord((GenericRecord)context.getCurrentKey().datum());
-			return proxyRecord;
+				iterator.next(); //advances one key internally
+				proxyRecord.setContainedRecord((GenericRecord)context.getCurrentKey().datum());
+				return proxyRecord;
 		} catch(CoGrouperException e){
 			throw new RuntimeException(e);
 		}
@@ -101,11 +77,7 @@ public class RecordIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<Generic
 
 	@Override
   public void remove() {
-		if (firstTupleConsumed){
-			firstTupleConsumed = false;
-		} else {
 			iterator.remove();
-		}
   }
 
 	@Override

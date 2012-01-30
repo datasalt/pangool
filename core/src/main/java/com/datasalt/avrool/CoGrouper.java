@@ -6,14 +6,10 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.mapred.AvroJob;
-import org.apache.avro.mapred.AvroKey;
-import org.apache.avro.mapred.AvroKeyComparator;
 import org.apache.avro.mapred.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
@@ -25,7 +21,7 @@ import com.datasalt.avrool.api.CombinerHandler;
 import com.datasalt.avrool.api.GroupHandler;
 import com.datasalt.avrool.api.GroupHandlerWithRollup;
 import com.datasalt.avrool.api.InputProcessor;
-import com.datasalt.avrool.io.AvroUtils;
+import com.datasalt.avrool.mapreduce.GroupComparator;
 import com.datasalt.avrool.mapreduce.Partitioner;
 import com.datasalt.avrool.mapreduce.SimpleCombiner;
 import com.datasalt.avrool.mapreduce.SimpleReducer;
@@ -195,7 +191,7 @@ public class CoGrouper {
 		AvroJob.setMapOutputSchema(conf, pairSchema);
 		Job job = new Job(conf);
 		
-		List<String> partitionerFields;
+		//List<String> partitionerFields;
 
 		if(config.getRollupFrom() != null) {
 			throw new CoGrouperException("Rollup not supported by now!! This is a complete mess!!");
@@ -211,13 +207,13 @@ public class CoGrouper {
 			//job.setReducerClass(RollupReducer.class);
 		} else {
 			// Simple grouper
-			partitionerFields = config
-			    .getGroupByFields();
+			//partitionerFields = config
+			//    .getGroupByFields();
 			job.setReducerClass(SimpleReducer.class);
 		}
 
 		// Set fields to partition by in Hadoop Configuration
-		Partitioner.setPartitionerFields(job.getConfiguration(), partitionerFields);
+		//Partitioner.setPartitionerFields(job.getConfiguration(), partitionerFields);
 
 		if(combinerHandler != null) {
 			job.setCombinerClass(SimpleCombiner.class); // not rollup by now 
@@ -235,7 +231,7 @@ public class CoGrouper {
 //		job.setMapOutputKeyClass(AvroKey.class);
 //		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(Partitioner.class);
-		job.setGroupingComparatorClass(AvroKeyComparator.class); //TODO this is not correct
+		job.setGroupingComparatorClass(GroupComparator.class); //TODO this is not correct
 		//job.setSortComparatorClass(AvroKeyComparator.class);
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);

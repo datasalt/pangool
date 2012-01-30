@@ -26,6 +26,9 @@ public class GroupHandlerProxyRecord implements GenericRecord,Comparable<GroupHa
 	public void setContainedRecord(GenericRecord contained) throws CoGrouperException{
 		this.contained = contained;
 		this.unionRecord = (GenericRecord)contained.get(SerializationInfo.UNION_FIELD_NAME);
+		//String i = Integer.toHexString(System.identityHashCode(unionRecord));
+		//System.out.println("Union record : " + i);
+		
 		String source = unionRecord.getSchema().getFullName();
 		this.destinationSchema = config.getSchemaBySource(source);
 		if (this.destinationSchema == null){

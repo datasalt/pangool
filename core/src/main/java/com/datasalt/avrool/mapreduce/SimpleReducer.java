@@ -32,6 +32,8 @@ import com.datasalt.avrool.CoGrouper;
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperConfigBuilder;
 import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.FilterRecord;
+import com.datasalt.avrool.SerializationInfo;
 import com.datasalt.avrool.api.GroupHandler;
 import com.datasalt.avrool.api.GroupHandler.CoGrouperContext;
 import com.datasalt.avrool.api.GroupHandler.Collector;
@@ -42,7 +44,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<AvroKey, Av
 	protected CoGrouperConfig grouperConfig;
 	protected Collector<OUTPUT_KEY, OUTPUT_VALUE> collector;
 	protected RecordIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
-	protected Record groupTuple; // Tuple view over the group
+	protected FilterRecord groupTuple; // Tuple view over the group
 	protected CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context;
 
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
@@ -52,6 +54,8 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<AvroKey, Av
 		try {
 			Configuration conf = context.getConfiguration();
 			this.grouperConfig = CoGrouperConfig.get(conf);
+			SerializationInfo serInfo = SerializationInfo.get(grouperConfig);
+			this.groupTuple = new FilterRecord(serInfo.getGroupSchema());
 			this.context = new CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE>(context, grouperConfig);
 			//TODO 
 			//this.groupTuple = new FilteredReadOnlyTuple(grouperConfig.getGroupByFields());
@@ -98,16 +102,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<AvroKey, Av
 	    InterruptedException {
 		Iterator<AvroValue> iterator = values.iterator();
 		grouperIterator.setIterator(iterator);
-
-		// We get the firts tuple, to create the groupTuple view
-		//iterator.next();
-		//GenericRecord firstTupleGroup = (GenericRecord) context.getCurrentKey().datum();
-
-		// we consumed the first element , so needs to comunicate to iterator
-		//grouperIterator.setFirstTupleConsumed(true);
-
-		// A view is created over the first tuple to give the user the group fields
-		//groupTuple.setDelegatedTuple(firstTupleGroup);
+		groupTuple.setContained((GenericRecord)key.datum());
 		callHandler(context);
 	}
 

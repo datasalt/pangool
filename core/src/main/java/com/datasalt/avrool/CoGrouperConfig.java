@@ -44,6 +44,21 @@ public class CoGrouperConfig {
 	public List<String> getGroupByFields() {
   	return groupByFields;
   }
+	
+	public List<String> getRollupBaseFields(){
+		if (rollupFrom == null){
+			return getGroupByFields();
+		}
+		
+		List<String> result = new ArrayList<String>();
+		for (SortElement element : commonOrdering.getElements()){
+			result.add(element.getName());
+			if (element.getName().equals(rollupFrom)){
+				break;
+			}
+		}
+		return result;
+	}
 
 	public String getRollupFrom() {
   	return rollupFrom;
