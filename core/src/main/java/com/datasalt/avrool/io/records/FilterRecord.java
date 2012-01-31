@@ -54,9 +54,9 @@ public class FilterRecord implements GenericRecord, Comparable<FilterRecord> {
 	public boolean equals(Object o) {
 		if(o == this)
 			return true; // identical object
-		if(!(o instanceof MapperProxyRecord))
+		if(!(o instanceof FilterRecord))
 			return false; // not a record
-		Record that = (Record) o;
+		FilterRecord that = (FilterRecord) o;
 		if(!schema.getFullName().equals(that.getSchema().getFullName()))
 			return false; // not the same schema
 		return GenericData.get().compare(this, that, schema) == 0;
@@ -108,27 +108,27 @@ public class FilterRecord implements GenericRecord, Comparable<FilterRecord> {
 	@Override
 	public Object get(String key) {
 		Field f = schema.getField(key);
-		if (posTranslation != null){
+		//if (posTranslation != null){
 			// enhaced version
 			return (f == null) ? null : contained.get(posTranslation[f.pos()]);	
-		} else {
-			//slow version
-			return (f == null) ? null : contained.get(f.name());
-		}
+//		} else {
+//			//slow version
+//			return (f == null) ? null : contained.get(f.name());
+//		}
 	}
 	
 	@Override
 	public Object get(int i) {
-		if (posTranslation == null){
-			//slow version
-			String fieldName = schema.getFields().get(i).name();
-			return contained.get(fieldName);
-		} else {
+//		if (posTranslation == null){
+//			//slow version
+//			String fieldName = schema.getFields().get(i).name();
+//			return contained.get(fieldName);
+//		} else {
 			//enhanced version
 			return contained.get(posTranslation[i]);	
 		}
 		
 
-	}
+	
 
 }

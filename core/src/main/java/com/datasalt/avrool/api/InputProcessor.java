@@ -50,21 +50,24 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		//private SerializationInfo serInfo;
 		private CoGrouperConfig grouperConfig;
 		private NullWritable outputValue = NullWritable.get();
+		private PangoolKey<MapperProxyRecord> pangoolKeyInstance;//TODO wrong!!! this is not thread safe!!! just for tests
 		
+//		private ThreadLocal<MapperProxyRecord> mapperProxyRecord = new ThreadLocal<MapperProxyRecord>() {
+//
+//			@Override
+//			protected MapperProxyRecord initialValue() {
+//				return new MapperProxyRecord(grouperConfig);
+//			}
+//		};
 		
-		private ThreadLocal<MapperProxyRecord> mapperProxyRecord = new ThreadLocal<MapperProxyRecord>() {
-
-			@Override
-			protected MapperProxyRecord initialValue() {
-				return new MapperProxyRecord(grouperConfig);
-			}
-		};
-		
-		private ThreadLocal<PangoolKey> pangoolKey = new ThreadLocal<PangoolKey>() {
+		private ThreadLocal<PangoolKey<MapperProxyRecord>> FACTORY_PANGOOL_KEY = new ThreadLocal<PangoolKey<MapperProxyRecord>>() {
 
 			@Override
 			protected PangoolKey initialValue() {
-				return new PangoolKey();
+				PangoolKey<MapperProxyRecord> result = new PangoolKey<MapperProxyRecord>();
+				MapperProxyRecord proxy = new MapperProxyRecord(grouperConfig);
+				result.datum(proxy);
+				return result;
 			}
 		};
 		
@@ -78,18 +81,22 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 			} catch(CoGrouperException e){
 				throw new RuntimeException(e); 
 			}
+			this.pangoolKeyInstance = FACTORY_PANGOOL_KEY.get(); //TODO wrong!!! this is not thread safe!!! just for tests
 		}
 
 		
 		public void write(GenericRecord tuple) throws IOException, InterruptedException {
-			MapperProxyRecord outputRecord  = mapperProxyRecord.get();
+			//MapperProxyRecord outputRecord  = mapperProxyRecord.get();
+			//PangoolKey outputKey = FACTORY_PANGOOL_KEY.get();
+			PangoolKey<MapperProxyRecord> outputKey = pangoolKeyInstance; //TODO wrong! this is not thread safe!!! just for tests purposes
+			MapperProxyRecord outputRecord = outputKey.datum();
 			try{
 				outputRecord.setContainedRecord(tuple);
 			} catch(CoGrouperException e){
 				throw new IOException(e); 
 			}
-			PangoolKey outputKey = pangoolKey.get();
-			outputKey.datum(outputRecord);
+			//PangoolKey outputKey = FACTORY_PANGOOL_KEY.get();
+			//outputKey.datum(outputRecord);
 			context.write(outputKey,outputValue); 
 		}
 

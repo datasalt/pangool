@@ -23,33 +23,33 @@ public class MapperProxyRecord implements GenericRecord,Comparable<MapperProxyRe
 	private int[] currentParticularTranslation;
 	private int[] currentCommonTranslation;
 	private int unionRecordPos;
-	private CoGrouperConfig grouperConfig;
 	private boolean multiSource=false;
 	
 	public MapperProxyRecord(CoGrouperConfig grouperConfig){
-		this.grouperConfig = grouperConfig;
+		//this.grouperConfig = grouperConfig;
 		this.serInfo = grouperConfig.getSerializationInfo();
 		this.schema = serInfo.getIntermediateSchema();
 		if (schema == null || !Type.RECORD.equals(schema.getType())){
       throw new AvroRuntimeException("Not a record schema: "+schema);
 		}
 		this.positionMapping = serInfo.getMapperTranslation();
-		//System.out.println(positionMapping);
+
 		this.multiSource = grouperConfig.getNumSources () >=2 ;
 		if (multiSource){
 			Field unionField = schema.getField(SerializationInfo.UNION_FIELD_NAME);
 			this.unionRecordPos = unionField.pos();
 			this.unionRecord = new FilterRecord();
+		} else {
+			this.currentCommonTranslation = positionMapping.commonTranslation.values().iterator().next();
 		}
 	}
 	
 	public void setContainedRecord(GenericRecord contained) throws CoGrouperException{
 		this.contained = contained;
 		
-		String source = contained.getSchema().getFullName();
-		this.currentCommonTranslation = positionMapping.commonTranslation.get(source);
-		
 		if(multiSource){
+			String source = contained.getSchema().getFullName();
+			this.currentCommonTranslation = positionMapping.commonTranslation.get(source);
 			Schema particularSchema = serInfo.getParticularSchema(source);
 			this.currentParticularTranslation = positionMapping.particularTranslation.get(source);
 			if (particularSchema == null){
@@ -93,13 +93,6 @@ public class MapperProxyRecord implements GenericRecord,Comparable<MapperProxyRe
   public Object get(String key) {
 		Field f = schema.getField(key);
 		return get(f.pos());
-//		if (f == null){
-//			return null;
-//		} else if (f.name().equals(SerializationInfo.UNION_FIELD_NAME)){
-//			return unionRecord;
-//		} else {
-//			return contained.get(f.name());
-//		}
   }
 	
 	

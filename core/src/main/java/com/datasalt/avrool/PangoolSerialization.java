@@ -15,6 +15,7 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.mapred.AvroJob;
 import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Deserializer;
@@ -60,6 +61,7 @@ public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Con
   	//TODO check this
   	DatumReader<T> datumReader = new SpecificDatumReader<T>(intermediateSchema);
   	
+  	
     return new PangoolDeserializer(datumReader,isDoubleBuffered);
   }
   
@@ -104,7 +106,9 @@ public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Con
   
   /** Returns the specified output serializer. */
   public Serializer<PangoolKey<T>> getSerializer(Class<PangoolKey<T>> c) {
-    return new PangoolSerializer(new ReflectDatumWriter<T>(intermediateSchema));
+  	SpecificDatumWriter writer = new SpecificDatumWriter<T>(intermediateSchema);
+  	return new PangoolSerializer(writer);
+    //return new PangoolSerializer(new ReflectDatumWriter<T>(intermediateSchema));
   }
 
   private class PangoolSerializer implements Serializer<PangoolKey<T>> {
@@ -119,6 +123,7 @@ public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Con
 
     public void open(OutputStream out) {
       this.out = out;
+      //this.encoder = new EncoderFactory().directBinaryEncoder(out, null);
       this.encoder = new EncoderFactory().configureBlockSize(512)
           .binaryEncoder(out, null);
     }
@@ -128,10 +133,12 @@ public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Con
       // would be a lot faster if the Serializer interface had a flush()
       // method and the Hadoop framework called it when needed rather
       // than for every record.
+      
       encoder.flush();
     }
 
     public void close() throws IOException {
+    	//encoder.flush();
       out.close();
     }
   }

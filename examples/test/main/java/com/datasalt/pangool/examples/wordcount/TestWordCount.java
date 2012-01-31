@@ -1,6 +1,6 @@
 package com.datasalt.pangool.examples.wordcount;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,9 +11,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
-import com.datasalt.pangool.commons.HadoopUtils;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.commons.HadoopUtils;
+import com.datasalt.avrool.examples.wordcount.AvroolWordCount;
 import com.google.common.io.Files;
 
 public class TestWordCount {
@@ -22,10 +22,10 @@ public class TestWordCount {
 	private final static String OUTPUT = "test-output-" + TestWordCount.class.getName();
 	
 	@Test
-	public void test() throws IOException, InvalidFieldException, CoGrouperException, InterruptedException, ClassNotFoundException {
+	public void test() throws IOException,  InterruptedException, ClassNotFoundException, CoGrouperException {
 		Files.write("a b b c c c\nd d d d", new File(INPUT), Charset.forName("UTF-8"));
 		Configuration conf = new Configuration();
-		WordCount wordCount = new WordCount();
+		AvroolWordCount wordCount = new AvroolWordCount();
 		wordCount.getJob(conf, INPUT, OUTPUT).waitForCompletion(true);
 		
 		String[][] output = new String[4][];
