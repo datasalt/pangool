@@ -47,7 +47,8 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	public static final class Collector extends MultipleOutputsCollector {
 		
 		private Mapper.Context context;
-		private SerializationInfo serInfo;
+		//private SerializationInfo serInfo;
+		private CoGrouperConfig grouperConfig;
 		private NullWritable outputValue = NullWritable.get();
 		
 		
@@ -55,7 +56,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 
 			@Override
 			protected MapperProxyRecord initialValue() {
-				return new MapperProxyRecord(serInfo);
+				return new MapperProxyRecord(grouperConfig);
 			}
 		};
 		
@@ -72,8 +73,8 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 			super(context);
 			this.context = context;
 			try {
-				CoGrouperConfig config = CoGrouperConfig.get(context.getConfiguration());
-				this.serInfo = SerializationInfo.get(config);
+				this.grouperConfig = CoGrouperConfig.get(context.getConfiguration());
+				//this.serInfo = SerializationInfo.get(config);
 			} catch(CoGrouperException e){
 				throw new RuntimeException(e); 
 			}
@@ -125,6 +126,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		try {
 			Configuration conf = context.getConfiguration();
 			CoGrouperConfig pangoolConfig = CoGrouperConfig.get(conf);
+			
 			this.context = new CoGrouperContext(context, pangoolConfig);
 			this.collector = new Collector(context);
 			setup(this.context, this.collector);

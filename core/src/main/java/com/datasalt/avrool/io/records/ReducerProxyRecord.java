@@ -26,29 +26,37 @@ public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxy
 	private PositionMapping posMapping;
 	private int[] currentCommonMapping;
 	private int[] currentParticularMapping;
+	private boolean multiSource=false;
 	
 	public ReducerProxyRecord(CoGrouperConfig  config){
 			this.config = config;
+			this.multiSource = config.getNumSources() >= 2;
 		try{
 			this.serInfo = SerializationInfo.get(config);
 			this.posMapping = serInfo.getReducerTranslation();
 		} catch(CoGrouperException e){
 			throw new RuntimeException(e);
 		}
+		
+		if (!multiSource){
+			String source = config.getSchemasBySource().keySet().iterator().next();
+			this.schema = config.getSchemaBySource(source);
+			this.currentCommonMapping = posMapping.commonTranslation.get(source);
+		}
 	}
 	
 	public void setContainedRecord(GenericRecord contained) throws CoGrouperException{
 		this.contained = contained;
-		this.unionRecord = (GenericRecord)contained.get(SerializationInfo.UNION_FIELD_NAME);
-		String source = unionRecord.getSchema().getFullName();
-		this.schema = config.getSchemaBySource(source);
-		if (this.schema == null){
-			throw new CoGrouperException("Not known source with name '" + source + "'");
+		if (multiSource){
+			this.unionRecord = (GenericRecord)contained.get(SerializationInfo.UNION_FIELD_NAME);
+			String source = unionRecord.getSchema().getFullName();
+			this.schema = config.getSchemaBySource(source);
+			if (this.schema == null){
+				throw new CoGrouperException("Not known source with name '" + source + "'");
+			}
+			this.currentCommonMapping = posMapping.commonTranslation.get(source);
+			this.currentParticularMapping = posMapping.particularTranslation.get(source);
 		}
-		
-		this.currentCommonMapping = posMapping.commonTranslation.get(source);
-		this.currentParticularMapping = posMapping.particularTranslation.get(source);
-		
 		
 	}
 	
@@ -63,10 +71,11 @@ public class ReducerProxyRecord implements GenericRecord,Comparable<ReducerProxy
 		int commonPos = currentCommonMapping[i];
 		if (commonPos >=0){
 			return contained.get(commonPos);
-		} else {
+		} else if (multiSource){
 			int particularPos = currentParticularMapping[i];
 			return unionRecord.get(particularPos);
 		}
+		throw new ArrayIndexOutOfBoundsException("No field with index=" +i);
 
   }
 

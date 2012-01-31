@@ -52,19 +52,25 @@ public class SerializationInfo {
 		}
 		
 		public Schema getIntermediateSchema(){
-			List<Schema> unionSchemas = new ArrayList<Schema>();
-			for (Map.Entry<String, Schema> entry : particularSchemas.entrySet()){
-			}
 			
-			unionSchemas.addAll(particularSchemas.values());
 			List<Field> fields = new ArrayList<Field>();
 			for (Field commonField : commonSchema.getFields()){
 				fields.add(AvroUtils.cloneField(commonField));
 			}
 			
-			Field unionField =new Field(UNION_FIELD_NAME,Schema.createUnion(unionSchemas),null,null,interSourcesOrder); 
-			fields.add(unionField);
-			
+			if (particularSchemas != null && !particularSchemas.isEmpty()){
+				List<Schema> unionSchemas = new ArrayList<Schema>();
+				unionSchemas.addAll(particularSchemas.values());
+				Field unionField =new Field(UNION_FIELD_NAME,Schema.createUnion(unionSchemas),null,null,interSourcesOrder); 
+				fields.add(unionField);
+			}
+//			} else if (particularSchemas.size() == 1){
+//				Schema particularSchema = particularSchemas.values().iterator().next();
+//				for (Field commonField : particularSchema.getFields()){
+//					fields.add(AvroUtils.cloneField(commonField));
+//				}
+//				
+//			}
 			Schema result = Schema.createRecord(INTERMEDIATE_SCHEMA_NAME,null,REGULAR_NAMESPACE,false);
 			result.setFields(fields);
 			return result;
@@ -121,21 +127,24 @@ public class SerializationInfo {
 			for (Map.Entry<String,Schema> entry : grouperConfig.getSchemasBySource().entrySet()){
 				String sourceName = entry.getKey();
 				Schema sourceSchema = entry.getValue();
-				Schema particularSchema = particularSchemas.get(sourceName);
 				commonTranslation.put(sourceName,new int[numCommonFields]);
-				particularTranslation.put(sourceName,new int[particularSchema.getFields().size()]);
+				
+				Schema particularSchema = null;
+				if (particularSchemas != null && !particularSchemas.isEmpty()){
+					particularSchema = particularSchemas.get(sourceName);
+					particularTranslation.put(sourceName,new int[particularSchema.getFields().size()]);
+				}
 				for (Field f: sourceSchema.getFields()){
 					int posSource = f.pos();
 					Field interField =interSchema.getField(f.name());
 					if (interField != null){
 						int posInter = interField.pos();
 						commonTranslation.get(sourceName)[posInter] = posSource;
-					} else {
+					} else if (particularSchema != null){
 						int posParticular = particularSchema.getField(f.name()).pos();
 						particularTranslation.get(sourceName)[posParticular] = posSource; 
 					}
 				}
-				//source++;
 			}
 			
 			return new PositionMapping(commonTranslation, particularTranslation);
@@ -143,7 +152,7 @@ public class SerializationInfo {
 		
 		
 		public PositionMapping getReducerTranslation(){
-			//int numCommonFields = commonSchema.getFields().size();
+
 			Map<String,int[]> commonTranslation = new HashMap<String,int[]>();
 			Map<String,int[]> particularTranslation = new HashMap<String,int[]>();
 			
@@ -151,33 +160,82 @@ public class SerializationInfo {
 			for (Map.Entry<String,Schema> entry : grouperConfig.getSchemasBySource().entrySet()){
 				String sourceName = entry.getKey();
 				Schema sourceSchema = entry.getValue();
-				Schema particularSchema = particularSchemas.get(sourceName);
 				commonTranslation.put(sourceName,new int[sourceSchema.getFields().size()]);
-				particularTranslation.put(sourceName,new int[sourceSchema.getFields().size()]);
+				
+				Schema particularSchema = null;
+				if (particularSchemas != null && !particularSchemas.isEmpty()){
+					particularSchema = particularSchemas.get(sourceName);
+					particularTranslation.put(sourceName,new int[sourceSchema.getFields().size()]);
+				}
 				for (Field f: sourceSchema.getFields()){
 					int posSource = f.pos();
 					Field interField =interSchema.getField(f.name());
 					if (interField != null){
 						int posInter = interField.pos();
 						commonTranslation.get(sourceName)[posSource] = posInter;
-					} else {
+					} else if (particularSchema != null){
 						commonTranslation.get(sourceName)[posSource] = -1;
 						int posParticular = particularSchema.getField(f.name()).pos();
 						particularTranslation.get(sourceName)[posSource] = posParticular; 
 					}
 				}
-				//source++;
 			}
-			
 			return new PositionMapping(commonTranslation, particularTranslation);
 		}
 		
 		
 		
+	private static SerializationInfo buildMonoSource(CoGrouperConfig conf) throws CoGrouperException {
+		SerializationInfo result = new SerializationInfo();
+		result.grouperConfig = conf;
+		result.interSourcesOrder = conf.interSourcesOrdering;
+		//TODO check that the fields in groupBy are in common ordering
+		List<Field> groupFields = new ArrayList<Field>();
+		List<Field> partitionerFields = new ArrayList<Field>();
+		List<Field> commonSchemaFields = new ArrayList<Field>();
+
+		Schema sourceSchema = conf.schemasBySource.values().iterator().next();
+		 
+		
+		for (SortElement element : conf.commonOrdering.getElements()){
+			String fieldName = element.getName();
+			Field field = sourceSchema.getField(fieldName);
+			if (field == null){
+				throw new CoGrouperException("Field '" + fieldName + "' not present in source.Source:"+ sourceSchema ); 
+			}
+			Schema  schemaType=field.schema(); 
+			commonSchemaFields.add(new Field(fieldName,schemaType,null,null,element.getOrder()));
+			if (conf.getGroupByFields().contains(fieldName)){
+				groupFields.add(new Field(fieldName,schemaType,null,null,element.getOrder()));
+			}
+			if (conf.getRollupBaseFields().contains(fieldName)){
+				partitionerFields.add(new Field(fieldName,schemaType,null,null,element.getOrder()));
+			}
+		}
+		
+		for (Field f : sourceSchema.getFields()){
+			if (!containsField(commonSchemaFields, f.name())){
+				commonSchemaFields.add(new Field(f.name(),f.schema(),null,null,Order.IGNORE));
+			}
+		}
+		result.commonSchema = Schema.createRecord(commonSchemaFields);
+		result.groupSchema = Schema.createRecord(groupFields);
+		result.partitionerSchema = Schema.createRecord(partitionerFields);
+		result.particularSchemas = null;
+		return result;
+		
+	}
+	
+	public static SerializationInfo get(CoGrouperConfig grouperConfig) throws CoGrouperException{
+		if (grouperConfig.getNumSources() >= 2){
+			return buildMultipleSources(grouperConfig);
+		} else {
+			return buildMonoSource(grouperConfig);
+		}
+	}
 	
 	
-	
-	public static SerializationInfo get(CoGrouperConfig conf) throws CoGrouperException{
+	private static SerializationInfo buildMultipleSources(CoGrouperConfig conf) throws CoGrouperException{
 
 		SerializationInfo result = new SerializationInfo();
 		result.grouperConfig = conf;

@@ -8,6 +8,7 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericData.Record;
 
+import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperException;
 import com.datasalt.avrool.SerializationInfo;
 import com.datasalt.avrool.SerializationInfo.PositionMapping;
@@ -22,34 +23,41 @@ public class MapperProxyRecord implements GenericRecord,Comparable<MapperProxyRe
 	private int[] currentParticularTranslation;
 	private int[] currentCommonTranslation;
 	private int unionRecordPos;
+	private CoGrouperConfig grouperConfig;
+	private boolean multiSource=false;
 	
-	public MapperProxyRecord(SerializationInfo ser){
-		this.serInfo = ser;
+	public MapperProxyRecord(CoGrouperConfig grouperConfig){
+		this.grouperConfig = grouperConfig;
+		this.serInfo = grouperConfig.getSerializationInfo();
 		this.schema = serInfo.getIntermediateSchema();
-		this.positionMapping = serInfo.getMapperTranslation();
-		//System.out.println(positionMapping);
-		this.unionRecordPos = schema.getField(SerializationInfo.UNION_FIELD_NAME).pos();
-		
 		if (schema == null || !Type.RECORD.equals(schema.getType())){
       throw new AvroRuntimeException("Not a record schema: "+schema);
 		}
-		
-		unionRecord = new FilterRecord();
+		this.positionMapping = serInfo.getMapperTranslation();
+		//System.out.println(positionMapping);
+		this.multiSource = grouperConfig.getNumSources () >=2 ;
+		if (multiSource){
+			Field unionField = schema.getField(SerializationInfo.UNION_FIELD_NAME);
+			this.unionRecordPos = unionField.pos();
+			this.unionRecord = new FilterRecord();
+		}
 	}
 	
 	public void setContainedRecord(GenericRecord contained) throws CoGrouperException{
 		this.contained = contained;
 		
 		String source = contained.getSchema().getFullName();
-		this.currentParticularTranslation = positionMapping.particularTranslation.get(source);
 		this.currentCommonTranslation = positionMapping.commonTranslation.get(source);
 		
-		Schema particularSchema = serInfo.getParticularSchema(source);
-		if (particularSchema == null){
-			throw new CoGrouperException("Intermediate schema has no source '" + source + "' present in schema " + schema);
+		if(multiSource){
+			Schema particularSchema = serInfo.getParticularSchema(source);
+			this.currentParticularTranslation = positionMapping.particularTranslation.get(source);
+			if (particularSchema == null){
+				throw new CoGrouperException("Intermediate schema has no source '" + source + "' present in schema " + schema);
+			}
+			this.unionRecord.setSchema(particularSchema);
+			this.unionRecord.setContained(contained,currentParticularTranslation);
 		}
-		this.unionRecord.setSchema(particularSchema);
-		this.unionRecord.setContained(contained,currentParticularTranslation);
 		
 	}
 	
@@ -62,7 +70,7 @@ public class MapperProxyRecord implements GenericRecord,Comparable<MapperProxyRe
 	@Override
   public Object get(int i) {
 	  Field f = schema.getFields().get(i);
-	  if (f.pos() == unionRecordPos){
+	  if (multiSource && f.pos() == unionRecordPos){
 	  	return unionRecord;
 	  } else {
 	  	int translatePos = currentCommonTranslation[i];

@@ -30,9 +30,28 @@ public class CoGrouperConfig {
 	private List<String> groupByFields;
 	private String rollupFrom;
 	
+	private SerializationInfo serInfo;
+	
 	CoGrouperConfig() {
 	}
+	
+	public SerializationInfo getSerializationInfo(){
+		if (serInfo == null){
+			try{
+				this.serInfo = SerializationInfo.get(this);
+			} catch(Exception e){
+				throw new RuntimeException(e);
+			}
+		}
+		return this.serInfo;
+	}
 
+	public int getNumSources(){
+		return schemasBySource.size();
+	}
+
+	
+	
 	void setCommonOrdering(Ordering ordering) {
 		this.commonOrdering = ordering;
 	}
