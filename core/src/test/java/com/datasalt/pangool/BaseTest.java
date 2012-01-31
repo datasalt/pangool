@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Random;
 
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.VIntWritable;
@@ -35,7 +36,7 @@ public abstract class BaseTest extends AbstractBaseTest {
 	}
 
 	/**
-	 * Fills the fields specified by the range (minIndex,maxIndex) with random data.
+	 * Fills the fields specified by the range (minIndex, maxIndex) with random data.
 	 * 
 	 */
 	protected static void fillTuple(boolean isRandom, Schema schema, ITuple tuple, int minIndex, int maxIndex) {
@@ -43,35 +44,34 @@ public abstract class BaseTest extends AbstractBaseTest {
 			Random random = new Random();
 			for(int i = minIndex; i <= maxIndex; i++) {
 				Field field = schema.getField(i);
-				String fieldName = field.getName();
 				Class fieldType = field.getType();
 				if(fieldType == Integer.class || fieldType == VIntWritable.class) {
-					tuple.setInt(fieldName, isRandom ? random.nextInt() : 0);
+					tuple.setInt(i, isRandom ? random.nextInt() : 0);
 				} else if(fieldType == Long.class || fieldType == VLongWritable.class) {
-					tuple.setLong(fieldName, isRandom ? random.nextLong() : 0);
+					tuple.setLong(i, isRandom ? random.nextLong() : 0);
 				} else if(fieldType == Boolean.class) {
-					tuple.setBoolean(fieldName, isRandom ? random.nextBoolean() : false);
+					tuple.setBoolean(i, isRandom ? random.nextBoolean() : false);
 				} else if(fieldType == Double.class) {
-					tuple.setDouble(fieldName, isRandom ? random.nextDouble() : 0.0);
+					tuple.setDouble(i, isRandom ? random.nextDouble() : 0.0);
 				} else if(fieldType == Float.class) {
-					tuple.setFloat(fieldName, isRandom ? random.nextFloat() : 0f);
+					tuple.setFloat(i, isRandom ? random.nextFloat() : 0f);
 				} else if(fieldType == String.class) {
 					if(!isRandom || random.nextBoolean()) {
-						tuple.setString(fieldName, "");
+						tuple.setString(i, Utf8.getBytesFor(""));
 					} else {
-						tuple.setString(fieldName, random.nextLong() + "");
+						tuple.setString(i, Utf8.getBytesFor(random.nextLong() + ""));
 					}
 				} else if(fieldType.isEnum()) {
           Method method = fieldType.getMethod("values", (Class[])null);
 					Enum[] values = (Enum[]) method.invoke(null);
-					tuple.setEnum(fieldName, values[isRandom ? random.nextInt(values.length) : 0]);
+					tuple.setEnum(i, values[isRandom ? random.nextInt(values.length) : 0]);
 				} else {
 					boolean toInstance = random.nextBoolean();
 					if(isRandom && toInstance) {
 						Object instance = ReflectionUtils.newInstance(fieldType, null);
-						tuple.setObject(fieldName, instance);
+						tuple.setObject(i, instance);
 					} else {
-						tuple.setObject(fieldName, null);
+						tuple.setObject(i, null);
 					}
 				}
 			}

@@ -136,7 +136,7 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 		List<Pair<Object, Object>> outs = ensureTupleOutput(output);
 		for(Pair<Object, Object> out: outs) {
 			ITuple theTuple = (ITuple)out.getFirst();
-			if(theTuple.equals(tuple)) {
+			if(theTuple.toString().equals(tuple.toString())) {
 				return;
 			}
 		}
@@ -150,7 +150,7 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 		for(Pair<Object, Object> inOutput : outs) {
 			System.err.println("Output entry -> Tuple: " + inOutput.getFirst());
 		}
-		throw new AssertionError("Not found in output -> Tuple: " + tuple);
+		throw new AssertionError("Not found in output -> Tuple: " + tuple + ". Found tuples: " + outs);
 	}
 
 	public void withOutput(String output, Object key, Object value) throws IOException, ClassNotFoundException,
@@ -184,7 +184,7 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 			AvroWrapper<Record> wrapper = new AvroWrapper<Record>();
 			while(reader.hasNext()) {
 				wrapper.datum(reader.next(wrapper.datum()));
-				Tuple tuple = new Tuple();
+				Tuple tuple = new Tuple(reader.getSchema().getFields().size());
 				AvroUtils.toTuple(wrapper.datum(), tuple, reader.getSchema());
 				outs.add(new Pair<Object, Object>(tuple, NullWritable.get()));
 			}

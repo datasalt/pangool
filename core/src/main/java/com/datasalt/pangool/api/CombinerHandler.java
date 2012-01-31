@@ -8,7 +8,6 @@ import org.apache.hadoop.mapreduce.ReduceContext;
 
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.api.GroupHandler.StaticCoGrouperContext;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -33,35 +32,23 @@ public class CombinerHandler implements Serializable {
 	/* ------------ INNER CLASSES ------------ */	
 	
 	/**
-	 * A class for collecting data inside a {@link CombinerHandler}
+	 * A class for collecting data inside a {@link CombinerHandler}.
+	 * Warning: Not thread safe by default... If you want thread safe, TODO
 	 */
 	public static final class Collector {
 		
     private ReduceContext<ITuple, NullWritable, ITuple, NullWritable> context;
 
-    private ThreadLocal<DoubleBufferedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedTuple>() {
-
-    	@Override
-      protected DoubleBufferedTuple initialValue() {
-	      return new DoubleBufferedTuple();
-      }
-    };
+    private DoubleBufferedTuple cachedSourcedTuple = new DoubleBufferedTuple();
+    private NullWritable nullWritable = NullWritable.get();
     
 		public Collector(CoGrouperConfig pangoolConfig, ReduceContext<ITuple, NullWritable, ITuple, NullWritable> context){
 			this.context = context;
 		}
 		
     public void write(ITuple tuple) throws IOException,InterruptedException {
-			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
-			sTuple.setContainedTuple(tuple);
-			context.write(sTuple, NullWritable.get());
-		}
-		
-    public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
-			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
-			sTuple.setContainedTuple(tuple);
-			sTuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);		
-			context.write(sTuple, NullWritable.get());
+    	cachedSourcedTuple.setContainedTuple(tuple);
+			context.write(cachedSourcedTuple, nullWritable);
 		}
 	}
   

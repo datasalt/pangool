@@ -1,11 +1,14 @@
 package com.datasalt.pangool;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
@@ -104,7 +107,7 @@ public class CoGrouperConfigBuilder {
 		for(Schema schema : schemas) {
 			if(count == 0) {
 				// First schema has all common fields
-				commonFields.addAll(schema.getFields());
+				commonFields.addAll(Arrays.asList(schema.getFields()));
 			} else {
 				// The rest of schemas are tested against the (so far) common fields
 				Iterator<Field> iterator = commonFields.iterator();
@@ -181,6 +184,15 @@ public class CoGrouperConfigBuilder {
 			specificOrderedSchemas.put(schema.getKey(), new Schema(specificSchema));
 			
 			config.setSpecificOrderedSchemas(specificOrderedSchemas);
+		}
+		
+		config.setnSchemas(schemas.size());
+		// In the case of a single schema, we optimize the serialization by having a single common ordered schema:
+		if(config.getnSchemas() == 1 && config.getSpecificOrderedSchemas().size() == 1) {
+			List<Field> newCommonOrderedSchema = new ArrayList<Field>();
+			newCommonOrderedSchema.addAll(Arrays.asList(config.getCommonOrderedSchema().getFields()));
+			newCommonOrderedSchema.addAll(Arrays.asList(config.getSpecificOrderedSchemas().values().iterator().next().getFields()));
+			config.setCommonOrderedSchema(new Schema(newCommonOrderedSchema));
 		}		
 		
 		return config;
@@ -226,9 +238,11 @@ public class CoGrouperConfigBuilder {
 					    + "] has non-existent field [" + sortElement.getFieldName() + "]");
 				}
 				// We also check that specific sorting fields are not included in common sorting
-				if(config.getSorting().getSortCriteria().getSortElementByFieldName(sortElement.getFieldName()) != null) {
-					throw new CoGrouperException("Specific secondary sort for schema [" + schemaId
-					    + "] has already added field to common sorting [" + sortElement.getFieldName() + "]");					
+				for(SortElement element: config.getSorting().getSortCriteria().getSortElements()) {
+					if(element.getFieldName().equals(sortElement.getFieldName())) {
+						throw new CoGrouperException("Specific secondary sort for schema [" + schemaId
+						    + "] has already added field to common sorting [" + sortElement.getFieldName() + "]");											
+					}
 				}
 			}
 		}

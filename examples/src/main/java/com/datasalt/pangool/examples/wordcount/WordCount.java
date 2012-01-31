@@ -1,6 +1,7 @@
 package com.datasalt.pangool.examples.wordcount;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
@@ -14,7 +15,6 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
@@ -28,21 +28,22 @@ import com.datasalt.pangool.io.tuple.Tuple;
 
 public class WordCount {
 
-	private static final String WORD_FIELD = "word";
-	private static final String COUNT_FIELD = "count";
-
+	private static final int WORD_FIELD = 0;
+	private static final int COUNT_FIELD = 1;
+	public final static Charset UTF8 = Charset.forName("UTF-8");
+	
 	@SuppressWarnings("serial")
 	public static class Split extends InputProcessor<LongWritable, Text> {
 
-		Tuple tuple = new Tuple();
-
+		Tuple tuple = new Tuple(2);
+		
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
 			StringTokenizer itr = new StringTokenizer(value.toString());
 			tuple.setInt(COUNT_FIELD, 1);
 			while(itr.hasMoreTokens()) {
-				tuple.setString(WORD_FIELD, itr.nextToken());
+				tuple.setString(WORD_FIELD, itr.nextToken().getBytes(UTF8));
 				collector.write(tuple);
 			}
 		}
@@ -51,18 +52,17 @@ public class WordCount {
 	@SuppressWarnings("serial")
 	public static class CountCombiner extends CombinerHandler {
 
-		Tuple tuple = new Tuple();
+		Tuple tuple = new Tuple(2);
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
-
 			int count = 0;
-			this.tuple.setString(WORD_FIELD, group.getString(WORD_FIELD));
+			tuple.setString(WORD_FIELD, group.getString(WORD_FIELD));
 			for(ITuple tuple : tuples) {
-				count += tuple.getInt(COUNT_FIELD);
+				count += (Integer) tuple.getArray()[1];
 			}
-			this.tuple.setInt(COUNT_FIELD, count);
+			tuple.setInt(COUNT_FIELD, count);
 			collector.write(this.tuple);
 		}
 	}
@@ -70,14 +70,25 @@ public class WordCount {
 	@SuppressWarnings("serial")
 	public static class Count extends GroupHandler<Text, IntWritable> {
 
+		IntWritable countToEmit;
+		Text text;
+		
+		public void setup(CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
+		    CoGrouperException {
+			countToEmit = new IntWritable();
+			text = new Text();
+		};
+
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
 			int count = 0;
 			for(ITuple tuple : tuples) {
-				count += tuple.getInt(COUNT_FIELD);
+				count += (Integer) tuple.getArray()[1];
 			}
-			collector.write(new Text(group.getString(WORD_FIELD)), new IntWritable(count));
+			countToEmit.set(count);
+			text.set(group.getString(WORD_FIELD));
+			collector.write(text, countToEmit);
 		}
 	}
 
@@ -86,11 +97,12 @@ public class WordCount {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);
 
-		CoGrouperConfig config = new CoGrouperConfigBuilder()
-		    .addSchema(0, Schema.parse(WORD_FIELD + ":string, " + COUNT_FIELD + ":int")).setGroupByFields(WORD_FIELD)
-		    .setSorting(new SortingBuilder().add(WORD_FIELD).buildSorting()).build();
+		CoGrouperConfigBuilder config = new CoGrouperConfigBuilder();
+		config.addSchema(0, Schema.parse("word:string, count:int"));
+		config.setGroupByFields("word");
+		config.setSorting(new SortingBuilder().add("word").buildSorting()).build();
 
-		CoGrouper cg = new CoGrouper(config, conf);
+		CoGrouper cg = new CoGrouper(config.build(), conf);
 		cg.setJarByClass(WordCount.class);
 		cg.addInput(new Path(input), TextInputFormat.class, new Split());
 		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class, Text.class);

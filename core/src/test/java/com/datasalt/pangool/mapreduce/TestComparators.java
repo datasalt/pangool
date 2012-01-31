@@ -1,8 +1,8 @@
 package com.datasalt.pangool.mapreduce;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -13,17 +13,14 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
-import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.VLongWritable;
-import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.BaseTest;
-import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
+import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SchemaBuilder;
@@ -36,6 +33,7 @@ import com.datasalt.pangool.io.Serialization;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
  * This tests either {@link SortComparator} or {@link MyAvroGroupComparator}.It checks that the binary comparison is coherent
@@ -53,7 +51,7 @@ public class TestComparators extends BaseTest {
 		Random random = new Random();
 		Configuration conf = getConf();
 
-		int maxIndex = SCHEMA.getFields().size() - 1;
+		int maxIndex = SCHEMA.getFields().length - 1;
 
 		Map<String, Class> customComparators = new HashMap<String, Class>();
 		customComparators.put("thrift_field", AComparator.class);
@@ -64,8 +62,9 @@ public class TestComparators extends BaseTest {
 			Sorting sortCriteria = createRandomSortCriteria(schema, customComparators, maxIndex + 1);
 			String[] groupFields = getFirstFields(sortCriteria.getSortCriteria(), random.nextInt(sortCriteria.getSortCriteria().getSortElements().length));
 
-			DoubleBufferedTuple base1 = new DoubleBufferedTuple();
-			DoubleBufferedTuple base2 = new DoubleBufferedTuple();
+			int nFields = SCHEMA.getFields().length;
+			DoubleBufferedTuple base1 = new DoubleBufferedTuple(new Tuple(nFields), new Tuple(nFields));
+			DoubleBufferedTuple base2 = new DoubleBufferedTuple(new Tuple(nFields), new Tuple(nFields));
 
 			DoubleBufferedTuple[] tuples = new DoubleBufferedTuple[] { base1, base2 };
 			for(ITuple tuple: tuples) {
@@ -221,7 +220,7 @@ public class TestComparators extends BaseTest {
 	 * Creates a copy of the schema with the fields shuffled.
 	 */
 	private static Schema permuteSchema(Schema schema) {
-		List<Field> fields = schema.getFields();
+		List<Field> fields = Arrays.asList(schema.getFields());
 		List<Field> permutedFields = new ArrayList<Field>(fields);
 		Collections.shuffle(permutedFields);
 		SchemaBuilder builder = new SchemaBuilder();

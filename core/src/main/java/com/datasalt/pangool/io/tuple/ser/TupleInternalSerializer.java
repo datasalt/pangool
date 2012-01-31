@@ -21,8 +21,6 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
@@ -35,6 +33,7 @@ import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.Serialization;
+import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITupleInternal;
 
 class TupleInternalSerializer implements Serializer<ITupleInternal> {
@@ -42,13 +41,13 @@ class TupleInternalSerializer implements Serializer<ITupleInternal> {
 	private Serialization ser;
 
 	private DataOutputStream out;
-	private CoGrouperConfig pangoolConfig;
+	private CoGrouperConfig coGrouperConfig;
 	private Text text = new Text();
 
 	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 
 	TupleInternalSerializer(Serialization ser, CoGrouperConfig pangoolConfig) {
-		this.pangoolConfig = pangoolConfig;
+		this.coGrouperConfig = pangoolConfig;
 		this.ser = ser;
 	}
 
@@ -57,87 +56,54 @@ class TupleInternalSerializer implements Serializer<ITupleInternal> {
 	}
 
 	public void serialize(ITupleInternal tuple) throws IOException {
-		write(tuple, out);
+		// First we write common schema
+		Schema commonSchema = coGrouperConfig.getCommonOrderedSchema();
+		int sourceId = write(commonSchema, tuple, 0, this.out);
+
+		if(coGrouperConfig.getnSchemas() > 1) {
+			// Now we write specific part if needed.
+			Schema schema = coGrouperConfig.getSpecificOrderedSchema(sourceId);
+			write(schema, tuple, commonSchema.getFields().length, this.out);
+		}
 	}
 
 	public void close() throws IOException {
 		this.out.close();
 	}
 
-	private static void throwIOIfNull(String field, Object element) throws IOException {
-		if(element == null) {
-			throw new IOException("Field '" + field + "' can't be null");
-		}
-	}
-
-	public void write(ITupleInternal tuple, DataOutput output) throws IOException {
-		// First we write common schema
-		Schema commonSchema = pangoolConfig.getCommonOrderedSchema();
-		int presentFields = 0;
-		presentFields += write(commonSchema, tuple, output);
-
-		// Now we write specific part if needed.
-		presentFields += writeSpecificPart(tuple, output);
-
-		if(tuple.size() > presentFields) {
-			raiseExceptionWrongFields(pangoolConfig.getSchema(tuple), tuple);
-		}
-	}
-
-	/**
-	 * Writes the specific part of the tuple. Return number of present fields
-	 */
-	public int writeSpecificPart(ITupleInternal tuple, DataOutput output) throws IOException {
-		int sourceId = pangoolConfig.getSourceId(tuple);
-		Schema schema = pangoolConfig.getSpecificOrderedSchemas().get(sourceId);
-		return write(schema, tuple, output);
-	}
-
-	public int write(Schema schema, ITupleInternal tuple, DataOutput output) throws IOException {
-		int presentFields = 0;
+	public int write(Schema schema, ITuple tuple, int index, DataOutput output) throws IOException {
+		int sourceId = 0;
 		for(Field field : schema.getFields()) {
 			String fieldName = field.getName();
 			if(fieldName == Field.SOURCE_ID_FIELD_NAME) {
-				WritableUtils.writeVInt(output, tuple.getInt(Field.SOURCE_ID_FIELD_NAME));
-				presentFields++;
+				sourceId = tuple.getInt(index);
+				WritableUtils.writeVInt(output, sourceId);
 				continue;
 			}
 			Class<?> fieldType = field.getType();
-			Object element = tuple.getObject(fieldName);
-			if(element != null) {
-				presentFields++;
-			}
+			Object element;
+			element = tuple.getArray()[index];
 			try {
 				if(fieldType == VIntWritable.class) {
-					throwIOIfNull(fieldName, element);
 					WritableUtils.writeVInt(output, (Integer) element);
 				} else if(fieldType == VLongWritable.class) {
-					throwIOIfNull(fieldName, element);
 					WritableUtils.writeVLong(output, (Long) element);
 				} else if(fieldType == Integer.class) {
-					throwIOIfNull(fieldName, element);
 					output.writeInt((Integer) element);
 				} else if(fieldType == Long.class) {
-					throwIOIfNull(fieldName, element);
 					output.writeLong((Long) element);
 				} else if(fieldType == Double.class) {
-					throwIOIfNull(fieldName, element);
 					output.writeDouble((Double) element);
 				} else if(fieldType == Float.class) {
-					throwIOIfNull(fieldName, element);
 					output.writeFloat((Float) element);
 				} else if(fieldType == String.class) {
-					if(element == null) {
-						element = "";
-					}
-					text.set((String) element);
+					byte[] bytes = (byte[]) element;
+					text.set(bytes, 0, bytes.length);
 					text.write(output);
 				} else if(fieldType == Boolean.class) {
-					throwIOIfNull(fieldName, element);
 					output.write((Boolean) element ? 1 : 0);
 				} else if(fieldType.isEnum()) {
 					Enum<?> e = (Enum<?>) element;
-					throwIOIfNull(fieldName, element);
 					if(e.getClass() != fieldType) {
 						throw new IOException("Field '" + fieldName + "' contains '" + element + "' which is "
 						    + element.getClass().getName() + ".The expected type is " + fieldType.getName());
@@ -156,35 +122,9 @@ class TupleInternalSerializer implements Serializer<ITupleInternal> {
 			} catch(ClassCastException e) {
 				throw new IOException("Field '" + fieldName + "' contains '" + element + "' which is "
 				    + element.getClass().getName() + ".The expected type is " + fieldType.getName());
-			}
-		} // end for
-
-		return presentFields;
+			} // end for
+			index++;
+		} 
+		return sourceId;
 	}
-
-	private void raiseExceptionWrongFields(Schema schema, ITupleInternal tuple) throws IOException {
-		List<String> wrongFields = new ArrayList<String>();
-		for(String field : tuple.keySet()) {
-			if(!schema.containsFieldName(field)) {
-				wrongFields.add(field);
-			}
-		}
-		String fieldsConcated = concat(wrongFields, ",");
-		throw new IOException("Tuple contains fields that don't belong to schema: [" + fieldsConcated + "]. Schema: ["
-		    + schema + "]");
-	}
-
-	private String concat(List<String> list, String separator) {
-		if(list == null || list.isEmpty()) {
-			return "";
-		} else {
-			StringBuilder b = new StringBuilder();
-			b.append(list.get(0));
-			for(int i = 1; i < list.size(); i++) {
-				b.append(separator).append(list.get(i));
-			}
-			return b.toString();
-		}
-	}
-
 }

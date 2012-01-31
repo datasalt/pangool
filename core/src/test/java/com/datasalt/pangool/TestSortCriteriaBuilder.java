@@ -58,8 +58,8 @@ public class TestSortCriteriaBuilder {
 		builder.add("otherField", SortOrder.DESC, comparator.getClass());
 		SortCriteria sortCriteria = builder.buildSortCriteria();
 		Assert.assertNotNull(sortCriteria);
-		Assert.assertEquals(SortOrder.ASC, sortCriteria.getSortElementByFieldName("oneField").getSortOrder());
-		Assert.assertEquals(SortOrder.DESC, sortCriteria.getSortElementByFieldName("otherField").getSortOrder());
-		Assert.assertEquals(comparator.getClass(), sortCriteria.getSortElementByFieldName("otherField").getComparator());
+		Assert.assertEquals(SortOrder.ASC, sortCriteria.getSortElements()[0].getSortOrder());
+		Assert.assertEquals(SortOrder.DESC, sortCriteria.getSortElements()[1].getSortOrder());
+		Assert.assertEquals(comparator.getClass(), sortCriteria.getSortElements()[1].getComparator());
 	}
 }

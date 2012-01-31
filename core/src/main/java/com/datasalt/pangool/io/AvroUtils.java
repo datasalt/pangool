@@ -25,10 +25,10 @@ public class AvroUtils {
 			conf.setStrings("io.serializations", serializations.toArray(new String[0]));
 		}
 	}
-	
+
 	public static org.apache.avro.Schema toAvroSchema(Schema pangoolSchema) {
 		List<org.apache.avro.Schema.Field> avroFields = new ArrayList<org.apache.avro.Schema.Field>();
-		for(Field field: pangoolSchema.getFields()) {
+		for(Field field : pangoolSchema.getFields()) {
 			org.apache.avro.Schema fieldsSchema = null;
 			if(field.getType().equals(String.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.STRING);
@@ -46,25 +46,30 @@ public class AvroUtils {
 				fieldsSchema = org.apache.avro.Schema.create(Type.DOUBLE);
 			} else if(field.getType().equals(Boolean.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.BOOLEAN);
-			} 
+			}
 			// TODO Complex types
 			avroFields.add(new org.apache.avro.Schema.Field(field.getName(), fieldsSchema, null, null));
 		}
 
 		org.apache.avro.Schema avroSchema = org.apache.avro.Schema.createRecord("pangool", null, null, false);
-		avroSchema.setFields(avroFields);	
+		avroSchema.setFields(avroFields);
 		return avroSchema;
 	}
-	
-	public static void toTuple(Record record,ITuple tuple,org.apache.avro.Schema schema) {
-		for(org.apache.avro.Schema.Field field: schema.getFields()) {
+
+	public static void toTuple(Record record, ITuple tuple, org.apache.avro.Schema schema) {
+		int index = 0;
+		for(org.apache.avro.Schema.Field field : schema.getFields()) {
 			Object obj = record.get(field.name());
 			if(obj instanceof Utf8) {
-				tuple.setString(field.name(), ((Utf8)obj).toString());
+				Utf8 utf8 = (Utf8) obj;
+				byte[] bytes = new byte[utf8.getByteLength()];
+				System.arraycopy((Object) utf8.getBytes(), 0, (Object) bytes, 0, utf8.getByteLength());
+				tuple.setString(index, bytes);
 			} else if(obj instanceof Comparable) {
-				tuple.setObject(field.name(), obj);
+				tuple.setObject(index, obj);
 			}
 			// TODO Complex types
+			index++;
 		}
 	}
 }

@@ -50,7 +50,9 @@ public class SimpleCombiner extends Reducer<ITuple, NullWritable, ITuple, NullWr
 	public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
+			log.info("Getting CoGrouper config.");
 			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
+			log.info("Getting CoGrouper config done.");
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.grouperIterator = new TupleIterator<ITuple, NullWritable>(context);
 
@@ -62,7 +64,6 @@ public class SimpleCombiner extends Reducer<ITuple, NullWritable, ITuple, NullWr
 			collector = new Collector(pangoolConfig, context);
 			this.context = handler.new CoGrouperContext(context, pangoolConfig);
 			handler.setup(this.context, collector);
-
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}

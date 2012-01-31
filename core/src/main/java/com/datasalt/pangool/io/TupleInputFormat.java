@@ -27,7 +27,7 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> {
 		private long start;
 		private long end;
 
-		Tuple tuple = new Tuple();
+		Tuple tuple;
 		AvroWrapper<Record> wrapper;
 
 		protected TupleInputReader() throws IOException, InterruptedException {
@@ -81,6 +81,9 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> {
 				return false;
 						
 			wrapper.datum(reader.next(wrapper.datum()));
+			if(tuple == null) {
+				tuple = new Tuple(reader.getSchema().getFields().size());
+			}
 			AvroUtils.toTuple(wrapper.datum(), tuple, reader.getSchema());
 
 			return true;

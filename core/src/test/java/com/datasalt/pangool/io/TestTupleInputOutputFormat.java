@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 
 import junit.framework.Assert;
 
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -40,13 +41,13 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
 	public static class MyInputProcessor extends InputProcessor<LongWritable, Text> {
 
     private static final long serialVersionUID = 1L;
-		Tuple tuple = new Tuple();
+		Tuple tuple = new Tuple(2);
 
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
 
-			tuple.setString("title", "title");
-			tuple.setString("content", value.toString());
+			tuple.setString(0, Utf8.getBytesFor("title"));
+			tuple.setString(1, Utf8.getBytesFor(value.toString()));
 			collector.write(tuple);
 		}
 	}
@@ -60,7 +61,7 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
 		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
 
 			for(ITuple tuple : tuples) {
-				collector.write(new Text(tuple.getString("title")), new Text(tuple.getString("content")));
+				collector.write(new Text(tuple.getString(0)), new Text(tuple.getString(1)));
 			}
 		}
 	}

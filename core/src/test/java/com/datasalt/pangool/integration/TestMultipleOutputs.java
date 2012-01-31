@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
@@ -46,14 +47,14 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
 
-			Tuple tuple = new Tuple();
-			tuple.setString("name", "Pere");
-			tuple.setInt("money", 100);
-			tuple.setString("country", "ES");
+			Tuple tuple = new Tuple(3);
+			tuple.setString(0, Utf8.getBytesFor("Pere"));
+			tuple.setInt(1, 100);
+			tuple.setString(2, Utf8.getBytesFor("ES"));
 
 			// We use the multiple outputs here -
-			collector.write(OUTPUT_1, new Text(tuple.getString("name")), new Text(tuple.getString("country")));
-			collector.write(OUTPUT_2, new IntWritable(tuple.getInt("money")), NullWritable.get());
+			collector.write(OUTPUT_1, new Text(tuple.getString(0)), new Text(tuple.getString(2)));
+			collector.write(OUTPUT_2, new IntWritable(tuple.getInt(1)), NullWritable.get());
 			collector.write(TUPLEOUTPUT_1, tuple, NullWritable.get());
 
 			collector.write(tuple);
@@ -70,8 +71,8 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 
 			for(ITuple tuple : tuples) {
 				// We also use the multiple outputs here -
-				collector.write(OUTPUT_1, new Text(tuple.getString("name")), new Text(tuple.getString("country")));
-				collector.write(OUTPUT_2, new IntWritable(tuple.getInt("money")), NullWritable.get());
+				collector.write(OUTPUT_1, new Text(tuple.getString(0)), new Text(tuple.getString(2)));
+				collector.write(OUTPUT_2, new IntWritable(tuple.getInt(1)), NullWritable.get());
 				collector.write(TUPLEOUTPUT_1, tuple, NullWritable.get());
 			}
 
@@ -88,7 +89,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 
 		// Define schema and sorting
 		Schema baseSchema = Schema.parse("name:string, money:int, country:string");
-		Sorting sorting = Sorting.parse("country asc, name asc, money desc");
+		Sorting sorting = Sorting.parse("country asc, money desc, name asc");
 
 		CoGrouperConfigBuilder config = new CoGrouperConfigBuilder();
 		config.setSchema(baseSchema);
@@ -121,10 +122,10 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		withOutput(firstReducerOutput(OUTPUT + "/" + OUTPUT_2), new IntWritable(100), NullWritable.get());
 		withOutput(firstMapOutput(OUTPUT + "/" + OUTPUT_2), new IntWritable(100), NullWritable.get());
 
-		Tuple tuple = new Tuple();
-		tuple.setString("name", "Pere");
-		tuple.setInt("money", 100);
-		tuple.setString("country", "ES");
+		Tuple tuple = new Tuple(3);
+		tuple.setString(0, Utf8.getBytesFor("Pere"));
+		tuple.setInt(1, 100);
+		tuple.setString(2, Utf8.getBytesFor("ES"));
 		
 		withTupleOutput(firstMapOutput(OUTPUT + "/" + TUPLEOUTPUT_1), tuple);
 		withTupleOutput(firstReducerOutput(OUTPUT + "/" + TUPLEOUTPUT_1), tuple);

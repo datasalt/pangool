@@ -22,11 +22,11 @@ public class TestSortingBuilder {
 			.secondarySort(2).add("taste", SortOrder.ASC)
 			.buildSorting();
 		Assert.assertNotNull(sorting);
-		Assert.assertEquals(SortOrder.ASC, sorting.getSortCriteria().getSortElementByFieldName("url").getSortOrder());
-		Assert.assertEquals(SortOrder.DESC, sorting.getSortCriteria().getSortElementByFieldName("date").getSortOrder());
-		Assert.assertEquals(SortOrder.ASC, sorting.getSpecificCriteriaByName(1).getSortElementByFieldName("name").getSortOrder());
-		Assert.assertEquals(SortOrder.DESC, sorting.getSpecificCriteriaByName(1).getSortElementByFieldName("surname").getSortOrder());
-		Assert.assertEquals(SortOrder.ASC, sorting.getSpecificCriteriaByName(2).getSortElementByFieldName("taste").getSortOrder());		
+		Assert.assertEquals(SortOrder.ASC, sorting.getSortCriteria().getSortElements()[0].getSortOrder());
+		Assert.assertEquals(SortOrder.DESC, sorting.getSortCriteria().getSortElements()[1].getSortOrder());
+		Assert.assertEquals(SortOrder.ASC, sorting.getSpecificCriteriaByName(1).getSortElements()[0].getSortOrder());
+		Assert.assertEquals(SortOrder.DESC, sorting.getSpecificCriteriaByName(1).getSortElements()[1].getSortOrder());
+		Assert.assertEquals(SortOrder.ASC, sorting.getSpecificCriteriaByName(2).getSortElements()[0].getSortOrder());		
 	}
 	
 	@Test(expected = CoGrouperException.class)

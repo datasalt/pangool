@@ -1,12 +1,7 @@
 package com.datasalt.pangool.io.tuple;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A {@link ITuple} with a delegated one, but that creates a
@@ -30,83 +25,6 @@ public class FilteredReadOnlyTuple implements ITuple {
 	private Object fail() {
 		throw new RuntimeException("Trying to modify a read only tuple. This is not allowed");
 	}
-	
-	@Override
-  public boolean isEmpty() {
-		return delegated.isEmpty();
-  }
-
-	@Override
-  public boolean containsKey(Object key) {
-		return filter.contains(key) ? delegated.containsKey(key) : false;
-  }
-
-	@Override
-  public boolean containsValue(Object value) {
-		for (Entry<String, Object> entry : delegated.entrySet()) {
-			
-			if (entry.getValue().equals(value) && 
-					!filter.contains(entry.getKey())) {
-				return true;
-			}
-		}
-		return false;
-  }
-
-	@Override
-  public Object get(Object key) {
-	  return (filter.contains(key)) ? delegated.get(key) : null;
-  }
-
-	@Override
-  public Object put(String key, Object value) {
-	  return fail();
-  }
-
-	@Override
-  public Object remove(Object key) {
-	  return fail();
-  }
-
-	@Override
-  public void putAll(Map<? extends String, ? extends Object> m) {
-		fail();
-	}
-
-	@Override
-  public void clear() {
-		fail();
-  }
-
-	@Override
-  public Set<String> keySet() {
-		Set<String> intersect =  new HashSet<String>(delegated.keySet());
-		intersect.retainAll(filter);
-		return Collections.unmodifiableSet(intersect);
-  }
-
-	@Override
-  public Collection<Object> values() {
-		ArrayList<Object> vals = new ArrayList<Object>();
-		for(String field: filter) {
-			Object value = delegated.get(field);
-			if (value != null) {
-				vals.add(value);
-			}
-		}
-	  return Collections.unmodifiableCollection(vals);
-  }
-
-	@Override
-  public Set<java.util.Map.Entry<String, Object>> entrySet() {
-		HashSet<java.util.Map.Entry<String, Object>> newSet = new HashSet<java.util.Map.Entry<String, Object>>();
-		for(Entry<String, Object> entry: delegated.entrySet()) {
-			if (filter.contains(entry.getKey())) {
-				newSet.add(entry);
-			}
-		}
-	  return Collections.unmodifiableSet(newSet);
-  }
 
 	@Override
   public int compareTo(ITuple o) {
@@ -114,7 +32,7 @@ public class FilteredReadOnlyTuple implements ITuple {
   }
 
 	@Override
-  public int partialHashCode(String[] fields) {
+  public int partialHashCode(int fields) {
 	  return delegated.partialHashCode(fields);
   }
 
@@ -124,102 +42,108 @@ public class FilteredReadOnlyTuple implements ITuple {
   }
 
 	@Override
-  public Integer getInt(String fieldName) {
-	  return (filter.contains(fieldName) ? delegated.getInt(fieldName) : null);
+  public Integer getInt(int pos) {
+	  return (filter.contains(pos) ? delegated.getInt(pos) : null);
   }
 
 	@Override
-  public Long getLong(String fieldName) {
-	  return (filter.contains(fieldName) ? delegated.getLong(fieldName) : null);
+  public Long getLong(int pos) {
+	  return (filter.contains(pos) ? delegated.getLong(pos) : null);
   }
 
 	@Override
-  public Float getFloat(String fieldName) {
-	  return (filter.contains(fieldName) ? delegated.getFloat(fieldName) : null);
+  public Float getFloat(int pos) {
+	  return (filter.contains(pos) ? delegated.getFloat(pos) : null);
   }
 
 	@Override
-  public Double getDouble(String fieldName) {
-	  return (filter.contains(fieldName) ? delegated.getDouble(fieldName) : null);
+  public Double getDouble(int pos) {
+	  return (filter.contains(pos) ? delegated.getDouble(pos) : null);
   }
 
 	@Override
-  public String getString(String fieldName) {
-	  return delegated.getString(fieldName);
+  public byte[] getString(int pos) {
+	  return delegated.getString(pos);
   }
 
 	@Override
-  public Object getObject(String fieldName) {
-	  return delegated.getObject(fieldName);
+  public Object getObject(int pos) {
+	  return delegated.getObject(pos);
   }
 
 	@Override
-  public <T> T getObject(Class<T> clazz, String fieldName) {
-	  return delegated.getObject(clazz, fieldName);
+  public <T> T getObject(Class<T> clazz, int pos) {
+	  return delegated.getObject(clazz, pos);
   }
 
 	@Override
-  public Enum<? extends Enum<?>> getEnum(String fieldName) {
-	  return delegated.getEnum(fieldName);
+  public Enum<? extends Enum<?>> getEnum(int pos) {
+	  return delegated.getEnum(pos);
   }
 
 	@Override
-  public void setEnum(String fieldName, Enum<? extends Enum<?>> value) {
+  public void setEnum(int pos, Enum<? extends Enum<?>> value) {
 		fail();
 	}
 
 	@Override
-  public void setInt(String fieldName, int value) {
+  public void setInt(int pos, int value) {
 		fail();
 	}
 
 	@Override
-  public void setString(String fieldName, String value) {
+  public void setString(int pos, byte[] value) {
 		fail();
 	}
 
 	@Override
-  public void setLong(String fieldName, long value) {
+  public void setLong(int pos, long value) {
 		fail();
 	}
 
 	@Override
-  public void setFloat(String fieldName, float value) {
+  public void setFloat(int pos, float value) {
 		fail();
 	}
 
 	@Override
-  public void setDouble(String fieldName, double value) {
+  public void setDouble(int pos, double value) {
 		fail();
 	}
 
 	@Override
-  public void setBoolean(String fieldName, boolean value) {
+  public void setBoolean(int pos, boolean value) {
 		fail();
 	}
 
 	@Override
-  public void setObject(String fieldName, Object object) {
+  public void setObject(int pos, Object object) {
 		fail();
 	}
 
 	@Override
-  public <T> void setObject(Class<T> valueType, String fieldName, T value) {
+  public <T> void setObject(Class<T> valueType, int pos, T value) {
 		fail();
 	}
 
 	
 	@Override
 	public String toString(){
-		List<String> list = new ArrayList<String>(filter);
-		return delegated.toString(list);
+		return delegated.toString();
 	}
 
 	@Override
-  public String toString(Collection<String> fields) {
-		Set<String> set = new HashSet<String>(filter);
-		set.retainAll(fields);
-		List<String> fields2 = new ArrayList<String>(set);
-	  return delegated.toString(fields2);
+  public void clear() {
+		delegated.clear();
+	}
+
+	@Override
+  public Object[] getArray() {
+	  return delegated.getArray();
   }
+	
+	@Override
+	public void setArray(Object[] array) {
+		fail();
+	}
 }

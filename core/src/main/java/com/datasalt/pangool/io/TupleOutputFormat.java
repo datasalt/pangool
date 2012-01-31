@@ -7,6 +7,7 @@ import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.mapred.AvroOutputFormat;
 import org.apache.avro.reflect.ReflectDatumWriter;
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
@@ -16,7 +17,6 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
@@ -57,8 +57,12 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
 		@Override
 		public void write(ITuple tuple, NullWritable ignore) throws IOException, InterruptedException {
 			// Convert Tuple to Record
-			for(Field field : pangoolSchema.getFields()) {
-				record.put(field.getName(), tuple.getObject(field.getName()));
+			for(int i = 0; i < pangoolSchema.getFields().length; i++) {
+				Object obj = tuple.getObject(i);
+				if(obj instanceof byte[]) {
+					obj = new Utf8((byte[])obj).toString();
+				}
+				record.put(pangoolSchema.getField(i).getName(), obj);
 			}
 			writer.append(record);
 		}

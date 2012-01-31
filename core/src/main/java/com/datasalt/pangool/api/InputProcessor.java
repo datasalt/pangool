@@ -24,10 +24,9 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.MapContext;
 import org.apache.hadoop.mapreduce.Mapper;
 
-import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
-import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
@@ -99,37 +98,26 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	/* ------------ INNER CLASSES ------------ */
 	
 	/**
-	 * Class for collecting data inside a {@link InputProcessor}
+	 * Class for collecting data inside a {@link InputProcessor}.
+	 * Warning: Default Collector is no thread safe. If you want thread, safe... TODO
 	 */
 	public static class Collector extends MultipleOutputsCollector {
 
 		private Mapper.Context context;
-		private ThreadLocal<DoubleBufferedTuple> cachedSourcedTuple = new ThreadLocal<DoubleBufferedTuple>() {
-
-			@Override
-			protected DoubleBufferedTuple initialValue() {
-				return new DoubleBufferedTuple();
-			}
-		};
-
+		private DoubleBufferedTuple cachedSourcedTuple = new DoubleBufferedTuple();
+			
+		private NullWritable nullWritable;
+		
 		Collector(Mapper.Context context) {
 			super(context);
 			this.context = context;
+			nullWritable = NullWritable.get();
 		}
 
 		@SuppressWarnings("unchecked")
-    public void write(ITuple tuple) throws IOException, InterruptedException {
-			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
-			sTuple.setContainedTuple(tuple);
-			context.write(sTuple, NullWritable.get());
-		}
-
-		@SuppressWarnings("unchecked")
-    public void write(int sourceId, ITuple tuple) throws IOException, InterruptedException {
-			DoubleBufferedTuple sTuple = cachedSourcedTuple.get();
-			sTuple.setContainedTuple(tuple);
-			sTuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);
-			context.write(sTuple, NullWritable.get());
+    public synchronized void write(ITuple tuple) throws IOException, InterruptedException {
+			cachedSourcedTuple.setContainedTuple(tuple);
+			context.write(cachedSourcedTuple, nullWritable);
 		}
 	}
 	

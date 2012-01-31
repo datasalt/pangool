@@ -22,6 +22,8 @@ import java.util.Iterator;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
@@ -35,6 +37,8 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 
 	public final static String CONF_REDUCER_HANDLER = SimpleReducer.class.getName() + ".reducer.handler";
 
+	public final static Logger log = LoggerFactory.getLogger(SimpleReducer.class);
+	
 	// Following variables protected to be shared by Combiners
 	protected CoGrouperConfig pangoolConfig;
 	protected GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
@@ -48,7 +52,9 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
   public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
+			log.info("Getting CoGrouper config.");
 			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
+			log.info("Getting CoGrouper config done.");
 			
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);

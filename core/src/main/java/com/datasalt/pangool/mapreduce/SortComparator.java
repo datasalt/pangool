@@ -9,9 +9,8 @@ import static org.apache.hadoop.io.WritableComparator.readVInt;
 import static org.apache.hadoop.io.WritableComparator.readVLong;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
@@ -20,7 +19,6 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.Schema;
@@ -28,34 +26,37 @@ import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria;
 import com.datasalt.pangool.SortCriteria.SortElement;
 import com.datasalt.pangool.SortCriteria.SortOrder;
+import com.datasalt.pangool.io.tuple.ITuple;
 
 @SuppressWarnings("rawtypes")
 public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	private Configuration conf;
-	protected CoGrouperConfig config; // so that MyAvroGroupComparator can access it
+	protected CoGrouperConfig config;
 
-	private Map<Class, RawComparator> instancedComparators;
-
+	private RawComparator[] instancedComparators;
+// TODO
+//	private Map<Integer, RawComparator[]> particularInstancedComparators; 
+	
 	protected SortCriteria commonCriteria;
 	protected Schema commonSchema;
-	
+
 	CoGrouperConfig getConfig() {
-  	return config;
-  }
+		return config;
+	}
 
 	/*
-	 * When comparing, we save the source Ids, if we find them
-	 * TODO: These tho variables does not seems thread safe. Solve!
+	 * When comparing, we save the source Ids, if we find them TODO: These two variables does not seems thread safe.
+	 * Solve!
 	 */
-	private Integer firstSourceId  = 0;
+	private Integer firstSourceId = 0;
 	private Integer secondSourceId = 0;
 
 	int offset1 = 0;
 	int offset2 = 0;
-	
+
 	int nSchemas = 0; // Cached number of schemas
-	
+
 	public SortComparator() {
 
 	}
@@ -64,20 +65,20 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * Called for each compare(), we must reset the source ids for both tuples
 	 */
 	private void resetSourceIds() {
-		firstSourceId  = 0;
+		firstSourceId = 0;
 		secondSourceId = 0;
 	}
-	
+
 	/**
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
 	@Override
 	public int compare(ITuple w1, ITuple w2) {
 		resetSourceIds();
-		
+
 		int fieldsToCompare = commonCriteria.getSortElements().length;
-		int commonCompare = compare(fieldsToCompare, commonSchema, commonCriteria, w1, w2);
-		
+		int commonCompare = compare(0, fieldsToCompare, commonSchema, commonCriteria, w1, w2);
+
 		if(commonCompare != 0) {
 			return commonCompare;
 		}
@@ -86,17 +87,14 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			// If we have only one schema, everything is common
 			return 0;
 		}
-		
+
 		// Otherwise, continue comparing
-		int firstSourceId = w1.getInt(Field.SOURCE_ID_FIELD_NAME);
-		
 		SortCriteria particularCriteria = config.getSorting().getSpecificCriteriaByName(firstSourceId);
 		if(particularCriteria != null) {
 			Schema particularSchema = config.getSpecificOrderedSchemas().get(firstSourceId);
-			fieldsToCompare = particularCriteria.getSortElements().length;
-			return compare(fieldsToCompare, particularSchema, particularCriteria, w1, w2);
+			return compare(fieldsToCompare, particularCriteria.getSortElements().length, particularSchema, particularCriteria, w1, w2);
 		}
-		
+
 		return 0;
 	}
 
@@ -104,26 +102,24 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
 	@SuppressWarnings("unchecked")
-	public int compare(int numFieldsToCompare, Schema schema, SortCriteria sortCriteria, ITuple tuple1, ITuple tuple2) {
-		
+	public int compare(int tupleOffset, int numFieldsToCompare, Schema schema, SortCriteria sortCriteria, ITuple tuple1, ITuple tuple2) {
+
 		for(int depth = 0; depth < numFieldsToCompare; depth++) {
 			Field field = schema.getField(depth);
-			String fieldName = field.getName();
-			SortElement sortElement = sortCriteria.getSortElementByFieldName(field.getName());
+			SortElement sortElement = sortCriteria.getSortElements()[depth];
 			SortOrder sort = SortOrder.ASC; // by default
 			RawComparator comparator = null;
-			
+
 			if(sortElement != null) {
 				sort = sortElement.getSortOrder();
-				comparator = instancedComparators.get(sortElement.getComparator());
-			} else {
-				throw new RuntimeException("Fatal error : Trying to sort by field '" + fieldName
-				    + "' but not present in sortCriteria:" + sortCriteria);
+			}
+			if(tupleOffset == 0) { // Raw comparators only for common fields by now TODO
+				comparator = instancedComparators[depth];
 			}
 			int comparison;
-			
-			Object object1 = tuple1.getObject(fieldName);
-			Object object2 = tuple2.getObject(fieldName);
+
+			Object object1 = tuple1.getObject(tupleOffset + depth);
+			Object object2 = tuple2.getObject(tupleOffset + depth);
 			
 			if(comparator != null) {
 				comparison = comparator.compare(object1, object2);
@@ -131,15 +127,19 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				comparison = compareObjects(object1, object2);
 			}
 
-			firstSourceId  = tuple1.getInt(Field.SOURCE_ID_FIELD_NAME);
-			firstSourceId  = (firstSourceId  == null ? 0 : firstSourceId);
-			secondSourceId = tuple2.getInt(Field.SOURCE_ID_FIELD_NAME);
-			secondSourceId = (secondSourceId == null ? 0 : secondSourceId);
-			
+			if(field.getName().equals(Field.SOURCE_ID_FIELD_NAME)) {
+				firstSourceId = tuple1.getInt(tupleOffset + depth);
+				secondSourceId = tuple2.getInt(tupleOffset + depth);
+			}
+
 			if(comparison != 0) {
 				return (sort == SortOrder.ASC) ? comparison : -comparison;
 			}
 		}
+
+		firstSourceId = (firstSourceId == null ? 0 : firstSourceId);
+		secondSourceId = (secondSourceId == null ? 0 : secondSourceId);
+
 		return 0;
 	}
 
@@ -148,7 +148,15 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * 
 	 */
 	@SuppressWarnings({ "unchecked" })
-	public static int compareObjects(Object element1, Object element2) {
+	public static int compareObjects(Object elem1, Object elem2) {
+		Object element1 = elem1;
+		Object element2 = elem2;
+		if(elem1 instanceof byte[]) {
+			element1 = new Utf8((byte[])elem1).toString();
+		}
+		if(elem2 instanceof byte[]) {
+			element2 = new Utf8((byte[])elem2).toString();
+		}
 		if(element1 == null) {
 			return (element2 == null) ? 0 : -1;
 		} else if(element2 == null) {
@@ -171,9 +179,9 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 		SortCriteria commonCriteria = config.getSorting().getSortCriteria();
 		Schema commonSchema = config.getCommonOrderedSchema();
-		int fieldsToCompare = commonCriteria.getSortElements().length;		
+		int fieldsToCompare = commonCriteria.getSortElements().length;
 
-		int commonCompare = compare(fieldsToCompare, commonSchema, commonCriteria, b1, s1, l1, b2, s2, l2);
+		int commonCompare = compare(0, fieldsToCompare, commonSchema, commonCriteria, b1, s1, l1, b2, s2, l2);
 
 		if(commonCompare != 0) {
 			return commonCompare;
@@ -183,28 +191,32 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			// If we have only one schema, everything is common
 			return 0;
 		}
-		
+
 		// Otherwise, continue comparing
 		SortCriteria particularCriteria = config.getSorting().getSpecificCriteriaByName(firstSourceId);
 		if(particularCriteria != null) {
 			Schema particularSchema = config.getSpecificOrderedSchemas().get(firstSourceId);
-			fieldsToCompare = particularCriteria.getSortElements().length;
-			return compare(fieldsToCompare, particularSchema, particularCriteria, b1, offset1, l1, b2, offset2, l2);
+			return compare(fieldsToCompare, particularCriteria.getSortElements().length, particularSchema, particularCriteria, b1, offset1, l1, b2, offset2, l2);
 		}
-		
+
 		return 0;
 	}
 
 	/**
 	 * Cache RawComparators
 	 */
-  private void instanceComparators() {
-		this.instancedComparators = new HashMap<Class, RawComparator>();
-		for(SortElement sortElement : config.getSorting().getSortCriteria().getSortElements()) {
+	private void instanceComparators() {
+		// Raw Comparators only for common fields by now TODO
+		SortCriteria criteria = config.getSorting().getSortCriteria();
+		this.instancedComparators = new RawComparator[criteria.getSortElements().length];
+		for(int i = 0; i < criteria.getSortElements().length; i++) {
+			SortElement sortElement = criteria.getSortElements()[i];
 			Class<? extends RawComparator> clazz = sortElement.getComparator();
 			if(clazz != null) {
 				RawComparator comparator = ReflectionUtils.newInstance(clazz, conf);
-				instancedComparators.put(clazz, comparator);
+				instancedComparators[i] = comparator;
+			} else {
+				instancedComparators[i] = null;
 			}
 		}
 	}
@@ -215,20 +227,22 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * @param fieldsToCompare
 	 * 
 	 */
-	public int compare(int fieldsToCompare, Schema schema, SortCriteria sortCriteria, byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-
+	public int compare(int tupleOffset, int fieldsToCompare, Schema schema, SortCriteria sortCriteria, byte[] b1, int s1, int l1,
+	    byte[] b2, int s2, int l2) {
 		try {
 			offset1 = s1;
 			offset2 = s2;
 			for(int depth = 0; depth < fieldsToCompare; depth++) {
-				Field field = schema.getFields().get(depth);
+				Field field = schema.getFields()[depth];
 				Class<?> type = field.getType();
-				SortElement sortElement = sortCriteria.getSortElementByFieldName(field.getName());
+				SortElement sortElement = sortCriteria.getSortElements()[depth];
 				SortOrder sort = SortOrder.ASC; // by default
 				RawComparator<?> comparator = null;
-				if(sortElement != null) {
-					sort = sortElement.getSortOrder();
-					comparator = instancedComparators.get(sortElement.getComparator());
+				if(sortElement != null) { // TODO It can be null?
+					sort = sortElement.getSortOrder();					
+				}
+				if(tupleOffset == 0 && sortElement != null) { // Raw Comparators only for common fields by now TODO
+					comparator = instancedComparators[depth];
 				}
 				if(comparator != null) {
 					// Provided specific Comparator
@@ -352,14 +366,14 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			 * Set PangoolConf
 			 */
 			try {
-	      config = CoGrouperConfigBuilder.get(conf);
-	      instanceComparators();
-	      nSchemas = config.getSchemes().values().size();
-	      commonCriteria = config.getSorting().getSortCriteria();
-	      commonSchema = config.getCommonOrderedSchema();
-      } catch(Exception e) {
-      	throw new RuntimeException(e);
-      } 
+				config = CoGrouperConfigBuilder.get(conf);
+				instanceComparators();
+				nSchemas = config.getSchemes().values().size();
+				commonCriteria = config.getSorting().getSortCriteria();
+				commonSchema = config.getCommonOrderedSchema();
+			} catch(Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 }

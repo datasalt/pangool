@@ -99,7 +99,7 @@ public class Schema {
 		}
 	}
 
-	private List<Field> fields;
+	private Field[] fields;
 
 	public static Class<?> strToClass(String str) throws ClassNotFoundException {
 		Class<?> clazz = (Class<?>) strClassMap.get(str);
@@ -121,7 +121,10 @@ public class Schema {
 	private Map<String, Integer> indexByFieldName = new HashMap<String, Integer>();
 
 	public Schema(List<Field> fields) {
-		this.fields = Collections.unmodifiableList(fields);
+		this.fields = new Field[fields.size()];
+		for(int i = 0; i < fields.size(); i++) {
+			this.fields[i] = fields.get(i);
+		}
 		int index = 0;
 		for(Field field : fields) {
 			this.indexByFieldName.put(field.getName(), index);
@@ -129,27 +132,27 @@ public class Schema {
 		}
 	}
 
-	public List<Field> getFields() {
+	public Field[] getFields() {
 		return fields;
 	}
 
 	public Field getField(String fieldName) {
 		int index = indexByFieldName(fieldName);
-		return fields.get(index);
+		return fields[index];
 	}
 
 	public Field getField(int i) {
-		return fields.get(i);
+		return fields[i];
 	}
 
 	public String serialize() {
 		StringBuilder b = new StringBuilder();
-		String fieldName = fields.get(0).name;
-		Class<?> fieldType = fields.get(0).type;
+		String fieldName = fields[0].name;
+		Class<?> fieldType = fields[0].type;
 		b.append(fieldName).append(":").append(classToStr(fieldType));
-		for(int i = 1; i < fields.size(); i++) {
-			fieldName = fields.get(i).name;
-			fieldType = fields.get(i).type;
+		for(int i = 1; i < fields.length; i++) {
+			fieldName = fields[i].name;
+			fieldType = fields[i].type;
 			String clazzStr = classToStr(fieldType);
 			if(clazzStr == null) {
 				clazzStr = fieldType.getName();

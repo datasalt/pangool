@@ -1,9 +1,7 @@
 package com.datasalt.pangool;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.hadoop.io.RawComparator;
 
@@ -82,7 +80,6 @@ public class SortCriteria {
 			if(sortElement.getFieldName().equals(Field.SOURCE_ID_FIELD_NAME)) {
 				this.hasSourceIdField = true;
 			}
-			this.sortElementsByName.put(sortElement.fieldName, sortElement);
 		}
 	}
 
@@ -90,23 +87,10 @@ public class SortCriteria {
   	return hasSourceIdField;
   }
 
-	void setSortElementsByName(Map<String, SortElement> sortElementsByName) {
-  	this.sortElementsByName = sortElementsByName;
-  }
-
 	private SortElement[] sortElements;
-	private Map<String, SortElement> sortElementsByName = new HashMap<String, SortElement>();
-
-	public SortElement getSortElementByFieldName(String name) {
-		return sortElementsByName.get(name);
-	}
 
 	public SortElement[] getSortElements() {
 		return sortElements;
-	}
-	
-	public Map<String, SortElement> getSortElementsByName() {
-		return sortElementsByName;
 	}
 
 	@SuppressWarnings("unchecked")

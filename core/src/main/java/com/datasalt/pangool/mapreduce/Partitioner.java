@@ -17,7 +17,7 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<ITuple,
 
 	@Override
 	public int getPartition(ITuple key, NullWritable value, int numPartitions) {
-		return key.partialHashCode(groupFields) % numPartitions;
+		return key.partialHashCode(groupFields.length) % numPartitions;
 	}
 
 	@Override

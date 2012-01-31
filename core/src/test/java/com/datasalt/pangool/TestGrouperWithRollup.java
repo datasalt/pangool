@@ -21,6 +21,7 @@ import java.util.Iterator;
 
 import junit.framework.Assert;
 
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
@@ -112,17 +113,17 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 	}
 
 	private static Tuple createTuple(String text) {
-		Tuple tuple = new Tuple();
+		Tuple tuple = new Tuple(4);
 		String[] tokens = text.split("\\s+");
 		String country = tokens[0];
 		Integer age = Integer.parseInt(tokens[1]);
 		String name = tokens[2];
 		Integer height = Integer.parseInt(tokens[3]);
 
-		tuple.setString("country", country);
-		tuple.setInt("age", age);
-		tuple.setString("name", name);
-		tuple.setInt("height", height);
+		tuple.setString(0, Utf8.getBytesFor(country));
+		tuple.setInt(1, age);
+		tuple.setString(2, Utf8.getBytesFor(name));
+		tuple.setInt(3, height);
 		return tuple;
 	}
 
@@ -145,8 +146,8 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 		Path outputPath = new Path(output);
 
 		CoGrouperConfigBuilder builder = new CoGrouperConfigBuilder();
-		builder.addSchema(0, Schema.parse("country:string,age:vint,name:string,height:int"));
-		builder.setSorting(Sorting.parse("country ASC,age ASC,name ASC"));
+		builder.addSchema(0, Schema.parse("country:string, age:vint, name:string, height:int"));
+		builder.setSorting(Sorting.parse("country ASC, age ASC, name ASC"));
 		builder.setRollupFrom("country");
 		builder.setGroupByFields("country", "age", "name");
 

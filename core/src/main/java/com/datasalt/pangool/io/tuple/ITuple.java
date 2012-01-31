@@ -15,61 +15,60 @@
  */
 package com.datasalt.pangool.io.tuple;
 
-import java.util.Collection;
-import java.util.Map;
-
 import com.datasalt.pangool.CoGrouperException;
 
 /**
  * This is the common interface implemented by {@link Tuple} and {@link DoubleBufferPangolinTuple}.
  * A Tuple is basically a map that can be used in Pangool for carrying data. 
  */
-public interface ITuple extends Map<String,Object>,Comparable<ITuple>{
+public interface ITuple extends Comparable<ITuple>{
 	
-	public int partialHashCode(String[] fields);
+	Object[] getArray();
+	
+	public void setArray(Object[] array);
+	
+	public void clear();
+	
+	public int partialHashCode(int nFields);
 	
 	public int size();
 	
-	public Integer getInt(String fieldName);
+	public Integer getInt(int pos);
 	
-	public Long getLong(String fieldName);
+	public Long getLong(int pos);
 	
-	public Float getFloat(String fieldName);
+	public Float getFloat(int pos);
 	
-	public Double getDouble(String fieldName);
+	public Double getDouble(int pos);
 	
-	public String getString(String fieldName);
+	public byte[] getString(int pos);
 	
-	public Object getObject(String fieldName);
+	public Object getObject(int pos);
 	
-	public <T> T getObject(Class<T> clazz,String fieldName);
+	public <T> T getObject(Class<T> clazz, int pos);
 	
-	public Enum<? extends Enum<?>> getEnum(String fieldName);
+	public Enum<? extends Enum<?>> getEnum(int pos);
 	
+	// Setters
 	
+	public void setEnum(int pos, Enum<? extends Enum<?>> value);
 	
-	//Setters
+	public void setInt(int pos, int value);
 	
-	public void setEnum(String fieldName, Enum<? extends Enum<?>> value);
+	public void setString(int pos, byte[] value);
 	
-	public void setInt(String fieldName, int value);
+	public void setLong(int pos, long value) ;
 	
-	public void setString(String fieldName,String value);
+	public void setFloat(int pos, float value) ;
 	
-	public void setLong(String fieldName,long value) ;
+	public void setDouble(int pos, double value) ;
 	
-	public void setFloat(String fieldName,float value) ;
+	public void setBoolean(int pos, boolean value) ;
 	
-	public void setDouble(String fieldName,double value) ;
+	public void setObject(int pos, Object object) ;
 	
-	public void setBoolean(String fieldName,boolean value) ;
+	public <T> void setObject(Class<T> valueType, int pos, T value) ;
 	
-	public void setObject(String fieldName,Object object) ;
-	
-	public <T> void setObject(Class<T> valueType,String fieldName,T value) ;
-	
-	public String toString(Collection<String> fields);
-		
 	/**
 	 * Thrown when a field is not present in schema
 	 * 
@@ -89,5 +88,5 @@ public interface ITuple extends Map<String,Object>,Comparable<ITuple>{
 		public InvalidFieldException(Throwable e) {
 			super(e);
 		}
-	}	
+	}
 }

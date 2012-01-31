@@ -10,13 +10,8 @@ import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-
-import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 /**
  * 
@@ -34,6 +29,15 @@ public class CoGrouperConfig {
 	
 	private Schema commonOrderedSchema;
 	private Map<Integer, Schema> specificOrderedSchemas;
+	private int nSchemas;
+	
+	public int getnSchemas() {
+  	return nSchemas;
+  }
+
+	void setnSchemas(int nSchemas) {
+  	this.nSchemas = nSchemas;
+  }
 
 	CoGrouperConfig() {
 		schemes = new HashMap<Integer, Schema>();
@@ -121,25 +125,10 @@ public class CoGrouperConfig {
 	 * 
 	 * @param tuple
 	 */
-	public Schema getSchema(ITuple tuple) {
-		return getSchemes().get(getSourceId(tuple));
+	public Schema getSchema(int sourceId) {
+		return getSchemes().get(sourceId);
 	}
-	
-	/**
-	 * Get the source Id for this tuple
-	 * 
-	 * @param tuple
-	 * @return
-	 */
-	public int getSourceId(ITuple tuple) {
-		Integer schemeId = tuple.getInt(Field.SOURCE_ID_FIELD_NAME);
-		if(schemeId == null) { // single Schema config
-			return getSchemes().entrySet().iterator().next().getKey();
-		} else { 
-			return schemeId;
-		}
-	}
-	
+
 	public String toString() {
 		StringBuilder b = new StringBuilder();
 		b.append("sorting: ").append(sorting.toString()).append(" ");

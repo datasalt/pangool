@@ -17,6 +17,7 @@
 package com.datasalt.pangool.mapreduce;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,7 +28,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.commons.DCUtils;
@@ -45,7 +45,6 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	private CoGrouperConfig pangoolConfig;
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.CoGrouperContext context;
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
-	private Schema commonSchema;
 	private List<String> groupByFields;
 	private int minDepth, maxDepth;
 	private FilteredReadOnlyTuple groupTuple;
@@ -57,7 +56,6 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
 			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
-			this.commonSchema = this.pangoolConfig.getCommonOrderedSchema();
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.groupByFields = pangoolConfig.getGroupByFields();
 
@@ -158,9 +156,16 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	 */
 	private int indexMismatch(ITuple tuple1, ITuple tuple2, int minFieldIndex, int maxFieldIndex) {
 		for(int i = minFieldIndex; i <= maxFieldIndex; i++) {
-			String fieldName = commonSchema.getFields().get(i).getName();
-			if(!tuple1.getObject(fieldName).equals(tuple2.getObject(fieldName))) {
-				return i;
+			Object obj1 = tuple1.getObject(i);
+			Object obj2 = tuple2.getObject(i);
+			if(obj1 instanceof byte[]) {
+				if(!Arrays.equals((byte[])obj1, (byte[])obj2)) {
+					return i;
+				}
+			} else {
+				if(!obj1.equals(obj2)) {
+					return i;
+				}
 			}
 		}
 		return -1;
