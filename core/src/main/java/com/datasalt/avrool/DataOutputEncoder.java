@@ -16,9 +16,7 @@ public class DataOutputEncoder extends Encoder{
 		this.out = out;
 	}
 	
-	  protected void writeZero() throws IOException {
-	    out.writeByte(0);
-	  }
+	  
 	
 	@Override
   public void flush() throws IOException {
@@ -136,6 +134,10 @@ public class DataOutputEncoder extends Encoder{
   public void writeIndex(int unionIndex) throws IOException {
 		writeInt(unionIndex);
 	  
+  }
+	
+	protected void writeZero() throws IOException {
+    out.writeByte(0);
   }
 
 }

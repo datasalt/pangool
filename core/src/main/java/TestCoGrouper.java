@@ -64,13 +64,13 @@ public class TestCoGrouper {
 			userRecord.put("user_id",3);
 			userRecord.put("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			userRecord.put("age",random.nextInt());
-			userRecord.put("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
+			//userRecord.put("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
 	    collector.write(userRecord);
 	    
 	    userRecord.put("user_id",5);
 			userRecord.put("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			userRecord.put("age",random.nextInt());
-			userRecord.put("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
+//			userRecord.put("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
 	    collector.write(userRecord);
 	    
 	   
@@ -78,14 +78,14 @@ public class TestCoGrouper {
 			countryRecord.put("user_id",3);
 			countryRecord.put("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			countryRecord.put("country",Integer.toString(random.nextInt()));
-			countryRecord.put("another",ByteBuffer.wrap(new byte[]{12,3,21},0,1));
+//			countryRecord.put("another",ByteBuffer.wrap(new byte[]{12,3,21},0,1));
 			countryRecord.put("num_people",random.nextInt());
 	    collector.write(countryRecord);
 	    
 	    countryRecord.put("user_id",5);
 			countryRecord.put("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			countryRecord.put("country",Integer.toString(random.nextInt()));
-			countryRecord.put("another",ByteBuffer.wrap(new byte[]{12,3,21}));
+//			countryRecord.put("another",ByteBuffer.wrap(new byte[]{12,3,21}));
 			countryRecord.put("num_people",random.nextInt());
 	    collector.write(countryRecord);
     }
@@ -116,14 +116,14 @@ public class TestCoGrouper {
 		userFields.add(new Field("name", Schema.create(Type.STRING),null,null));
 		userFields.add(new Field("user_id", Schema.create(Type.INT),null,null));
 		userFields.add(new Field("age", Schema.create(Type.INT),null,null));
-		userFields.add(new Field("my_bytes", Schema.create(Type.BYTES),null,null));
+//		userFields.add(new Field("my_bytes", Schema.create(Type.BYTES),null,null));
 			
 		List<Field> countryFields = new ArrayList<Field>();
 		countryFields.add(new Field("user_id", Schema.create(Type.INT),null,null));
 		countryFields.add(new Field("name", Schema.create(Type.STRING),null,null));
 		countryFields.add(new Field("num_people", Schema.create(Type.INT),null,null));
 		countryFields.add(new Field("country", Schema.create(Type.STRING),null,null));
-		countryFields.add(new Field("another", Schema.create(Type.BYTES),null,null));
+//		countryFields.add(new Field("another", Schema.create(Type.BYTES),null,null));
 
 		Schema usersSchema = Schema.createRecord("usuarios", null, NAMESPACE, false);
 		usersSchema.setFields(userFields);
@@ -137,7 +137,7 @@ public class TestCoGrouper {
 		b.setCommonOrdering(new Ordering().add("user_id",Order.DESCENDING).add("name",Order.ASCENDING));
 		b.setInterSourcesOrdering(Order.DESCENDING);
 		
-		b.setIndividualSourceOrdering(usersSchema.getFullName(), new Ordering().add("age",Order.DESCENDING).add("my_bytes",Order.DESCENDING));
+		b.setIndividualSourceOrdering(usersSchema.getFullName(), new Ordering().add("age",Order.DESCENDING)/*.add("my_bytes",Order.DESCENDING)*/);
 		b.setIndividualSourceOrdering(countriesSchema.getFullName(),new Ordering().add("country", Order.DESCENDING));
 		
 		CoGrouperConfig config = b.build();
