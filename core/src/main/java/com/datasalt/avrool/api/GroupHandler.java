@@ -14,6 +14,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import com.datasalt.avrool.CoGrouper;
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.PangoolKey;
 import com.datasalt.avrool.mapreduce.SimpleReducer;
 
 /**
@@ -51,9 +52,9 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
   public static class CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> {
   	
   	private CoGrouperConfig pangoolConfig;
-  	private ReduceContext<AvroKey, AvroValue, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext;
+  	private ReduceContext<PangoolKey,NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext;
   	
-  	public CoGrouperContext(ReduceContext<AvroKey,AvroValue, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext, CoGrouperConfig pangoolConfig) {
+  	public CoGrouperContext(ReduceContext<PangoolKey,NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext, CoGrouperConfig pangoolConfig) {
   		this.pangoolConfig = pangoolConfig;
   		this.hadoopContext = hadoopContext;
   	}
@@ -65,7 +66,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
   	/**
   	 * Return the Hadoop {@link ReduceContext}.  
   	 */
-  	public ReduceContext<AvroKey, AvroValue, OUTPUT_KEY, OUTPUT_VALUE> getHadoopContext() {
+  	public ReduceContext<PangoolKey, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> getHadoopContext() {
   		return hadoopContext;
   	}
   }

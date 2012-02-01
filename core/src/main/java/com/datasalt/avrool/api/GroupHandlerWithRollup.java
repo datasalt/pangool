@@ -3,6 +3,7 @@ package com.datasalt.avrool.api;
 import java.io.IOException;
 
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.avrool.CoGrouperException;
@@ -29,7 +30,7 @@ public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandl
 	 *          The reducer context as in {@link Reducer}
 	 * 
 	 */
-	public void onOpenGroup(int depth, String field, Record firstElement, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
+	public void onOpenGroup(int depth, String field, GenericRecord firstElement, CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector)
 	    throws IOException, InterruptedException, CoGrouperException {
 
 	}
@@ -49,7 +50,7 @@ public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandl
 	 *          The reducer context as in {@link Reducer}
 	 * 
 	 */
-	public void onCloseGroup(int depth, String field, Record lastElement,
+	public void onCloseGroup(int depth, String field, GenericRecord lastElement,
 	    CoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> context, Collector<OUTPUT_KEY, OUTPUT_VALUE> collector) throws IOException, InterruptedException, CoGrouperException {
 
 	}

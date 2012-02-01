@@ -1,13 +1,8 @@
 package com.datasalt.avrool;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.apache.avro.Schema.Field.Order;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 
@@ -20,14 +15,11 @@ public class Ordering {
 		}
 		
 		public Ordering(){
-			
 		}
 		
 		public List<SortElement> getElements(){
 			return elements;
 		}
-		
-		
 		
 		public static class SortElement {
 			public String name;
@@ -61,15 +53,5 @@ public class Ordering {
 	      throw new RuntimeException(e);
       }
 		}
-		
-		public static Ordering parse(String json) throws JsonParseException, JsonMappingException, IOException{
-			ObjectMapper mapper = new ObjectMapper();
-			List elements = mapper.readValue(json, ArrayList.class);
-			return new Ordering(elements);
-		}
-		
-		
-		
-		
-	
+
 }

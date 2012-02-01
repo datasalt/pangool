@@ -8,21 +8,28 @@ import org.apache.avro.mapred.AvroWrapper;
 import org.apache.avro.reflect.ReflectData;
 import org.apache.hadoop.conf.Configuration;
 
-public class GroupComparator extends AvroKeyComparator<Record> {
+import com.datasalt.avrool.CoGrouperConfig;
+import com.datasalt.avrool.CoGrouperException;
+import com.datasalt.avrool.SerializationInfo;
 
-	
-	public static final String CONF_GROUP_SCHEMA = "guachu_group_schema";
+public class PangoolGroupComparator extends AvroKeyComparator<Record> {
 
 		private Schema schema;
 
 		@Override
 		public void setConf(Configuration conf) {
-			super.setConf(conf);
 			if(conf != null) {
-				schema = Schema.parse(conf.get(CONF_GROUP_SCHEMA));
-				System.out.println("My avro group comparator schema : " + schema);
+				CoGrouperConfig grouperConfig;
+        try {
+	        grouperConfig = CoGrouperConfig.get(conf);
+       
+				SerializationInfo serInfo = SerializationInfo.get(grouperConfig);
+				schema = serInfo.getGroupSchema();
+				System.out.println("Group schema : " + schema);
+        } catch(CoGrouperException e) {
+	       throw new RuntimeException(e);
+        }
 
-				// schema = Pair.getKeySchema(AvroJob.getMapOutputSchema(conf));
 			}
 		}
 

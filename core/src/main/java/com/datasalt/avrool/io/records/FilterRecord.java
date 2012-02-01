@@ -1,4 +1,4 @@
-package com.datasalt.avrool;
+package com.datasalt.avrool.io.records;
 
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
@@ -17,19 +17,27 @@ public class FilterRecord implements GenericRecord, Comparable<FilterRecord> {
 
 	private Schema schema; //needs to be a subset of contained schema
 	private GenericRecord contained;
+	private int[] posTranslation;
 
 	public FilterRecord(){
 		
 	}
 	
-	public FilterRecord(Schema schema) {
+	public FilterRecord(Schema schema){
 		if(schema == null || !Type.RECORD.equals(schema.getType())) {
 			throw new AvroRuntimeException("Not a record schema: " + schema);
 		}
 		this.schema = schema;
 	}
+	
+	
 
-	public void setContained(GenericRecord contained) {
+	public void setContained(GenericRecord contained,int[] posTranslation) {
+		this.contained = contained;
+		this.posTranslation = posTranslation;
+	}
+	
+	public void setContained(GenericRecord contained){
 		this.contained = contained;
 	}
 	
@@ -39,15 +47,16 @@ public class FilterRecord implements GenericRecord, Comparable<FilterRecord> {
 		}
 		
 		this.schema = schema;
+		
 	}
 
 	@Override
 	public boolean equals(Object o) {
 		if(o == this)
 			return true; // identical object
-		if(!(o instanceof ProxyRecord))
+		if(!(o instanceof FilterRecord))
 			return false; // not a record
-		Record that = (Record) o;
+		FilterRecord that = (FilterRecord) o;
 		if(!schema.getFullName().equals(that.getSchema().getFullName()))
 			return false; // not the same schema
 		return GenericData.get().compare(this, that, schema) == 0;
@@ -78,11 +87,7 @@ public class FilterRecord implements GenericRecord, Comparable<FilterRecord> {
 //		contained.put(f.name(), v);
 	}
 
-	@Override
-	public Object get(int i) {
-		String fieldName = schema.getFields().get(i).name();
-		return contained.get(fieldName);
-	}
+	
 
 	@Override
 	public Schema getSchema() {
@@ -103,7 +108,27 @@ public class FilterRecord implements GenericRecord, Comparable<FilterRecord> {
 	@Override
 	public Object get(String key) {
 		Field f = schema.getField(key);
-		return (f == null) ? null : contained.get(f.name());
+		//if (posTranslation != null){
+			// enhaced version
+			return (f == null) ? null : contained.get(posTranslation[f.pos()]);	
+//		} else {
+//			//slow version
+//			return (f == null) ? null : contained.get(f.name());
+//		}
 	}
+	
+	@Override
+	public Object get(int i) {
+//		if (posTranslation == null){
+//			//slow version
+//			String fieldName = schema.getFields().get(i).name();
+//			return contained.get(fieldName);
+//		} else {
+			//enhanced version
+			return contained.get(posTranslation[i]);	
+		}
+		
+
+	
 
 }

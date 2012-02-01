@@ -1,58 +1,63 @@
-//package com.datasalt.pangool.examples.wordcount;
+//package com.datasalt.avrool.examples.wordcount;
 //
 //import java.io.IOException;
+//import java.util.StringTokenizer;
 //
 //import org.apache.hadoop.conf.Configuration;
 //import org.apache.hadoop.fs.FileSystem;
 //import org.apache.hadoop.fs.Path;
 //import org.apache.hadoop.io.IntWritable;
 //import org.apache.hadoop.io.LongWritable;
-//import org.apache.hadoop.io.NullWritable;
 //import org.apache.hadoop.io.Text;
 //import org.apache.hadoop.mapreduce.Job;
 //import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 //import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 //
-//import com.datasalt.avrool.CoGrouper;
-//import com.datasalt.avrool.CoGrouperConfig;
-//import com.datasalt.avrool.CoGrouperConfigBuilder;
-//import com.datasalt.avrool.CoGrouperException;
-//import com.datasalt.avrool.PangoolSchema;
-//import com.datasalt.avrool.SortingBuilder;
-//import com.datasalt.avrool.api.CombinerHandler;
-//import com.datasalt.avrool.api.GroupHandler;
-//import com.datasalt.avrool.api.InputProcessor;
-//import com.datasalt.avrool.api.GroupHandler.CoGrouperContext;
 //
+//
+//import com.datasalt.pangool.CoGrouper;
+//import com.datasalt.pangool.CoGrouperConfig;
+//import com.datasalt.pangool.CoGrouperConfigBuilder;
+//import com.datasalt.pangool.CoGrouperException;
+//import com.datasalt.pangool.Schema;
+//import com.datasalt.pangool.SortingBuilder;
+//import com.datasalt.pangool.api.CombinerHandler;
+//import com.datasalt.pangool.api.GroupHandler;
+//import com.datasalt.pangool.api.InputProcessor;
+//import com.datasalt.pangool.io.tuple.ITuple;
+//import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
+//import com.datasalt.pangool.io.tuple.Tuple;
 //
 //public class WordCount {
 //
 //	private static final String WORD_FIELD = "word";
 //	private static final String COUNT_FIELD = "count";
 //
+//	@SuppressWarnings("serial")
 //	public static class Split extends InputProcessor<LongWritable, Text> {
-//		
+//
 //		Tuple tuple = new Tuple();
 //
 //		@Override
 //		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 //		    throws IOException, InterruptedException {
-//			String words[] = value.toString().split("\\s+");
-//			for(String word : words) {
-//				tuple.setString(WORD_FIELD, word);
-//				tuple.setInt(COUNT_FIELD, 1);
+//			StringTokenizer itr = new StringTokenizer(value.toString());
+//			tuple.setInt(COUNT_FIELD, 1);
+//			while(itr.hasMoreTokens()) {
+//				tuple.setString(WORD_FIELD, itr.nextToken());
 //				collector.write(tuple);
 //			}
 //		}
 //	}
 //
+//	@SuppressWarnings("serial")
 //	public static class CountCombiner extends CombinerHandler {
-//		
+//
 //		Tuple tuple = new Tuple();
 //
 //		@Override
-//		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<ITuple, NullWritable> context,
-//		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
+//		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
+//		    throws IOException, InterruptedException, CoGrouperException {
 //
 //			int count = 0;
 //			this.tuple.setString(WORD_FIELD, group.getString(WORD_FIELD));
@@ -64,11 +69,12 @@
 //		}
 //	}
 //
+//	@SuppressWarnings("serial")
 //	public static class Count extends GroupHandler<Text, IntWritable> {
 //
 //		@Override
-//		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext<Text, IntWritable> context,
-//		    Collector<Text, IntWritable> collector) throws IOException, InterruptedException, CoGrouperException {
+//		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
+//		    throws IOException, InterruptedException, CoGrouperException {
 //			int count = 0;
 //			for(ITuple tuple : tuples) {
 //				count += tuple.getInt(COUNT_FIELD);
@@ -82,22 +88,16 @@
 //		FileSystem fs = FileSystem.get(conf);
 //		fs.delete(new Path(output), true);
 //
-//		CoGrouperConfigBuilder builder = new CoGrouperConfigBuilder();
-//		builder.addSource(sourceName, schema)
-//		
 //		CoGrouperConfig config = new CoGrouperConfigBuilder()
-//		
-//		config.add
-//		
-//		    .addSource(0, PangoolSchema.parse(WORD_FIELD + ":string, " + COUNT_FIELD + ":int")).setGroupByFields(WORD_FIELD)
+//		    .addSchema(0, Schema.parse(WORD_FIELD + ":string, " + COUNT_FIELD + ":int")).setGroupByFields(WORD_FIELD)
 //		    .setSorting(new SortingBuilder().add(WORD_FIELD).buildSorting()).build();
 //
 //		CoGrouper cg = new CoGrouper(config, conf);
 //		cg.setJarByClass(WordCount.class);
-//		cg.addInput(new Path(input), TextInputFormat.class, Split.class);
+//		cg.addInput(new Path(input), TextInputFormat.class, new Split());
 //		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class, Text.class);
-//		cg.setGroupHandler(Count.class);
-//		cg.setCombinerHandler(CountCombiner.class);
+//		cg.setGroupHandler(new Count());
+//		cg.setCombinerHandler(new CountCombiner());
 //
 //		return cg.createJob();
 //	}
@@ -116,3 +116,4 @@
 //		new WordCount().getJob(conf, args[0], args[1]).waitForCompletion(true);
 //	}
 //}
+

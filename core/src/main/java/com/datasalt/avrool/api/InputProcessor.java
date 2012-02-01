@@ -30,8 +30,9 @@ import org.apache.hadoop.mapreduce.Mapper;
 import com.datasalt.avrool.CoGrouperConfig;
 import com.datasalt.avrool.CoGrouperConfigBuilder;
 import com.datasalt.avrool.CoGrouperException;
-import com.datasalt.avrool.ProxyRecord;
+import com.datasalt.avrool.PangoolKey;
 import com.datasalt.avrool.SerializationInfo;
+import com.datasalt.avrool.io.records.MapperProxyRecord;
 
 /**
  * TODO doc
@@ -46,38 +47,56 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	public static final class Collector extends MultipleOutputsCollector {
 		
 		private Mapper.Context context;
-		private SerializationInfo serInfo;
-		private AvroKey outputKey = new AvroKey();
-		private AvroValue outputValue = new AvroValue(null);
-
-		private ThreadLocal<ProxyRecord> proxyRecord = new ThreadLocal<ProxyRecord>() {
+		//private SerializationInfo serInfo;
+		private CoGrouperConfig grouperConfig;
+		private NullWritable outputValue = NullWritable.get();
+		private PangoolKey<MapperProxyRecord> pangoolKeyInstance;//TODO wrong!!! this is not thread safe!!! just for tests
+		
+//		private ThreadLocal<MapperProxyRecord> mapperProxyRecord = new ThreadLocal<MapperProxyRecord>() {
+//
+//			@Override
+//			protected MapperProxyRecord initialValue() {
+//				return new MapperProxyRecord(grouperConfig);
+//			}
+//		};
+		
+		private ThreadLocal<PangoolKey<MapperProxyRecord>> FACTORY_PANGOOL_KEY = new ThreadLocal<PangoolKey<MapperProxyRecord>>() {
 
 			@Override
-			protected ProxyRecord initialValue() {
-				return new ProxyRecord(serInfo);
+			protected PangoolKey initialValue() {
+				PangoolKey<MapperProxyRecord> result = new PangoolKey<MapperProxyRecord>();
+				MapperProxyRecord proxy = new MapperProxyRecord(grouperConfig);
+				result.datum(proxy);
+				return result;
 			}
 		};
+		
 
 		Collector(Mapper.Context context) {
 			super(context);
 			this.context = context;
 			try {
-				CoGrouperConfig config = CoGrouperConfig.get(context.getConfiguration());
-				this.serInfo = SerializationInfo.get(config);
+				this.grouperConfig = CoGrouperConfig.get(context.getConfiguration());
+				//this.serInfo = SerializationInfo.get(config);
 			} catch(CoGrouperException e){
 				throw new RuntimeException(e); 
 			}
+			this.pangoolKeyInstance = FACTORY_PANGOOL_KEY.get(); //TODO wrong!!! this is not thread safe!!! just for tests
 		}
 
 		
 		public void write(GenericRecord tuple) throws IOException, InterruptedException {
-			ProxyRecord outputRecord  = proxyRecord.get();
+			//MapperProxyRecord outputRecord  = mapperProxyRecord.get();
+			//PangoolKey outputKey = FACTORY_PANGOOL_KEY.get();
+			PangoolKey<MapperProxyRecord> outputKey = pangoolKeyInstance; //TODO wrong! this is not thread safe!!! just for tests purposes
+			MapperProxyRecord outputRecord = outputKey.datum();
 			try{
 				outputRecord.setContainedRecord(tuple);
 			} catch(CoGrouperException e){
 				throw new IOException(e); 
 			}
-			outputKey.datum(outputRecord);
+			//PangoolKey outputKey = FACTORY_PANGOOL_KEY.get();
+			//outputKey.datum(outputRecord);
 			context.write(outputKey,outputValue); 
 		}
 
@@ -114,6 +133,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		try {
 			Configuration conf = context.getConfiguration();
 			CoGrouperConfig pangoolConfig = CoGrouperConfig.get(conf);
+			
 			this.context = new CoGrouperContext(context, pangoolConfig);
 			this.collector = new Collector(context);
 			setup(this.context, this.collector);

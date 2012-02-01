@@ -30,9 +30,28 @@ public class CoGrouperConfig {
 	private List<String> groupByFields;
 	private String rollupFrom;
 	
+	private SerializationInfo serInfo;
+	
 	CoGrouperConfig() {
 	}
+	
+	public SerializationInfo getSerializationInfo(){
+		if (serInfo == null){
+			try{
+				this.serInfo = SerializationInfo.get(this);
+			} catch(Exception e){
+				throw new RuntimeException(e);
+			}
+		}
+		return this.serInfo;
+	}
 
+	public int getNumSources(){
+		return schemasBySource.size();
+	}
+
+	
+	
 	void setCommonOrdering(Ordering ordering) {
 		this.commonOrdering = ordering;
 	}
@@ -44,13 +63,28 @@ public class CoGrouperConfig {
 	public List<String> getGroupByFields() {
   	return groupByFields;
   }
+	
+	public List<String> getRollupBaseFields(){
+		if (rollupFrom == null){
+			return getGroupByFields();
+		}
+		
+		List<String> result = new ArrayList<String>();
+		for (SortElement element : commonOrdering.getElements()){
+			result.add(element.getName());
+			if (element.getName().equals(rollupFrom)){
+				break;
+			}
+		}
+		return result;
+	}
 
 	public String getRollupFrom() {
   	return rollupFrom;
   }
 
-	void addSource(String sourceName, Schema schema) {
-		schemasBySource.put(sourceName, schema);
+	void addSource(Schema schema) {
+		schemasBySource.put(schema.getFullName(), schema);
 	}
 
 	void setGroupByFields(String... groupByFields) {
@@ -63,6 +97,10 @@ public class CoGrouperConfig {
 
 	public Schema getSchemaBySource(String source){
 		return schemasBySource.get(source);
+	}
+	
+	public Map<String,Schema> getSchemasBySource(){
+		return schemasBySource;
 	}
 	
 	public static void toConfig(CoGrouperConfig config, Configuration conf) throws JsonGenerationException, JsonMappingException, IOException {
@@ -101,7 +139,7 @@ public class CoGrouperConfig {
 	    result.interSourcesOrdering = Schema.Field.Order.valueOf((String) jsonData.get("interSourcesOrdering"));
 	    
 			for(Map.Entry<String, String> jsonSchema: jsonSources.entrySet()) {
-				result.addSource(jsonSchema.getKey(), Schema.parse(jsonSchema.getValue()));
+				result.addSource(Schema.parse(jsonSchema.getValue()));
 			}
 			List<Map> listOrderings = (List<Map>)jsonData.get("commonOrdering");
 			

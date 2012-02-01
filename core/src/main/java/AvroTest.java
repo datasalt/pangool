@@ -33,7 +33,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.avrool.commons.HadoopUtils;
-import com.datasalt.avrool.mapreduce.GroupComparator;
+import com.datasalt.avrool.mapreduce.PangoolGroupComparator;
 
 public class AvroTest {
 
@@ -163,7 +163,7 @@ public class AvroTest {
 		Schema pairSchema = Pair.getPairSchema(intermediateSchema, nullSchema);
 		AvroJob.setMapOutputSchema(conf, pairSchema);
 		
-		conf.set(GroupComparator.CONF_GROUP_SCHEMA, groupSchema.toString());
+		//conf.set(PangoolGroupComparator.CONF_GROUP_SCHEMA, groupSchema.toString());
 
 		Job job = new Job(conf);
 		job.setMapperClass(Mapy.class);
@@ -174,7 +174,7 @@ public class AvroTest {
 		job.setOutputValueClass(Text.class);
 		job.setMapOutputKeyClass(AvroKey.class);
 		job.setMapOutputValueClass(AvroValue.class);
-		job.setGroupingComparatorClass(GroupComparator.class);
+		job.setGroupingComparatorClass(PangoolGroupComparator.class);
 		job.setPartitionerClass(Part.class);
 		
 		FileInputFormat.addInputPath(job, new Path("avro_input.txt"));

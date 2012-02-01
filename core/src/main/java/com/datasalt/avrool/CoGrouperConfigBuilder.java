@@ -25,6 +25,9 @@ public class CoGrouperConfigBuilder {
 	
 	
 	public CoGrouperConfigBuilder setInterSourcesOrdering(Schema.Field.Order order){
+		if (config.getNumSources() < 2){
+			throw new RuntimeException("Not allowed inter sources ordering when num sources="+ config.getNumSources());
+		}
 		this.config.interSourcesOrdering = order;
 		return this;
 	}
@@ -35,22 +38,28 @@ public class CoGrouperConfigBuilder {
 	}
 	
 	public CoGrouperConfigBuilder setIndividualSourceOrdering(String name,Ordering ordering){
+		if (config.getNumSources() == 0){
+			throw new RuntimeException("No declared sources ");//TODO change to proper exception
+		} else if (config.getNumSources() == 1){
+			throw new RuntimeException("Not able to particular sorting with just one source declared"); //TODO change to proper exception
+		}
+		
 		config.particularOrderings.put(name,ordering);
 		return this;
 	}
 	
-
-	public CoGrouperConfigBuilder addSource(String sourceName, Schema schema) throws CoGrouperException {
+	
+	public CoGrouperConfigBuilder addSource(Schema schema) throws CoGrouperException {
 		//TODO sourceName must match schema.getName()
-		if(config.getSchemaBySource(sourceName) != null) {
-			throw new CoGrouperException("Source already present: '" + sourceName + "'");
+		if(config.getSchemaBySource(schema.getFullName()) != null) {
+			throw new CoGrouperException("Source already present: '" + schema.getFullName() + "'");
 		}
 
 		if(schema == null) {
-			throw new CoGrouperException("Schema for source '" + sourceName + "' must not be null");
+			throw new CoGrouperException("Schema for source '" + schema.getFullName() + "' must not be null");
 		}
 
-		config.addSource(sourceName, schema);
+		config.addSource(schema);
 		return this;
 	}
 

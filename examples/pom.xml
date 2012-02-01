@@ -70,7 +70,7 @@
               </descriptors>
 	      <archive>
                 <manifest>
-                  <mainClass>org.sample.App</mainClass>
+                  <mainClass>com.datasalt.avrool.examples.Driver</mainClass>
                 </manifest>
               </archive>
            </configuration>
@@ -95,6 +95,12 @@
       <artifactId>junit</artifactId>
       <version>4.8.2</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.datasalt.pangool</groupId>
+      <artifactId>pangool-core</artifactId>
+      <version>0.40-SNAPSHOT</version>
+      <!--scope>main</scope-->
     </dependency>
 
  </dependencies>
