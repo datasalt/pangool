@@ -4,6 +4,7 @@ import org.apache.hadoop.util.ProgramDriver;
 
 import com.datasalt.avrool.examples.wordcount.AvroolWordCount;
 import com.datasalt.avrool.examples.wordcount.MapRedWordCount;
+import com.datasalt.avrool.examples.wordcount.OldAvroWordCount;
 import com.datasalt.avrool.examples.wordcount.PlainAvroWordCount;
 
 
@@ -19,6 +20,7 @@ public class Driver extends ProgramDriver {
 		//addClass("pangoolcount", WordCount.class, "Typical word count in Pangool");
 		addClass("avroolcount", AvroolWordCount.class, "Typical word count in Avrool");
 		addClass("plainavrocount", PlainAvroWordCount.class, "Typical word count using plain Avro with Hadoop");
+		addClass("oldavrocount", OldAvroWordCount.class, "word count using AvroMapper etc..");
 		addClass("hadoopcount", MapRedWordCount.class, "Typical word count in plain-vanilla Hadoop");
 	}
 	
