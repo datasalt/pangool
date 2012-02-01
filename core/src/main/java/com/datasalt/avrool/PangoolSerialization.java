@@ -1,5 +1,6 @@
 package com.datasalt.avrool;
 
+import java.io.DataOutput;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,6 +11,7 @@ import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
+import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.mapred.AvroJob;
@@ -21,7 +23,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
-
+import java.io.DataInput;
 /** The {@link Serialization} used by jobs configured with {@link AvroJob}. */
 public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Configurable {
 
@@ -71,8 +73,9 @@ public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Con
     implements Deserializer<PangoolKey<T>> {
 
     private DatumReader<T> reader;
-    private BinaryDecoder decoder;
+    private DataInputDecoder decoder;
     private boolean isDoubleBuffered;
+    private InputStream in;
     
     public PangoolDeserializer(DatumReader<T> reader,boolean isDoubleBuffered) {
       this.reader = reader;
@@ -81,7 +84,11 @@ public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Con
     }
     
     public void open(InputStream in) {
-      this.decoder = FACTORY.directBinaryDecoder(in, decoder);
+    	
+      //this.decoder = FACTORY.directBinaryDecoder(in, decoder);
+    	this.in = in;
+    	this.decoder = new DataInputDecoder((DataInput)in);
+    	
     }
     
     public PangoolKey<T> deserialize(PangoolKey<T> wrapper)
@@ -99,7 +106,9 @@ public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Con
     }
 
     public void close() throws IOException {
-      decoder.inputStream().close();
+    	in.close();
+      //decoder.inputStream().close();
+    	//((InputStream)decoder.getInputStream()).close();
     }
     
   }
@@ -115,7 +124,7 @@ public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Con
 
     private DatumWriter<T> writer;
     private OutputStream out;
-    private BinaryEncoder encoder;
+    private DataOutputEncoder encoder;
     
     public PangoolSerializer(DatumWriter<T> writer) {
       this.writer = writer;
@@ -124,8 +133,9 @@ public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Con
     public void open(OutputStream out) {
       this.out = out;
       //this.encoder = new EncoderFactory().directBinaryEncoder(out, null);
-      this.encoder = new EncoderFactory().configureBlockSize(512)
-          .binaryEncoder(out, null);
+      //this.encoder = new EncoderFactory().configureBlockSize(512)
+      //    .binaryEncoder(out, null);
+      this.encoder = new DataOutputEncoder((DataOutput)out);
     }
 
     public void serialize(PangoolKey<T> wrapper) throws IOException {
@@ -134,7 +144,7 @@ public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Con
       // method and the Hadoop framework called it when needed rather
       // than for every record.
       
-      encoder.flush();
+      //encoder.flush();
     }
 
     public void close() throws IOException {

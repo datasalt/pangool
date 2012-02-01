@@ -3,6 +3,7 @@ package com.datasalt.avrool.examples;
 import org.apache.hadoop.util.ProgramDriver;
 
 import com.datasalt.avrool.examples.wordcount.AvroolWordCount;
+import com.datasalt.avrool.examples.wordcount.CrunchWordCount;
 import com.datasalt.avrool.examples.wordcount.MapRedWordCount;
 import com.datasalt.avrool.examples.wordcount.OldAvroWordCount;
 import com.datasalt.avrool.examples.wordcount.PlainAvroWordCount;
@@ -18,10 +19,11 @@ public class Driver extends ProgramDriver {
 	public Driver() throws Throwable {
 		super();
 		//addClass("pangoolcount", WordCount.class, "Typical word count in Pangool");
-		addClass("avroolcount", AvroolWordCount.class, "Typical word count in Avrool");
-		addClass("plainavrocount", PlainAvroWordCount.class, "Typical word count using plain Avro with Hadoop");
-		addClass("oldavrocount", OldAvroWordCount.class, "word count using AvroMapper etc..");
-		addClass("hadoopcount", MapRedWordCount.class, "Typical word count in plain-vanilla Hadoop");
+		addClass("avrool", AvroolWordCount.class, "Typical word count in Avrool");
+		addClass("plainavro", PlainAvroWordCount.class, "Typical word count using plain Avro with Hadoop");
+		addClass("oldavro", OldAvroWordCount.class, "word count using AvroMapper etc..");
+		addClass("hadoop", MapRedWordCount.class, "Typical word count in plain-vanilla Hadoop");
+		addClass("crunch", CrunchWordCount.class, "Crunch word count");
 	}
 	
 	public static void main(String[] args) throws Throwable {

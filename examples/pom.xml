@@ -102,9 +102,29 @@
       <version>0.40-SNAPSHOT</version>
       <!--scope>main</scope-->
     </dependency>
+    <dependency>
+      <groupId>com.cloudera.crunch</groupId>
+      <artifactId>crunch</artifactId>
+      <version>0.1.0</version>
+      <!--scope>main</scope-->
+    </dependency>
 
  </dependencies>
+<repositories>
+ <repository> 
+      <id>cloudera</id>
+      <name>Cloudera Releases</name>
+      <url>https://repository.cloudera.com/content/repositories/releases</url>
+     
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
 
+</repositories>
   <profiles>
     <profile>
       <id>release.prepare</id>

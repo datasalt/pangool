@@ -8,6 +8,8 @@ import org.apache.avro.mapred.AvroCollector;
 import org.apache.avro.mapred.AvroJob;
 import org.apache.avro.mapred.AvroMapper;
 import org.apache.avro.mapred.AvroReducer;
+import org.apache.avro.mapred.AvroTextOutputFormat;
+import org.apache.avro.mapred.AvroUtf8InputFormat;
 import org.apache.avro.mapred.Pair;
 import org.apache.avro.util.Utf8;
 import org.apache.hadoop.fs.Path;
@@ -53,7 +55,7 @@ public class OldAvroWordCount {
     
     job.setJarByClass(OldAvroWordCount.class);
     job.setJobName("old avro wordcount");
-    
+    job.setInputFormat(AvroUtf8InputFormat.class);
     AvroJob.setInputSchema(job, Schema.create(Schema.Type.STRING));
     AvroJob.setOutputSchema(job,
                             new Pair<Utf8,Long>(new Utf8(""), 0L).getSchema());
