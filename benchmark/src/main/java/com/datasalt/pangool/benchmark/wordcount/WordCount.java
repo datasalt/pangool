@@ -1,4 +1,4 @@
-package com.datasalt.pangool.examples.wordcount;
+package com.datasalt.pangool.benchmark.wordcount;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -26,17 +26,20 @@ import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 
+/**
+ * Code for solving the simple WordCount problem in Pangool.
+ */
 public class WordCount {
 
 	private static final int WORD_FIELD = 0;
 	private static final int COUNT_FIELD = 1;
 	public final static Charset UTF8 = Charset.forName("UTF-8");
-
+	
 	@SuppressWarnings("serial")
 	public static class Split extends InputProcessor<LongWritable, Text> {
 
 		Tuple tuple = new Tuple(2);
-
+		
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
@@ -72,7 +75,7 @@ public class WordCount {
 
 		IntWritable countToEmit;
 		Text text;
-
+		
 		public void setup(CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
 		    CoGrouperException {
 			countToEmit = new IntWritable();

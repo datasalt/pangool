@@ -1,4 +1,4 @@
-package com.datasalt.pangool.examples.wordcount;
+package com.datasalt.pangool.benchmark.wordcount;
 
 import java.io.IOException;
 import java.util.StringTokenizer;
@@ -14,6 +14,9 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
+/**
+ * Code for solving the simple WordCount problem in Hadoop Java Map/Red API.
+ */
 public class MapRedWordCount {
 
 	public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable> {

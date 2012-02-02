@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -16,10 +14,10 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.Schema.Fields;
 import com.datasalt.pangool.SortCriteria.SortElement;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 /**
  * 
@@ -171,13 +169,6 @@ public class CoGrouperConfigBuilder {
 					nonCommonFields.add(field);
 				}
 			}
-			// Sort them alphabetically
-			Collections.sort(nonCommonFields, new Comparator<Field>() {
-				@Override
-        public int compare(Field field1, Field field2) {
-	        return field1.getName().compareTo(field2.getName());
-        }
-			});
 			
 			// Create the ordered schema
 			specificSchema.addAll(nonCommonFields);

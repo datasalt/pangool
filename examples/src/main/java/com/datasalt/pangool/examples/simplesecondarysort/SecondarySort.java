@@ -1,4 +1,4 @@
-package com.datasalt.pangool.examples.secondarysort;
+package com.datasalt.pangool.examples.simplesecondarysort;
 
 import java.io.IOException;
 

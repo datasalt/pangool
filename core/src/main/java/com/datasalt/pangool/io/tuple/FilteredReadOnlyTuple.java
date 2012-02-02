@@ -1,7 +1,6 @@
 package com.datasalt.pangool.io.tuple;
 
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * A {@link ITuple} with a delegated one, but that creates a
@@ -12,10 +11,10 @@ import java.util.HashSet;
 public class FilteredReadOnlyTuple implements ITuple {
 
 	protected ITuple delegated;
-	protected HashSet<String> filter;
+	protected int filter;
 	
 	public FilteredReadOnlyTuple(Collection<String> filteredFields) {
-		filter = new HashSet<String>(filteredFields);
+		filter = filteredFields.size();
 	}
 	
 	public void setDelegatedTuple(ITuple delegatedTuple) {
@@ -43,22 +42,22 @@ public class FilteredReadOnlyTuple implements ITuple {
 
 	@Override
   public Integer getInt(int pos) {
-	  return (filter.contains(pos) ? delegated.getInt(pos) : null);
+	  return pos < filter ? delegated.getInt(pos) : null;
   }
 
 	@Override
   public Long getLong(int pos) {
-	  return (filter.contains(pos) ? delegated.getLong(pos) : null);
+	  return pos < filter ? delegated.getLong(pos) : null;
   }
 
 	@Override
   public Float getFloat(int pos) {
-	  return (filter.contains(pos) ? delegated.getFloat(pos) : null);
+	  return pos < filter ? delegated.getFloat(pos) : null;
   }
 
 	@Override
   public Double getDouble(int pos) {
-	  return (filter.contains(pos) ? delegated.getDouble(pos) : null);
+	  return pos < filter ? delegated.getDouble(pos) : null;
   }
 
 	@Override

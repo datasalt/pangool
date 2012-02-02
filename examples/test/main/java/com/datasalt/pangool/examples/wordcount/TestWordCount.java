@@ -1,6 +1,6 @@
 package com.datasalt.pangool.examples.wordcount;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,8 +11,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
-import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.google.common.io.Files;
 
