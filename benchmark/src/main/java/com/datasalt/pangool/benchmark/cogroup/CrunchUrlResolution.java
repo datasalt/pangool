@@ -14,6 +14,9 @@ import org.apache.hadoop.mapreduce.TaskInputOutputContext;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 
 import com.cloudera.crunch.DoFn;
 import com.cloudera.crunch.Emitter;
@@ -33,8 +36,8 @@ import com.datasalt.pangool.benchmark.AvroGroupComparator;
  * Code for solving the URL Resolution CoGroup Problem in Crunch.
  * <p>
  * The URL Resolution CoGroup Problem is: We have one file with URL Registers: {url timestamp ip} and another file with
- * canonical URL mapping: {url canonicalUrl}. We want to obtain the URL Registers file with the url substituted with
- * the canonical one according to the mapping file: {canonicalUrl timestamp ip}.
+ * canonical URL mapping: {url canonicalUrl}. We want to obtain the URL Registers file with the url substituted with the
+ * canonical one according to the mapping file: {canonicalUrl timestamp ip}.
  */
 @SuppressWarnings("serial")
 public class CrunchUrlResolution extends Configured implements Tool, Serializable {
@@ -60,7 +63,7 @@ public class CrunchUrlResolution extends Configured implements Tool, Serializabl
 			fields.clear();
 			fields.add(new Field("timestamp", Schema.create(Schema.Type.LONG), null, null));
 			fields.add(new Field("ip", Schema.create(Schema.Type.STRING), null, null));
-			particularUrlRegisterSchema = Schema.createRecord("LongString", null, null, false);
+			particularUrlRegisterSchema = Schema.createRecord("crunch.LongString", null, null, false); // crunch.LongString otherwise it doesn't work -> Maybe a bug?
 			particularUrlRegisterSchema.setFields(fields);
 		}
 	}
@@ -89,13 +92,12 @@ public class CrunchUrlResolution extends Configured implements Tool, Serializabl
 
 		DoFn<String, Pair<Record, Pair<String, Record>>> doFnUrlMap = new DoFn<String, Pair<Record, Pair<String, Record>>>() {
 
-			Record emptyRecord;
+			Record emptyRecord = null;
 			Record group;
 
 			@Override
 			public void setContext(TaskInputOutputContext<?, ?, ?, ?> context) {
 				super.setContext(context);
-				emptyRecord = new Record(Schemas.particularUrlRegisterSchema);
 				group = new Record(Schemas.groupSchema);
 			}
 
@@ -115,7 +117,7 @@ public class CrunchUrlResolution extends Configured implements Tool, Serializabl
 			GenericData.Record particularRecord;
 			GenericData.Record group;
 
-			String nullString = "";
+			String nullString = null;
 
 			@Override
 			public void setContext(TaskInputOutputContext<?, ?, ?, ?> context) {
@@ -176,6 +178,9 @@ public class CrunchUrlResolution extends Configured implements Tool, Serializabl
 	}
 
 	public final static void main(String[] args) throws Exception {
+		Logger root = Logger.getRootLogger();
+		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
+
 		ToolRunner.run(new Configuration(), new CrunchUrlResolution(), args);
 	}
 }

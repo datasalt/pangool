@@ -83,7 +83,7 @@ public class SecondarySort {
 		CoGrouperConfigBuilder config = new CoGrouperConfigBuilder();
 		config.addSchema(0, schema);
 		config.setGroupByFields("intField", "strField");
-		config.setSorting(sort).build();
+		config.setSorting(sort);
 
 		CoGrouper grouper = new CoGrouper(config.build(), conf);
 		// Input / output and such
