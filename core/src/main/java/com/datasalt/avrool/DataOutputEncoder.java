@@ -4,11 +4,12 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.util.Utf8;
 import org.apache.hadoop.io.WritableUtils;
 
-public class DataOutputEncoder extends Encoder{
+public class DataOutputEncoder extends BinaryEncoder{
 
 	private DataOutput out;
 	
@@ -62,6 +63,7 @@ public class DataOutputEncoder extends Encoder{
 
 	@Override
   public void writeString(Utf8 utf8) throws IOException {
+		//writeInt(utf8.getByteLength());
 		writeBytes(utf8.getBytes(), 0, utf8.getByteLength());
 	  
   }
@@ -77,6 +79,7 @@ public class DataOutputEncoder extends Encoder{
 
 	@Override
   public void writeBytes(byte[] bytes, int start, int len) throws IOException {
+		writeInt(len);
 	  out.write(bytes,start,len);
 	  
   }
@@ -138,6 +141,12 @@ public class DataOutputEncoder extends Encoder{
 	
 	protected void writeZero() throws IOException {
     out.writeByte(0);
+  }
+
+
+	@Override
+  public int bytesBuffered() {
+	  return 0;
   }
 
 }

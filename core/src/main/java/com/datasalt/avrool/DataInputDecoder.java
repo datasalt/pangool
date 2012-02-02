@@ -4,11 +4,12 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.util.Utf8;
 import org.apache.hadoop.io.WritableUtils;
 
-public class DataInputDecoder extends Decoder{
+public class DataInputDecoder extends BinaryDecoder{
 
 	private DataInput in;
 	
@@ -27,7 +28,7 @@ public class DataInputDecoder extends Decoder{
 
 	@Override
   public boolean readBoolean() throws IOException {
-		return in.readBoolean();
+		return (in.readByte() != (byte)0);
   }
 
 	@Override

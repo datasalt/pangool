@@ -34,7 +34,7 @@ public class PangoolGroupComparator implements RawComparator<PangoolKey>,Configu
        
 				SerializationInfo serInfo = SerializationInfo.get(grouperConfig);
 				schema = serInfo.getGroupSchema();
-				System.out.println("Group schema : " + schema);
+				//System.out.println("Group schema : " + schema);
         } catch(CoGrouperException e) {
 	       throw new RuntimeException(e);
         }
@@ -44,6 +44,7 @@ public class PangoolGroupComparator implements RawComparator<PangoolKey>,Configu
 
 		public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2)  {
 			try{
+				//accumSizes[0] = (accumSizes[1] = 0);
 				return PangoolBinaryData.compare(b1, s1, b2, s2, schema, accumSizes);
 			} catch(IOException e){
 				throw new RuntimeException(e);

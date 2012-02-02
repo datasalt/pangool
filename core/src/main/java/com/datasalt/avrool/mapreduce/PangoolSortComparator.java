@@ -33,7 +33,8 @@ public class PangoolSortComparator implements RawComparator<PangoolKey>,Configur
 	        grouperConfig = CoGrouperConfig.get(conf);
        
 				SerializationInfo serInfo = SerializationInfo.get(grouperConfig);
-				schema = serInfo.getIntermediateSchema();
+				schema = serInfo.getSortSchema();
+				//System.out.println("Sort schema : " + schema);
         } catch(CoGrouperException e) {
 	       throw new RuntimeException(e);
         }
@@ -42,12 +43,17 @@ public class PangoolSortComparator implements RawComparator<PangoolKey>,Configur
 		}
 
 		public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2)  {
+			
+			//int comparison =BinaryData.compare(b1, s1, l1, b2, s2, l2, schema); 
+//		
+			//System.out.println("(" + s1 + "," + l1 + ") ; (" + s2 + "," + l2 + ") => " + comparison);
+			//return comparison;
 			try{
-				return PangoolBinaryData.compare(b1, s1, b2, s2, schema, accumSizes);
-			} catch(IOException e){
-				throw new RuntimeException(e);
-			}
-			//return BinaryData.compare(b1, s1, l1, b2, s2, l2, schema);
+				//accumSizes[0] = (accumSizes[1] = 0); //todo not needed
+			return PangoolBinaryData.compare(b1, s1, b2, s2, schema, accumSizes);
+		} catch(IOException e){
+			throw new RuntimeException(e);
+		}	
 		}
 
 //		public int compare(PangoolKey x, PangoolKey y) {

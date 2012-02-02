@@ -46,8 +46,8 @@ public class PangoolBinaryData {
     case LONG: {
       long long1 = WritableComparator.readVLong(b1, s1);
       long long2 = WritableComparator.readVLong(b2, s2);
-      accumSizes[0] = WritableUtils.decodeVIntSize(b1[s1]);
-      accumSizes[1] = WritableUtils.decodeVIntSize(b2[s2]);
+      accumSizes[0] += WritableUtils.decodeVIntSize(b1[s1]);
+      accumSizes[1] += WritableUtils.decodeVIntSize(b2[s2]);
       return long1 == long2 ? 0 : (long1 > long2 ? 1 : -1);
     }
     
@@ -128,7 +128,7 @@ public class PangoolBinaryData {
     }
     case BOOLEAN:
       boolean boolean1 = (b1[s1] != (byte)0);
-      boolean boolean2 = (b1[s1] != (byte)0);
+      boolean boolean2 = (b2[s2] != (byte)0);
       accumSizes[0]++;
       accumSizes[1]++;
       return (boolean1 == boolean2) ? 0 : (boolean1 ? 1 : -1);

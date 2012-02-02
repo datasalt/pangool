@@ -61,15 +61,15 @@ public class TestMonoSource {
 			Record userRecord = new Record(usuariosSchema);
 			userRecord.put("user_id",3);
 			userRecord.put("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
-			userRecord.put("age",random.nextInt());
-			userRecord.put("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
+//			userRecord.put("age",random.nextInt());
+//			userRecord.put("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
 	    collector.write(userRecord);
 	    
-	    userRecord.put("user_id",5);
-			userRecord.put("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
-			userRecord.put("age",random.nextInt());
-			userRecord.put("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
-	    collector.write(userRecord);
+//	    userRecord.put("user_id",5);
+//			userRecord.put("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
+//			userRecord.put("age",random.nextInt());
+//			userRecord.put("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
+//	    collector.write(userRecord);
 	    
     }
 		
@@ -98,8 +98,8 @@ public class TestMonoSource {
 		
 		userFields.add(new Field("name", Schema.create(Type.STRING),null,null));
 		userFields.add(new Field("user_id", Schema.create(Type.INT),null,null));
-		userFields.add(new Field("age", Schema.create(Type.INT),null,null));
-		userFields.add(new Field("my_bytes", Schema.create(Type.BYTES),null,null));
+//		userFields.add(new Field("age", Schema.create(Type.INT),null,null));
+//		userFields.add(new Field("my_bytes", Schema.create(Type.BYTES),null,null));
 
 		Schema usersSchema = Schema.createRecord("usuarios", null, NAMESPACE, false);
 		usersSchema.setFields(userFields);

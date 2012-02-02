@@ -19,6 +19,7 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.UTF8;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -48,6 +49,8 @@ public class AvroolWordCount {
 	private static class Split extends InputProcessor<LongWritable, Text> {
 
 		private Record outputRecord;
+		private Text text = new Text();
+		private Utf8 utf8 = new Utf8();
 
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
 			CoGrouperConfig grouperConfig = context.getPangoolConfig();
@@ -69,7 +72,13 @@ public class AvroolWordCount {
 //				utf8.
 				
 				//outputRecord.put(WORD_FIELD, itr.nextToken());
-				outputRecord.put(0,itr.nextToken());
+				String word = itr.nextToken();
+				text.set(word);
+				if (utf8.getBytes() != text.getBytes()){
+					utf8 = new Utf8(text.getBytes());
+				}
+				utf8.setByteLength(text.getLength());
+				outputRecord.put(0,utf8);
 				collector.write(outputRecord);
 			}
 		}
@@ -92,7 +101,7 @@ public class AvroolWordCount {
 		    throws IOException, InterruptedException, CoGrouperException {
 
 			int count = 0;
-			//this.outputRecord.put(WORD_FIELD, group.get(WORD_FIELD));
+
 			this.outputRecord.put(0, group.get(0));
 			for(GenericRecord value : values) {
 				//count += (Integer)tuple.get(COUNT_FIELD);

@@ -25,6 +25,7 @@ public class SerializationInfo {
 		Schema commonSchema;
 		Schema groupSchema;
 		Schema partitionerSchema;
+		Schema sortSchema;
 		CoGrouperConfig grouperConfig;
 		
 		Map<String,Schema> particularSchemas = new LinkedHashMap<String,Schema>();
@@ -39,6 +40,10 @@ public class SerializationInfo {
 		
 		public Schema getGroupSchema(){
 			return groupSchema;
+		}
+		
+		public Schema getSortSchema(){
+			return sortSchema;
 		}
 		
 		public Schema getPartitionerSchema(){
@@ -196,6 +201,7 @@ public class SerializationInfo {
 		List<Field> groupFields = new ArrayList<Field>();
 		List<Field> partitionerFields = new ArrayList<Field>();
 		List<Field> commonSchemaFields = new ArrayList<Field>();
+		List<Field> sortSchemaFields = new ArrayList<Field>();
 
 		Schema sourceSchema = conf.schemasBySource.values().iterator().next();
 		 
@@ -206,8 +212,11 @@ public class SerializationInfo {
 			if (field == null){
 				throw new CoGrouperException("Field '" + fieldName + "' not present in source.Source:"+ sourceSchema ); 
 			}
-			Schema  schemaType=field.schema(); 
+			Schema  schemaType=field.schema();
+			 
 			commonSchemaFields.add(new Field(fieldName,schemaType,null,null,element.getOrder()));
+			sortSchemaFields.add(new Field(fieldName,schemaType,null,null,element.getOrder()));
+			
 			if (conf.getGroupByFields().contains(fieldName)){
 				groupFields.add(new Field(fieldName,schemaType,null,null,element.getOrder()));
 			}
@@ -215,7 +224,7 @@ public class SerializationInfo {
 				partitionerFields.add(new Field(fieldName,schemaType,null,null,element.getOrder()));
 			}
 		}
-		
+		//add rest fieldsto common schema
 		for (Field f : sourceSchema.getFields()){
 			if (!containsField(commonSchemaFields, f.name())){
 				commonSchemaFields.add(new Field(f.name(),f.schema(),null,null,Order.IGNORE));
@@ -224,6 +233,7 @@ public class SerializationInfo {
 		result.commonSchema = Schema.createRecord(commonSchemaFields);
 		result.groupSchema = Schema.createRecord(groupFields);
 		result.partitionerSchema = Schema.createRecord(partitionerFields);
+		result.sortSchema = Schema.createRecord(sortSchemaFields);
 		result.particularSchemas = null;
 		return result;
 		
@@ -244,6 +254,8 @@ public class SerializationInfo {
 		result.grouperConfig = conf;
 		result.interSourcesOrder = conf.interSourcesOrdering;
 		//TODO check that the fields in groupBy are in common ordering
+		
+		//TODO add sortSchemaFields
 		List<Field> groupFields = new ArrayList<Field>();
 		List<Field> partitionerFields = new ArrayList<Field>();
 		List<Field> commonSchemaFields = new ArrayList<Field>();
