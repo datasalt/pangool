@@ -4,6 +4,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.apache.avro.io.BinaryData;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.util.Utf8;
@@ -63,7 +64,6 @@ public class DataOutputEncoder extends BinaryEncoder{
 
 	@Override
   public void writeString(Utf8 utf8) throws IOException {
-		//writeInt(utf8.getByteLength());
 		writeBytes(utf8.getBytes(), 0, utf8.getByteLength());
 	  
   }
@@ -98,7 +98,6 @@ public class DataOutputEncoder extends BinaryEncoder{
 
 	@Override
   public void writeArrayStart() throws IOException {
-	  // TODO Auto-generated method stub
 	  
   }
 
@@ -111,7 +110,6 @@ public class DataOutputEncoder extends BinaryEncoder{
 
 	@Override
   public void startItem() throws IOException {
-	  // TODO Auto-generated method stub
 	  
   }
 
@@ -123,7 +121,6 @@ public class DataOutputEncoder extends BinaryEncoder{
 
 	@Override
   public void writeMapStart() throws IOException {
-	  // TODO Auto-generated method stub
 	  
   }
 
@@ -148,5 +145,22 @@ public class DataOutputEncoder extends BinaryEncoder{
   public int bytesBuffered() {
 	  return 0;
   }
+	
+	//@Override
+//  public void writeInt(int n) throws IOException {
+//    int val = (n << 1) ^ (n >> 31);
+//    if ((val & ~0x7F) == 0) {
+//      out.write(val);
+//      return;
+//    } else if ((val & ~0x3FFF) == 0) {
+//      out.write(0x80 | val);
+//      out.write(val >>> 7);
+//      return;
+//    }
+//    int len = BinaryData.encodeInt(n, buf, 0);
+//    out.write(buf, 0, len);
+//  }
+	
+	
 
 }

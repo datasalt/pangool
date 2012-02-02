@@ -147,7 +147,7 @@ public class PangoolSerialization<T> implements Serialization<PangoolKey<T>>,Con
       // method and the Hadoop framework called it when needed rather
       // than for every record.
       
-      encoder.flush();
+      //encoder.flush();
     }
 
     public void close() throws IOException {

@@ -68,19 +68,22 @@ public class AvroolWordCount {
 			//outputRecord.put(COUNT_FIELD, 1);
 			
 			while(itr.hasMoreTokens()) {
-//				Utf8 utf8 = new Utf8();
+					outputRecord.put(0,itr.nextToken());
+					collector.write(outputRecord);
+			}
 //				utf8.
 				
 				//outputRecord.put(WORD_FIELD, itr.nextToken());
-				String word = itr.nextToken();
-				text.set(word);
-				if (utf8.getBytes() != text.getBytes()){
-					utf8 = new Utf8(text.getBytes());
-				}
-				utf8.setByteLength(text.getLength());
-				outputRecord.put(0,utf8);
-				collector.write(outputRecord);
-			}
+				/* optimized version */ 
+//				String word = itr.nextToken();
+//				text.set(word);
+//				if (utf8.getBytes() != text.getBytes()){
+//					utf8 = new Utf8(text.getBytes());
+//				}
+//				utf8.setByteLength(text.getLength());
+//				outputRecord.put(0,utf8);
+//				collector.write(outputRecord);
+			
 		}
 	}
 
@@ -104,16 +107,14 @@ public class AvroolWordCount {
 
 			this.outputRecord.put(0, group.get(0));
 			for(GenericRecord value : values) {
-				//count += (Integer)tuple.get(COUNT_FIELD);
 				count += (Integer)value.get(1);
 			}
-			//this.outputRecord.put(COUNT_FIELD, count);
 			this.outputRecord.put(1, count);
 			collector.write(this.outputRecord);
 		}
 	}
 
-	@SuppressWarnings("serial")
+
 	private static class Count extends GroupHandler<Text, IntWritable> {
 
 		private Text outputKey=new Text();
@@ -124,10 +125,9 @@ public class AvroolWordCount {
 		    throws IOException, InterruptedException, CoGrouperException {
 			int count = 0;
 			for(GenericRecord tuple : tuples) {
-				//count += (Integer)tuple.get(COUNT_FIELD);
 				count += (Integer)tuple.get(1);
 			}
-			//collector.write(new Text(group.get(WORD_FIELD).toString()), new IntWritable(count));
+
 			Utf8 utf8 = (Utf8)group.get(0);
 			outputKey.set(utf8.getBytes(),0,utf8.getByteLength());
 			outputValue.set(count);

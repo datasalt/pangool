@@ -19,8 +19,6 @@ public class SerializationInfo {
 		public static final String REGULAR_NAMESPACE=null;
 		public static final String INTERMEDIATE_SCHEMA_NAME ="intermediate";
 		public static final String UNION_FIELD_NAME = "our_union";
-		//public static final String UNION_FIELD_NAMESPACE="uf_namespace";
-
 		
 		Schema commonSchema;
 		Schema groupSchema;
@@ -70,6 +68,7 @@ public class SerializationInfo {
 				List<Schema> unionSchemas = new ArrayList<Schema>();
 				unionSchemas.addAll(particularSchemas.values());
 				Field unionField =new Field(UNION_FIELD_NAME,Schema.createUnion(unionSchemas),null,null,interSourcesOrder); 
+				//TODO check that this FIELD is not used
 				fields.add(unionField);
 			}
 //			} else if (particularSchemas.size() == 1){
@@ -294,17 +293,13 @@ public class SerializationInfo {
 		result.groupSchema = Schema.createRecord(groupFields);
 		result.partitionerSchema = Schema.createRecord(partitionerFields);
 		
-		
-		
 		//initializing particular schemas with empty fields
 		Map<String,List<Field>> particularFields = new HashMap<String,List<Field>>();
 		for (Map.Entry<String,Schema> entry : conf.schemasBySource.entrySet()){
 			Schema s = Schema.createRecord(entry.getKey(), null,REGULAR_NAMESPACE,false);
-
 			result.particularSchemas.put(entry.getKey(),s);
 			particularFields.put(entry.getKey(), new ArrayList<Field>());
 		}
-		
 		
 		//adding sortable fields for every particular schema
 		for (Map.Entry<String,Ordering> entries : conf.particularOrderings.entrySet()){

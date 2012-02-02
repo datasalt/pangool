@@ -34,17 +34,19 @@ public class PangoolSortComparator implements RawComparator<PangoolKey>,Configur
        
 				SerializationInfo serInfo = SerializationInfo.get(grouperConfig);
 				schema = serInfo.getSortSchema();
-				//System.out.println("Sort schema : " + schema);
+				if (schema == null){
+					//TODO deprecated
+					schema = serInfo.getIntermediateSchema();
+				}
         } catch(CoGrouperException e) {
 	       throw new RuntimeException(e);
         }
-
 			}
 		}
 
 		public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2)  {
 			
-			//int comparison =BinaryData.compare(b1, s1, l1, b2, s2, l2, schema); 
+			//return BinaryData.compare(b1, s1, l1, b2, s2, l2, schema); 
 //		
 			//System.out.println("(" + s1 + "," + l1 + ") ; (" + s2 + "," + l2 + ") => " + comparison);
 			//return comparison;

@@ -34,7 +34,7 @@ public class PangoolGroupComparator implements RawComparator<PangoolKey>,Configu
        
 				SerializationInfo serInfo = SerializationInfo.get(grouperConfig);
 				schema = serInfo.getGroupSchema();
-				//System.out.println("Group schema : " + schema);
+
         } catch(CoGrouperException e) {
 	       throw new RuntimeException(e);
         }

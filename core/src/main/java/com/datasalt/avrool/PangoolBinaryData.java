@@ -23,7 +23,6 @@ public class PangoolBinaryData {
       	int previousAccumSize1 = accumSizes[0];
       	int previousAccumSize2 = accumSizes[1];
         if (field.order() == Field.Order.IGNORE) {
-        	
         	compare(b1,s1,b2,s2,field.schema(),accumSizes);
         } else {
         	int c = compare(b1,s1,b2,s2,field.schema(),accumSizes);
