@@ -26,6 +26,7 @@ import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.IdentityGroupHandler;
 import com.datasalt.pangool.api.IdentityInputProcessor;
 import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.commons.CommonUtils;
 import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
@@ -70,7 +71,7 @@ public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
 	public void test() throws InvalidFieldException, CoGrouperException, IOException, InterruptedException,
 	    ClassNotFoundException {
 
-		Files.write("foo1 bar1\nbar2 foo2", new File(IN), Charset.forName("UTF-8"));
+		CommonUtils.writeTXT("foo1 bar1\nbar2 foo2", new File(IN));
 		Configuration conf = new Configuration();
 		FileSystem fS = FileSystem.get(conf);
 		Path outPath = new Path(OUT);

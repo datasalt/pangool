@@ -12,14 +12,11 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.URISyntaxException;
 
-import javax.annotation.Nullable;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +56,7 @@ public class DCUtils {
 	 * @throws URISyntaxException
 	 */
 	public static void serializeToDC(Object obj, String serializeToLocalFile,
-	    @Nullable String dcConfigurationProperty, Configuration conf) throws FileNotFoundException, IOException,
+	    String dcConfigurationProperty, Configuration conf) throws FileNotFoundException, IOException,
 	    URISyntaxException {
 		File file = new File(System.getProperty("java.io.tmpdir"), serializeToLocalFile);
 		ObjectOutput out = new ObjectOutputStream(new FileOutputStream(file));

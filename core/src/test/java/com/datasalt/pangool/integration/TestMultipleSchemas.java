@@ -2,7 +2,6 @@ package com.datasalt.pangool.integration;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,12 +29,12 @@ import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.SortingBuilder;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.commons.CommonUtils;
 import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
-import com.google.common.io.Files;
 
 public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
@@ -152,7 +151,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		        .buildSorting())
 		    .build();
 
-		Files.write("foo", new File("test-input"), Charset.forName("UTF-8"));
+		CommonUtils.writeTXT("foo", new File("test-input"));
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 
 		Job job = new CoGrouper(config, getConf())

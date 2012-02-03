@@ -15,6 +15,10 @@
  */
 package com.datasalt.pangool.commons;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -27,6 +31,15 @@ public class CommonUtils {
   		result.put(entry.getValue(),entry.getKey());
   	}
 		return result;
+	}
+	
+	/**
+	 * Writes the string into the file. 
+	 */
+	public static void writeTXT(String string, File file) throws IOException {
+		BufferedWriter out = new BufferedWriter(new FileWriter(file));
+		out.write(string);
+		out.close();
 	}
 	
 }
