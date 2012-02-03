@@ -2,7 +2,6 @@ package com.datasalt.pangool.integration;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 
 import org.apache.avro.util.Utf8;
 import org.apache.hadoop.fs.Path;
@@ -25,11 +24,11 @@ import com.datasalt.pangool.Sorting;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.api.ProxyOutputFormat;
+import com.datasalt.pangool.commons.CommonUtils;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
-import com.google.common.io.Files;
 
 public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 
@@ -98,7 +97,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 
 		// One file with one line - context will be ignored
 		// Business logic in {@link MyInputProcessor}
-		Files.write("ignore-me", new File(INPUT), Charset.forName("UTF-8"));
+		CommonUtils.writeTXT("ignore-me", new File(INPUT));
 
 		CoGrouper coGrouper = new CoGrouper(config.build(), getConf());
 		coGrouper.addInput(new Path(INPUT), TextInputFormat.class, new MyInputProcessor());

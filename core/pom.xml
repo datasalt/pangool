@@ -66,7 +66,7 @@
       <version>1.8.5</version>
     </dependency>
 -->
-      <!-- Very usefull Google's guava - Nice collections API -->
+   <!-- Very usefull Google's guava - Nice collections API -->
    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -148,23 +148,12 @@
       <version>1.7.3</version>
     </dependency>  
     
-    
-    
-    
-    
-      <!-- Cloudera's CDH3 Hadoop -->
-     <!--dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
-      <version>0.20.2-cdh3u2</version>
-      <scope>provided</scope>
-    </dependency-->
-    
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
       <version>0.20.203.0</version>
      </dependency>   
+     
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-io</artifactId>
