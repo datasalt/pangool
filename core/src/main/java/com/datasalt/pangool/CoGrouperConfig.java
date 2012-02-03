@@ -75,9 +75,7 @@ public class CoGrouperConfig {
 		return schemes;
 	}
 	
-	public Schema getSchemaBySourceId(int sourceId){
-		return schemes.get(sourceId);
-	}
+	
 	
 	public static void setPangoolConfig(CoGrouperConfig config, Configuration conf) throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper jsonSerDe = new ObjectMapper();
@@ -121,7 +119,7 @@ public class CoGrouperConfig {
 	}
 	
 	/**
-	 * Get the schema of this tuple.
+	 * Get the schema of this source.
 	 * 
 	 * @param tuple
 	 */

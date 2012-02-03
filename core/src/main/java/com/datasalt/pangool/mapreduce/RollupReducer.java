@@ -156,8 +156,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	 */
 	private int indexMismatch(ITuple tuple1, ITuple tuple2, int minFieldIndex, int maxFieldIndex) {
 		for(int i = minFieldIndex; i <= maxFieldIndex; i++) {
-			Object obj1 = tuple1.getObject(i);
-			Object obj2 = tuple2.getObject(i);
+			Object obj1 = tuple1.get(i);
+			Object obj2 = tuple2.get(i);
 			if(obj1 instanceof byte[]) {
 				if(!Arrays.equals((byte[])obj1, (byte[])obj2)) {
 					return i;

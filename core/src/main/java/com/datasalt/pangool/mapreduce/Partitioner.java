@@ -7,6 +7,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Tuple;
 
 public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<ITuple, NullWritable> implements Configurable {
 
@@ -17,7 +18,7 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<ITuple,
 
 	@Override
 	public int getPartition(ITuple key, NullWritable value, int numPartitions) {
-		return key.partialHashCode(groupFields.length) % numPartitions;
+		return Tuple.partialHashCode(key,groupFields.length) % numPartitions;
 	}
 
 	@Override

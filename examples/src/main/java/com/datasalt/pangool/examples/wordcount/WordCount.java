@@ -22,6 +22,8 @@ import com.datasalt.pangool.SortingBuilder;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.api.InputProcessor.CoGrouperContext;
+import com.datasalt.pangool.api.InputProcessor.Collector;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
@@ -35,7 +37,12 @@ public class WordCount {
 	@SuppressWarnings("serial")
 	public static class Split extends InputProcessor<LongWritable, Text> {
 
-		Tuple tuple = new Tuple(2);
+		private Tuple tuple;
+		
+		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
+			Schema schema = context.getCoGrouperConfig().getSchema(0);
+			this.tuple = new Tuple(schema);
+		}
 		
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
@@ -43,7 +50,7 @@ public class WordCount {
 			StringTokenizer itr = new StringTokenizer(value.toString());
 			tuple.setInt(COUNT_FIELD, 1);
 			while(itr.hasMoreTokens()) {
-				tuple.setString(WORD_FIELD, itr.nextToken().getBytes(UTF8));
+				tuple.setString(WORD_FIELD, itr.nextToken());
 				collector.write(tuple);
 			}
 		}
@@ -52,7 +59,12 @@ public class WordCount {
 	@SuppressWarnings("serial")
 	public static class CountCombiner extends CombinerHandler {
 
-		Tuple tuple = new Tuple(2);
+		private Tuple tuple;
+		
+		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
+			Schema schema = context.getCoGrouperConfig().getSchema(0);
+			this.tuple = new Tuple(schema);
+		}
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
@@ -60,7 +72,7 @@ public class WordCount {
 			int count = 0;
 			tuple.setString(WORD_FIELD, group.getString(WORD_FIELD));
 			for(ITuple tuple : tuples) {
-				count += (Integer) tuple.getArray()[1];
+				count += (Integer) tuple.getInt(1);
 			}
 			tuple.setInt(COUNT_FIELD, count);
 			collector.write(this.tuple);
@@ -84,7 +96,7 @@ public class WordCount {
 		    throws IOException, InterruptedException, CoGrouperException {
 			int count = 0;
 			for(ITuple tuple : tuples) {
-				count += (Integer) tuple.getArray()[1];
+				count += (Integer) tuple.getInt(1);
 			}
 			countToEmit.set(count);
 			text.set(group.getString(WORD_FIELD));

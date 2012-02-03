@@ -63,6 +63,8 @@ class TupleInternalDeserializer implements Deserializer<ITupleInternal> {
 		this.in = new DataInputStream(in);
 	}
 
+	
+	
 	@Override
 	public ITupleInternal deserialize(ITupleInternal t) throws IOException {
 		Schema commonSchema = coGrouperConf.getCommonOrderedSchema();
@@ -73,57 +75,45 @@ class TupleInternalDeserializer implements Deserializer<ITupleInternal> {
 		if(t instanceof DoubleBufferedTuple) {
 			((DoubleBufferedTuple) t).swapInstances();
 		}
-		t.clear();
-		if(t.getArray() == null) {
-			t.setArray(new Object[tupleSize]);
-		}
-		int sourceId = readFields(commonSchema, t, 0, in);
-		if(coGrouperConf.getnSchemas() > 1) {
-			// Expand / shrink backed tuple array when needed
-			Schema specificSchema = coGrouperConf.getSpecificOrderedSchema(sourceId);
-			tupleSize += specificSchema.getFields().length;
-			Object[] newArray = new Object[tupleSize];
-			int sizeToCopy = t.getArray().length;
-			if(tupleSize < sizeToCopy) {
-				sizeToCopy = tupleSize;
-			}
-			System.arraycopy((Object)t.getArray(), 0, (Object)newArray, 0, sizeToCopy);
-			t.setArray(newArray);
-			readFields(specificSchema, t, commonSchema.getFields().length, in);
-		}
+
+//		int sourceId = readFields(commonSchema, t, 0, in);
+//		if(coGrouperConf.getnSchemas() > 1) {
+//			// Expand / shrink backed tuple array when needed
+//			Schema specificSchema = coGrouperConf.getSpecificOrderedSchema(sourceId);
+//			tupleSize += specificSchema.getFields().length;
+//			//Object[] newArray = new Object[tupleSize];
+//			int sizeToCopy = t.size();
+//			if(tupleSize < sizeToCopy) {
+//				sizeToCopy = tupleSize;
+//			}
+//			readFields(specificSchema, t, commonSchema.getFields().length, in);
+//		}
 		return t;
 	}
 
-	public int readFields(Schema schema, ITupleInternal tuple, int index, DataInput input) throws IOException {
-		Object[] deSer = tuple.getArray();
-		int sourceId = 0;
+	public void readFields(Schema schema, ITupleInternal tuple, int index, DataInput input) throws IOException {
+		
 		for(int i = 0; i < schema.getFields().length; i++) {
 			Class<?> fieldType = schema.getField(i).getType();
 			String fieldName = schema.getField(i).getName();
-			if(Field.SOURCE_ID_FIELD_NAME.equals(fieldName)) {
-				sourceId = WritableUtils.readVInt(input);
-				deSer[index] = sourceId;
-			} else if(fieldType == VIntWritable.class) {
-				deSer[index] = WritableUtils.readVInt(input);
+			if(fieldType == VIntWritable.class) {
+				tuple.setInt(index,WritableUtils.readVInt(input));
 			} else if(fieldType == VLongWritable.class) {
-				deSer[index] = WritableUtils.readVLong(input);
+				tuple.setLong(index,WritableUtils.readVLong(input));
 			} else if(fieldType == Integer.class) {
-				deSer[index] = input.readInt();
+				tuple.setInt(index,input.readInt());
 			} else if(fieldType == Long.class) {
-				deSer[index] = input.readLong();
+				tuple.setLong(index,input.readLong());
 			} else if(fieldType == Double.class) {
-				deSer[index] = input.readDouble();
+				tuple.setDouble(index,input.readDouble());
 			} else if(fieldType == Float.class) {
-				deSer[index] = input.readFloat();
+				tuple.setFloat(index,input.readFloat());
 			} else if(fieldType == String.class) {
 				text.readFields(input);
-				byte[] bytes = text.getBytes();
-			  byte[] newBytes = new byte[text.getLength()];
-		    System.arraycopy(bytes, 0, newBytes, 0, text.getLength());
-				deSer[index] = newBytes;
+				tuple.setString(index,text);
 			} else if(fieldType == Boolean.class) {
 				byte b = input.readByte();
-				deSer[index] = (b != 0);
+				tuple.setBoolean(index,(b != 0));
 			} else if(fieldType.isEnum()) {
 				int ordinal = WritableUtils.readVInt(input);
 				try {
@@ -131,7 +121,7 @@ class TupleInternalDeserializer implements Deserializer<ITupleInternal> {
 					if(enums == null) {
 						throw new IOException("Field " + fieldName + " is not a enum type");
 					}
-					deSer[index] = enums[ordinal];
+					tuple.setEnum(index,enums[ordinal]);
 				} catch(ArrayIndexOutOfBoundsException e) {
 					throw new RuntimeException(e);
 				}
@@ -140,16 +130,16 @@ class TupleInternalDeserializer implements Deserializer<ITupleInternal> {
 				if(size != 0) {
 					tmpInputBuffer.setSize(size);
 					input.readFully(tmpInputBuffer.getBytes(), 0, size);
-					if(tuple.getObject(index) == null) {
-						tuple.setObject(index, ReflectionUtils.newInstance(fieldType, null));
+					if(tuple.get(index) == null) {
+						tuple.set(index, ReflectionUtils.newInstance(fieldType, null));
 					}
-					Object ob = ser.deser(tuple.getObject(index), tmpInputBuffer.getBytes(), 0, size);
-					tuple.setObject(index, ob);
+					Object ob = ser.deser(tuple.get(index), tmpInputBuffer.getBytes(), 0, size);
+					tuple.set(index, ob);
 				}
 			} // end for
 			index++;
 		}
-		return sourceId;
+
 	}
 
 	@Override

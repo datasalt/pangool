@@ -62,9 +62,8 @@ public class TestComparators extends BaseTest {
 			Sorting sortCriteria = createRandomSortCriteria(schema, customComparators, maxIndex + 1);
 			String[] groupFields = getFirstFields(sortCriteria.getSortCriteria(), random.nextInt(sortCriteria.getSortCriteria().getSortElements().length));
 
-			int nFields = SCHEMA.getFields().length;
-			DoubleBufferedTuple base1 = new DoubleBufferedTuple(new Tuple(nFields), new Tuple(nFields));
-			DoubleBufferedTuple base2 = new DoubleBufferedTuple(new Tuple(nFields), new Tuple(nFields));
+			DoubleBufferedTuple base1 = new DoubleBufferedTuple(new Tuple(SCHEMA), new Tuple(SCHEMA));
+			DoubleBufferedTuple base2 = new DoubleBufferedTuple(new Tuple(SCHEMA), new Tuple(SCHEMA));
 
 			DoubleBufferedTuple[] tuples = new DoubleBufferedTuple[] { base1, base2 };
 			for(ITuple tuple: tuples) {

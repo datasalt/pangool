@@ -57,9 +57,9 @@ public abstract class BaseTest extends AbstractBaseTest {
 					tuple.setFloat(i, isRandom ? random.nextFloat() : 0f);
 				} else if(fieldType == String.class) {
 					if(!isRandom || random.nextBoolean()) {
-						tuple.setString(i, Utf8.getBytesFor(""));
+						tuple.setString(i, "");
 					} else {
-						tuple.setString(i, Utf8.getBytesFor(random.nextLong() + ""));
+						tuple.setString(i, random.nextLong() + "");
 					}
 				} else if(fieldType.isEnum()) {
           Method method = fieldType.getMethod("values", (Class[])null);
@@ -69,9 +69,9 @@ public abstract class BaseTest extends AbstractBaseTest {
 					boolean toInstance = random.nextBoolean();
 					if(isRandom && toInstance) {
 						Object instance = ReflectionUtils.newInstance(fieldType, null);
-						tuple.setObject(i, instance);
+						tuple.set(i, instance);
 					} else {
-						tuple.setObject(i, null);
+						tuple.set(i, null);
 					}
 				}
 			}

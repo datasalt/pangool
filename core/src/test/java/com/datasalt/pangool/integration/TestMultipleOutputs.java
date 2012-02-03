@@ -46,11 +46,11 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
-
-			Tuple tuple = new Tuple(3);
-			tuple.setString(0, Utf8.getBytesFor("Pere"));
-			tuple.setInt(1, 100);
-			tuple.setString(2, Utf8.getBytesFor("ES"));
+			Schema schema = context.getCoGrouperConfig().getSchema(0); 
+			Tuple tuple = new Tuple(schema);
+			tuple.setString("name", "Pere");
+			tuple.setInt("money", 100);
+			tuple.setString("country", "ES");
 
 			// We use the multiple outputs here -
 			collector.write(OUTPUT_1, new Text(tuple.getString(0)), new Text(tuple.getString(2)));
@@ -122,10 +122,10 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		withOutput(firstReducerOutput(OUTPUT + "/" + OUTPUT_2), new IntWritable(100), NullWritable.get());
 		withOutput(firstMapOutput(OUTPUT + "/" + OUTPUT_2), new IntWritable(100), NullWritable.get());
 
-		Tuple tuple = new Tuple(3);
-		tuple.setString(0, Utf8.getBytesFor("Pere"));
+		Tuple tuple = new Tuple(baseSchema);
+		tuple.setString(0, "Pere");
 		tuple.setInt(1, 100);
-		tuple.setString(2, Utf8.getBytesFor("ES"));
+		tuple.setString(2, "ES");
 		
 		withTupleOutput(firstMapOutput(OUTPUT + "/" + TUPLEOUTPUT_1), tuple);
 		withTupleOutput(firstReducerOutput(OUTPUT + "/" + TUPLEOUTPUT_1), tuple);

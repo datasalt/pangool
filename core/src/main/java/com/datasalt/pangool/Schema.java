@@ -1,8 +1,8 @@
 package com.datasalt.pangool;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,8 +10,6 @@ import org.apache.commons.collections.BidiMap;
 import org.apache.commons.collections.bidimap.DualHashBidiMap;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
-
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 /**
  * Encapsulates one Pangool schame composed of {@link Field} instances.
@@ -136,6 +134,10 @@ public class Schema {
 		return fields;
 	}
 
+	public Integer getFieldPos(String fieldName){
+		return indexByFieldName.get(fieldName);
+	}
+	
 	public Field getField(String fieldName) {
 		int index = indexByFieldName(fieldName);
 		return fields[index];
@@ -175,7 +177,7 @@ public class Schema {
 		return serialize();
 	}
 
-	public static Schema parse(String serialized) throws CoGrouperException, InvalidFieldException {
+	public static Schema parse(String serialized) throws CoGrouperException /*, InvalidFieldException */{
 		SchemaBuilder builder = new SchemaBuilder();
 		try {
 			if(serialized == null || serialized.isEmpty()) {

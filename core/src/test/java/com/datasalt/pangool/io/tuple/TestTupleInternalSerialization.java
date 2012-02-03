@@ -64,7 +64,7 @@ public class TestTupleInternalSerialization extends BaseTest{
 					tuple.clear();
 					// TODO
 //					tuple.setInt(Field.SOURCE_ID_FIELD_NAME, sourceId);
-					Schema schema = pangoolConf.getSchemaBySourceId(sourceId);
+					Schema schema = pangoolConf.getSchema(sourceId);
 					fillTuple(true,schema, tuple, 0, schema.getFields().length-1);
 					assertSerializable(ser,tuple,false);
 				}

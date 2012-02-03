@@ -45,43 +45,49 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 	@SuppressWarnings("serial")
   public static class FirstInputProcessor extends InputProcessor<LongWritable, Text> {
 
+		
+		
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
 
-			Tuple tuple = new Tuple(4);
-			tuple.setString(0, Utf8.getBytesFor("ES"));
-			tuple.setInt(1, SOURCE1);
-			tuple.setInt(2, 100);
-			tuple.setString(3, Utf8.getBytesFor("Pere"));
+			Schema peopleSchema = context.getCoGrouperConfig().getSchema(0);
+			Schema countrySchema = context.getCoGrouperConfig().getSchema(1);
+			
+			Tuple peopleTuple = new Tuple(peopleSchema);
+			peopleTuple.setString("name", "Pere");
+			peopleTuple.setInt("source", SOURCE1);
+			peopleTuple.setInt("money", 100);
+			peopleTuple.setString("country", "ES");
+			
 
-			collector.write(tuple);
+			collector.write(peopleTuple);
 
-			tuple.setString(0, Utf8.getBytesFor("ES"));
-			tuple.setInt(1, SOURCE1);
-			tuple.setInt(2, 50);
-			tuple.setString(3, Utf8.getBytesFor("Iván"));
+			peopleTuple.setString("country", "ES");
+			peopleTuple.setInt("source", SOURCE1);
+			peopleTuple.setInt("money", 50);
+			peopleTuple.setString("name", "Iván");
 
-			collector.write(tuple);
+			collector.write(peopleTuple);
 
-			tuple.setString(0, Utf8.getBytesFor("FR"));
-			tuple.setInt(1, SOURCE1);
-			tuple.setInt(2, 150);
-			tuple.setString(3, Utf8.getBytesFor("Eric"));
+			peopleTuple.setString("country", "FR");
+			peopleTuple.setInt("source", SOURCE1);
+			peopleTuple.setInt("money", 150);
+			peopleTuple.setString("name", "Eric");
 
-			collector.write(tuple);
+			collector.write(peopleTuple);
 
-			tuple = new Tuple(3);
-			tuple.setString(0, Utf8.getBytesFor("ES"));
-			tuple.setInt(1, SOURCE2);
-			tuple.setInt(2, 1000);
+			Tuple countryTuple = new Tuple(countrySchema);
+			countryTuple.setString("country", "ES");
+			countryTuple.setInt("source", SOURCE2);
+			countryTuple.setInt("averageSalary", 1000);
 
-			collector.write(tuple);
+			collector.write(peopleTuple);
 
-			tuple.setString(0, Utf8.getBytesFor("FR"));
-			tuple.setInt(1, SOURCE2);
-			tuple.setInt(2, 1500);
+			countryTuple.setString("country", "FR");
+			countryTuple.setInt("source", SOURCE2);
+			countryTuple.setInt("averageSalary", 1500);
 
-			collector.write(tuple);
+			collector.write(peopleTuple);
 		}
 	}
 
@@ -96,7 +102,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, 
 		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
 			
-			String groupString = new Utf8(group.getString(0)).toString();
+			String groupString = (group.getString(0).toString());
 			if(groupString.equals("FR")) {
 				FRPRESENT = true;
 				if(!ESPRESENT) {
@@ -140,8 +146,8 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 	    ClassNotFoundException {
 		
 		CoGrouperConfig config = new CoGrouperConfigBuilder()
-		    .addSchema(0, Schema.parse("name:string, money:int, country:string"))
-		    .addSchema(1, Schema.parse("country:string, averageSalary:int"))
+		    .addSchema(0, Schema.parse("name:string,source:int, money:int, country:string"))
+		    .addSchema(1, Schema.parse("country:string,source:int, averageSalary:int"))
 		    .setGroupByFields("country")
 		    .setSorting(
 		        new SortingBuilder()
@@ -160,8 +166,8 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		    .setGroupHandler(new MyGroupHandler())
 		    .setOutput(new Path("test-output"), TextOutputFormat.class, NullWritable.class, NullWritable.class).createJob();
 
-		job.waitForCompletion(true);
-
+		boolean success = job.waitForCompletion(true);
+		Assert.assertTrue(success);
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-input"));
 	}

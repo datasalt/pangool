@@ -39,15 +39,16 @@ import com.datasalt.pangool.io.tuple.ITupleInternal;
 class TupleInternalSerializer implements Serializer<ITupleInternal> {
 
 	private Serialization ser;
-
+	
 	private DataOutputStream out;
 	private CoGrouperConfig coGrouperConfig;
 	private Text text = new Text();
-
+	private static final Text EMPTY_TEXT = new Text("");
+	
 	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 
-	TupleInternalSerializer(Serialization ser, CoGrouperConfig pangoolConfig) {
-		this.coGrouperConfig = pangoolConfig;
+	TupleInternalSerializer(Serialization ser, CoGrouperConfig grouperConfig) {
+		this.coGrouperConfig = grouperConfig;
 		this.ser = ser;
 	}
 
@@ -56,33 +57,23 @@ class TupleInternalSerializer implements Serializer<ITupleInternal> {
 	}
 
 	public void serialize(ITupleInternal tuple) throws IOException {
-		// First we write common schema
-		Schema commonSchema = coGrouperConfig.getCommonOrderedSchema();
-		int sourceId = write(commonSchema, tuple, 0, this.out);
+		//TODO check that schema is valid
+		write(tuple.getSchema(),tuple,out);
 
-		if(coGrouperConfig.getnSchemas() > 1) {
-			// Now we write specific part if needed.
-			Schema schema = coGrouperConfig.getSpecificOrderedSchema(sourceId);
-			write(schema, tuple, commonSchema.getFields().length, this.out);
-		}
 	}
 
 	public void close() throws IOException {
 		this.out.close();
 	}
 
-	public int write(Schema schema, ITuple tuple, int index, DataOutput output) throws IOException {
+	private int write(Schema schema, ITuple tuple, DataOutput output) throws IOException {
 		int sourceId = 0;
+		int index=0;
 		for(Field field : schema.getFields()) {
 			String fieldName = field.getName();
-			if(fieldName == Field.SOURCE_ID_FIELD_NAME) {
-				sourceId = tuple.getInt(index);
-				WritableUtils.writeVInt(output, sourceId);
-				continue;
-			}
 			Class<?> fieldType = field.getType();
 			Object element;
-			element = tuple.getArray()[index];
+			element = tuple.get(index);
 			try {
 				if(fieldType == VIntWritable.class) {
 					WritableUtils.writeVInt(output, (Integer) element);
@@ -97,9 +88,14 @@ class TupleInternalSerializer implements Serializer<ITupleInternal> {
 				} else if(fieldType == Float.class) {
 					output.writeFloat((Float) element);
 				} else if(fieldType == String.class) {
-					byte[] bytes = (byte[]) element;
-					text.set(bytes, 0, bytes.length);
-					text.write(output);
+					if (element == null){
+						EMPTY_TEXT.write(output);
+					} else if (element instanceof Text){
+						((Text)element).write(output);
+					} else if (element instanceof String){
+						text.set((String)element);
+						text.write(output);
+					} 
 				} else if(fieldType == Boolean.class) {
 					output.write((Boolean) element ? 1 : 0);
 				} else if(fieldType.isEnum()) {

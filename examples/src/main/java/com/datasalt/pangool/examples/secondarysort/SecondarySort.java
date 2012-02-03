@@ -18,6 +18,8 @@ import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Sorting;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.api.InputProcessor.CoGrouperContext;
+import com.datasalt.pangool.api.InputProcessor.Collector;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Tuple;
 
@@ -33,18 +35,18 @@ public class SecondarySort {
 	public final static int FIRST = 0;
 	public final static int SECOND = 1;
 
-	public static class IProcessor extends InputProcessor<LongWritable, Text> {
+	private static class IProcessor extends InputProcessor<LongWritable, Text> {
 
-		/**
-     * 
-     */
-		private static final long serialVersionUID = 1L;
-		Tuple tuple = new Tuple(2);
-
+		private Schema schema;
+		
+		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
+			this.schema = context.getCoGrouperConfig().getSchema(0);
+		}
+		
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
-
+			Tuple tuple = new Tuple(schema);
 			String[] fields = value.toString().trim().split(" ");
 			tuple.setInt(FIRST, Integer.parseInt(fields[0]));
 			tuple.setInt(SECOND, Integer.parseInt(fields[1]));

@@ -138,7 +138,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 			return context;
 		}
 
-		public CoGrouperConfig getPangoolConfig() {
+		public CoGrouperConfig getCoGrouperConfig() {
 			return pangoolConfig;
 		}
 	}

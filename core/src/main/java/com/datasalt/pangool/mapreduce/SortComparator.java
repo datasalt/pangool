@@ -118,8 +118,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			}
 			int comparison;
 
-			Object object1 = tuple1.getObject(tupleOffset + depth);
-			Object object2 = tuple2.getObject(tupleOffset + depth);
+			Object object1 = tuple1.get(tupleOffset + depth);
+			Object object2 = tuple2.get(tupleOffset + depth);
 			
 			if(comparator != null) {
 				comparison = comparator.compare(object1, object2);

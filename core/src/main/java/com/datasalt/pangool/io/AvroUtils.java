@@ -9,12 +9,14 @@ import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.mapred.AvroSerialization;
 import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Tuple;
 
 public class AvroUtils {
 
@@ -57,16 +59,20 @@ public class AvroUtils {
 	}
 
 	public static void toTuple(Record record, ITuple tuple, org.apache.avro.Schema schema) {
+		//TODO this method should reuse the tuple provided or create a new one and return it.
+		// need to convert schema from Avro to Pangool
+		
+		
 		int index = 0;
+		Text text = new Text();
 		for(org.apache.avro.Schema.Field field : schema.getFields()) {
 			Object obj = record.get(field.name());
 			if(obj instanceof Utf8) {
 				Utf8 utf8 = (Utf8) obj;
-				byte[] bytes = new byte[utf8.getByteLength()];
-				System.arraycopy((Object) utf8.getBytes(), 0, (Object) bytes, 0, utf8.getByteLength());
-				tuple.setString(index, bytes);
+				text.set(utf8.getBytes(),0,utf8.getByteLength());
+				tuple.setString(index, text);
 			} else if(obj instanceof Comparable) {
-				tuple.setObject(index, obj);
+				tuple.set(index, obj);
 			}
 			// TODO Complex types
 			index++;

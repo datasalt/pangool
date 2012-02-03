@@ -35,6 +35,8 @@ import org.junit.Test;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.api.InputProcessor.CoGrouperContext;
+import com.datasalt.pangool.api.InputProcessor.Collector;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
@@ -45,6 +47,15 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 
 	private static class Map extends InputProcessor<Text, NullWritable> {
 
+		private Schema schema;
+		
+		/**
+		 * Called once at the start of the task. Override it to implement your custom logic.
+		 */
+		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
+			this.schema = context.getCoGrouperConfig().getSchema(0);
+		}
+		
 		/**
      * 
      */
@@ -53,7 +64,7 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 		@Override
 		public void process(Text key, NullWritable value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
-			Tuple outputKey = createTuple(key.toString());
+			Tuple outputKey = createTuple(key.toString(),schema);
 			collector.write(outputKey);
 		}
 	}
@@ -112,17 +123,17 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 		}
 	}
 
-	private static Tuple createTuple(String text) {
-		Tuple tuple = new Tuple(4);
+	private static Tuple createTuple(String text,Schema schema) {
+		Tuple tuple = new Tuple(schema);
 		String[] tokens = text.split("\\s+");
 		String country = tokens[0];
 		Integer age = Integer.parseInt(tokens[1]);
 		String name = tokens[2];
 		Integer height = Integer.parseInt(tokens[3]);
 
-		tuple.setString(0, Utf8.getBytesFor(country));
+		tuple.setString(0,country);
 		tuple.setInt(1, age);
-		tuple.setString(2, Utf8.getBytesFor(name));
+		tuple.setString(2, name);
 		tuple.setInt(3, height);
 		return tuple;
 	}
@@ -137,16 +148,18 @@ public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
 		String[] inputElements = new String[] { "ES 20 listo 250", "US 14 beber 202", "US 14 perro 180", "US 14 perro 170",
 		    "US 15 jauja 160", "US 16 listo 160", "XE 20 listo 230" };
 
+		Schema schema = Schema.parse("country:string, age:vint, name:string, height:int");
+		
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {
 			withInput(input, writable(inputElement));
-			tuples[i++] = createTuple(inputElement);
+			tuples[i++] = createTuple(inputElement,schema);
 		}
 		Path outputPath = new Path(output);
 
 		CoGrouperConfigBuilder builder = new CoGrouperConfigBuilder();
-		builder.addSchema(0, Schema.parse("country:string, age:vint, name:string, height:int"));
+		builder.addSchema(0, schema);
 		builder.setSorting(Sorting.parse("country ASC, age ASC, name ASC"));
 		builder.setRollupFrom("country");
 		builder.setGroupByFields("country", "age", "name");

@@ -7,10 +7,8 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
-import com.datasalt.pangool.mapreduce.GroupComparator;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 public class TestGroupComparator extends ComparatorsBaseTest {
 
