@@ -12,6 +12,9 @@ import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 
 import com.cloudera.crunch.DoFn;
 import com.cloudera.crunch.Emitter;
@@ -73,10 +76,13 @@ public class CrunchSecondarySort extends Configured implements Tool, Serializabl
 
 		DoFn<String, Pair<GenericData.Record, Double>> doFn = new DoFn<String, Pair<GenericData.Record, Double>>() {
 
-			GenericData.Record record = new GenericData.Record(Schemas.initialSchema);
+			GenericData.Record record;
 
 			@Override
 			public void process(String arg0, Emitter<Pair<GenericData.Record, Double>> arg1) {
+				if(record == null) {
+					 record = new GenericData.Record(Schemas.initialSchema);
+				}
 				String[] fields = arg0.split("\t");
 				record.put(0, Integer.parseInt(fields[0]));
 				record.put(1, fields[1]);
@@ -113,6 +119,9 @@ public class CrunchSecondarySort extends Configured implements Tool, Serializabl
 	}
 
 	public static void main(String[] args) throws Exception {
+		Logger root = Logger.getRootLogger();
+		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
+		
 		ToolRunner.run(new Configuration(), new CrunchSecondarySort(), args);
 	}
 }

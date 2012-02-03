@@ -19,7 +19,7 @@ public class GenerateData {
 	public static void main(String[] args) throws IOException {
 		if(args.length != 4) {
 			System.err.println();
-			System.err.println("Three arguments are needed.");
+			System.err.println("Four arguments are needed.");
 			System.err
 			    .println("Usage: [out-file-name] [#number_of_departments] [#number_of_people_per_department] [#number_of_sales_per_people].");
 			System.err.println();

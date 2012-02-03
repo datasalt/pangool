@@ -18,9 +18,9 @@ public class GenerateData {
 	public static void main(String[] args) throws IOException {
 		if(args.length != 5) {
 			System.err.println();
-			System.err.println("Three arguments are needed.");
+			System.err.println("Five arguments are needed.");
 			System.err
-			    .println("Usage: [out-url-map] [out-url-reg] [#cannonical_urls] [#urls_per_cannonical] [#timestamp_per_url].");
+			    .println("Usage: [out-url-map] [out-url-reg] [#number_of_cannonical_urls] [#number_of_urls_per_cannonical] [#number_of_timestamp_per_url].");
 			System.err.println();
 			System.err
 			    .println("Example: url-map.txt url-reg.txt 3, 3, 5 -> Will generate a file url-map.txt with 3x3=9 urls mapping to 3 different cannonical urls.");

@@ -304,6 +304,6 @@ public class MapRedUrlResolution {
 
 		Job j = new Job(job);
 		j.setReducerClass(Reduce.class);
-		System.exit(j.waitForCompletion(true) ? 0 : 1);
+		j.waitForCompletion(true);
 	}
 }
