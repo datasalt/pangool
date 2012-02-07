@@ -15,13 +15,13 @@
  */
 package com.datasalt.pangool.io.tuple;
 
-import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
+import com.datasalt.pangool.io.tuple.ser.PangoolSerialization;
 
 
 /**
  * {@link ITuple} that supports internal Pangool serialization 
  * implements this interface. That serves Hadoop
- * to know that they should be serialized with {@link TupleInternalSerialization}   
+ * to know that they should be serialized with {@link PangoolSerialization}   
  */
 public interface ITupleInternal extends ITuple {
 	

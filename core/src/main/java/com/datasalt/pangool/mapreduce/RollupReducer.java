@@ -31,15 +31,15 @@ import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.commons.DCUtils;
-import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.PangoolWrapper;
 
 /**
  * 
  * This {@link Reducer} implements a similar functionality than {@link SimpleReducer} but adding a Rollup feature.
  */
-public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
+public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<PangoolWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	private boolean firstIteration = true;
 	private CoGrouperConfig pangoolConfig;
@@ -102,7 +102,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 
 			// close last group
 			for(int i = maxDepth; i >= minDepth; i--) {
-				handler.onCloseGroup(i, groupByFields.get(i), context.getCurrentKey(), this.context, collector);
+				handler.onCloseGroup(i, groupByFields.get(i), context.getCurrentKey().currentDatum(), this.context, collector);
 			}
 			cleanup(context);
 		} catch(CoGrouperException e) {
@@ -111,18 +111,18 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	}
 
 	@Override
-	public final void reduce(ITuple key, Iterable<NullWritable> values, Context context) throws IOException,
+	public final void reduce(PangoolWrapper<ITuple> key, Iterable<NullWritable> values, Context context) throws IOException,
 	    InterruptedException {
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
-			DoubleBufferedTuple currentTuple = (DoubleBufferedTuple) key;
+			ITuple currentTuple = key.currentDatum();
 			int indexMismatch;
 			if(firstIteration) {
 				indexMismatch = minDepth;
 				firstIteration = false;
 			} else {
-				ITuple previousKey = currentTuple.getPreviousTuple();
+				ITuple previousKey = key.previousDatum();
 				indexMismatch = indexMismatch(previousKey, currentTuple, minDepth, maxDepth);
 				for(int i = maxDepth; i >= indexMismatch; i--) {
 					handler.onCloseGroup(i, groupByFields.get(i), previousKey, this.context, collector);

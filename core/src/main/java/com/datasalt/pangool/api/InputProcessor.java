@@ -27,15 +27,15 @@ import org.apache.hadoop.mapreduce.Mapper;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.PangoolWrapper;
 
 /**
  * TODO doc
  */
 @SuppressWarnings({ "rawtypes", "serial" })
 public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
-    Mapper<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> implements Serializable {
+    Mapper<INPUT_KEY, INPUT_VALUE, PangoolWrapper<ITuple>, NullWritable> implements Serializable {
   
 	private Collector collector;
 	private CoGrouperContext context;
@@ -64,7 +64,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	 * Do not override. Override {@link InputProcessor#setup(Collector)} instead.
 	 */
 	@Override
-	public final void setup(Mapper<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable>.Context context) throws IOException, InterruptedException {
+	public final void setup(Mapper<INPUT_KEY, INPUT_VALUE, PangoolWrapper<ITuple>, NullWritable>.Context context) throws IOException, InterruptedException {
 		try {
 			super.setup(context);
 			Configuration conf = context.getConfiguration();
@@ -104,7 +104,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	public static class Collector extends MultipleOutputsCollector {
 
 		private Mapper.Context context;
-		private DoubleBufferedTuple cachedSourcedTuple = new DoubleBufferedTuple();
+		private PangoolWrapper<ITuple> cachedSourcedTuple = new PangoolWrapper<ITuple>();
 			
 		private NullWritable nullWritable;
 		
@@ -116,17 +116,17 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 
 		@SuppressWarnings("unchecked")
     public synchronized void write(ITuple tuple) throws IOException, InterruptedException {
-			cachedSourcedTuple.setContainedTuple(tuple);
+			cachedSourcedTuple.currentDatum(tuple);
 			context.write(cachedSourcedTuple, nullWritable);
 		}
 	}
 	
 	public static class StaticCoGrouperContext<INPUT_KEY, INPUT_VALUE> {
 
-		private MapContext<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> context;
+		private MapContext<INPUT_KEY, INPUT_VALUE, PangoolWrapper<ITuple>, NullWritable> context;
 		private CoGrouperConfig pangoolConfig;
 
-		StaticCoGrouperContext(MapContext<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> context, CoGrouperConfig pangoolConfig) {
+		StaticCoGrouperContext(MapContext<INPUT_KEY, INPUT_VALUE, PangoolWrapper<ITuple>, NullWritable> context, CoGrouperConfig pangoolConfig) {
 			this.context = context;
 			this.pangoolConfig = pangoolConfig;
 		}
@@ -134,7 +134,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		/**
 		 * Return the Hadoop {@link MapContext}.
 		 */
-		public MapContext<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> getHadoopContext() {
+		public MapContext<INPUT_KEY, INPUT_VALUE, PangoolWrapper<ITuple>, NullWritable> getHadoopContext() {
 			return context;
 		}
 
@@ -149,7 +149,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		 * of the extended GroupHandler methods to specify the generic types
 		 * for the Collector meanwhile keeping generics. 
 		 */
-		CoGrouperContext(MapContext<INPUT_KEY, INPUT_VALUE, DoubleBufferedTuple, NullWritable> context,
+		CoGrouperContext(MapContext<INPUT_KEY, INPUT_VALUE, PangoolWrapper<ITuple>, NullWritable> context,
         CoGrouperConfig pangoolConfig) {
 	    super(context, pangoolConfig);
     }		

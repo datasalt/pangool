@@ -22,8 +22,8 @@ public class TestSortingBuilder {
 			.secondarySort(2).add("taste", SortOrder.ASC)
 			.buildSorting();
 		Assert.assertNotNull(sorting);
-		Assert.assertEquals(SortOrder.ASC, sorting.getSortCriteria().getSortElements()[0].getSortOrder());
-		Assert.assertEquals(SortOrder.DESC, sorting.getSortCriteria().getSortElements()[1].getSortOrder());
+		Assert.assertEquals(SortOrder.ASC, sorting.getCommonSortCriteria().getSortElements()[0].getSortOrder());
+		Assert.assertEquals(SortOrder.DESC, sorting.getCommonSortCriteria().getSortElements()[1].getSortOrder());
 		Assert.assertEquals(SortOrder.ASC, sorting.getSpecificCriteriaByName(1).getSortElements()[0].getSortOrder());
 		Assert.assertEquals(SortOrder.DESC, sorting.getSpecificCriteriaByName(1).getSortElements()[1].getSortOrder());
 		Assert.assertEquals(SortOrder.ASC, sorting.getSpecificCriteriaByName(2).getSortElements()[0].getSortOrder());		

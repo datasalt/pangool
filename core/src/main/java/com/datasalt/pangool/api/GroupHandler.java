@@ -11,6 +11,7 @@ import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.PangoolWrapper;
 import com.datasalt.pangool.mapreduce.RollupReducer;
 import com.datasalt.pangool.mapreduce.SimpleReducer;
 
@@ -53,9 +54,9 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
 	 */
 	public static class StaticCollector<OUTPUT_KEY, OUTPUT_VALUE> extends MultipleOutputsCollector {
 
-		ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context;
+		protected ReduceContext<PangoolWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context;
 		
-    public StaticCollector(ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) {
+    public StaticCollector(ReduceContext<PangoolWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) {
 	    super(context);
 	    this.context = context;
     }
@@ -71,7 +72,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
 		 * of the extended GroupHandler methods to specify the generic types
 		 * for the Collector meanwhile keeping generics. 
 		 */
-		public Collector(ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) {
+		public Collector(ReduceContext<PangoolWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) {
 	    super(context);
     }		
 	}
@@ -79,9 +80,9 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
   public static class StaticCoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> {
   	
   	private CoGrouperConfig pangoolConfig;
-  	private ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext;
+  	private ReduceContext<PangoolWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext;
   	
-  	public StaticCoGrouperContext(ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext, CoGrouperConfig pangoolConfig) {
+  	public StaticCoGrouperContext(ReduceContext<PangoolWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext, CoGrouperConfig pangoolConfig) {
   		this.pangoolConfig = pangoolConfig;
   		this.hadoopContext = hadoopContext;
   	}
@@ -93,7 +94,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
   	/**
   	 * Return the Hadoop {@link ReduceContext}.  
   	 */
-  	public ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> getHadoopContext() {
+  	public ReduceContext<PangoolWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> getHadoopContext() {
   		return hadoopContext;
   	}
   }
@@ -104,7 +105,7 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
 		 * of the extended GroupHandler methods to specify the generic types
 		 * for the CoGrouperContext meanwhile keeping generics. 
 		 */
-		public CoGrouperContext(ReduceContext<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext,
+		public CoGrouperContext(ReduceContext<PangoolWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext,
         CoGrouperConfig pangoolConfig) {
       super(hadoopContext, pangoolConfig);
     }    	

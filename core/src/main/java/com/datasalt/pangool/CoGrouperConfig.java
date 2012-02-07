@@ -13,38 +13,28 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-/**
- * 
- * @author pere
- *
- */
+
 public class CoGrouperConfig {
 
 	final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
 
 	private Sorting sorting;
-	private Map<Integer, Schema> schemes; // key is schema Id
+	private Map<Integer, Schema> schemas; // key is schema Id
 	private List<String> groupByFields;
 	private String rollupFrom;
+	private SerializationInfo serInfo;
+	private String sourceField;
 	
-	private Schema commonOrderedSchema;
-	private Map<Integer, Schema> specificOrderedSchemas;
-	private int nSchemas;
-	
-	public int getnSchemas() {
-  	return nSchemas;
-  }
-
-	void setnSchemas(int nSchemas) {
-  	this.nSchemas = nSchemas;
-  }
-
 	CoGrouperConfig() {
-		schemes = new HashMap<Integer, Schema>();
+		schemas = new HashMap<Integer, Schema>();
 	}
 
 	void setSorting(Sorting sorting) {
 		this.sorting = sorting;
+	}
+	
+	void setSourceField(String field){
+		this.sourceField = field;
 	}
 
 	public Sorting getSorting() {
@@ -59,8 +49,8 @@ public class CoGrouperConfig {
   	return rollupFrom;
   }
 
-	void addSchema(Integer schemaId, Schema schema) {
-		schemes.put(schemaId, schema);
+	void addSchema(int schemaId, Schema schema) {
+		schemas.put(schemaId, schema);
 	}
 
 	void setGroupByFields(String... groupByFields) {
@@ -71,51 +61,13 @@ public class CoGrouperConfig {
 		this.rollupFrom = rollupFrom;
 	}
 
-	public Map<Integer, Schema> getSchemes() {
-		return schemes;
+	public Map<Integer, Schema> getSchemas() {
+		return schemas;
 	}
 	
-	
-	
-	public static void setPangoolConfig(CoGrouperConfig config, Configuration conf) throws JsonGenerationException, JsonMappingException, IOException {
+	public static void set(CoGrouperConfig config, Configuration conf) throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper jsonSerDe = new ObjectMapper();
 		conf.set(CONF_PANGOOL_CONF, config.toStringAsJSON(jsonSerDe));
-	}
-
-	// ------------------------------------------------------------- //
-
-	void setCommonOrderedSchema(Schema commonOrderedSchema) {
-  	this.commonOrderedSchema = commonOrderedSchema;
-  }
-
-	void setSpecificOrderedSchemas(Map<Integer, Schema> specificOrderedSchemas) {
-  	this.specificOrderedSchemas = specificOrderedSchemas;
-  }
-	
-	/**
-	 * Returns a sorted schema that represents the sorted fields common to all schemas
-	 * in the order they can be serialized or compared.
-	 *  
-	 * @param sortCriteria
-	 * @return
-	 */
-	public Schema getCommonOrderedSchema() {
-		return commonOrderedSchema;
-	}
-	
-	/**
-	 * Returns a map of ordered schemas that represent the way each non-common part of
-	 * the schemas can be serialized or compared.
-	 * 
-	 * @param sortCriteria
-	 * @return
-	 */
-	public Map<Integer, Schema> getSpecificOrderedSchemas() {
-		return specificOrderedSchemas;
-	}
-	
-	public Schema getSpecificOrderedSchema(int sourceId){
-		return specificOrderedSchemas.get(sourceId);
 	}
 	
 	/**
@@ -124,13 +76,13 @@ public class CoGrouperConfig {
 	 * @param tuple
 	 */
 	public Schema getSchema(int sourceId) {
-		return getSchemes().get(sourceId);
+		return getSchemas().get(sourceId);
 	}
 
 	public String toString() {
 		StringBuilder b = new StringBuilder();
 		b.append("sorting: ").append(sorting.toString()).append(" ");
-		b.append("schemes: ").append(schemes.toString()).append(" ");
+		b.append("schemas: ").append(schemas.toString()).append(" ");
 		b.append("groupByFields: ").append(groupByFields).append(" ");
 		b.append("rollupFrom: ").append(rollupFrom);
 		return b.toString();
@@ -151,7 +103,7 @@ public class CoGrouperConfig {
 			ArrayList<String> list = (ArrayList<String>) jsonData.get("groupByFields");
 			setGroupByFields(list.toArray(new String[0]));
 			
-	    Map<String, String> jsonSchemes = (Map<String, String>) jsonData.get("schemes");
+	    Map<String, String> jsonSchemes = (Map<String, String>) jsonData.get("schemas");
 			
 			for(Map.Entry<String, String> jsonScheme: jsonSchemes.entrySet()) {
 				addSchema(Integer.parseInt(jsonScheme.getKey()), Schema.parse(jsonScheme.getValue()));
@@ -168,13 +120,30 @@ public class CoGrouperConfig {
 		jsonableData.put("sorting", sorting.toStringAsJSON(mapper));
 		Map<String, String> jsonableSchemes = new HashMap<String, String>();
 		
-		for(Map.Entry<Integer, Schema> schemaEntry : schemes.entrySet()) {
+		for(Map.Entry<Integer, Schema> schemaEntry : schemas.entrySet()) {
 			jsonableSchemes.put(schemaEntry.getKey() + "", schemaEntry.getValue().toString());
 		}
 		
-		jsonableData.put("schemes", jsonableSchemes);
+		jsonableData.put("schemas", jsonableSchemes);
 		jsonableData.put("groupByFields", groupByFields);
 		jsonableData.put("rollupFrom", rollupFrom);
 		return mapper.writeValueAsString(jsonableData);
 	}	
+	
+	public SerializationInfo getSerializationInfo(){
+		if (serInfo == null){
+			try{
+				serInfo = new SerializationInfo(this);
+			} catch(Exception e){
+				throw new RuntimeException(e);
+			}
+		}
+		return serInfo;
+	}
+	
+	public String getSourceField(){
+		return sourceField;
+	}
+	
+	
 }

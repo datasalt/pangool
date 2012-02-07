@@ -51,11 +51,11 @@ public class TestTupleInternalSerialization extends BaseTest{
 	@Test
 	@Ignore // TODO Refactoring
 	public void testRandomTupleSerialization() throws IOException, InvalidFieldException, CoGrouperException {
-		CoGrouperConfig.setPangoolConfig(pangoolConf, getConf());
+		CoGrouperConfig.set(pangoolConf, getConf());
 		Serialization ser = new Serialization(getConf());
 			Random random = new Random();
 			int NUM_ITERATIONS=100000;
-			List<Integer> sourceIds = new ArrayList<Integer>(pangoolConf.getSchemes().keySet());
+			List<Integer> sourceIds = new ArrayList<Integer>(pangoolConf.getSchemas().keySet());
 			DoubleBufferedTuple dbTuple = new DoubleBufferedTuple();
 			DoubleBufferedTuple[] tuples = new DoubleBufferedTuple[]{dbTuple};
 			for (int i=0 ; i < NUM_ITERATIONS; i++){

@@ -60,7 +60,7 @@ public class TestComparators extends BaseTest {
 
 			Schema schema = permuteSchema(SCHEMA);
 			Sorting sortCriteria = createRandomSortCriteria(schema, customComparators, maxIndex + 1);
-			String[] groupFields = getFirstFields(sortCriteria.getSortCriteria(), random.nextInt(sortCriteria.getSortCriteria().getSortElements().length));
+			String[] groupFields = getFirstFields(sortCriteria.getCommonSortCriteria(), random.nextInt(sortCriteria.getCommonSortCriteria().getSortElements().length));
 
 			DoubleBufferedTuple base1 = new DoubleBufferedTuple(new Tuple(SCHEMA), new Tuple(SCHEMA));
 			DoubleBufferedTuple base2 = new DoubleBufferedTuple(new Tuple(SCHEMA), new Tuple(SCHEMA));
@@ -79,7 +79,7 @@ public class TestComparators extends BaseTest {
 				builder.setSorting(sortCriteria);
 				builder.addSchema(0, schema);
 				CoGrouperConfig config = builder.build();
-				CoGrouperConfig.setPangoolConfig(config, conf);
+				CoGrouperConfig.set(config, conf);
 				// config has changed -> we need a new Serialization object
 				ser = new Serialization(conf);
 				
@@ -131,7 +131,7 @@ public class TestComparators extends BaseTest {
 
 			String error = alias + ",Not same comparison : Comp objects:'" + compObjects + "' Comp binary:'" + compBinary
 			    + "' for tuples:" + "\nTUPLE1:" + tuple1 + "\nTUPLE2:" + tuple2 + "\nCRITERIA:"
-			    + comparator.getConfig().getSorting().getSortCriteria() + "\nGROUP_FIELDS:" + comparator.getConfig().getGroupByFields();
+			    + comparator.getConfig().getSorting().getCommonSortCriteria() + "\nGROUP_FIELDS:" + comparator.getConfig().getGroupByFields();
 
 			Assert.fail(error);
 		}
@@ -146,7 +146,7 @@ public class TestComparators extends BaseTest {
 		if(comp1 > 0 && comp2 > 0 || comp1 < 0 && comp2 < 0) {
 			Assert.fail("Same comparison in OBJECTS: " + comp1 + " , " + comp2 + ".It should be opposite" + "' for tuples:"
 			    + "\nTUPLE1:" + tuple1 + "\nTUPLE2:" + tuple2 + "\nCRITERIA:"
-			    + comp.getConfig().getSorting().getSortCriteria());
+			    + comp.getConfig().getSorting().getCommonSortCriteria());
 		}
 
 		comp1 = compareInBinary1(comp, tuple1, tuple2);
@@ -154,7 +154,7 @@ public class TestComparators extends BaseTest {
 		if(comp1 > 0 && comp2 > 0 || comp1 < 0 && comp2 < 0) {
 			Assert.fail("Same comparison in BINARY: " + comp1 + " , " + comp2 + ".It should be opposite" + "' for tuples:"
 			    + "\nTUPLE1:" + tuple1 + "\nTUPLE2:" + tuple2 + "\nCRITERIA:"
-			    + comp.getConfig().getSorting().getSortCriteria());
+			    + comp.getConfig().getSorting().getCommonSortCriteria());
 		}
 	}
 

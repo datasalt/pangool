@@ -1,23 +1,18 @@
 package com.datasalt.pangool;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.hadoop.io.RawComparator;
 
-import com.datasalt.pangool.Schema.Field;
-
 /**
  * Encapsulates one sorting configuration composed of {@link SortElement}s.
  * 
- * @author pere
- *
  */
 @SuppressWarnings("rawtypes")
 public class SortCriteria {
 
-	boolean hasSourceIdField;
-	
 	public static class SortElement {
 
 		private String fieldName;
@@ -73,23 +68,15 @@ public class SortCriteria {
 		}
 	}
 
-	SortCriteria(SortElement[] sortElements) {
-		this.sortElements = sortElements;
-		this.hasSourceIdField = false;
-		for(SortElement sortElement : sortElements) {
-			if(sortElement.getFieldName().equals(Field.SOURCE_ID_FIELD_NAME)) {
-				this.hasSourceIdField = true;
-			}
-		}
+	SortCriteria(List<SortElement> sortElements) {
+		this.sortElements = new ArrayList<SortElement>();
+		this.sortElements.addAll(sortElements);
+		this.sortElements = Collections.unmodifiableList(this.sortElements);
 	}
 
-	boolean hasSourceIdField() {
-  	return hasSourceIdField;
-  }
+	private List<SortElement> sortElements;
 
-	private SortElement[] sortElements;
-
-	public SortElement[] getSortElements() {
+	public List<SortElement> getSortElements() {
 		return sortElements;
 	}
 
@@ -133,9 +120,7 @@ public class SortCriteria {
 			sortElements.add(sortElement);
 		}
 
-		SortElement[] array = new SortElement[sortElements.size()];
-		sortElements.toArray(array);
-		return new SortCriteria(array);
+		return new SortCriteria(sortElements);
 	}
 
 	@Override
@@ -143,11 +128,11 @@ public class SortCriteria {
 
 		StringBuilder b = new StringBuilder();
 
-		for(int i = 0; i < sortElements.length; i++) {
+		for(int i = 0; i < sortElements.size(); i++) {
 			if(i != 0) {
 				b.append(",");
 			}
-			SortElement sortElement = sortElements[i];
+			SortElement sortElement = sortElements.get(i);
 			b.append(sortElement.getFieldName());
 			Class<?> comparator = sortElement.getComparator();
 			if(comparator != null) {

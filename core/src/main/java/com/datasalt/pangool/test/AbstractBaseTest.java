@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Before;
 
-import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
+import com.datasalt.pangool.io.tuple.ser.PangoolSerialization;
 import com.datasalt.pangool.serialization.protostuff.ProtoStuffSerialization;
 import com.datasalt.pangool.serialization.thrift.ThriftSerialization;
 
@@ -28,7 +28,7 @@ public abstract class AbstractBaseTest {
 	private static void configureSerialization(Configuration conf) {
 		ThriftSerialization.enableThriftSerialization(conf);
 		ProtoStuffSerialization.enableProtoStuffSerialization(conf);		
-		TupleInternalSerialization.enableSerialization(conf);
+		PangoolSerialization.enableSerialization(conf);
 	}
 	
 	private Configuration createConf(){

@@ -27,9 +27,9 @@ import com.datasalt.pangool.io.AvroUtils;
 import com.datasalt.pangool.io.PangoolMultipleOutputs;
 import com.datasalt.pangool.io.TupleInputFormat;
 import com.datasalt.pangool.io.TupleOutputFormat;
-import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
+import com.datasalt.pangool.io.tuple.PangoolWrapper;
+import com.datasalt.pangool.io.tuple.ser.PangoolSerialization;
 import com.datasalt.pangool.mapreduce.GroupComparator;
 import com.datasalt.pangool.mapreduce.Partitioner;
 import com.datasalt.pangool.mapreduce.RollupReducer;
@@ -215,7 +215,7 @@ public class CoGrouper {
 		}
 
 		// Serialize PangoolConf in Hadoop Configuration
-		CoGrouperConfig.setPangoolConfig(config, conf);
+		CoGrouperConfig.set(config, conf);
 		Job job = new Job(conf);
 
 		List<String> partitionerFields;
@@ -260,11 +260,11 @@ public class CoGrouper {
 		}
 
 		// Enabling serialization
-		TupleInternalSerialization.enableSerialization(job.getConfiguration());
+		PangoolSerialization.enableSerialization(job.getConfiguration());
 
 		job.setJarByClass((jarByClass != null) ? jarByClass : grouperHandler.getClass());
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(DoubleBufferedTuple.class);
+		job.setMapOutputKeyClass(PangoolWrapper.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(Partitioner.class);
 		job.setGroupingComparatorClass(GroupComparator.class);

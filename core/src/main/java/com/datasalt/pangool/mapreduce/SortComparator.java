@@ -76,7 +76,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	public int compare(ITuple w1, ITuple w2) {
 		resetSourceIds();
 
-		int fieldsToCompare = commonCriteria.getSortElements().length;
+		int fieldsToCompare = commonCriteria.getSortElements().size();
 		int commonCompare = compare(0, fieldsToCompare, commonSchema, commonCriteria, w1, w2);
 
 		if(commonCompare != 0) {
@@ -177,7 +177,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		resetSourceIds();
 
-		SortCriteria commonCriteria = config.getSorting().getSortCriteria();
+		SortCriteria commonCriteria = config.getSorting().getCommonSortCriteria();
 		Schema commonSchema = config.getCommonOrderedSchema();
 		int fieldsToCompare = commonCriteria.getSortElements().length;
 
@@ -207,7 +207,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 */
 	private void instanceComparators() {
 		// Raw Comparators only for common fields by now TODO
-		SortCriteria criteria = config.getSorting().getSortCriteria();
+		SortCriteria criteria = config.getSorting().getCommonSortCriteria();
 		this.instancedComparators = new RawComparator[criteria.getSortElements().length];
 		for(int i = 0; i < criteria.getSortElements().length; i++) {
 			SortElement sortElement = criteria.getSortElements()[i];
@@ -368,8 +368,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			try {
 				config = CoGrouperConfigBuilder.get(conf);
 				instanceComparators();
-				nSchemas = config.getSchemes().values().size();
-				commonCriteria = config.getSorting().getSortCriteria();
+				nSchemas = config.getSchemas().values().size();
+				commonCriteria = config.getSorting().getCommonSortCriteria();
 				commonSchema = config.getCommonOrderedSchema();
 			} catch(Exception e) {
 				throw new RuntimeException(e);

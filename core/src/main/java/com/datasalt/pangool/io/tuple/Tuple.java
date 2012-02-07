@@ -32,7 +32,7 @@ public class Tuple extends BaseTuple implements Serializable {
 
 	public Tuple(Schema schema) {
 		this.schema = schema;
-		int size = schema.getFields().length;
+		int size = schema.getFields().size();
 		this.array = new Object[size];
 	}
 	

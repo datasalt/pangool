@@ -52,17 +52,6 @@ public class SortingBuilder extends SortCriteriaBuilder {
 		return builder;
 	}
 
-	public SortingBuilder addSourceId() throws InvalidFieldException {
-		addSourceId(SortOrder.ASC);
-		return this;
-	}
-	
-	public SortingBuilder addSourceId(SortOrder order) throws InvalidFieldException {
-		add(Schema.Field.SOURCE_ID_FIELD_NAME, order, null);
-		sourceIdFieldAdded = true;
-		return this;
-	}
-	
 	public Sorting buildSorting() throws CoGrouperException {
 		Map<Integer, SortCriteria> secondarySortCriterias = new HashMap<Integer, SortCriteria>();
 		for(Map.Entry<Integer, SortCriteriaBuilder> builders: secondarySortBuilders.entrySet()) {
@@ -72,7 +61,7 @@ public class SortingBuilder extends SortCriteriaBuilder {
 		if(!secondarySortCriterias.isEmpty() && !sourceIdFieldAdded) {
 			throw new CoGrouperException("SourceId field must be added if specific sort criterias have been added.");
 		}
-		Sorting sorting = new Sorting(buildSortCriteria(), sourceIdFieldAdded, secondarySortCriterias);
+		Sorting sorting = new Sorting(buildSortCriteria(), secondarySortCriterias);
 		return sorting;
 	}
 }

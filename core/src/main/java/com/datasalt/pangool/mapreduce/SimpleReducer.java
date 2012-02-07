@@ -32,8 +32,9 @@ import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.PangoolWrapper;
 
-public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
+public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<PangoolWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	public final static String CONF_REDUCER_HANDLER = SimpleReducer.class.getName() + ".reducer.handler";
 
@@ -88,14 +89,14 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	}
 
 	@Override
-	public final void reduce(ITuple key, Iterable<NullWritable> values, Context context) throws IOException,	
+	public final void reduce(PangoolWrapper<ITuple> key, Iterable<NullWritable> values, Context context) throws IOException,	
 	    InterruptedException {
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
 	
 			// We get the firts tuple, to create the groupTuple view
-			ITuple firstTupleGroup = key;
+			ITuple firstTupleGroup = key.currentDatum();
 	
 			// A view is created over the first tuple to give the user the group fields
 			groupTuple.setDelegatedTuple(firstTupleGroup);

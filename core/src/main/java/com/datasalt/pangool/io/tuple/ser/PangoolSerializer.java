@@ -35,8 +35,9 @@ import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.Serialization;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITupleInternal;
+import com.datasalt.pangool.io.tuple.PangoolWrapper;
 
-class TupleInternalSerializer implements Serializer<ITupleInternal> {
+public class PangoolSerializer implements Serializer<PangoolWrapper<ITuple>> {
 
 	private Serialization ser;
 	
@@ -47,7 +48,7 @@ class TupleInternalSerializer implements Serializer<ITupleInternal> {
 	
 	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 
-	TupleInternalSerializer(Serialization ser, CoGrouperConfig grouperConfig) {
+	PangoolSerializer(Serialization ser, CoGrouperConfig grouperConfig) {
 		this.coGrouperConfig = grouperConfig;
 		this.ser = ser;
 	}
@@ -56,8 +57,10 @@ class TupleInternalSerializer implements Serializer<ITupleInternal> {
 		this.out = new DataOutputStream(out);
 	}
 
-	public void serialize(ITupleInternal tuple) throws IOException {
+	public void serialize(PangoolWrapper<ITuple> wrapper) throws IOException {
+		ITuple tuple = wrapper.currentDatum();
 		//TODO check that schema is valid
+		//Schema may not match the source id 
 		write(tuple.getSchema(),tuple,out);
 
 	}
@@ -66,14 +69,13 @@ class TupleInternalSerializer implements Serializer<ITupleInternal> {
 		this.out.close();
 	}
 
-	private int write(Schema schema, ITuple tuple, DataOutput output) throws IOException {
-		int sourceId = 0;
-		int index=0;
-		for(Field field : schema.getFields()) {
-			String fieldName = field.getName();
-			Class<?> fieldType = field.getType();
+	private void write(Schema schema, ITuple tuple, DataOutput output) throws IOException {
+		for(int i=0; i < schema.getFields().size(); i++) {
+			Field field = schema.getField(i);
+			String fieldName = field.name();
+			Class<?> fieldType = field.type();
 			Object element;
-			element = tuple.get(index);
+			element = tuple.get(i);
 			try {
 				if(fieldType == VIntWritable.class) {
 					WritableUtils.writeVInt(output, (Integer) element);
@@ -119,8 +121,7 @@ class TupleInternalSerializer implements Serializer<ITupleInternal> {
 				throw new IOException("Field '" + fieldName + "' contains '" + element + "' which is "
 				    + element.getClass().getName() + ".The expected type is " + fieldType.getName());
 			} // end for
-			index++;
 		} 
-		return sourceId;
+		
 	}
 }

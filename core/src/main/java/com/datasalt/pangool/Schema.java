@@ -1,8 +1,8 @@
 package com.datasalt.pangool;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,9 +13,6 @@ import org.apache.hadoop.io.VLongWritable;
 
 /**
  * Encapsulates one Pangool schame composed of {@link Field} instances.
- * 
- * @author pere
- *
  */
 public class Schema {
 
@@ -43,35 +40,8 @@ public class Schema {
 		strClassMap.put(PrimitiveTypes.STRING, String.class);
 		strClassMap.put(PrimitiveTypes.BOOLEAN, Boolean.class);
 	}
-
-	/**
-	 * Convenience class for dealing with lists of Field
-	 * 
-	 * @author pere
-	 *
-	 */
-	@SuppressWarnings("serial")
-	public static class Fields extends ArrayList<Field> {
-
-		public Field get(String fieldName) {
-			for(int i = 0; i < size(); i++) {
-				Field currentField = get(i);
-				if(currentField.getName().equals(fieldName)) {
-					return currentField;
-				}
-			}
-			return null;
-		}
-		
-		public boolean contains(String fieldName) {
-			return get(fieldName) != null;
-		}
-	}
 	
 	public static class Field {
-		
-		public final static String SOURCE_ID_FIELD_NAME = "#source#";
-		public final static Field SOURCE_ID = new Field(SOURCE_ID_FIELD_NAME, VIntWritable.class);
 		
 		private String name;
 		private Class<?> type;
@@ -84,11 +54,11 @@ public class Schema {
 			this.type = clazz;
 		}
 
-		public Class<?> getType() {
+		public Class<?> type() {
 			return type;
 		}
 
-		public String getName() {
+		public String name() {
 			return name;
 		}
 		
@@ -97,7 +67,7 @@ public class Schema {
 		}
 	}
 
-	private Field[] fields;
+	private List<Field> fields;
 
 	public static Class<?> strToClass(String str) throws ClassNotFoundException {
 		Class<?> clazz = (Class<?>) strClassMap.get(str);
@@ -119,18 +89,18 @@ public class Schema {
 	private Map<String, Integer> indexByFieldName = new HashMap<String, Integer>();
 
 	public Schema(List<Field> fields) {
-		this.fields = new Field[fields.size()];
-		for(int i = 0; i < fields.size(); i++) {
-			this.fields[i] = fields.get(i);
-		}
+		this.fields = new ArrayList<Field>();
+		fields.addAll(fields);
+		this.fields = Collections.unmodifiableList(this.fields);
+		
 		int index = 0;
-		for(Field field : fields) {
-			this.indexByFieldName.put(field.getName(), index);
+		for(Field field : this.fields) {
+			this.indexByFieldName.put(field.name(), index);
 			index++;
 		}
 	}
 
-	public Field[] getFields() {
+	public List<Field> getFields() {
 		return fields;
 	}
 
@@ -140,21 +110,21 @@ public class Schema {
 	
 	public Field getField(String fieldName) {
 		int index = indexByFieldName(fieldName);
-		return fields[index];
+		return fields.get(index);
 	}
 
 	public Field getField(int i) {
-		return fields[i];
+		return fields.get(i);
 	}
 
 	public String serialize() {
 		StringBuilder b = new StringBuilder();
-		String fieldName = fields[0].name;
-		Class<?> fieldType = fields[0].type;
+		String fieldName = fields.get(0).name;
+		Class<?> fieldType = fields.get(0).type;
 		b.append(fieldName).append(":").append(classToStr(fieldType));
-		for(int i = 1; i < fields.length; i++) {
-			fieldName = fields[i].name;
-			fieldType = fields[i].type;
+		for(int i = 1; i < fields.size(); i++) {
+			fieldName = fields.get(i).name;
+			fieldType = fields.get(i).type;
 			String clazzStr = classToStr(fieldType);
 			if(clazzStr == null) {
 				clazzStr = fieldType.getName();
@@ -178,12 +148,13 @@ public class Schema {
 	}
 
 	public static Schema parse(String serialized) throws CoGrouperException /*, InvalidFieldException */{
-		SchemaBuilder builder = new SchemaBuilder();
+		
 		try {
 			if(serialized == null || serialized.isEmpty()) {
 				return null;
 			}
 			String[] fieldsStr = serialized.split(",");
+			List<Field> fields = new ArrayList<Field>();
 			for(String field : fieldsStr) {
 				String[] nameType = field.split(":");
 				if(nameType.length != 2) {
@@ -191,9 +162,9 @@ public class Schema {
 				}
 				String name = nameType[0].trim();
 				String type = nameType[1].trim();
-				builder.innerAdd(name, strToClass(type));
+				fields.add(new Field(name, strToClass(type)));
 			}
-			return builder.createSchema();
+			return new Schema(fields);
 		} catch(ClassNotFoundException e) {
 			throw new CoGrouperException(e);
 		}

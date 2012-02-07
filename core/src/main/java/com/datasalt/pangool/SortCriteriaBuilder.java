@@ -13,9 +13,6 @@ import com.datasalt.pangool.SortCriteria.SortOrder;
 /**
  * Builds an individual {@link SortCriteria} inmutable instance.
  * Links to a parent {@link SortingBuilder}.
- * 
- * @author pere
- * 
  */
 @SuppressWarnings("rawtypes")
 public class SortCriteriaBuilder {
@@ -62,9 +59,7 @@ public class SortCriteriaBuilder {
 	}
 
 	SortCriteria buildSortCriteria() {
-		SortElement[] fieldsArray = new SortElement[fields.size()];
-		fields.toArray(fieldsArray);
-		return new SortCriteria(fieldsArray);
+		return new SortCriteria(fields);
 	}
 	
 	public Sorting buildSorting() throws CoGrouperException {

@@ -48,7 +48,7 @@ public abstract class ComparatorsBaseTest {
 		.addSchema(SOURCE1, schema1)
 		.addSchema(SOURCE2, schema2)
 		.build();
-		CoGrouperConfig.setPangoolConfig(config, conf);
+		CoGrouperConfig.set(config, conf);
 		comparator.setConf(conf);
 	}
 	

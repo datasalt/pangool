@@ -33,29 +33,29 @@ import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.Buffer;
 import com.datasalt.pangool.io.Serialization;
-import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
+import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITupleInternal;
+import com.datasalt.pangool.io.tuple.PangoolWrapper;
 
-class TupleInternalDeserializer implements Deserializer<ITupleInternal> {
+
+public class PangoolDeserializer implements Deserializer<PangoolWrapper<ITuple>> {
 
 	private CoGrouperConfig coGrouperConf;
 	private DataInputStream in;
 	private Text text = new Text();
 	private Serialization ser;
+	private boolean isRollup;
 	private Map<String, Enum<?>[]> cachedEnums = new HashMap<String, Enum<?>[]>();
 
 	private Buffer tmpInputBuffer = new Buffer();
-	private Class<? extends ITupleInternal> instanceClazz;
 
-	TupleInternalDeserializer(Serialization ser, CoGrouperConfig pangoolConfig,
-	    Class<? extends ITupleInternal> instanceClass) {
-		this.coGrouperConf = pangoolConfig;
+	PangoolDeserializer(Serialization ser, CoGrouperConfig grouperConfig) {
+		this.coGrouperConf = grouperConfig;
 		this.ser = ser;
-		this.cachedEnums = TupleInternalSerialization.getEnums(pangoolConfig);
-		this.instanceClazz = instanceClass;
+		this.cachedEnums = PangoolSerialization.getEnums(grouperConfig);
+		this.isRollup = coGrouperConf.getRollupFrom() != null && !coGrouperConf.getRollupFrom().isEmpty();
 	}
 
 	@Override
@@ -66,15 +66,15 @@ class TupleInternalDeserializer implements Deserializer<ITupleInternal> {
 	
 	
 	@Override
-	public ITupleInternal deserialize(ITupleInternal t) throws IOException {
-		Schema commonSchema = coGrouperConf.getCommonOrderedSchema();
-		int tupleSize = commonSchema.getFields().length;
+	public PangoolWrapper<ITuple> deserialize(PangoolWrapper<ITuple> t) throws IOException {
 		if(t == null) {
-			t = ReflectionUtils.newInstance(instanceClazz, null);
+			t = new PangoolWrapper<ITuple>();
 		}
-		if(t instanceof DoubleBufferedTuple) {
-			((DoubleBufferedTuple) t).swapInstances();
+		if(isRollup) {
+			t.swapInstances();
 		}
+		
+		
 
 //		int sourceId = readFields(commonSchema, t, 0, in);
 //		if(coGrouperConf.getnSchemas() > 1) {
@@ -93,9 +93,9 @@ class TupleInternalDeserializer implements Deserializer<ITupleInternal> {
 
 	public void readFields(Schema schema, ITupleInternal tuple, int index, DataInput input) throws IOException {
 		
-		for(int i = 0; i < schema.getFields().length; i++) {
-			Class<?> fieldType = schema.getField(i).getType();
-			String fieldName = schema.getField(i).getName();
+		for(int i = 0; i < schema.getFields().size(); i++) {
+			Class<?> fieldType = schema.getField(i).type();
+			String fieldName = schema.getField(i).name();
 			if(fieldType == VIntWritable.class) {
 				tuple.setInt(index,WritableUtils.readVInt(input));
 			} else if(fieldType == VLongWritable.class) {

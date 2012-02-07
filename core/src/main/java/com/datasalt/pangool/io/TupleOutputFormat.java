@@ -57,12 +57,12 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
 		@Override
 		public void write(ITuple tuple, NullWritable ignore) throws IOException, InterruptedException {
 			// Convert Tuple to Record
-			for(int i = 0; i < pangoolSchema.getFields().length; i++) {
+			for(int i = 0; i < pangoolSchema.getFields().size(); i++) {
 				Object obj = tuple.get(i);
 				if(obj instanceof byte[]) {
 					obj = new Utf8((byte[])obj).toString();
 				}
-				record.put(pangoolSchema.getField(i).getName(), obj);
+				record.put(pangoolSchema.getField(i).name(), obj);
 			}
 			writer.append(record);
 		}
