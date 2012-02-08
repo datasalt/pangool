@@ -28,7 +28,7 @@ import com.datasalt.pangool.io.PangoolMultipleOutputs;
 import com.datasalt.pangool.io.TupleInputFormat;
 import com.datasalt.pangool.io.TupleOutputFormat;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.PangoolWrapper;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ser.PangoolSerialization;
 import com.datasalt.pangool.mapreduce.GroupComparator;
 import com.datasalt.pangool.mapreduce.Partitioner;
@@ -264,7 +264,7 @@ public class CoGrouper {
 
 		job.setJarByClass((jarByClass != null) ? jarByClass : grouperHandler.getClass());
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(PangoolWrapper.class);
+		job.setMapOutputKeyClass(DatumWrapper.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(Partitioner.class);
 		job.setGroupingComparatorClass(GroupComparator.class);

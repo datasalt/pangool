@@ -368,7 +368,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			try {
 				config = CoGrouperConfigBuilder.get(conf);
 				instanceComparators();
-				nSchemas = config.getSchemas().values().size();
+				nSchemas = config.getSources().values().size();
 				commonCriteria = config.getSorting().getCommonSortCriteria();
 				commonSchema = config.getCommonOrderedSchema();
 			} catch(Exception e) {

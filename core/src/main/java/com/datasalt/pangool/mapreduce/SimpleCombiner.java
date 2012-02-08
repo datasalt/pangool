@@ -33,16 +33,16 @@ import com.datasalt.pangool.api.CombinerHandler.Collector;
 import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.PangoolWrapper;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 
-public class SimpleCombiner extends Reducer<PangoolWrapper<ITuple>, NullWritable,PangoolWrapper<ITuple>, NullWritable> {
+public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,DatumWrapper<ITuple>, NullWritable> {
 
 	public final static String CONF_COMBINER_HANDLER = SimpleCombiner.class.getName() + ".combiner.handler";
 	private final static Logger log = LoggerFactory.getLogger(SimpleCombiner.class);
 	
 	// Following variables protected to be shared by Combiners
 	private CoGrouperConfig pangoolConfig;
-	private TupleIterator<PangoolWrapper<ITuple>, NullWritable> grouperIterator;
+	private TupleIterator<DatumWrapper<ITuple>, NullWritable> grouperIterator;
 	private FilteredReadOnlyTuple groupTuple; // Tuple view over the group
 	private CoGrouperContext context;
 	private CombinerHandler handler;
@@ -55,7 +55,7 @@ public class SimpleCombiner extends Reducer<PangoolWrapper<ITuple>, NullWritable
 			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
 			log.info("Getting CoGrouper config done.");
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
-			this.grouperIterator = new TupleIterator<PangoolWrapper<ITuple>, NullWritable>(context);
+			this.grouperIterator = new TupleIterator<DatumWrapper<ITuple>, NullWritable>(context);
 
 			String fileName = context.getConfiguration().get(SimpleCombiner.CONF_COMBINER_HANDLER);
 			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), CombinerHandler.class, fileName);
@@ -82,7 +82,7 @@ public class SimpleCombiner extends Reducer<PangoolWrapper<ITuple>, NullWritable
 	}
 
 	@Override
-	public final void reduce(PangoolWrapper<ITuple> key, Iterable<NullWritable> values, Context context) throws IOException,
+	public final void reduce(DatumWrapper<ITuple> key, Iterable<NullWritable> values, Context context) throws IOException,
 	    InterruptedException {
 		try {
 			Iterator<NullWritable> iterator = values.iterator();

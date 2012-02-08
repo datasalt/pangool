@@ -36,7 +36,6 @@ public abstract class BaseCoGrouperTest {
 		return new SortingBuilder()
 			.add("url", SortOrder.ASC)
 			.add("date", SortOrder.DESC)
-			.addSourceId(SortOrder.ASC)
 		  .secondarySort(1)
 		  	.add("content", SortOrder.ASC)
 		  .secondarySort(2)

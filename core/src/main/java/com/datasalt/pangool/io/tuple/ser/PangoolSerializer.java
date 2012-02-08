@@ -35,9 +35,9 @@ import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.Serialization;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITupleInternal;
-import com.datasalt.pangool.io.tuple.PangoolWrapper;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 
-public class PangoolSerializer implements Serializer<PangoolWrapper<ITuple>> {
+public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 
 	private Serialization ser;
 	
@@ -57,7 +57,7 @@ public class PangoolSerializer implements Serializer<PangoolWrapper<ITuple>> {
 		this.out = new DataOutputStream(out);
 	}
 
-	public void serialize(PangoolWrapper<ITuple> wrapper) throws IOException {
+	public void serialize(DatumWrapper<ITuple> wrapper) throws IOException {
 		ITuple tuple = wrapper.currentDatum();
 		//TODO check that schema is valid
 		//Schema may not match the source id 

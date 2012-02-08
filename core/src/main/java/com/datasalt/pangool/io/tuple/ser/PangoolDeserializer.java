@@ -37,10 +37,10 @@ import com.datasalt.pangool.io.Buffer;
 import com.datasalt.pangool.io.Serialization;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITupleInternal;
-import com.datasalt.pangool.io.tuple.PangoolWrapper;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 
 
-public class PangoolDeserializer implements Deserializer<PangoolWrapper<ITuple>> {
+public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 
 	private CoGrouperConfig coGrouperConf;
 	private DataInputStream in;
@@ -66,9 +66,9 @@ public class PangoolDeserializer implements Deserializer<PangoolWrapper<ITuple>>
 	
 	
 	@Override
-	public PangoolWrapper<ITuple> deserialize(PangoolWrapper<ITuple> t) throws IOException {
+	public DatumWrapper<ITuple> deserialize(DatumWrapper<ITuple> t) throws IOException {
 		if(t == null) {
-			t = new PangoolWrapper<ITuple>();
+			t = new DatumWrapper<ITuple>();
 		}
 		if(isRollup) {
 			t.swapInstances();

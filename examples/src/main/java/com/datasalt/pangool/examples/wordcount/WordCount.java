@@ -40,7 +40,7 @@ public class WordCount {
 		private Tuple tuple;
 		
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			Schema schema = context.getCoGrouperConfig().getSchema(0);
+			Schema schema = context.getCoGrouperConfig().getSource(0);
 			this.tuple = new Tuple(schema);
 		}
 		
@@ -62,7 +62,7 @@ public class WordCount {
 		private Tuple tuple;
 		
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			Schema schema = context.getCoGrouperConfig().getSchema(0);
+			Schema schema = context.getCoGrouperConfig().getSource(0);
 			this.tuple = new Tuple(schema);
 		}
 

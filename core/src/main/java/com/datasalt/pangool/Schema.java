@@ -68,6 +68,7 @@ public class Schema {
 	}
 
 	private List<Field> fields;
+	private String name;
 
 	public static Class<?> strToClass(String str) throws ClassNotFoundException {
 		Class<?> clazz = (Class<?>) strClassMap.get(str);
@@ -88,7 +89,8 @@ public class Schema {
 
 	private Map<String, Integer> indexByFieldName = new HashMap<String, Integer>();
 
-	public Schema(List<Field> fields) {
+	public Schema(String name,List<Field> fields) {
+		this.name = name;
 		this.fields = new ArrayList<Field>();
 		fields.addAll(fields);
 		this.fields = Collections.unmodifiableList(this.fields);
@@ -102,6 +104,10 @@ public class Schema {
 
 	public List<Field> getFields() {
 		return fields;
+	}
+	
+	public String getName(){
+		return name;
 	}
 
 	public Integer getFieldPos(String fieldName){
@@ -119,13 +125,18 @@ public class Schema {
 
 	public String serialize() {
 		StringBuilder b = new StringBuilder();
+		b.append(name).append(";");
 		String fieldName = fields.get(0).name;
 		Class<?> fieldType = fields.get(0).type;
-		b.append(fieldName).append(":").append(classToStr(fieldType));
+		String clazzStr = classToStr(fieldType);
+		if(clazzStr == null) {
+			clazzStr = fieldType.getName();
+		}
+		b.append(fieldName).append(":").append(clazzStr);
 		for(int i = 1; i < fields.size(); i++) {
 			fieldName = fields.get(i).name;
 			fieldType = fields.get(i).type;
-			String clazzStr = classToStr(fieldType);
+			clazzStr = classToStr(fieldType);
 			if(clazzStr == null) {
 				clazzStr = fieldType.getName();
 			}
@@ -153,18 +164,20 @@ public class Schema {
 			if(serialized == null || serialized.isEmpty()) {
 				return null;
 			}
-			String[] fieldsStr = serialized.split(",");
+			String[] tokens =serialized.split(";");
+			String name = tokens[0];
+			String[] fieldsStr = tokens[1].split(",");
 			List<Field> fields = new ArrayList<Field>();
 			for(String field : fieldsStr) {
 				String[] nameType = field.split(":");
 				if(nameType.length != 2) {
 					throw new CoGrouperException("Incorrect fields description " + serialized);
 				}
-				String name = nameType[0].trim();
-				String type = nameType[1].trim();
-				fields.add(new Field(name, strToClass(type)));
+				String fieldName = nameType[0].trim();
+				String fieldType = nameType[1].trim();
+				fields.add(new Field(fieldName, strToClass(fieldType)));
 			}
-			return new Schema(fields);
+			return new Schema(name,fields);
 		} catch(ClassNotFoundException e) {
 			throw new CoGrouperException(e);
 		}

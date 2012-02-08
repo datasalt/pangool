@@ -18,29 +18,26 @@ public class CoGrouperConfig {
 
 	final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
 
-	private Sorting sorting;
-	private Map<Integer, Schema> schemas; // key is schema Id
+	private Ordering commonSorting;
+	private Map<String, Ordering> secondarySortings; 
+	private Map<String, Schema> schemas; // key is schema Id
 	private List<String> groupByFields;
 	private String rollupFrom;
 	private SerializationInfo serInfo;
 	private String sourceField;
 	
 	CoGrouperConfig() {
-		schemas = new HashMap<Integer, Schema>();
+		schemas = new HashMap<String, Schema>();
 	}
 
-	void setSorting(Sorting sorting) {
-		this.sorting = sorting;
+	void setCommonOrder(Ordering sorting) {
+		this.commonSorting = sorting;
 	}
 	
-	void setSourceField(String field){
-		this.sourceField = field;
+	void addSecondaryOrder(String sourceName,Ordering sorting){
+		this.secondarySortings.put(sourceName, sorting);
 	}
-
-	public Sorting getSorting() {
-  	return sorting;
-  }
-
+	
 	public List<String> getGroupByFields() {
   	return groupByFields;
   }
@@ -49,8 +46,23 @@ public class CoGrouperConfig {
   	return rollupFrom;
   }
 
-	void addSchema(int schemaId, Schema schema) {
-		schemas.put(schemaId, schema);
+	void addSource(Schema schema) throws CoGrouperException {
+		validateSchema(schema);
+		schemas.put(schema.getName(),schema);
+	}
+	
+	private void validateSchema( Schema schema) throws CoGrouperException {
+		if(schema == null) {
+			throw new CoGrouperException("Schema must not be null");
+		} else if(schema.getName() == null){
+			throw new CoGrouperException("Schema name must be set");
+		}
+		
+		if(getSources().containsKey(schema.getName())) {
+			throw new CoGrouperException("Schema already present: " + schema.getName());
+		}
+
+		
 	}
 
 	void setGroupByFields(String... groupByFields) {
@@ -61,7 +73,7 @@ public class CoGrouperConfig {
 		this.rollupFrom = rollupFrom;
 	}
 
-	public Map<Integer, Schema> getSchemas() {
+	public Map<String, Schema> getSources() {
 		return schemas;
 	}
 	
@@ -70,20 +82,17 @@ public class CoGrouperConfig {
 		conf.set(CONF_PANGOOL_CONF, config.toStringAsJSON(jsonSerDe));
 	}
 	
-	/**
-	 * Get the schema of this source.
-	 * 
-	 * @param tuple
-	 */
-	public Schema getSchema(int sourceId) {
-		return getSchemas().get(sourceId);
+	public Schema getSource(String sourceId) {
+		return getSources().get(sourceId);
 	}
 
 	public String toString() {
 		StringBuilder b = new StringBuilder();
-		b.append("sorting: ").append(sorting.toString()).append(" ");
-		b.append("schemas: ").append(schemas.toString()).append(" ");
-		b.append("groupByFields: ").append(groupByFields).append(" ");
+		
+		b.append("schemas: ").append(schemas.toString()).append("\n");
+		b.append("groupByFields: ").append(groupByFields).append("\n");
+		b.append("commonSort: ").append(commonSorting.toString()).append("\n");
+		b.append("secondarySort: ").append(secondarySortings.toString()).append("\n");
 		b.append("rollupFrom: ").append(rollupFrom);
 		return b.toString();
 	}
@@ -106,7 +115,7 @@ public class CoGrouperConfig {
 	    Map<String, String> jsonSchemes = (Map<String, String>) jsonData.get("schemas");
 			
 			for(Map.Entry<String, String> jsonScheme: jsonSchemes.entrySet()) {
-				addSchema(Integer.parseInt(jsonScheme.getKey()), Schema.parse(jsonScheme.getValue()));
+				addSource( Schema.parse(jsonScheme.getValue()));
 			}
 			
 			setSorting(Sorting.fromJSON((String) jsonData.get("sorting"), mapper));
@@ -117,7 +126,7 @@ public class CoGrouperConfig {
 	
 	public String toStringAsJSON(ObjectMapper mapper) throws JsonGenerationException, JsonMappingException, IOException {
 		Map<String, Object> jsonableData = new HashMap<String, Object>();
-		jsonableData.put("sorting", sorting.toStringAsJSON(mapper));
+		jsonableData.put("commonSorting", commonSorting.toStringAsJSON(mapper));
 		Map<String, String> jsonableSchemes = new HashMap<String, String>();
 		
 		for(Map.Entry<Integer, Schema> schemaEntry : schemas.entrySet()) {

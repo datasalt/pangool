@@ -40,7 +40,7 @@ public class SerializationInfo {
 			Class<?> sourceFieldType = checkFieldInAllSources(grouperConfig.getSourceField()); 
 			commonFields.add(new Field(grouperConfig.getSourceField(),sourceFieldType));
 		}
-		this.commonSchema = new Schema(commonFields);
+		this.commonSchema = new Schema("common",commonFields);
 		this.specificSchemas = new HashMap<Integer,Schema>();
 		Map<Integer,List<Field>> specificFieldsBySource = new HashMap<Integer,List<Field>>();
 		
@@ -55,7 +55,7 @@ public class SerializationInfo {
 			specificFieldsBySource.put(sourceId,specificFields);
 		}
 		
-		for (Map.Entry<Integer,Schema> entry : grouperConfig.getSchemas().entrySet()){
+		for (Map.Entry<Integer,Schema> entry : grouperConfig.getSources().entrySet()){
 			Schema sourceSchema = entry.getValue(); int sourceId = entry.getKey();
 			List<Field> specificFields = specificFieldsBySource.get(sourceId);
 			for (Field field : sourceSchema.getFields()){
@@ -63,7 +63,7 @@ public class SerializationInfo {
 					specificFields.add(field);
 				}
 			}
-			this.specificSchemas.put(sourceId,new Schema(specificFields));
+			this.specificSchemas.put(sourceId,new Schema("specific",specificFields));
 		}
 		
 	}
@@ -79,7 +79,7 @@ public class SerializationInfo {
 	
 	private Class<?> checkFieldInAllSources(String name) throws CoGrouperException{
 		Class<?> type = null;
-		for (Integer sourceId: grouperConfig.getSchemas().keySet()){
+		for (Integer sourceId: grouperConfig.getSources().keySet()){
 			Class<?> typeInSource = checkFieldInSource(name,sourceId);
 			if (type == null){
 				type = typeInSource;
@@ -91,7 +91,7 @@ public class SerializationInfo {
 	}
 	
 	private Class<?> checkFieldInSource(String name,int sourceId) throws CoGrouperException{
-		Schema schema = grouperConfig.getSchema(sourceId);
+		Schema schema = grouperConfig.getSource(sourceId);
 		Field field =schema.getField(name); 
 		if (field == null){
 			throw new CoGrouperException("Field '" + name + "' not present in source '" + sourceId + "' " + schema);

@@ -10,7 +10,7 @@ import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.api.GroupHandler.StaticCoGrouperContext;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.PangoolWrapper;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 
 @SuppressWarnings("serial")
 public class CombinerHandler implements Serializable {
@@ -37,12 +37,12 @@ public class CombinerHandler implements Serializable {
 	 */
 	public static final class Collector {
 		
-    private ReduceContext<PangoolWrapper<ITuple>, NullWritable, PangoolWrapper<ITuple>, NullWritable> context;
+    private ReduceContext<DatumWrapper<ITuple>, NullWritable, DatumWrapper<ITuple>, NullWritable> context;
 
-    private PangoolWrapper<ITuple> cachedSourcedTuple = new PangoolWrapper<ITuple>();
+    private DatumWrapper<ITuple> cachedSourcedTuple = new DatumWrapper<ITuple>();
     private NullWritable nullWritable = NullWritable.get();
     
-		public Collector(CoGrouperConfig pangoolConfig, ReduceContext<PangoolWrapper<ITuple>, NullWritable, PangoolWrapper<ITuple>, NullWritable> context){
+		public Collector(CoGrouperConfig pangoolConfig, ReduceContext<DatumWrapper<ITuple>, NullWritable, DatumWrapper<ITuple>, NullWritable> context){
 			this.context = context;
 		}
 		
@@ -52,13 +52,13 @@ public class CombinerHandler implements Serializable {
 		}
 	}
   
-  public class CoGrouperContext extends StaticCoGrouperContext<PangoolWrapper<ITuple>, NullWritable> {
+  public class CoGrouperContext extends StaticCoGrouperContext<DatumWrapper<ITuple>, NullWritable> {
 		/*
 		 * This non static inner class is created to eliminate the need in
 		 * of the extended GroupHandler methods to specify the generic types
 		 * for the CoGrouperContext meanwhile keeping generics. 
 		 */
-		public CoGrouperContext(ReduceContext<PangoolWrapper<ITuple>, NullWritable, PangoolWrapper<ITuple>, NullWritable> hadoopContext,
+		public CoGrouperContext(ReduceContext<DatumWrapper<ITuple>, NullWritable, DatumWrapper<ITuple>, NullWritable> hadoopContext,
         CoGrouperConfig pangoolConfig) {
       super(hadoopContext, pangoolConfig);
     }    	

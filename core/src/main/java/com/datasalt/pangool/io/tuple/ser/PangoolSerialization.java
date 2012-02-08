@@ -37,7 +37,7 @@ import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITupleInternal;
-import com.datasalt.pangool.io.tuple.PangoolWrapper;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 
 /**
  * A {@link Serialization} for types that implements {@link ITupleInternal}
@@ -45,7 +45,7 @@ import com.datasalt.pangool.io.tuple.PangoolWrapper;
  * To use this serialization with Hadoop, use the method {@link #enableSerialization(Configuration)} over the Hadoop
  * configuration.
  */
-public class PangoolSerialization implements Serialization<PangoolWrapper<ITuple>>, Configurable {
+public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>, Configurable {
 
 	private Configuration conf;
 	private com.datasalt.pangool.io.Serialization ser;
@@ -57,7 +57,7 @@ public class PangoolSerialization implements Serialization<PangoolWrapper<ITuple
 
 	@Override
 	public boolean accept(Class<?> c) {
-		return PangoolWrapper.class.isAssignableFrom(c);
+		return DatumWrapper.class.isAssignableFrom(c);
 	}
 
 	@Override
@@ -85,12 +85,12 @@ public class PangoolSerialization implements Serialization<PangoolWrapper<ITuple
 	}
 
 	@Override
-	public Serializer<PangoolWrapper<ITuple>> getSerializer(Class<PangoolWrapper<ITuple>> c) {
+	public Serializer<DatumWrapper<ITuple>> getSerializer(Class<DatumWrapper<ITuple>> c) {
 		return new PangoolSerializer(this.ser, this.pangoolConfig);
 	}
 
 	@Override
-	public Deserializer<PangoolWrapper<ITuple>> getDeserializer(Class<PangoolWrapper<ITuple>> c) {
+	public Deserializer<DatumWrapper<ITuple>> getDeserializer(Class<DatumWrapper<ITuple>> c) {
 		return new PangoolDeserializer(this.ser, this.pangoolConfig);
 	}
 
@@ -100,7 +100,7 @@ public class PangoolSerialization implements Serialization<PangoolWrapper<ITuple
 	 */
 	public static Map<String, Enum<?>[]> getEnums(CoGrouperConfig pangoolConfig) {
 		Map<String, Enum<?>[]> result = new HashMap<String, Enum<?>[]>();
-		for(Schema s : pangoolConfig.getSchemas().values()) {
+		for(Schema s : pangoolConfig.getSources().values()) {
 			extractEnumsFromSchema(result, s);
 		}
 		return result;

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Random;
 
-import org.apache.avro.util.Utf8;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.VIntWritable;
@@ -18,9 +17,9 @@ import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.io.Serialization;
-import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.test.AbstractBaseTest;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -44,7 +43,7 @@ public abstract class BaseTest extends AbstractBaseTest {
 			Random random = new Random();
 			for(int i = minIndex; i <= maxIndex; i++) {
 				Field field = schema.getField(i);
-				Class fieldType = field.getType();
+				Class fieldType = field.type();
 				if(fieldType == Integer.class || fieldType == VIntWritable.class) {
 					tuple.setInt(i, isRandom ? random.nextInt() : 0);
 				} else if(fieldType == Long.class || fieldType == VLongWritable.class) {
@@ -84,16 +83,17 @@ public abstract class BaseTest extends AbstractBaseTest {
 
 		DataInputBuffer input = new DataInputBuffer();
 		DataOutputBuffer output = new DataOutputBuffer();
-
-		ser.ser(tuple, output);
+		DatumWrapper<ITuple> wrapper = new DatumWrapper<ITuple>(tuple);
+		ser.ser(wrapper, output);
 
 		input.reset(output.getData(), 0, output.getLength());
-		ITuple deserializedTuple = new DoubleBufferedTuple();
-		deserializedTuple = ser.deser(deserializedTuple, input);
+		DatumWrapper<ITuple> wrapper2 = new DatumWrapper<ITuple>();
+		
+		wrapper2 = ser.deser(wrapper2, input);
 		if(debug) {
-			System.out.println("D:" + deserializedTuple);
+			System.out.println("D:" + wrapper2.currentDatum());
 		}
-		assertEquals(tuple, deserializedTuple);
+		assertEquals(tuple, wrapper2.currentDatum());
 	}
 
 }

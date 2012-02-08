@@ -22,7 +22,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.PangoolWrapper;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 
 /**
  * Iterator used in {@link Grouper},specially in {@link RollupReducer}. Basically it translates an {@link Iterable} containing 
@@ -38,9 +38,9 @@ import com.datasalt.pangool.io.tuple.PangoolWrapper;
 public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>, Iterable<ITuple>{
 
 	private Iterator<NullWritable> iterator;
-	private ReduceContext<PangoolWrapper<ITuple>,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
+	private ReduceContext<DatumWrapper<ITuple>,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
 		
-	public TupleIterator(ReduceContext<PangoolWrapper<ITuple>,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
+	public TupleIterator(ReduceContext<DatumWrapper<ITuple>,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
 		this.context = context;
 	}
 	
