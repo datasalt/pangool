@@ -32,10 +32,10 @@ import org.apache.hadoop.io.serializer.Serializer;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.SerializationInfo;
 import com.datasalt.pangool.io.Serialization;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITupleInternal;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.tuple.ITuple;
 
 public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 
@@ -45,12 +45,15 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	private CoGrouperConfig coGrouperConfig;
 	private Text text = new Text();
 	private static final Text EMPTY_TEXT = new Text("");
-	
+	private boolean multipleSources=false;
 	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
-
-	PangoolSerializer(Serialization ser, CoGrouperConfig grouperConfig) {
-		this.coGrouperConfig = grouperConfig;
+	private SerializationInfo serInfo;
+	
+	PangoolSerializer(Serialization ser,CoGrouperConfig grouperConfig) {
 		this.ser = ser;
+		this.coGrouperConfig = grouperConfig;
+		this.serInfo = grouperConfig.getSerializationInfo();
+		this.multipleSources = (coGrouperConfig.getNumSources() >= 2);
 	}
 
 	public void open(OutputStream out) {
@@ -61,21 +64,41 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 		ITuple tuple = wrapper.currentDatum();
 		//TODO check that schema is valid
 		//Schema may not match the source id 
-		write(tuple.getSchema(),tuple,out);
-
+		if (multipleSources){
+			multipleSourcesSerialization(tuple);
+		} else {
+			oneSourceSerialization(tuple);
+		}
+	}
+	
+	private void oneSourceSerialization(ITuple tuple){
+		
+	}
+	
+	private void multipleSourcesSerialization(ITuple tuple){
+		
 	}
 
 	public void close() throws IOException {
 		this.out.close();
 	}
 
-	private void write(Schema schema, ITuple tuple, DataOutput output) throws IOException {
-		for(int i=0; i < schema.getFields().size(); i++) {
-			Field field = schema.getField(i);
+	/**
+	 * 
+	 *  The size of the translation table matches the destinationSchema fields size.
+	 *  
+	 * @param destinationSchema
+	 * @param tuple
+	 * @param translationTable If null then no translation is performed
+	 * @param output
+	 * @throws IOException
+	 */
+	private void write(Schema destinationSchema, ITuple tuple,int[] translationTable, DataOutput output) throws IOException {
+		for(int i=0; i < destinationSchema.getFields().size(); i++) {
+			Field field = destinationSchema.getField(i);
 			String fieldName = field.name();
 			Class<?> fieldType = field.type();
-			Object element;
-			element = tuple.get(i);
+			Object element = tuple.get(translationTable[i]);
 			try {
 				if(fieldType == VIntWritable.class) {
 					WritableUtils.writeVInt(output, (Integer) element);

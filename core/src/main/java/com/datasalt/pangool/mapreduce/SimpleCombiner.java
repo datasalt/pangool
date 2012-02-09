@@ -25,15 +25,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.CombinerHandler.CoGrouperContext;
 import com.datasalt.pangool.api.CombinerHandler.Collector;
 import com.datasalt.pangool.commons.DCUtils;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.DatumWrapper;
 
 public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,DatumWrapper<ITuple>, NullWritable> {
 
@@ -52,7 +51,7 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 		super.setup(context);
 		try {
 			log.info("Getting CoGrouper config.");
-			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
+			this.pangoolConfig = CoGrouperConfig.get(context.getConfiguration());
 			log.info("Getting CoGrouper config done.");
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.grouperIterator = new TupleIterator<DatumWrapper<ITuple>, NullWritable>(context);

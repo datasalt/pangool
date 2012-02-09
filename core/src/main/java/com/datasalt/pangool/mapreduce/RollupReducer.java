@@ -26,14 +26,13 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.commons.DCUtils;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.DatumWrapper;
 
 /**
  * 
@@ -55,7 +54,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
   @Override
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
-			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
+			this.pangoolConfig = CoGrouperConfig.get(context.getConfiguration());
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.groupByFields = pangoolConfig.getGroupByFields();
 

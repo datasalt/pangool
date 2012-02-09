@@ -31,16 +31,14 @@ import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 
 import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITupleInternal;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.tuple.ITuple;
 
 /**
- * A {@link Serialization} for types that implements {@link ITupleInternal}
+ * A {@link Serialization} for {@link DatumWrapper} 
  * <p>
  * To use this serialization with Hadoop, use the method {@link #enableSerialization(Configuration)} over the Hadoop
  * configuration.
@@ -50,7 +48,6 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 	private Configuration conf;
 	private com.datasalt.pangool.io.Serialization ser;
 	private CoGrouperConfig pangoolConfig;
-	//private SerializationInfo serInfo;
 
 	public PangoolSerialization() {
 	}
@@ -74,7 +71,7 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 				// Mega tricky!!!!. This is to avoid recursive serialization instantiation!!
 				disableSerialization(this.conf);
 
-				this.pangoolConfig = CoGrouperConfigBuilder.get(conf);
+				this.pangoolConfig = CoGrouperConfig.get(conf);
 				this.ser = new com.datasalt.pangool.io.Serialization(this.conf);
 			}
 		} catch(CoGrouperException e) {
@@ -98,9 +95,9 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 	 * Caches the values from the enum fields. This is done just once for efficiency since it uses reflection.
 	 * 
 	 */
-	public static Map<String, Enum<?>[]> getEnums(CoGrouperConfig pangoolConfig) {
+	public static Map<String, Enum<?>[]> getEnums(CoGrouperConfig grouperConfig) {
 		Map<String, Enum<?>[]> result = new HashMap<String, Enum<?>[]>();
-		for(Schema s : pangoolConfig.getSources().values()) {
+		for(Schema s : grouperConfig.getSourceSchemas().values()) {
 			extractEnumsFromSchema(result, s);
 		}
 		return result;

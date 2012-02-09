@@ -40,7 +40,7 @@ public class SecondarySort {
 		private Schema schema;
 		
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			this.schema = context.getCoGrouperConfig().getSource(0);
+			this.schema = context.getCoGrouperConfig().getSourceSchema(0);
 		}
 		
 		@Override

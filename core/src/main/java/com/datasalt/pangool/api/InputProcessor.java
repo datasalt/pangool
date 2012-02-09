@@ -25,10 +25,9 @@ import org.apache.hadoop.mapreduce.MapContext;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.tuple.ITuple;
 
 /**
  * TODO doc
@@ -68,7 +67,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		try {
 			super.setup(context);
 			Configuration conf = context.getConfiguration();
-			CoGrouperConfig pangoolConfig = CoGrouperConfigBuilder.get(conf);
+			CoGrouperConfig pangoolConfig = CoGrouperConfig.get(conf);
 			this.context = new CoGrouperContext(context, pangoolConfig);
 			this.collector = new Collector(context);
 			setup(this.context, this.collector);

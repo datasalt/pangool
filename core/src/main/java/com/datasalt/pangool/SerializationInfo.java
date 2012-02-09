@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.datasalt.pangool.Schema;
+
+import com.datasalt.pangool.SortBy.SortElement;
 import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.SortCriteria.SortElement;
 
 public class SerializationInfo {
 
 	private CoGrouperConfig grouperConfig;
 	private Schema commonSchema; //if multiple sources used , then the source field is always the last one.
-	private Map<Integer,Schema> specificSchemas; 
+	private Map<String,Schema> specificSchemas; 
 	
 	public SerializationInfo(CoGrouperConfig grouperConfig) throws CoGrouperException{
 		this.grouperConfig = grouperConfig;
@@ -20,50 +20,39 @@ public class SerializationInfo {
 	}
 	
 	private void initializeAll() throws CoGrouperException{
-		Sorting sorting = grouperConfig.getSorting();
-		SortCriteria commonSortCriteria = sorting.getCommonSortCriteria();
 		
+		SortBy commonSortCriteria = grouperConfig.getCommonOrder();
 		List<Field> commonFields = new ArrayList<Field>();
-		boolean containsSourceField = false;
-		for (SortElement sortElement : commonSortCriteria.getSortElements()){
-			String fieldName = sortElement.getFieldName();
-			if (!containsSourceField){
-				containsSourceField = fieldName.equals(grouperConfig.getSourceField());
-			} else {
-				throw new CoGrouperException("Source field '" + fieldName+ "' must be the last field in common sort criteria in Sorting");
-			}
+		for (SortElement sortElement : commonSortCriteria.getElements()){
+			String fieldName = sortElement.getName();
 			Class<?> type = checkFieldInAllSources(fieldName);
 			commonFields.add(new Field(fieldName,type));
 		}
-		
-		if (!containsSourceField){
-			Class<?> sourceFieldType = checkFieldInAllSources(grouperConfig.getSourceField()); 
-			commonFields.add(new Field(grouperConfig.getSourceField(),sourceFieldType));
-		}
+
 		this.commonSchema = new Schema("common",commonFields);
-		this.specificSchemas = new HashMap<Integer,Schema>();
-		Map<Integer,List<Field>> specificFieldsBySource = new HashMap<Integer,List<Field>>();
+		this.specificSchemas = new HashMap<String,Schema>();
+		Map<String,List<Field>> specificFieldsBySource = new HashMap<String,List<Field>>();
 		
-		for (Map.Entry<Integer,SortCriteria> entry : sorting.getSpecificSortCriterias().entrySet()){
+		for (Map.Entry<String,SortBy> entry : grouperConfig.getParticularOrderings().entrySet()){
 			List<Field> specificFields = new ArrayList<Field>();
-			SortCriteria specificCriteria = entry.getValue(); int sourceId = entry.getKey();
-			for (SortElement sortElement : specificCriteria.getSortElements()){
-				String fieldName = sortElement.getFieldName();
-				Class<?> fieldType = checkFieldInSource(fieldName, sourceId);
+			SortBy specificCriteria = entry.getValue(); String sourceName = entry.getKey();
+			for (SortElement sortElement : specificCriteria.getElements()){
+				String fieldName = sortElement.getName();
+				Class<?> fieldType = checkFieldInSource(fieldName, sourceName);
 				specificFields.add(new Field(fieldName,fieldType));
 			}
-			specificFieldsBySource.put(sourceId,specificFields);
+			specificFieldsBySource.put(sourceName,specificFields);
 		}
 		
-		for (Map.Entry<Integer,Schema> entry : grouperConfig.getSources().entrySet()){
-			Schema sourceSchema = entry.getValue(); int sourceId = entry.getKey();
-			List<Field> specificFields = specificFieldsBySource.get(sourceId);
+		for (Map.Entry<String,Schema> entry : grouperConfig.getSourceSchemas().entrySet()){
+			Schema sourceSchema = entry.getValue(); String sourceName = entry.getKey();
+			List<Field> specificFields = specificFieldsBySource.get(sourceName);
 			for (Field field : sourceSchema.getFields()){
 				if (!commonSchema.containsFieldName(field.name()) && !containsFieldName(field.name(),specificFields)){
 					specificFields.add(field);
 				}
 			}
-			this.specificSchemas.put(sourceId,new Schema("specific",specificFields));
+			this.specificSchemas.put(sourceName,new Schema("specific",specificFields));
 		}
 		
 	}
@@ -79,8 +68,8 @@ public class SerializationInfo {
 	
 	private Class<?> checkFieldInAllSources(String name) throws CoGrouperException{
 		Class<?> type = null;
-		for (Integer sourceId: grouperConfig.getSources().keySet()){
-			Class<?> typeInSource = checkFieldInSource(name,sourceId);
+		for (String sourceName: grouperConfig.getSourceSchemas().keySet()){
+			Class<?> typeInSource = checkFieldInSource(name,sourceName);
 			if (type == null){
 				type = typeInSource;
 			} else if (type != typeInSource){
@@ -90,11 +79,11 @@ public class SerializationInfo {
 		return type;
 	}
 	
-	private Class<?> checkFieldInSource(String name,int sourceId) throws CoGrouperException{
-		Schema schema = grouperConfig.getSource(sourceId);
-		Field field =schema.getField(name); 
+	private Class<?> checkFieldInSource(String fieldName,String sourceName ) throws CoGrouperException{
+		Schema schema = grouperConfig.getSchemaBySource(sourceName);
+		Field field =schema.getField(fieldName); 
 		if (field == null){
-			throw new CoGrouperException("Field '" + name + "' not present in source '" + sourceId + "' " + schema);
+			throw new CoGrouperException("Field '" + fieldName + "' not present in source '" +  sourceName + "' " + schema);
 		} 
 		return field.type();
 	}
@@ -110,8 +99,117 @@ public class SerializationInfo {
 		return specificSchemas.get(sourceId);
 	}
 	
-	public Map<Integer,Schema> getSpecificSchemas(){
+	public Map<String,Schema> getSpecificSchemas(){
 		return specificSchemas;
+	}
+	
+	
+	public static class PositionMapping {
+		
+		public Map<String,int[]> commonTranslation;
+		public Map<String,int[]> particularTranslation;
+		
+		PositionMapping(Map<String,int[]> commonTranslation, Map<String,int[]> particularTranslation){
+			this.commonTranslation = commonTranslation;
+			this.particularTranslation = particularTranslation;
+		}
+		
+		@Override
+		public String toString(){
+			StringBuilder b = new StringBuilder();
+			
+			for (Map.Entry<String,int[]> entry : commonTranslation.entrySet()){
+				String source = entry.getKey();
+				int[] currentArray = entry.getValue();
+				b.append("common source:["+source +"]=>");
+				for (int i=0 ; i < currentArray.length ; i++){
+					b.append(currentArray[i]).append(",");
+				}
+				b.append("\n");
+			
+			}
+			
+			for (Map.Entry<String,int[]> entry : particularTranslation.entrySet()){
+				String source = entry.getKey();
+				int[] currentArray = entry.getValue();
+				b.append("particular source:["+source +"]=>");
+				for (int i=0 ; i < currentArray.length ; i++){
+					b.append(currentArray[i]).append(",");
+				}
+				b.append("\n");
+			}
+			
+			
+			return b.toString();
+		}
+	}
+	
+	
+	
+	public PositionMapping getMapperTranslation(){
+		int numCommonFields = commonSchema.getFields().size();
+		Map<String,int[]> commonTranslation = new HashMap<String,int[]>();
+		Map<String,int[]> particularTranslation = new HashMap<String,int[]>();
+		
+		
+		for (Map.Entry<String,Schema> entry : grouperConfig.getSourceSchemas().entrySet()){
+			String sourceName = entry.getKey();
+			Schema sourceSchema = entry.getValue();
+			commonTranslation.put(sourceName,new int[numCommonFields]);
+			
+			Schema particularSchema = null;
+			if (specificSchemas != null && !specificSchemas.isEmpty()){
+				particularSchema = specificSchemas.get(sourceName);
+				particularTranslation.put(sourceName,new int[particularSchema.getFields().size()]);
+			}
+			
+			int posSource=0; 
+			for (Field f: sourceSchema.getFields()){
+				Integer commonPos = commonSchema.getFieldPos(f.name());
+				if (commonPos != null){
+					commonTranslation.get(sourceName)[commonPos] = posSource;
+				} else if (particularSchema != null){
+					int posParticular = particularSchema.getFieldPos(f.name());
+					particularTranslation.get(sourceName)[posParticular] = posSource; 
+				}
+				posSource++;
+			}
+			
+		}
+		
+		return new PositionMapping(commonTranslation, particularTranslation);
+	}
+	
+	
+	public PositionMapping getReducerTranslation(){
+
+		Map<String,int[]> commonTranslation = new HashMap<String,int[]>();
+		Map<String,int[]> particularTranslation = new HashMap<String,int[]>();
+		
+		for (Map.Entry<String,Schema> entry : grouperConfig.getSourceSchemas().entrySet()){
+			String sourceName = entry.getKey();
+			Schema sourceSchema = entry.getValue();
+			commonTranslation.put(sourceName,new int[sourceSchema.getFields().size()]);
+			
+			Schema particularSchema = null;
+			if (specificSchemas != null && !specificSchemas.isEmpty()){
+				particularSchema = specificSchemas.get(sourceName);
+				particularTranslation.put(sourceName,new int[sourceSchema.getFields().size()]);
+			}
+			int posSource=0;
+			for (Field f: sourceSchema.getFields()){
+				Integer commonPos = commonSchema.getFieldPos(f.name());
+				if (commonPos != null){
+					commonTranslation.get(sourceName)[posSource] = commonPos;
+				} else if (particularSchema != null){
+					commonTranslation.get(sourceName)[posSource] = -1;
+					int posParticular = particularSchema.getFieldPos(f.name());
+					particularTranslation.get(sourceName)[posSource] = posParticular; 
+				}
+				posSource++;
+			}
+		}
+		return new PositionMapping(commonTranslation, particularTranslation);
 	}
 	
 }

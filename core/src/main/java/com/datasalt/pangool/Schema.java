@@ -10,12 +10,26 @@ import org.apache.commons.collections.BidiMap;
 import org.apache.commons.collections.bidimap.DualHashBidiMap;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Encapsulates one Pangool schame composed of {@link Field} instances.
  */
 public class Schema {
 
+	static final JsonFactory FACTORY = new JsonFactory();
+  static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
+
+  //private static final int NO_HASHCODE = Integer.MIN_VALUE;
+
+  static {
+    FACTORY.enable(JsonParser.Feature.ALLOW_COMMENTS);
+    FACTORY.setCodec(MAPPER);
+  }
+	
+	
 	public static class PrimitiveTypes {
 
 		public final static String INT = "int";
@@ -90,6 +104,9 @@ public class Schema {
 	private Map<String, Integer> indexByFieldName = new HashMap<String, Integer>();
 
 	public Schema(String name,List<Field> fields) {
+		if (name == null || name.isEmpty()){
+			throw new IllegalArgumentException("Name for schema can't be null");
+		}
 		this.name = name;
 		this.fields = new ArrayList<Field>();
 		fields.addAll(fields);

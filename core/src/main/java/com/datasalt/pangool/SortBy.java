@@ -2,21 +2,33 @@ package com.datasalt.pangool;
 import java.util.ArrayList;
 import java.util.List;
 
-
+import org.apache.hadoop.io.RawComparator;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.datasalt.pangool.SortCriteria.SortOrder;
 
+public class SortBy {
 
-public class Ordering {
+	public static enum SortOrder {
+		ASC("asc"), DESC("desc");
 
+		private String abr;
+
+		private SortOrder(String abr) {
+			this.abr = abr;
+		}
+
+		public String getAbreviation() {
+			return abr;
+		}
+	}
+	
 		private List<SortElement> elements = new ArrayList<SortElement>();
 	
-		public Ordering(List<SortElement> elements){
+		public SortBy(List<SortElement> elements){
 			this.elements = elements;
 		}
 		
-		public Ordering(){
+		public SortBy(){
 		}
 		
 		public List<SortElement> getElements(){
@@ -24,8 +36,16 @@ public class Ordering {
 		}
 		
 		public static class SortElement {
-			public String name;
-			public SortOrder order;
+			private String name;
+			private SortOrder order;
+			private Class<? extends RawComparator> customComparator;
+			
+			public Class<? extends RawComparator> getCustomComparator() {
+				return customComparator;
+			}
+			public void setCustomComparator(Class<? extends RawComparator> customComparator) {
+				this.customComparator = customComparator;
+			}
 			public String getName() {
       	return name;
       }
@@ -39,9 +59,13 @@ public class Ordering {
       	this.order = order;
       }
 			public SortElement(String name,SortOrder order){this.name =name; this.order = order;}
+			public SortElement(String name,SortOrder order,Class<? extends RawComparator> comparator){
+				this(name,order); 
+				this.customComparator = comparator;
+			}
 		}
 		
-		public Ordering add(String name, SortOrder order){
+		public SortBy add(String name, SortOrder order){
 			this.elements.add(new SortElement(name,order));
 			return this;
 		}
@@ -55,5 +79,8 @@ public class Ordering {
 	      throw new RuntimeException(e);
       }
 		}
+		
+		
+		
 
 }

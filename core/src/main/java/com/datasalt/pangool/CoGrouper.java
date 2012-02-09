@@ -76,7 +76,7 @@ public class CoGrouper {
 	}
 
 	private Configuration conf;
-	private CoGrouperConfig config;
+	private CoGrouperConfig grouperConf;
 
 	private GroupHandler grouperHandler;
 	private CombinerHandler combinerHandler;
@@ -90,12 +90,32 @@ public class CoGrouper {
 	private List<Input> multiInputs = new ArrayList<Input>();
 	private List<Output> namedOutputs = new ArrayList<Output>();
 
-	public CoGrouper(CoGrouperConfig config, Configuration conf) {
+	public CoGrouper(Configuration conf) {
 		this.conf = conf;
-		this.config = config;
+		this.grouperConf = new CoGrouperConfig();
 	}
 
 	// ------------------------------------------------------------------------- //
+
+	public void setOrderBy(SortBy ordering) {
+		grouperConf.setCommonOrder(ordering);
+	}
+	
+	public void setSecondaryOrderBy(String sourceName,SortBy ordering) {
+		grouperConf.setParticularOrdering(sourceName, ordering);
+	}
+
+	public void addSourceSchema(Schema schema) throws CoGrouperException {
+		grouperConf.addSource(schema);
+	}
+	
+	public void setGroupByFields(String... groupByFields) {
+		grouperConf.setGroupByFields(groupByFields);
+	}
+	
+	public void setRollupFrom(String rollupFrom) {
+		grouperConf.setRollupFrom(rollupFrom);
+	}
 
 	public CoGrouper setJarByClass(Class<?> jarByClass) {
 		this.jarByClass = jarByClass;
@@ -197,13 +217,13 @@ public class CoGrouper {
 		raiseExceptionIfNull(outputValueClass, "Need to set outputValueClass");
 		raiseExceptionIfNull(outputPath, "Need to set outputPath");
 
-		if(config.getRollupFrom() != null) {
+		if(grouperConf.getRollupFrom() != null) {
 
 			// Check that rollupFrom is contained in groupBy
 
-			if(!config.getGroupByFields().contains(config.getRollupFrom())) {
-				throw new CoGrouperException("Rollup from [" + config.getRollupFrom() + "] not contained in group by fields "
-				    + config.getGroupByFields());
+			if(!grouperConf.getGroupByFields().contains(grouperConf.getRollupFrom())) {
+				throw new CoGrouperException("Rollup from [" + grouperConf.getRollupFrom() + "] not contained in group by fields "
+				    + grouperConf.getGroupByFields());
 			}
 
 			// Check that we are using the appropriate Handler
@@ -215,17 +235,17 @@ public class CoGrouper {
 		}
 
 		// Serialize PangoolConf in Hadoop Configuration
-		CoGrouperConfig.set(config, conf);
+		CoGrouperConfig.set(grouperConf, conf);
 		Job job = new Job(conf);
 
 		List<String> partitionerFields;
 
-		if(config.getRollupFrom() != null) {
+		if(grouperConf.getRollupFrom() != null) {
 			// Grouper with rollup: calculate rollupBaseGroupFields from "rollupFrom"
 			List<String> rollupBaseGroupFields = new ArrayList<String>();
-			for(String groupByField : config.getGroupByFields()) {
+			for(String groupByField : grouperConf.getGroupByFields()) {
 				rollupBaseGroupFields.add(groupByField);
-				if(groupByField.equals(config.getRollupFrom())) {
+				if(groupByField.equals(grouperConf.getRollupFrom())) {
 					break;
 				}
 			}
@@ -233,7 +253,7 @@ public class CoGrouper {
 			job.setReducerClass(RollupReducer.class);
 		} else {
 			// Simple grouper
-			partitionerFields = config.getGroupByFields();
+			partitionerFields = grouperConf.getGroupByFields();
 			job.setReducerClass(SimpleReducer.class);
 		}
 
