@@ -68,7 +68,7 @@ public class Schema {
 			this.type = clazz;
 		}
 
-		public Class<?> type() {
+		public Class<?> getType() {
 			return type;
 		}
 
@@ -109,7 +109,7 @@ public class Schema {
 		}
 		this.name = name;
 		this.fields = new ArrayList<Field>();
-		fields.addAll(fields);
+		this.fields.addAll(fields);
 		this.fields = Collections.unmodifiableList(this.fields);
 		
 		int index = 0;
@@ -132,8 +132,8 @@ public class Schema {
 	}
 	
 	public Field getField(String fieldName) {
-		int index = indexByFieldName(fieldName);
-		return fields.get(index);
+		Integer index = getFieldPos(fieldName);
+		return (index == null) ? null : fields.get(index);
 	}
 
 	public Field getField(int i) {
@@ -166,9 +166,7 @@ public class Schema {
 		return indexByFieldName.containsKey(fieldName);
 	}
 
-	public int indexByFieldName(String name) {
-		return indexByFieldName.get(name);
-	}
+	
 
 	@Override
 	public String toString() {

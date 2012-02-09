@@ -32,21 +32,21 @@ public class AvroUtils {
 		List<org.apache.avro.Schema.Field> avroFields = new ArrayList<org.apache.avro.Schema.Field>();
 		for(Field field : pangoolSchema.getFields()) {
 			org.apache.avro.Schema fieldsSchema = null;
-			if(field.type().equals(String.class)) {
+			if(field.getType().equals(String.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.STRING);
-			} else if(field.type().equals(Integer.class)) {
+			} else if(field.getType().equals(Integer.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.INT);
-			} else if(field.type().equals(VIntWritable.class)) {
+			} else if(field.getType().equals(VIntWritable.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.INT);
-			} else if(field.type().equals(Long.class)) {
+			} else if(field.getType().equals(Long.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.LONG);
-			} else if(field.type().equals(VLongWritable.class)) {
+			} else if(field.getType().equals(VLongWritable.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.LONG);
-			} else if(field.type().equals(Float.class)) {
+			} else if(field.getType().equals(Float.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.FLOAT);
-			} else if(field.type().equals(Double.class)) {
+			} else if(field.getType().equals(Double.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.DOUBLE);
-			} else if(field.type().equals(Boolean.class)) {
+			} else if(field.getType().equals(Boolean.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.BOOLEAN);
 			}
 			// TODO Complex types

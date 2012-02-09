@@ -1,24 +1,32 @@
 package com.datasalt.pangool.mapreduce;
 
-import java.util.List;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
 
+import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.SerializationInfo;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Tuple;
 
-public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<ITuple, NullWritable> implements Configurable {
+public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWrapper<ITuple>, NullWritable> implements Configurable {
 
-	private static final String CONF_PARTITIONER_FIELDS = Partitioner.class.getName() + ".partitioner.fields";
-
+	private CoGrouperConfig grouperConfig;
+	private SerializationInfo serInfo;
 	private Configuration conf;
-	private String[] groupFields;
-
+	private final Text text = new Text(); //to perform hashCode of strings
+	
 	@Override
-	public int getPartition(ITuple key, NullWritable value, int numPartitions) {
-		return Tuple.partialHashCode(key,groupFields.length) % numPartitions;
+	public int getPartition(DatumWrapper<ITuple> key, NullWritable value, int numPartitions) {
+		ITuple tuple = key.currentDatum();
+		tuple.getSchema();
+		//return Tuple.partialHashCode(tuple,groupFields.length) % numPartitions;
+		//TODO
+		return 0;
 	}
 
 	@Override
@@ -30,16 +38,34 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<ITuple,
 	public void setConf(Configuration conf) {
 		if(conf != null) {
 			this.conf = conf;
-			String fieldsGroupStr = conf.get(CONF_PARTITIONER_FIELDS);
-			groupFields = fieldsGroupStr.split(",");
+			try {
+				this.grouperConfig = CoGrouperConfig.get(conf);
+			} catch (CoGrouperException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
-	public static void setPartitionerFields(Configuration conf, List<String> fields) {
-		conf.setStrings(CONF_PARTITIONER_FIELDS, fields.toArray(new String[0]));
+	
+	
+	/**
+	 * Calculates a combinated hashCode using the specified number of fields.
+	 * 
+	 */
+	public int partialHashCode(ITuple tuple,int[] fields) {
+		int result = 0;
+		for(int field : fields) {
+			Object o = tuple.get(field);
+			int hashCode;
+			if (o instanceof String){ //since String.hashCode() != Text.hashCode()
+				text.set((String)o);
+				hashCode = text.hashCode();
+			} else {
+				hashCode = o.hashCode();
+			}
+			result = result * 31 + hashCode;
+		}
+		return result & Integer.MAX_VALUE;
 	}
-
-	public static String[] getPartitionerFields(Configuration conf) {
-		return conf.getStrings(CONF_PARTITIONER_FIELDS);
-	}
+	
 }

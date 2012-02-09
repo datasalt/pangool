@@ -97,7 +97,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 		for(int i=0; i < destinationSchema.getFields().size(); i++) {
 			Field field = destinationSchema.getField(i);
 			String fieldName = field.name();
-			Class<?> fieldType = field.type();
+			Class<?> fieldType = field.getType();
 			Object element = tuple.get(translationTable[i]);
 			try {
 				if(fieldType == VIntWritable.class) {

@@ -15,7 +15,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.SortBy.SortElement;
-import com.datasalt.pangool.SortBy.SortOrder;
+import com.datasalt.pangool.SortBy.Order;
 
 
 public class CoGrouperConfig {
@@ -161,7 +161,7 @@ public class CoGrouperConfig {
 		List<SortElement> result = new ArrayList<SortElement>();
 		for (Map map : maps){
 			//TODO
-			SortElement element = new SortElement((String)map.get("name"),SortOrder.valueOf((String)map.get("order")));
+			SortElement element = new SortElement((String)map.get("name"),Order.valueOf((String)map.get("order")));
 			result.add(element);
 		}
 	

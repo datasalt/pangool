@@ -106,7 +106,7 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 	public static void extractEnumsFromSchema(Map<String, Enum<?>[]> mapToFill, Schema schema) {
 		try {
 			for(Field field : schema.getFields()) {
-				Class<?> type = field.type();
+				Class<?> type = field.getType();
 				if(type.isEnum()) {
 					Method method = type.getMethod("values", (Class<?>[]) null);
 					Object values = method.invoke(null);

@@ -15,7 +15,7 @@ import org.junit.Before;
 
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.SortBy.SortOrder;
+import com.datasalt.pangool.SortBy.Order;
 import com.datasalt.pangool.io.Serialization;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -31,7 +31,7 @@ public abstract class BaseTest extends AbstractBaseTest {
 	public void prepareBaseSchema() throws CoGrouperException, IOException, InvalidFieldException {
 		SCHEMA = Schema.parse("int_field:int," + "long_field:long," + "vint_field:vint," + "vlong_field:vlong,"
 		    + "float_field:float," + "double_field:double," + "string_field:string," + "boolean_field:boolean,"
-		    + "enum_field:" + SortOrder.class.getName() + "," + "thrift_field:" + A.class.getName());
+		    + "enum_field:" + Order.class.getName() + "," + "thrift_field:" + A.class.getName());
 	}
 
 	/**
@@ -43,7 +43,7 @@ public abstract class BaseTest extends AbstractBaseTest {
 			Random random = new Random();
 			for(int i = minIndex; i <= maxIndex; i++) {
 				Field field = schema.getField(i);
-				Class fieldType = field.type();
+				Class fieldType = field.getType();
 				if(fieldType == Integer.class || fieldType == VIntWritable.class) {
 					tuple.setInt(i, isRandom ? random.nextInt() : 0);
 				} else if(fieldType == Long.class || fieldType == VLongWritable.class) {

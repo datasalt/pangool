@@ -257,9 +257,7 @@ public class CoGrouper {
 			job.setReducerClass(SimpleReducer.class);
 		}
 
-		// Set fields to partition by in Hadoop Configuration
-		Partitioner.setPartitionerFields(job.getConfiguration(), partitionerFields);
-
+		
 		if(combinerHandler != null) {
 			job.setCombinerClass(SimpleCombiner.class); // not rollup by now
 			// Set Combiner Handler

@@ -8,12 +8,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 public class SortBy {
 
-	public static enum SortOrder {
+	public static enum Order {
 		ASC("asc"), DESC("desc");
 
 		private String abr;
 
-		private SortOrder(String abr) {
+		private Order(String abr) {
 			this.abr = abr;
 		}
 
@@ -37,7 +37,7 @@ public class SortBy {
 		
 		public static class SortElement {
 			private String name;
-			private SortOrder order;
+			private Order order;
 			private Class<? extends RawComparator> customComparator;
 			
 			public Class<? extends RawComparator> getCustomComparator() {
@@ -52,20 +52,20 @@ public class SortBy {
 			public void setName(String name) {
       	this.name = name;
       }
-			public SortOrder getOrder() {
+			public Order getOrder() {
       	return order;
       }
-			public void setOrder(SortOrder order) {
+			public void setOrder(Order order) {
       	this.order = order;
       }
-			public SortElement(String name,SortOrder order){this.name =name; this.order = order;}
-			public SortElement(String name,SortOrder order,Class<? extends RawComparator> comparator){
+			public SortElement(String name,Order order){this.name =name; this.order = order;}
+			public SortElement(String name,Order order,Class<? extends RawComparator> comparator){
 				this(name,order); 
 				this.customComparator = comparator;
 			}
 		}
 		
-		public SortBy add(String name, SortOrder order){
+		public SortBy add(String name, Order order){
 			this.elements.add(new SortElement(name,order));
 			return this;
 		}

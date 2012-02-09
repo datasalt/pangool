@@ -47,17 +47,7 @@ public class Tuple extends BaseTuple implements Serializable {
 	}
 
 	
-	/**
-	 * Calculates a combinated hashCode using the specified number of fieldsfields.
-	 * 
-	 */
-	public static int partialHashCode(ITuple tuple,int nFields) {
-		int result = 0;
-		for(int i = 0; i < nFields; i++) {
-			result = result * 31 + tuple.get(i).hashCode();
-		}
-		return result & Integer.MAX_VALUE;
-	}
+	
 
 	@Override
 	public String toString() {

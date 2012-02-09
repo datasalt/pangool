@@ -94,7 +94,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	public void readFields(Schema schema, ITupleInternal tuple, int index, DataInput input) throws IOException {
 		
 		for(int i = 0; i < schema.getFields().size(); i++) {
-			Class<?> fieldType = schema.getField(i).type();
+			Class<?> fieldType = schema.getField(i).getType();
 			String fieldName = schema.getField(i).name();
 			if(fieldType == VIntWritable.class) {
 				tuple.setInt(index,WritableUtils.readVInt(input));

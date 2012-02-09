@@ -85,12 +85,9 @@ public class SerializationInfo {
 		if (field == null){
 			throw new CoGrouperException("Field '" + fieldName + "' not present in source '" +  sourceName + "' " + schema);
 		} 
-		return field.type();
+		return field.getType();
 	}
 		
-		
-	
-	
 	public Schema getCommonSchema(){
 		return commonSchema;
 	}

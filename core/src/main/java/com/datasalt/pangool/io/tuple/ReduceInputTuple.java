@@ -95,14 +95,14 @@ public class ReduceInputTuple extends BaseTuple{
 
 	@Override
   public void set(String field, Object object) {
-	  int pos = schema.indexByFieldName(field);
+	  int pos = schema.getFieldPos(field);
 	  set(pos,object);
   }
 
 	@Override
   public Object get(String field) {
-		int pos = schema.indexByFieldName(field);
-		return get(pos);
+		Integer pos = schema.getFieldPos(field);
+		return (pos == null ) ? null : get(pos);
   }
 	
 }

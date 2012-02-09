@@ -17,7 +17,7 @@ import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.SortBy;
-import com.datasalt.pangool.SortBy.SortOrder;
+import com.datasalt.pangool.SortBy.Order;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.api.GroupHandler;
@@ -54,7 +54,6 @@ public class TestCoGrouper {
 			userRecord.set("user_id",3);
 			userRecord.set("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			userRecord.set("age",random.nextFloat());
-			userRecord.set("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
 
 			
 	    collector.write(userRecord);
@@ -62,7 +61,6 @@ public class TestCoGrouper {
 	    userRecord.set("user_id",5);
 			userRecord.set("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			userRecord.set("age",random.nextFloat());
-			userRecord.set("my_bytes",ByteBuffer.wrap(new byte[]{12,3,21}));
 	    collector.write(userRecord);
 	    
 	   
@@ -70,14 +68,12 @@ public class TestCoGrouper {
 			countryRecord.set("user_id",3);
 			countryRecord.set("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			countryRecord.set("country",Integer.toString(random.nextInt()));
-			countryRecord.set("another",ByteBuffer.wrap(new byte[]{12,3,21},0,1));
 			countryRecord.set("num_people",random.nextDouble());
 	    collector.write(countryRecord);
 	    
 	    countryRecord.set("user_id",5);
 			countryRecord.set("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			countryRecord.set("country",Integer.toString(random.nextInt()));
-			countryRecord.set("another",ByteBuffer.wrap(new byte[]{12,3,21}));
 			countryRecord.set("num_people",random.nextDouble());
 	    collector.write(countryRecord);
     }
@@ -100,6 +96,8 @@ public class TestCoGrouper {
 	
 	
 	public static void main(String[] args) throws CoGrouperException, IOException, InterruptedException, ClassNotFoundException{
+		
+		
 		List<Field> userFields = new ArrayList<Field>();
 		userFields.add(new Field("name", String.class));
 		userFields.add(new Field("user_id", Integer.class));
@@ -115,17 +113,17 @@ public class TestCoGrouper {
 		countryFields.add(new Field("country", String.class));
 		Schema countriesSchema = new Schema("countries",countryFields);
 		
-		Path outputPath = new Path("avrool_output");
+		Path outputPath = new Path("pangool_output");
 		CoGrouper coGrouper = new CoGrouper(new Configuration());
 		
 		coGrouper.addSourceSchema(usersSchema);
 		coGrouper.addSourceSchema(countriesSchema);
 		coGrouper.setGroupByFields("user_id");
-		coGrouper.setOrderBy(new SortBy().add("user_id",SortOrder.DESC).add("name",SortOrder.ASC));
-		coGrouper.setSecondaryOrderBy(usersSchema.getName(), new SortBy().add("age",SortOrder.DESC).add("my_bytes",SortOrder.ASC));
-		coGrouper.setSecondaryOrderBy(countriesSchema.getName(),new SortBy().add("country", SortOrder.DESC));
+		coGrouper.setOrderBy(new SortBy().add("user_id",Order.DESC).add("name",Order.ASC));
+		coGrouper.setSecondaryOrderBy(usersSchema.getName(), new SortBy().add("age",Order.DESC));
+		coGrouper.setSecondaryOrderBy(countriesSchema.getName(),new SortBy().add("country", Order.DESC));
 		
-		coGrouper.addInput(new Path("avrool_input.txt"), TextInputFormat.class,new  MyInputProcessor());
+		coGrouper.addInput(new Path("pangool_input.txt"), TextInputFormat.class,new  MyInputProcessor());
 		coGrouper.setGroupHandler(new MyGroupHandler());
 		coGrouper.setOutput(outputPath, TextOutputFormat.class, Text.class, Text.class);
 		Job job = coGrouper.createJob();

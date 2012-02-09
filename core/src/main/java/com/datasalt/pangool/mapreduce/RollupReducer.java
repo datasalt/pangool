@@ -41,7 +41,7 @@ import com.datasalt.pangool.io.tuple.ITuple;
 public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	private boolean firstIteration = true;
-	private CoGrouperConfig pangoolConfig;
+	private CoGrouperConfig grouperConfig;
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.CoGrouperContext context;
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	private List<String> groupByFields;
@@ -54,14 +54,13 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
   @Override
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
-			this.pangoolConfig = CoGrouperConfig.get(context.getConfiguration());
-			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
-			this.groupByFields = pangoolConfig.getGroupByFields();
+			this.grouperConfig = CoGrouperConfig.get(context.getConfiguration());
+			this.groupTuple = new FilteredReadOnlyTuple(grouperConfig.getGroupByFields()); //TODO this is not efficient (field name resolution..)
+			this.groupByFields = grouperConfig.getGroupByFields();
 
-			List<String> groupFields = pangoolConfig.getGroupByFields();
+			List<String> groupFields = grouperConfig.getGroupByFields();
 			this.maxDepth = groupFields.size() - 1;
-			String[] partitionerFields = Partitioner.getPartitionerFields(context.getConfiguration());
-			this.minDepth = partitionerFields.length - 1;
+			this.minDepth = grouperConfig.getRollupBaseFields().size() - 1;
 
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
@@ -71,7 +70,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 				((Configurable) handler).setConf(context.getConfiguration());
 			}
 			collector = handler.new Collector(context);
-			this.context = handler.new CoGrouperContext(context, pangoolConfig);
+			this.context = handler.new CoGrouperContext(context, grouperConfig);
 			handler.setup(this.context, collector);
 			
 		} catch(CoGrouperException e) {
@@ -158,7 +157,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			Object obj1 = tuple1.get(i);
 			Object obj2 = tuple2.get(i);
 			if(obj1 instanceof byte[]) {
-				if(!Arrays.equals((byte[])obj1, (byte[])obj2)) {
+				if(!Arrays.equals((byte[])obj1, (byte[])obj2)) { //TODO this not correct
 					return i;
 				}
 			} else {
