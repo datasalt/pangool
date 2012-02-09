@@ -1,6 +1,5 @@
 package com.datasalt.pangool;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,12 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.datasalt.pangool.SortBy.SortElement;
 import com.datasalt.pangool.SortBy.Order;
+import com.datasalt.pangool.SortBy.SortElement;
 
 
 public class CoGrouperConfig {
@@ -23,10 +20,9 @@ public class CoGrouperConfig {
 	public final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
 
 	private SortBy commonOrdering;
-	//private Schema.Field.Order interSourcesOrdering = Order.IGNORE;
 	private Map<String,SortBy> particularOrderings = new LinkedHashMap<String,SortBy>();
 	
-	private Map<String, Schema> schemasBySource = new LinkedHashMap<String,Schema>();
+	private LinkedHashMap<String, Schema> schemasBySource = new LinkedHashMap<String,Schema>();
 	private List<String> groupByFields;
 	private String rollupFrom;
 	
@@ -127,7 +123,7 @@ public class CoGrouperConfig {
 	public static CoGrouperConfig parseJSON(String json, ObjectMapper mapper) throws CoGrouperException {
 		
 		if (json == null){
-			throw new CoGrouperException("Non existing pangool config set in Configuration");
+			throw new CoGrouperException("Non existing pangool grouperConf set in Configuration");
 		}
 		
 		CoGrouperConfig result = new CoGrouperConfig();
@@ -137,7 +133,7 @@ public class CoGrouperConfig {
 			result.setRollupFrom((String) jsonData.get("rollupFrom"));
 			ArrayList<String> list = (ArrayList<String>) jsonData.get("groupByFields");
 			result.setGroupByFields(list.toArray(new String[list.size()]));
-	    Map<String, String> jsonSources = (Map<String, String>) jsonData.get("schemasBySource");
+	    LinkedHashMap<String, String> jsonSources = (LinkedHashMap<String, String>) jsonData.get("schemasBySource");
 	    //result.interSourcesOrdering = Schema.Field.Order.valueOf((String) jsonData.get("interSourcesOrdering"));
 	    
 			for(Map.Entry<String, String> jsonSchema: jsonSources.entrySet()) {
@@ -185,7 +181,7 @@ public class CoGrouperConfig {
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> jsonableData = new HashMap<String, Object>();
 		
-		Map<String, String> jsonableSources = new HashMap<String, String>();
+		LinkedHashMap<String, String> jsonableSources = new LinkedHashMap<String, String>();
 		
 		for(Map.Entry<String, Schema> schemaEntry : schemasBySource.entrySet()) {
 			jsonableSources.put(schemaEntry.getKey(), schemaEntry.getValue().toString());

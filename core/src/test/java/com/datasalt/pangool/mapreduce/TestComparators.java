@@ -78,9 +78,9 @@
 //				builder.setGroupByFields(groupFields);
 //				builder.setSorting(sortCriteria);
 //				builder.addSchema(0, schema);
-//				CoGrouperConfig config = builder.build();
-//				CoGrouperConfig.set(config, conf);
-//				// config has changed -> we need a new Serialization object
+//				CoGrouperConfig grouperConf = builder.build();
+//				CoGrouperConfig.set(grouperConf, conf);
+//				// grouperConf has changed -> we need a new Serialization object
 //				ser = new Serialization(conf);
 //				
 //				SortComparator sortComparator = new SortComparator();

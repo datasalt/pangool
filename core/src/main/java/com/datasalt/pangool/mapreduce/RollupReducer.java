@@ -27,6 +27,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.SerializationInfo;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.commons.DCUtils;
@@ -42,6 +43,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 
 	private boolean firstIteration = true;
 	private CoGrouperConfig grouperConfig;
+	private SerializationInfo serInfo;
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.CoGrouperContext context;
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	private List<String> groupByFields;
@@ -55,6 +57,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
 			this.grouperConfig = CoGrouperConfig.get(context.getConfiguration());
+			this.serInfo = grouperConfig.getSerializationInfo();
+			
 			this.groupTuple = new FilteredReadOnlyTuple(grouperConfig.getGroupByFields()); //TODO this is not efficient (field name resolution..)
 			this.groupByFields = grouperConfig.getGroupByFields();
 

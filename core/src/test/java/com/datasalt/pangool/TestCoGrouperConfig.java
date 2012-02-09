@@ -71,12 +71,12 @@
 //		    .secondarySort(1).add("fetched", SortOrder.ASC).buildSorting());
 //		configBuilder.setGroupByFields("url");
 //		
-//		CoGrouperConfig config = configBuilder.build();
+//		CoGrouperConfig grouperConf = configBuilder.build();
 //		
 //		Assert.assertEquals(Schema.parse("url:string").toString(),
-//		    config.getCommonOrderedSchema().toString());
-//		Assert.assertEquals(Schema.parse("content:string, date:long, fetched:long").toString(), config.getSpecificOrderedSchemas().get(0).toString());
-//		Assert.assertEquals(Schema.parse("fetched:vlong, name:string").toString(), config.getSpecificOrderedSchemas().get(1).toString());
+//		    grouperConf.getCommonOrderedSchema().toString());
+//		Assert.assertEquals(Schema.parse("content:string, date:long, fetched:long").toString(), grouperConf.getSpecificOrderedSchemas().get(0).toString());
+//		Assert.assertEquals(Schema.parse("fetched:vlong, name:string").toString(), grouperConf.getSpecificOrderedSchemas().get(1).toString());
 //	}
 //
 //	@Test
@@ -91,14 +91,14 @@
 //		configBuilder.addSchema(1, Schema.parse("fetched:long, url:string, name:string"));
 //		configBuilder.setSorting(Sorting.parse("url asc, fetched desc"));
 //		configBuilder.setGroupByFields("url");
-//		CoGrouperConfig config = configBuilder.build();
+//		CoGrouperConfig grouperConf = configBuilder.build();
 //
 //		Assert.assertEquals(Schema.parse("url:string, fetched:long").toString(),
-//		    config.getSerializationInfo().getCommonSchema().toString());
+//		    grouperConf.getSerializationInfo().getCommonSchema().toString());
 //		Assert.assertEquals(Schema.parse("content:string, date:long").toString(),
-//		    config.getSerializationInfo().getSpecificSchema(0).toString());
+//		    grouperConf.getSerializationInfo().getSpecificSchema(0).toString());
 //		Assert.assertEquals(Schema.parse("name:string").toString(),
-//		    config.getSerializationInfo().getSpecificSchema(1).toString());
+//		    grouperConf.getSerializationInfo().getSpecificSchema(1).toString());
 //	}
 //
 //	@Test
@@ -115,14 +115,14 @@
 //		    .buildSorting());
 //
 //		configBuilder.setGroupByFields("url");
-//		CoGrouperConfig config = configBuilder.build();
+//		CoGrouperConfig grouperConf = configBuilder.build();
 //
 //		Assert.assertEquals(Schema.parse("url:string, " + Field.SOURCE_ID_FIELD_NAME + ":vint" + ", fetched:long").toString(),
-//		    config.getCommonOrderedSchema().toString());
+//		    grouperConf.getCommonOrderedSchema().toString());
 //		Assert.assertEquals(Schema.parse("content:string, date:long").toString(),
-//		    config.getSpecificOrderedSchemas().get(0).toString());
+//		    grouperConf.getSpecificOrderedSchemas().get(0).toString());
 //		Assert.assertEquals(Schema.parse("name:string").toString(),
-//		    config.getSpecificOrderedSchemas().get(1).toString());
+//		    grouperConf.getSpecificOrderedSchemas().get(1).toString());
 //	}
 //
 //	@Test
@@ -145,10 +145,10 @@
 //		configBuilder.setSorting(sorting);
 //		configBuilder.setRollupFrom("url");
 //		configBuilder.setGroupByFields("url", "date");
-//		CoGrouperConfig config = configBuilder.build();
+//		CoGrouperConfig grouperConf = configBuilder.build();
 //
 //		ObjectMapper mapper = new ObjectMapper();
-//		String jsonConfig = config.toStringAsJSON(mapper);
+//		String jsonConfig = grouperConf.toStringAsJSON(mapper);
 //		CoGrouperConfig config2 = CoGrouperConfigBuilder.fromJSON(jsonConfig, mapper);
 //
 //		Assert.assertEquals(jsonConfig, config2.toStringAsJSON(mapper));

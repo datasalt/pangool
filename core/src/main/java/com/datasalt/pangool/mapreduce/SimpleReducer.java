@@ -52,9 +52,9 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
   public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
-			log.info("Getting CoGrouper config.");
+			log.info("Getting CoGrouper grouperConf.");
 			this.pangoolConfig = CoGrouperConfig.get(context.getConfiguration());
-			log.info("Getting CoGrouper config done.");
+			log.info("Getting CoGrouper grouperConf done.");
 			
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);

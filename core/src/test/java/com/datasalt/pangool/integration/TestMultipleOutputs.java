@@ -91,16 +91,16 @@
 //		Schema baseSchema = Schema.parse("name:string, money:int, country:string");
 //		Sorting sorting = Sorting.parse("country asc, money desc, name asc");
 //
-//		CoGrouperConfigBuilder config = new CoGrouperConfigBuilder();
-//		config.setSchema(baseSchema);
-//		config.setGroupByFields("country");
-//		config.setSorting(sorting);
+//		CoGrouperConfigBuilder grouperConf = new CoGrouperConfigBuilder();
+//		grouperConf.setSchema(baseSchema);
+//		grouperConf.setGroupByFields("country");
+//		grouperConf.setSorting(sorting);
 //
 //		// One file with one line - context will be ignored
 //		// Business logic in {@link MyInputProcessor}
 //		Files.write("ignore-me", new File(INPUT), Charset.forName("UTF-8"));
 //
-//		CoGrouper coGrouper = new CoGrouper(config.build(), getConf());
+//		CoGrouper coGrouper = new CoGrouper(grouperConf.build(), getConf());
 //		coGrouper.addInput(new Path(INPUT), TextInputFormat.class, new MyInputProcessor());
 //		coGrouper.setGroupHandler(new MyGroupHandler());
 //		coGrouper.setOutput(new Path(OUTPUT), SequenceFileOutputFormat.class, DoubleWritable.class, NullWritable.class);

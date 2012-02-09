@@ -35,7 +35,7 @@
 //	protected void setConf(SortComparator comparator) throws InvalidFieldException, CoGrouperException, JsonGenerationException, JsonMappingException, IOException, InvalidFieldException {
 //		
 //		Configuration conf = new Configuration();
-//		CoGrouperConfig config = new CoGrouperConfigBuilder()
+//		CoGrouperConfig grouperConf = new CoGrouperConfigBuilder()
 //		.setGroupByFields("booleanField", "intField")
 //		.setSorting(new SortingBuilder()
 //			.add("booleanField", SortOrder.ASC)
@@ -48,7 +48,7 @@
 //		.addSchema(SOURCE1, schema1)
 //		.addSchema(SOURCE2, schema2)
 //		.build();
-//		CoGrouperConfig.set(config, conf);
+//		CoGrouperConfig.set(grouperConf, conf);
 //		comparator.setConf(conf);
 //	}
 //	

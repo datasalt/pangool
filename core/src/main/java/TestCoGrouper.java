@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -16,10 +15,10 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.SortBy;
-import com.datasalt.pangool.SortBy.Order;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.SortBy;
+import com.datasalt.pangool.SortBy.Order;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.commons.HadoopUtils;
@@ -33,6 +32,7 @@ public class TestCoGrouper {
 
 	public static class MyInputProcessor extends InputProcessor<LongWritable, Text>{
 
+    private static final long serialVersionUID = 1L;
 		private CoGrouperConfig conf;
 		
 		/**
@@ -49,12 +49,10 @@ public class TestCoGrouper {
 	    Schema countriesSchema = conf.getSchemaBySource("countries");
 	    Random random = new Random();
 			
-	    
 			Tuple userRecord = new Tuple(usuariosSchema);
 			userRecord.set("user_id",3);
 			userRecord.set("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			userRecord.set("age",random.nextFloat());
-
 			
 	    collector.write(userRecord);
 	    
@@ -62,7 +60,6 @@ public class TestCoGrouper {
 			userRecord.set("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
 			userRecord.set("age",random.nextFloat());
 	    collector.write(userRecord);
-	    
 	   
 	    Tuple countryRecord = new Tuple(countriesSchema);
 			countryRecord.set("user_id",3);
@@ -92,11 +89,7 @@ public class TestCoGrouper {
 		}
 	}
 	
-	
-	
-	
 	public static void main(String[] args) throws CoGrouperException, IOException, InterruptedException, ClassNotFoundException{
-		
 		
 		List<Field> userFields = new ArrayList<Field>();
 		userFields.add(new Field("name", String.class));
@@ -119,11 +112,11 @@ public class TestCoGrouper {
 		coGrouper.addSourceSchema(usersSchema);
 		coGrouper.addSourceSchema(countriesSchema);
 		coGrouper.setGroupByFields("user_id");
-		coGrouper.setOrderBy(new SortBy().add("user_id",Order.DESC).add("name",Order.ASC));
-		coGrouper.setSecondaryOrderBy(usersSchema.getName(), new SortBy().add("age",Order.DESC));
+		coGrouper.setOrderBy(new SortBy().add("user_id",Order.ASC).add("name",Order.ASC));
+		coGrouper.setSecondaryOrderBy(usersSchema.getName(), new SortBy().add("age",Order.ASC));
 		coGrouper.setSecondaryOrderBy(countriesSchema.getName(),new SortBy().add("country", Order.DESC));
 		
-		coGrouper.addInput(new Path("pangool_input.txt"), TextInputFormat.class,new  MyInputProcessor());
+		coGrouper.addInput(new Path("pangool_input.txt"), TextInputFormat.class, new MyInputProcessor());
 		coGrouper.setGroupHandler(new MyGroupHandler());
 		coGrouper.setOutput(outputPath, TextOutputFormat.class, Text.class, Text.class);
 		Job job = coGrouper.createJob();

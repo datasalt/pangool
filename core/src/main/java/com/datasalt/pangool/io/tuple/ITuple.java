@@ -19,6 +19,7 @@ import org.apache.hadoop.io.Text;
 
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.Schema.Field;
 
 /**
  * This is the common interface implemented by {@link Tuple} and {@link DoubleBufferPangolinTuple}.
@@ -108,4 +109,7 @@ public interface ITuple /*,Comparable<ITuple>*/{
 			super(e);
 		}
 	}
+	
+	
+	
 }

@@ -8,7 +8,6 @@ import org.apache.hadoop.io.Text;
 
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SerializationInfo;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -17,16 +16,16 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 
 	private CoGrouperConfig grouperConfig;
 	private SerializationInfo serInfo;
+	
 	private Configuration conf;
 	private final Text text = new Text(); //to perform hashCode of strings
 	
 	@Override
 	public int getPartition(DatumWrapper<ITuple> key, NullWritable value, int numPartitions) {
 		ITuple tuple = key.currentDatum();
-		tuple.getSchema();
-		//return Tuple.partialHashCode(tuple,groupFields.length) % numPartitions;
-		//TODO
-		return 0;
+		String sourceName = tuple.getSchema().getName();
+		int[] fieldsToPartition = serInfo.getFieldsToPartition().get(sourceName);
+		return (partialHashCode(tuple,fieldsToPartition) & Integer.MAX_VALUE) % numPartitions;
 	}
 
 	@Override
@@ -40,13 +39,12 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 			this.conf = conf;
 			try {
 				this.grouperConfig = CoGrouperConfig.get(conf);
+				this.serInfo = grouperConfig.getSerializationInfo();
 			} catch (CoGrouperException e) {
 				throw new RuntimeException(e);
 			}
 		}
 	}
-
-	
 	
 	/**
 	 * Calculates a combinated hashCode using the specified number of fields.
@@ -65,7 +63,7 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 			}
 			result = result * 31 + hashCode;
 		}
-		return result & Integer.MAX_VALUE;
+		return result ;
 	}
 	
 }

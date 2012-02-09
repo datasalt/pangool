@@ -1,9 +1,7 @@
 package com.datasalt.pangool.io.tuple;
 
-import java.util.Collection;
-import java.util.HashSet;
-
 import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.Schema.Field;
 
 /**
  * A {@link ITuple} with a delegated one, but that creates a
@@ -13,11 +11,12 @@ import com.datasalt.pangool.Schema;
  */
 public class FilteredReadOnlyTuple extends BaseTuple {
 
-	protected ITuple delegated;
-	protected HashSet<String> filter;
+	private ITuple delegated;
 	
-	public FilteredReadOnlyTuple(Collection<String> filteredFields) {
-		filter = new HashSet<String>(filteredFields);
+	private Schema schema;
+	
+	public FilteredReadOnlyTuple(Schema schema) { //TODO this needs to accept translation table
+		this.schema = schema;
 	}
 	
 	public void setDelegatedTuple(ITuple delegatedTuple) {
@@ -30,7 +29,8 @@ public class FilteredReadOnlyTuple extends BaseTuple {
 
 	@Override
   public Object get(int pos) {
-	  return delegated.get(pos);
+	  String fieldName = schema.getField(pos).name(); //TODO this needs to be accesssed directly with translation table
+	  return delegated.get(fieldName);
   }
 
 	@Override
@@ -45,17 +45,23 @@ public class FilteredReadOnlyTuple extends BaseTuple {
 
 	@Override
   public Schema getSchema() {
-	  return delegated.getSchema();
+	  return delegated.getSchema(); //TODO this is wrong
   }
 	
 	@Override
   public Object get(String field) {
-	  return delegated.get(field);
+		Field f = schema.getField(field);
+	  return (f == null) ? null : delegated.get(field);
   }
 
 	@Override
   public void set(String field, Object object) {
 	  fail();
   }
+	
+	public String toString(){
+		return Tuple.toString(this);
+	}
+	
 	
 }

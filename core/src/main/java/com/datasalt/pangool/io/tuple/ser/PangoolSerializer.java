@@ -57,13 +57,16 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	}
 
 	public void open(OutputStream out) {
-		this.out = new DataOutputStream(out);
+		if (out instanceof DataOutputStream){
+			this.out = (DataOutputStream) out;
+		} else {
+			this.out = new DataOutputStream(out);
+		}
 	}
 
 	public void serialize(DatumWrapper<ITuple> wrapper) throws IOException {
 		ITuple tuple = wrapper.currentDatum();
 		//TODO check that schema is valid
-		//Schema may not match the source id 
 		if (multipleSources){
 			multipleSourcesSerialization(tuple);
 		} else {
@@ -71,12 +74,24 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 		}
 	}
 	
-	private void oneSourceSerialization(ITuple tuple){
+	private void oneSourceSerialization(ITuple tuple) throws IOException {
+		int[] commonTranslation = serInfo.getMapperTranslation().commonTranslation.values().iterator().next();
+		Schema commonSchema = serInfo.getCommonSchema();
 		
+		write(commonSchema,tuple,commonTranslation,out);
 	}
 	
-	private void multipleSourcesSerialization(ITuple tuple){
+	private void multipleSourcesSerialization(ITuple tuple) throws IOException {
+		String sourceName = tuple.getSchema().getName();
+		int sourceId = serInfo.getSourceIdByName(sourceName);
+		int[] commonTranslation = serInfo.getMapperTranslation().commonTranslation.get(sourceName); //TODO avoid this, use Object[]
+		int[] specificTranslation =serInfo.getMapperTranslation().particularTranslation.get(sourceName); //TODO avoid this, use Object[]
+		Schema commonSchema = serInfo.getCommonSchema();
+		Schema specificSchema = serInfo.getSpecificSchema(sourceName);
 		
+		write(commonSchema,tuple,commonTranslation,out);
+		WritableUtils.writeVInt(out, sourceId);
+		write(specificSchema,tuple,specificTranslation,out);
 	}
 
 	public void close() throws IOException {

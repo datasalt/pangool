@@ -33,12 +33,12 @@
 //
 //	@Test(expected = CoGrouperException.class)
 //	public void testMissingInputs() throws CoGrouperException, InvalidFieldException, IOException {
-//		CoGrouperConfig config = new CoGrouperConfigBuilder()
+//		CoGrouperConfig grouperConf = new CoGrouperConfigBuilder()
 //		    .addSchema(1, Schema.parse("url:string, date:long, content:string"))
 //		    .addSchema(2, Schema.parse("url:string, date:long, name:string, surname:string"))
 //		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
 //
-//		new CoGrouper(config, new Configuration()).setGroupHandler(myGroupHandler)
+//		new CoGrouper(grouperConf, new Configuration()).setGroupHandler(myGroupHandler)
 //		    .setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class)
 //		    .createJob();
 //	}
@@ -46,12 +46,12 @@
 //	@Test(expected = CoGrouperException.class)
 //	public void testMissingOutput() throws CoGrouperException, InvalidFieldException, IOException {
 //
-//		CoGrouperConfig config = new CoGrouperConfigBuilder()
+//		CoGrouperConfig grouperConf = new CoGrouperConfigBuilder()
 //		    .addSchema(1, Schema.parse("url:string, date:long, content:string"))
 //		    .addSchema(2, Schema.parse("url:string, date:long, name:string, surname:string"))
 //		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
 //
-//		new CoGrouper(config, new Configuration())
+//		new CoGrouper(grouperConf, new Configuration())
 //		    .addInput(new Path("input"), TextInputFormat.class, myInputProcessor)
 //		    .setGroupHandler(myGroupHandler).createJob();
 //	}
@@ -59,12 +59,12 @@
 //	@Test(expected = CoGrouperException.class)
 //	public void testMissingGroupHandler() throws CoGrouperException, InvalidFieldException, IOException {
 //
-//		CoGrouperConfig config = new CoGrouperConfigBuilder()
+//		CoGrouperConfig grouperConf = new CoGrouperConfigBuilder()
 //		    .addSchema(1, Schema.parse("url:string, date:long, content:string"))
 //		    .addSchema(2, Schema.parse("url:string, date:long, name:string, surname:string"))
 //		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
 //
-//		CoGrouper grouper = new CoGrouper(config, new Configuration()).addInput(new Path("input"), TextInputFormat.class,
+//		CoGrouper grouper = new CoGrouper(grouperConf, new Configuration()).addInput(new Path("input"), TextInputFormat.class,
 //		    myInputProcessor).setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);
 //
 //		grouper.createJob();
@@ -73,12 +73,12 @@
 //	@Test
 //	public void testAllFine() throws CoGrouperException, InvalidFieldException, IOException {
 //
-//		CoGrouperConfig config = new CoGrouperConfigBuilder()
+//		CoGrouperConfig grouperConf = new CoGrouperConfigBuilder()
 //		    .addSchema(1, Schema.parse("url:string, date:long, content:string"))
 //		    .addSchema(2, Schema.parse("url:string, date:long, name:string, surname:string"))
 //		    .setGroupByFields("url", "date").setSorting(getTestSorting()).build();
 //
-//		CoGrouper grouper = new CoGrouper(config, new Configuration())
+//		CoGrouper grouper = new CoGrouper(grouperConf, new Configuration())
 //		    .addInput(new Path("input"), TextInputFormat.class, myInputProcessor)
 //		    .setGroupHandler(myGroupHandler)
 //		    .setOutput(new Path("output"), TextOutputFormat.class, Object.class, Object.class);

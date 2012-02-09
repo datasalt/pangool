@@ -145,7 +145,7 @@
 //	public void test() throws CoGrouperException, InvalidFieldException, IOException, InterruptedException,
 //	    ClassNotFoundException {
 //		
-//		CoGrouperConfig config = new CoGrouperConfigBuilder()
+//		CoGrouperConfig grouperConf = new CoGrouperConfigBuilder()
 //		    .addSchema(0, Schema.parse("name:string,source:int, money:int, country:string"))
 //		    .addSchema(1, Schema.parse("country:string,source:int, averageSalary:int"))
 //		    .setGroupByFields("country")
@@ -161,7 +161,7 @@
 //		Files.write("foo", new File("test-input"), Charset.forName("UTF-8"));
 //		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 //
-//		Job job = new CoGrouper(config, getConf())
+//		Job job = new CoGrouper(grouperConf, getConf())
 //		    .addInput(new Path("test-input"), TextInputFormat.class, new FirstInputProcessor())
 //		    .setGroupHandler(new MyGroupHandler())
 //		    .setOutput(new Path("test-output"), TextOutputFormat.class, NullWritable.class, NullWritable.class).createJob();

@@ -33,37 +33,43 @@ import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.SerializationInfo;
 import com.datasalt.pangool.io.Buffer;
 import com.datasalt.pangool.io.Serialization;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITupleInternal;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Tuple;
 
 
 public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 
 	private CoGrouperConfig coGrouperConf;
+	private SerializationInfo serInfo;
 	private DataInputStream in;
-	private Text text = new Text();
 	private Serialization ser;
 	private boolean isRollup;
+	private boolean multipleSources;
 	private Map<String, Enum<?>[]> cachedEnums = new HashMap<String, Enum<?>[]>();
 
 	private Buffer tmpInputBuffer = new Buffer();
 
 	PangoolDeserializer(Serialization ser, CoGrouperConfig grouperConfig) {
 		this.coGrouperConf = grouperConfig;
+		this.serInfo = coGrouperConf.getSerializationInfo();
 		this.ser = ser;
 		this.cachedEnums = PangoolSerialization.getEnums(grouperConfig);
 		this.isRollup = coGrouperConf.getRollupFrom() != null && !coGrouperConf.getRollupFrom().isEmpty();
+		this.multipleSources = coGrouperConf.getNumSources() >= 2;
 	}
 
 	@Override
 	public void open(InputStream in) throws IOException {
-		this.in = new DataInputStream(in);
+		if (in instanceof DataInputStream){
+			this.in = (DataInputStream)in;
+		} else {
+			this.in = new DataInputStream(in);
+		}
 	}
-
-	
 	
 	@Override
 	public DatumWrapper<ITuple> deserialize(DatumWrapper<ITuple> t) throws IOException {
@@ -74,28 +80,66 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			t.swapInstances();
 		}
 		
-		
-
-//		int sourceId = readFields(commonSchema, t, 0, in);
-//		if(coGrouperConf.getnSchemas() > 1) {
-//			// Expand / shrink backed tuple array when needed
-//			Schema specificSchema = coGrouperConf.getSpecificOrderedSchema(sourceId);
-//			tupleSize += specificSchema.getFields().length;
-//			//Object[] newArray = new Object[tupleSize];
-//			int sizeToCopy = t.size();
-//			if(tupleSize < sizeToCopy) {
-//				sizeToCopy = tupleSize;
-//			}
-//			readFields(specificSchema, t, commonSchema.getFields().length, in);
-//		}
+		ITuple tuple = (multipleSources) ? deserializeMultipleSources() : deserializeOneSource(t.currentDatum());
+		t.currentDatum(tuple);
 		return t;
 	}
-
-	public void readFields(Schema schema, ITupleInternal tuple, int index, DataInput input) throws IOException {
+	
+	
+	private ITuple deserializeMultipleSources() throws IOException {
+		Schema commonSchema = serInfo.getCommonSchema();
 		
-		for(int i = 0; i < schema.getFields().size(); i++) {
-			Class<?> fieldType = schema.getField(i).getType();
-			String fieldName = schema.getField(i).name();
+		//this comon tuple needs to have texts initialized
+		Tuple commonTuple = new Tuple(commonSchema,true); //TODO this needs to be reused
+		readFields(commonTuple,in);
+		int sourceId = WritableUtils.readVInt(in);
+		String sourceName = serInfo.getSourceNameById(sourceId);
+		Schema specificSchema = serInfo.getSpecificSchema(sourceName); //TODO this can be accessed by sourceId
+		Tuple specificTuple = new Tuple(specificSchema,true);//TODO this needs to be reused
+		readFields(specificTuple,in);
+		
+		Schema sourceSchema = coGrouperConf.getSchemaBySource(sourceName); //TODO this should be accessed by index
+		Tuple result = new Tuple(sourceSchema); //TODO needs to be cached
+		mixIntermediateIntoResult(commonTuple,specificTuple,result,sourceName);
+		return result;
+	}
+	
+	private void mixIntermediateIntoResult(ITuple commonTuple,ITuple specificTuple,ITuple result,String sourceName){
+		int[] commonTranslation = serInfo.getMapperTranslation().commonTranslation.get(sourceName);
+		for (int i =0 ; i < commonTranslation.length ; i++){
+			int destPos = commonTranslation[i];
+			result.set(destPos,commonTuple.get(i));
+		}
+		
+		int[] specificTranslation = serInfo.getMapperTranslation().particularTranslation.get(sourceName);
+		for (int i =0 ; i < specificTranslation.length ; i++){
+			int destPos = specificTranslation[i];
+			result.set(destPos,specificTuple.get(i));
+		}
+	}
+	
+	private ITuple deserializeOneSource(ITuple tuple) throws IOException {
+		Schema commonSchema = serInfo.getCommonSchema(); 
+		Tuple commonTuple = new Tuple(commonSchema,true); //TODO this needs to be reused
+		readFields(commonTuple,in);
+		
+		if (tuple == null){
+			Schema destSchema = coGrouperConf.getSourceSchemas().values().iterator().next(); //This needs to be optimized
+			tuple = new Tuple(destSchema);
+		}
+		int[] commonTranslation = serInfo.getMapperTranslation().commonTranslation.values().iterator().next();
+		for (int i =0 ; i < commonTranslation.length ; i++){
+			int destPos = commonTranslation[i];
+			tuple.set(destPos,commonTuple.get(i));
+		}
+		return tuple;
+	}
+
+	public void readFields(ITuple tuple, DataInput input) throws IOException {
+		Schema schema = tuple.getSchema();
+		for(int index = 0; index < schema.getFields().size(); index++) {
+			Class<?> fieldType = schema.getField(index).getType();
+			String fieldName = schema.getField(index).name();
 			if(fieldType == VIntWritable.class) {
 				tuple.setInt(index,WritableUtils.readVInt(input));
 			} else if(fieldType == VLongWritable.class) {
@@ -109,8 +153,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			} else if(fieldType == Float.class) {
 				tuple.setFloat(index,input.readFloat());
 			} else if(fieldType == String.class) {
-				text.readFields(input);
-				tuple.setString(index,text);
+				((Text)tuple.get(index)).readFields(input);
 			} else if(fieldType == Boolean.class) {
 				byte b = input.readByte();
 				tuple.setBoolean(index,(b != 0));
@@ -137,9 +180,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 					tuple.set(index, ob);
 				}
 			} // end for
-			index++;
 		}
-
 	}
 
 	@Override

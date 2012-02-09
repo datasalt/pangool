@@ -50,9 +50,9 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 	public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
-			log.info("Getting CoGrouper config.");
+			log.info("Getting CoGrouper grouperConf.");
 			this.pangoolConfig = CoGrouperConfig.get(context.getConfiguration());
-			log.info("Getting CoGrouper config done.");
+			log.info("Getting CoGrouper grouperConf done.");
 			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
 			this.grouperIterator = new TupleIterator<DatumWrapper<ITuple>, NullWritable>(context);
 

@@ -11,16 +11,68 @@ import com.datasalt.pangool.Schema.Field;
 public class SerializationInfo {
 
 	private CoGrouperConfig grouperConfig;
-	private Schema commonSchema; //if multiple sources used , then the source field is always the last one.
-	private Map<String,Schema> specificSchemas; 
+	private Schema commonSchema;
+	private Map<String,Schema> specificSchemas;
+	private Map<String,Integer> sourceIdsByName;
+	private Map<String,int[]> fieldsToPartition=new HashMap<String,int[]>();
+	private String[] sourceNames;
 	
 	public SerializationInfo(CoGrouperConfig grouperConfig) throws CoGrouperException{
 		this.grouperConfig = grouperConfig;
 		initializeAll();
 	}
 	
+	public int getSourceIdByName(String sourceName){
+		return sourceIdsByName.get(sourceName);
+	}
+	
+	public String getSourceNameById(int sourceId){
+		return sourceNames[sourceId];
+	}
+	
+	
 	private void initializeAll() throws CoGrouperException{
-		
+		calculateSourceIdsByName();
+		calculateIntermediateSchemas();
+		calculatePartitionFields();
+		calculateGroupSchema();
+	}
+
+	public Map<String,int[]> getFieldsToPartition(){
+		return fieldsToPartition;
+	}
+	
+	private void calculateGroupSchema(){
+		List<Field> fields = commonSchema.getFields();
+	}
+	
+	private void calculateSourceIdsByName(){
+		sourceIdsByName = new HashMap<String,Integer>();
+		int sourceId=0;
+		sourceNames = new String[grouperConfig.getNumSources()];
+		for (Map.Entry<String,Schema> entry : grouperConfig.getSourceSchemas().entrySet()	){
+			sourceNames[sourceId] = entry.getKey();
+			sourceIdsByName.put(entry.getKey(), sourceId);
+			sourceId++;
+		}
+	}
+	
+	private void calculatePartitionFields() {
+		List<String> partitionFields = grouperConfig.getRollupBaseFields();
+		int numFields = partitionFields.size();
+		for (Map.Entry<String,Schema> entry : grouperConfig.getSourceSchemas().entrySet()){
+			String sourceName = entry.getKey();
+			Schema schema = entry.getValue();
+			int[] posFields = new int[numFields];
+			for (int i = 0 ; i < partitionFields.size(); i++){
+				int pos = schema.getFieldPos(partitionFields.get(i));
+				posFields[i]=pos;
+			}
+			fieldsToPartition.put(sourceName,posFields);
+		}
+	}
+	
+	private void calculateIntermediateSchemas() throws CoGrouperException {
 		SortBy commonSortCriteria = grouperConfig.getCommonOrder();
 		List<Field> commonFields = new ArrayList<Field>();
 		for (SortElement sortElement : commonSortCriteria.getElements()){
@@ -54,8 +106,9 @@ public class SerializationInfo {
 			}
 			this.specificSchemas.put(sourceName,new Schema("specific",specificFields));
 		}
-		
 	}
+	
+	
 	
 	private boolean containsFieldName(String fieldName,List<Field> fields){
 		for (Field field : fields){
@@ -92,8 +145,8 @@ public class SerializationInfo {
 		return commonSchema;
 	}
 	
-	public Schema getSpecificSchema(int sourceId){
-		return specificSchemas.get(sourceId);
+	public Schema getSpecificSchema(String sourceName){
+		return specificSchemas.get(sourceName);
 	}
 	
 	public Map<String,Schema> getSpecificSchemas(){

@@ -17,9 +17,11 @@ package com.datasalt.pangool.io.tuple;
 
 import java.io.Serializable;
 
-import org.apache.avro.util.Utf8;
+
+import org.apache.hadoop.io.Text;
 
 import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.Schema.Field;
 
 /**
  * This is the basic implementation of {@link ITuple}. It extends a HashMap<String, Object>
@@ -30,10 +32,25 @@ public class Tuple extends BaseTuple implements Serializable {
 	private Object[] array;
 	private Schema schema;
 
-	public Tuple(Schema schema) {
+	public Tuple(Schema schema,boolean initializeTexts) {
 		this.schema = schema;
 		int size = schema.getFields().size();
 		this.array = new Object[size];
+		if (initializeTexts){
+			initializeTexts(schema);
+		}
+	}
+	
+	private void initializeTexts(Schema schema){
+		for (int i=0 ; i < schema.getFields().size() ; i++){
+			if (schema.getField(i).getType() == String.class){
+				set(i,new Text());
+			}
+		}
+	}
+	
+	public Tuple(Schema schema){
+		this(schema,false);
 	}
 	
 	@Override
@@ -46,21 +63,24 @@ public class Tuple extends BaseTuple implements Serializable {
 		array[pos] = object;
 	}
 
-	
-	
-
 	@Override
-	public String toString() {
-		String str = "";
-		for(Object obj: array) {
-			if(obj instanceof byte[]) {
-				str += new Utf8((byte[])obj).toString() + ",";
-			} else {
-				str += obj.toString() + ",";
-			}
-		}
-		return str.substring(0, str.length() - 1);
+	public String toString(){
+		return toString(this);
 	}
+
+	public static String toString(ITuple tuple) {
+		Schema schema = tuple.getSchema();
+		StringBuilder b = new StringBuilder();
+		b.append("{");
+		for (int i = 0 ; i < schema.getFields().size() ; i++){
+			Field f = schema.getField(i);
+			b.append("\"").append(f.name()).append("\"").append(":").append("\"").append(tuple.get(i)).append("\"").append(" , ");
+		}
+		String str = b.toString();
+		//nasty
+		return str.substring(0, str.length() - 2) + "}";
+	}
+	
 
 	@Override
   public void clear() {
