@@ -98,20 +98,20 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		Tuple specificTuple = new Tuple(specificSchema,true);//TODO this needs to be reused
 		readFields(specificTuple,in);
 		
-		Schema sourceSchema = coGrouperConf.getSchemaBySource(sourceName); //TODO this should be accessed by index
+		Schema sourceSchema = coGrouperConf.getSourceSchema(sourceName); //TODO this should be accessed by index
 		Tuple result = new Tuple(sourceSchema); //TODO needs to be cached
 		mixIntermediateIntoResult(commonTuple,specificTuple,result,sourceName);
 		return result;
 	}
 	
 	private void mixIntermediateIntoResult(ITuple commonTuple,ITuple specificTuple,ITuple result,String sourceName){
-		int[] commonTranslation = serInfo.getMapperTranslation().commonTranslation.get(sourceName);
+		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.get(sourceName);
 		for (int i =0 ; i < commonTranslation.length ; i++){
 			int destPos = commonTranslation[i];
 			result.set(destPos,commonTuple.get(i));
 		}
 		
-		int[] specificTranslation = serInfo.getMapperTranslation().particularTranslation.get(sourceName);
+		int[] specificTranslation = serInfo.getSerializationTranslation().particularTranslation.get(sourceName);
 		for (int i =0 ; i < specificTranslation.length ; i++){
 			int destPos = specificTranslation[i];
 			result.set(destPos,specificTuple.get(i));
@@ -127,7 +127,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			Schema destSchema = coGrouperConf.getSourceSchemas().values().iterator().next(); //This needs to be optimized
 			tuple = new Tuple(destSchema);
 		}
-		int[] commonTranslation = serInfo.getMapperTranslation().commonTranslation.values().iterator().next();
+		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.values().iterator().next();
 		for (int i =0 ; i < commonTranslation.length ; i++){
 			int destPos = commonTranslation[i];
 			tuple.set(destPos,commonTuple.get(i));

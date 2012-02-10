@@ -29,7 +29,7 @@ import com.datasalt.pangool.io.tuple.Tuple;
 
 
 
-public class TestCoGrouper {
+public class TestMonoSource {
 
 	public static class MyInputProcessor extends InputProcessor<LongWritable, Text>{
 
@@ -47,8 +47,7 @@ public class TestCoGrouper {
     public void process(LongWritable key, Text value, CoGrouperContext context,
         InputProcessor.Collector collector) throws IOException, InterruptedException {
 	    Schema usuariosSchema = conf.getSourceSchema("usuarios");
-	    Schema countriesSchema = conf.getSourceSchema("countries");
-	    Random random = new Random();
+	   Random random = new Random();
 			
 			Tuple userRecord = new Tuple(usuariosSchema);
 			userRecord.set("user_id",3);
@@ -62,18 +61,6 @@ public class TestCoGrouper {
 			userRecord.set("age",random.nextFloat());
 	    collector.write(userRecord);
 	   
-	    Tuple countryRecord = new Tuple(countriesSchema);
-			countryRecord.set("user_id",3);
-			countryRecord.set("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
-			countryRecord.set("country",Integer.toString(random.nextInt()));
-			countryRecord.set("num_people",random.nextDouble());
-	    collector.write(countryRecord);
-	    
-	    countryRecord.set("user_id",5);
-			countryRecord.set("name",(random.nextBoolean() ? "blabla" : (random.nextInt() +"")));
-			countryRecord.set("country",Integer.toString(random.nextInt()));
-			countryRecord.set("num_people",random.nextDouble());
-	    collector.write(countryRecord);
     }
 		
 	}
@@ -100,22 +87,14 @@ public class TestCoGrouper {
 
 		System.out.println("users Schema : " + usersSchema.getName() + " "+ usersSchema);
 		
-		List<Field> countryFields = new ArrayList<Field>();
-		countryFields.add(new Field("user_id", Integer.class));
-		countryFields.add(new Field("name", String.class));
-		countryFields.add(new Field("num_people", Double.class));
-		countryFields.add(new Field("country", String.class));
-		Schema countriesSchema = new Schema("countries",countryFields);
-		
 		Path outputPath = new Path("pangool_output");
 		CoGrouper coGrouper = new CoGrouper(new Configuration());
 		coGrouper.addSourceSchema(usersSchema);
-		coGrouper.addSourceSchema(countriesSchema);
 		coGrouper.setGroupByFields("user_id","name");
 		
 		coGrouper.setOrderBy(new RichSortBy().add("user_id",Order.ASC).add("name",Order.ASC).addSourceOrder(Order.ASC));
 		coGrouper.setSecondaryOrderBy("usuarios", new SortBy().add("age",Order.ASC));
-		coGrouper.setSecondaryOrderBy("countries",new SortBy().add("country", Order.DESC));
+		
 		
 		coGrouper.addInput(new Path("pangool_input.txt"), TextInputFormat.class, new MyInputProcessor());
 		coGrouper.setGroupHandler(new MyGroupHandler());

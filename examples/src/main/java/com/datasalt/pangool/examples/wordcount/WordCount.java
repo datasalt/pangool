@@ -2,6 +2,8 @@ package com.datasalt.pangool.examples.wordcount;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
@@ -15,15 +17,14 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.RichSortBy;
 import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.SortingBuilder;
+import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.SortBy.Order;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
-import com.datasalt.pangool.api.InputProcessor.CoGrouperContext;
-import com.datasalt.pangool.api.InputProcessor.Collector;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
@@ -40,7 +41,7 @@ public class WordCount {
 		private Tuple tuple;
 		
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			Schema schema = context.getCoGrouperConfig().getSourceSchema(0);
+			Schema schema = context.getCoGrouperConfig().getSourceSchema("schema");
 			this.tuple = new Tuple(schema);
 		}
 		
@@ -62,7 +63,7 @@ public class WordCount {
 		private Tuple tuple;
 		
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			Schema schema = context.getCoGrouperConfig().getSourceSchema(0);
+			Schema schema = context.getCoGrouperConfig().getSourceSchema("schema");
 			this.tuple = new Tuple(schema);
 		}
 
@@ -109,15 +110,17 @@ public class WordCount {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);
 
-		CoGrouperConfigBuilder config = new CoGrouperConfigBuilder();
-		config.addSchema(0, Schema.parse("word:string, count:int"));
-		config.setGroupByFields("word");
-		config.setSorting(new SortingBuilder().add("word").buildSorting()).build();
-
-		CoGrouper cg = new CoGrouper(config.build(), conf);
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(new Field("word",String.class));
+		fields.add(new Field("count",Integer.class));
+		
+		CoGrouper cg = new CoGrouper(conf);
+		cg.addSourceSchema(new Schema("schema",fields));
 		cg.setJarByClass(WordCount.class);
 		cg.addInput(new Path(input), TextInputFormat.class, new Split());
 		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class, Text.class);
+		cg.setGroupByFields("word");
+		cg.setOrderBy(new RichSortBy().add("word", Order.ASC));
 		cg.setGroupHandler(new Count());
 		cg.setCombinerHandler(new CountCombiner());
 

@@ -17,12 +17,12 @@ import com.datasalt.pangool.SortBy.SortElement;
 
 public class CoGrouperConfig {
 
-	public final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
+	private final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
 
 	private SortBy commonOrdering;
 	private Map<String,SortBy> particularOrderings = new LinkedHashMap<String,SortBy>();
 	
-	private LinkedHashMap<String, Schema> schemasBySource = new LinkedHashMap<String,Schema>();
+	private LinkedHashMap<String, Schema> sourceSchemas = new LinkedHashMap<String,Schema>();
 	private List<String> groupByFields;
 	private String rollupFrom;
 	
@@ -32,7 +32,7 @@ public class CoGrouperConfig {
 		particularOrderings.put(sourceName,ordering);
 	}
 	
-	public Map<String,SortBy> getParticularOrderings(){
+	public Map<String,SortBy> getSecondarySortBys(){
 		return particularOrderings;
 	}
 	
@@ -52,16 +52,14 @@ public class CoGrouperConfig {
 	}
 
 	public int getNumSources(){
-		return schemasBySource.size();
+		return sourceSchemas.size();
 	}
 
-	
-	
-	void setCommonOrder(SortBy ordering) {
+	void setCommonSortBy(SortBy ordering) {
 		this.commonOrdering = ordering;
 	}
 
-	public SortBy getCommonOrder() {
+	public SortBy getCommonSortBy() {
   	return commonOrdering;
   }
 
@@ -89,7 +87,7 @@ public class CoGrouperConfig {
   }
 
 	void addSource(Schema schema) {
-		schemasBySource.put(schema.getName(), schema);
+		sourceSchemas.put(schema.getName(), schema);
 	}
 
 	void setGroupByFields(String... groupByFields) {
@@ -100,21 +98,20 @@ public class CoGrouperConfig {
 		this.rollupFrom = rollupFrom;
 	}
 
-	public Schema getSchemaBySource(String source){
-		return schemasBySource.get(source);
+	public Schema getSourceSchema(String source){
+		return sourceSchemas.get(source);
 	}
 	
 	public Map<String,Schema> getSourceSchemas(){
-		return schemasBySource;
+		return sourceSchemas;
 	}
 	
 	public String toString() {
 		StringBuilder b = new StringBuilder();
-		b.append("schemasBySource: ").append(schemasBySource.toString()).append("\n");
+		b.append("sourceSchemas: ").append(sourceSchemas.toString()).append("\n");
 		b.append("groupByFields: ").append(groupByFields).append("\n");
 		b.append("rollupFrom: ").append(rollupFrom).append("\n");
 		b.append("commonOrdering: ").append(commonOrdering.toString()).append("\n");
-		//b.append("interSourcesOrdering: ").append(interSourcesOrdering.toString()).append("\n");
 		b.append("particularSourcesOrdering: ").append(particularOrderings.toString()).append("\n");
 		return b.toString();
 	}
@@ -133,15 +130,15 @@ public class CoGrouperConfig {
 			result.setRollupFrom((String) jsonData.get("rollupFrom"));
 			ArrayList<String> list = (ArrayList<String>) jsonData.get("groupByFields");
 			result.setGroupByFields(list.toArray(new String[list.size()]));
-	    LinkedHashMap<String, String> jsonSources = (LinkedHashMap<String, String>) jsonData.get("schemasBySource");
-	    //result.interSourcesOrdering = Schema.Field.Order.valueOf((String) jsonData.get("interSourcesOrdering"));
+	    LinkedHashMap<String, String> jsonSources = (LinkedHashMap<String, String>) jsonData.get("sourceSchemas");
+
 	    
 			for(Map.Entry<String, String> jsonSchema: jsonSources.entrySet()) {
 				result.addSource(Schema.parse(jsonSchema.getValue()));
 			}
 			List<Map> listOrderings = (List<Map>)jsonData.get("commonOrdering");
 			
-			result.setCommonOrder(new SortBy(mapsToSortElements(listOrderings)));
+			result.setCommonSortBy(new SortBy(mapsToSortElements(listOrderings)));
 			Map<String, List<SortElement>> jsonParticularOrderings = (Map<String, List<SortElement>>) jsonData.get("particularOrderings");
 			
 			for(Map.Entry<String, List<SortElement>> entry: jsonParticularOrderings.entrySet()) {
@@ -183,11 +180,11 @@ public class CoGrouperConfig {
 		
 		LinkedHashMap<String, String> jsonableSources = new LinkedHashMap<String, String>();
 		
-		for(Map.Entry<String, Schema> schemaEntry : schemasBySource.entrySet()) {
+		for(Map.Entry<String, Schema> schemaEntry : sourceSchemas.entrySet()) {
 			jsonableSources.put(schemaEntry.getKey(), schemaEntry.getValue().toString());
 		}
 		
-		jsonableData.put("schemasBySource", jsonableSources);
+		jsonableData.put("sourceSchemas", jsonableSources);
 		jsonableData.put("commonOrdering", commonOrdering.getElements());
 		//jsonableData.put("interSourcesOrdering", interSourcesOrdering);
 		

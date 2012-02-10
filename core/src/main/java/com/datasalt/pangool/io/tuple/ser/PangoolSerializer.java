@@ -75,7 +75,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	}
 	
 	private void oneSourceSerialization(ITuple tuple) throws IOException {
-		int[] commonTranslation = serInfo.getMapperTranslation().commonTranslation.values().iterator().next();
+		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.values().iterator().next();
 		Schema commonSchema = serInfo.getCommonSchema();
 		
 		write(commonSchema,tuple,commonTranslation,out);
@@ -84,8 +84,8 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	private void multipleSourcesSerialization(ITuple tuple) throws IOException {
 		String sourceName = tuple.getSchema().getName();
 		int sourceId = serInfo.getSourceIdByName(sourceName);
-		int[] commonTranslation = serInfo.getMapperTranslation().commonTranslation.get(sourceName); //TODO avoid this, use Object[]
-		int[] specificTranslation =serInfo.getMapperTranslation().particularTranslation.get(sourceName); //TODO avoid this, use Object[]
+		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.get(sourceName); //TODO avoid this, use Object[]
+		int[] specificTranslation =serInfo.getSerializationTranslation().particularTranslation.get(sourceName); //TODO avoid this, use Object[]
 		Schema commonSchema = serInfo.getCommonSchema();
 		Schema specificSchema = serInfo.getSpecificSchema(sourceName);
 		

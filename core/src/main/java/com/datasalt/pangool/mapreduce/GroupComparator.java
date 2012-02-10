@@ -35,7 +35,7 @@ public class GroupComparator extends SortComparator {
 	public void setConf(Configuration conf){
 		super.setConf(conf);
 		if (conf != null){
-			List<SortElement> sortElements = grouperConf.getCommonOrder().getElements();
+			List<SortElement> sortElements = grouperConf.getCommonSortBy().getElements();
 			int numGroupByFields = grouperConf.getGroupByFields().size();
 			List<SortElement> groupSortElements = new ArrayList<SortElement>();
 			groupSortElements.addAll(sortElements);
