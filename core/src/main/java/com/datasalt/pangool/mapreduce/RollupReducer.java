@@ -59,7 +59,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			this.grouperConfig = CoGrouperConfig.get(context.getConfiguration());
 			this.serInfo = grouperConfig.getSerializationInfo();
 			
-			this.groupTuple = new FilteredReadOnlyTuple(grouperConfig.getGroupByFields()); //TODO this is not efficient (field name resolution..)
+			this.groupTuple = new FilteredReadOnlyTuple(serInfo.getGroupSchema()); //TODO this is not efficient (field name resolution..)
 			this.groupByFields = grouperConfig.getGroupByFields();
 
 			List<String> groupFields = grouperConfig.getGroupByFields();

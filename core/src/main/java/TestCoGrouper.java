@@ -108,7 +108,6 @@ public class TestCoGrouper {
 		
 		Path outputPath = new Path("pangool_output");
 		CoGrouper coGrouper = new CoGrouper(new Configuration());
-		
 		coGrouper.addSourceSchema(usersSchema);
 		coGrouper.addSourceSchema(countriesSchema);
 		coGrouper.setGroupByFields("user_id");

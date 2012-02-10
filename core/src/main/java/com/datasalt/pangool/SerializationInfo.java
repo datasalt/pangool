@@ -16,6 +16,7 @@ public class SerializationInfo {
 	private Map<String,Integer> sourceIdsByName;
 	private Map<String,int[]> fieldsToPartition=new HashMap<String,int[]>();
 	private String[] sourceNames;
+	private Schema groupSchema;
 	
 	public SerializationInfo(CoGrouperConfig grouperConfig) throws CoGrouperException{
 		this.grouperConfig = grouperConfig;
@@ -44,6 +45,8 @@ public class SerializationInfo {
 	
 	private void calculateGroupSchema(){
 		List<Field> fields = commonSchema.getFields();
+		List<Field> groupFields = fields.subList(0, grouperConfig.getGroupByFields().size());
+		this.groupSchema = new Schema("group",groupFields);
 	}
 	
 	private void calculateSourceIdsByName(){
@@ -153,6 +156,10 @@ public class SerializationInfo {
 		return specificSchemas;
 	}
 	
+	public Schema getGroupSchema(){
+		return groupSchema;
+	}
+	
 	
 	public static class PositionMapping {
 		
@@ -231,35 +238,37 @@ public class SerializationInfo {
 	}
 	
 	
-	public PositionMapping getReducerTranslation(){
-
-		Map<String,int[]> commonTranslation = new HashMap<String,int[]>();
-		Map<String,int[]> particularTranslation = new HashMap<String,int[]>();
-		
-		for (Map.Entry<String,Schema> entry : grouperConfig.getSourceSchemas().entrySet()){
-			String sourceName = entry.getKey();
-			Schema sourceSchema = entry.getValue();
-			commonTranslation.put(sourceName,new int[sourceSchema.getFields().size()]);
-			
-			Schema particularSchema = null;
-			if (specificSchemas != null && !specificSchemas.isEmpty()){
-				particularSchema = specificSchemas.get(sourceName);
-				particularTranslation.put(sourceName,new int[sourceSchema.getFields().size()]);
-			}
-			int posSource=0;
-			for (Field f: sourceSchema.getFields()){
-				Integer commonPos = commonSchema.getFieldPos(f.name());
-				if (commonPos != null){
-					commonTranslation.get(sourceName)[posSource] = commonPos;
-				} else if (particularSchema != null){
-					commonTranslation.get(sourceName)[posSource] = -1;
-					int posParticular = particularSchema.getFieldPos(f.name());
-					particularTranslation.get(sourceName)[posSource] = posParticular; 
-				}
-				posSource++;
-			}
-		}
-		return new PositionMapping(commonTranslation, particularTranslation);
-	}
+//	public PositionMapping getReducerTranslation(){
+//
+//		Map<String,int[]> commonTranslation = new HashMap<String,int[]>();
+//		Map<String,int[]> particularTranslation = new HashMap<String,int[]>();
+//		
+//		for (Map.Entry<String,Schema> entry : grouperConfig.getSourceSchemas().entrySet()){
+//			String sourceName = entry.getKey();
+//			Schema sourceSchema = entry.getValue();
+//			commonTranslation.put(sourceName,new int[sourceSchema.getFields().size()]);
+//			
+//			Schema particularSchema = null;
+//			if (specificSchemas != null && !specificSchemas.isEmpty()){
+//				particularSchema = specificSchemas.get(sourceName);
+//				particularTranslation.put(sourceName,new int[sourceSchema.getFields().size()]);
+//			}
+//			int posSource=0;
+//			for (Field f: sourceSchema.getFields()){
+//				Integer commonPos = commonSchema.getFieldPos(f.name());
+//				if (commonPos != null){
+//					commonTranslation.get(sourceName)[posSource] = commonPos;
+//				} else if (particularSchema != null){
+//					commonTranslation.get(sourceName)[posSource] = -1;
+//					int posParticular = particularSchema.getFieldPos(f.name());
+//					particularTranslation.get(sourceName)[posSource] = posParticular; 
+//				}
+//				posSource++;
+//			}
+//		}
+//		return new PositionMapping(commonTranslation, particularTranslation);
+//	}
+	
+	
 	
 }

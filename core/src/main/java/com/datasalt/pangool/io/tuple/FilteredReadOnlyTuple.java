@@ -12,10 +12,10 @@ import com.datasalt.pangool.Schema.Field;
 public class FilteredReadOnlyTuple extends BaseTuple {
 
 	private ITuple delegated;
-	
 	private Schema schema;
 	
-	public FilteredReadOnlyTuple(Schema schema) { //TODO this needs to accept translation table
+
+	public FilteredReadOnlyTuple(Schema schema) { 
 		this.schema = schema;
 	}
 	
@@ -29,8 +29,8 @@ public class FilteredReadOnlyTuple extends BaseTuple {
 
 	@Override
   public Object get(int pos) {
-	  String fieldName = schema.getField(pos).name(); //TODO this needs to be accesssed directly with translation table
-	  return delegated.get(fieldName);
+		Field field = schema.getField(pos);
+		return (field == null) ? null : delegated.get(field.name());//TODO this needs to be accesssed directly with translation table
   }
 
 	@Override
@@ -45,7 +45,7 @@ public class FilteredReadOnlyTuple extends BaseTuple {
 
 	@Override
   public Schema getSchema() {
-	  return delegated.getSchema(); //TODO this is wrong
+	  return schema;
   }
 	
 	@Override
