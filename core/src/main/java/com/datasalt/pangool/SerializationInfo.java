@@ -15,6 +15,7 @@ public class SerializationInfo {
 	private List<Schema> specificSchemas;
 	private List<int[]> fieldsToPartition=new ArrayList<int[]>();
 	private Schema groupSchema;
+	private List<int[]> groupTranslationFields;
 	
 	public SerializationInfo(CoGrouperConfig grouperConfig) throws CoGrouperException{
 		this.grouperConfig = grouperConfig;
@@ -29,12 +30,14 @@ public class SerializationInfo {
 		calculateOneSourceCommonSchema();
 		calculatePartitionFields();
 		calculateGroupSchema();
+		//calculateGroupTranslationFields();
 	}
 	
 	private void initializeMultipleSources() throws CoGrouperException{
 		calculateMultipleSourcesIntermediateSchemas();
 		calculatePartitionFields();
 		calculateGroupSchema();
+		//calculateGroupTranslationFields();
 	}
 
 	public List<int[]> getFieldsToPartition(){
@@ -217,7 +220,7 @@ public class SerializationInfo {
 	
 	
 	
-	public PositionMapping getSerializationTranslation(){
+	public PositionMapping getSerializationTranslation(){ //TODO cache this
 		List<int[]> commonTranslation = new ArrayList<int[]>();
 		List<int[]> particularTranslation = new ArrayList<int[]>();
 		for (int sourceId = 0 ; sourceId < grouperConfig.getSourceSchemas().size() ; sourceId++){
@@ -235,7 +238,7 @@ public class SerializationInfo {
 	
 	/**
 	 * 
-	 * @param source The result length will match the source fields size
+	 * @param source The result length will match the source schema fields size
 	 * @param dest The resulting array will contain indexes to this destination schema
 	 * @return The translation index array
 	 */

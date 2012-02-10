@@ -47,7 +47,7 @@ public class CombinerHandler implements Serializable {
 		}
 		
     public void write(ITuple tuple) throws IOException,InterruptedException {
-    	cachedSourcedTuple.currentDatum(tuple);
+    	cachedSourcedTuple.datum(tuple);
 			context.write(cachedSourcedTuple, nullWritable);
 		}
 	}

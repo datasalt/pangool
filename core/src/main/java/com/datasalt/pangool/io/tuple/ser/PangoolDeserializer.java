@@ -21,7 +21,9 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.io.Text;
@@ -52,14 +54,29 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private Map<String, Enum<?>[]> cachedEnums = new HashMap<String, Enum<?>[]>();
 
 	private Buffer tmpInputBuffer = new Buffer();
+	private ITuple commonTuple;
+	private List<ITuple> specificTuples=new ArrayList<ITuple>();
+	private List<ITuple> sourceTuples = new ArrayList<ITuple>();
 
-	PangoolDeserializer(Serialization ser, CoGrouperConfig grouperConfig) {
+	public PangoolDeserializer(Serialization ser, CoGrouperConfig grouperConfig) {
 		this.coGrouperConf = grouperConfig;
 		this.serInfo = coGrouperConf.getSerializationInfo();
 		this.ser = ser;
 		this.cachedEnums = PangoolSerialization.getEnums(grouperConfig);
 		this.isRollup = coGrouperConf.getRollupFrom() != null && !coGrouperConf.getRollupFrom().isEmpty();
 		this.multipleSources = coGrouperConf.getNumSources() >= 2;
+		Schema commonSchema = serInfo.getCommonSchema();
+		//this comon tuple needs to have texts initialized
+		this.commonTuple = new Tuple(commonSchema,true); 
+		for (Schema sourceSchema : coGrouperConf.getSourceSchemas()){
+			sourceTuples.add(new Tuple(sourceSchema));
+		}
+		
+		if (multipleSources){
+			for(Schema specificSchema : serInfo.getSpecificSchemas()){
+				specificTuples.add(new Tuple(specificSchema,true)); //texts initialized
+			}
+		} 
 	}
 
 	@Override
@@ -77,28 +94,21 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			t = new DatumWrapper<ITuple>();
 		}
 		if(isRollup) {
-			t.swapInstances();
+			t.doDoubleBuffering();
 		}
 		
 		ITuple tuple = (multipleSources) ? deserializeMultipleSources() : deserializeOneSource(t.currentDatum());
-		t.currentDatum(tuple);
+		t.datum(tuple);
 		return t;
 	}
 	
 	
 	private ITuple deserializeMultipleSources() throws IOException {
-		Schema commonSchema = serInfo.getCommonSchema();
-		
-		//this comon tuple needs to have texts initialized
-		Tuple commonTuple = new Tuple(commonSchema,true); //TODO this needs to be reused
 		readFields(commonTuple,in);
 		int sourceId = WritableUtils.readVInt(in);
-		Schema specificSchema = serInfo.getSpecificSchema(sourceId); 
-		Tuple specificTuple = new Tuple(specificSchema,true);//TODO this needs to be reused
+		ITuple specificTuple = specificTuples.get(sourceId);
 		readFields(specificTuple,in);
-		
-		Schema sourceSchema = coGrouperConf.getSourceSchema(sourceId);
-		Tuple result = new Tuple(sourceSchema); //TODO needs to be cached
+		ITuple result = sourceTuples.get(sourceId);
 		mixIntermediateIntoResult(commonTuple,specificTuple,result,sourceId);
 		return result;
 	}
@@ -117,21 +127,17 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		}
 	}
 	
-	private ITuple deserializeOneSource(ITuple tuple) throws IOException {
-		Schema commonSchema = serInfo.getCommonSchema(); 
-		Tuple commonTuple = new Tuple(commonSchema,true); //TODO this needs to be reused
+	private ITuple deserializeOneSource(ITuple reuse) throws IOException {
 		readFields(commonTuple,in);
-		
-		if (tuple == null){
-			Schema destSchema = coGrouperConf.getSourceSchemas().get(0); //This needs to be optimized
-			tuple = new Tuple(destSchema);
+		if (reuse == null){
+			reuse = sourceTuples.get(0);
 		}
 		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.get(0);
 		for (int i =0 ; i < commonTranslation.length ; i++){
 			int destPos = commonTranslation[i];
-			tuple.set(destPos,commonTuple.get(i));
+			reuse.set(destPos,commonTuple.get(i));
 		}
-		return tuple;
+		return reuse;
 	}
 
 	public void readFields(ITuple tuple, DataInput input) throws IOException {

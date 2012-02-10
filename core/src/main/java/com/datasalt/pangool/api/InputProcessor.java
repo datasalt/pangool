@@ -115,7 +115,7 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 
 		@SuppressWarnings("unchecked")
     public synchronized void write(ITuple tuple) throws IOException, InterruptedException {
-			cachedSourcedTuple.currentDatum(tuple);
+			cachedSourcedTuple.datum(tuple);
 			context.write(cachedSourcedTuple, nullWritable);
 		}
 	}

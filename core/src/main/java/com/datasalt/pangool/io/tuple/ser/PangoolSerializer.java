@@ -49,7 +49,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 	private SerializationInfo serInfo;
 	
-	PangoolSerializer(Serialization ser,CoGrouperConfig grouperConfig) {
+	public PangoolSerializer(Serialization ser,CoGrouperConfig grouperConfig) {
 		this.ser = ser;
 		this.coGrouperConfig = grouperConfig;
 		this.serInfo = grouperConfig.getSerializationInfo();

@@ -18,7 +18,7 @@ public class DatumWrapper<T> {
 		return currentDatum;
 	}
 	
-	public void currentDatum(T datum){
+	public void datum(T datum){
 		this.currentDatum = datum;
 	}
 	
@@ -26,7 +26,7 @@ public class DatumWrapper<T> {
 		return previousDatum;
 	}
 	
-	public void swapInstances(){
+	public void doDoubleBuffering(){
 		T tmp = currentDatum;
 		this.currentDatum = previousDatum;
 		this.previousDatum = tmp;
