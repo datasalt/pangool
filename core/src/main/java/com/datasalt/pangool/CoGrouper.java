@@ -281,7 +281,7 @@ public class CoGrouper {
 		Map<String,SortBy> convertedParticularOrderings = getSecondarySortBys(commonOrderBy, secondarysOrderBy);
 		for (Map.Entry<String,SortBy> entry : convertedParticularOrderings.entrySet()){
 			System.out.println("Converted specific order " + entry);
-			grouperConf.setParticularOrdering(entry.getKey(), entry.getValue());
+			grouperConf.setSecondarySortBy(entry.getKey(), entry.getValue());
 		}
 		
 		

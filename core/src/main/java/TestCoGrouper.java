@@ -78,7 +78,7 @@ public class TestCoGrouper {
 		
 	}
 	
-	public static final class MyGroupHandler extends GroupHandler<Text, Text> {
+	private static final class MyGroupHandler extends GroupHandler<Text, Text> {
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples,
 				CoGrouperContext coGrouperContext, Collector collector)
 				throws IOException, InterruptedException, CoGrouperException {

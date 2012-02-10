@@ -45,25 +45,25 @@ public abstract class BaseTest extends AbstractBaseTest {
 				Field field = schema.getField(i);
 				Class fieldType = field.getType();
 				if(fieldType == Integer.class || fieldType == VIntWritable.class) {
-					tuple.setInt(i, isRandom ? random.nextInt() : 0);
+					tuple.set(i, isRandom ? random.nextInt() : 0);
 				} else if(fieldType == Long.class || fieldType == VLongWritable.class) {
-					tuple.setLong(i, isRandom ? random.nextLong() : 0);
+					tuple.set(i, isRandom ? random.nextLong() : 0);
 				} else if(fieldType == Boolean.class) {
-					tuple.setBoolean(i, isRandom ? random.nextBoolean() : false);
+					tuple.set(i, isRandom ? random.nextBoolean() : false);
 				} else if(fieldType == Double.class) {
-					tuple.setDouble(i, isRandom ? random.nextDouble() : 0.0);
+					tuple.set(i, isRandom ? random.nextDouble() : 0.0);
 				} else if(fieldType == Float.class) {
-					tuple.setFloat(i, isRandom ? random.nextFloat() : 0f);
+					tuple.set(i, isRandom ? random.nextFloat() : 0f);
 				} else if(fieldType == String.class) {
 					if(!isRandom || random.nextBoolean()) {
-						tuple.setString(i, "");
+						tuple.set(i, "");
 					} else {
-						tuple.setString(i, random.nextLong() + "");
+						tuple.set(i, random.nextLong() + "");
 					}
 				} else if(fieldType.isEnum()) {
           Method method = fieldType.getMethod("values", (Class[])null);
 					Enum[] values = (Enum[]) method.invoke(null);
-					tuple.setEnum(i, values[isRandom ? random.nextInt(values.length) : 0]);
+					tuple.set(i, values[isRandom ? random.nextInt(values.length) : 0]);
 				} else {
 					boolean toInstance = random.nextBoolean();
 					if(isRandom && toInstance) {

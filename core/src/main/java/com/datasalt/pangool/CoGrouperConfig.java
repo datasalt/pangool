@@ -19,21 +19,35 @@ public class CoGrouperConfig {
 
 	private final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
 
-	private SortBy commonOrdering;
-	private Map<String,SortBy> particularOrderings = new LinkedHashMap<String,SortBy>();
+	private SortBy commonSortBy;
 	
-	private LinkedHashMap<String, Schema> sourceSchemas = new LinkedHashMap<String,Schema>();
+	private List<String> sourceNames=new ArrayList<String>();
+	private Map<String,Integer> sourceNameToId = new HashMap<String,Integer>();
+	
+	private List<SortBy> secondarySortBys=new ArrayList<SortBy>();
+	
+	private List<Schema> sourceSchemas = new ArrayList<Schema>();
 	private List<String> groupByFields;
 	private String rollupFrom;
 	
 	private SerializationInfo serInfo;
 	
-	public void setParticularOrdering(String sourceName,SortBy ordering){
-		particularOrderings.put(sourceName,ordering);
+	void setSecondarySortBy(String sourceName,SortBy sortBy){
+		if (this.secondarySortBys.isEmpty()){
+			for (int i = 0; i < getNumSources() ; i++){
+				this.secondarySortBys.add(null);
+			}
+		}
+		
+		Integer pos = getSourceIdByName(sourceName);
+		if (pos == null){
+			throw new IllegalArgumentException("Not known source with name '" + sourceName + "'");
+		}
+		secondarySortBys.set(pos, sortBy);
 	}
 	
-	public Map<String,SortBy> getSecondarySortBys(){
-		return particularOrderings;
+	public List<SortBy> getSecondarySortBys(){
+		return secondarySortBys;
 	}
 	
 	
@@ -56,11 +70,11 @@ public class CoGrouperConfig {
 	}
 
 	void setCommonSortBy(SortBy ordering) {
-		this.commonOrdering = ordering;
+		this.commonSortBy = ordering;
 	}
 
 	public SortBy getCommonSortBy() {
-  	return commonOrdering;
+  	return commonSortBy;
   }
 
 	public List<String> getGroupByFields() {
@@ -73,7 +87,7 @@ public class CoGrouperConfig {
 		}
 		
 		List<String> result = new ArrayList<String>();
-		for (SortElement element : commonOrdering.getElements()){
+		for (SortElement element : commonSortBy.getElements()){
 			result.add(element.getName());
 			if (element.getName().equals(rollupFrom)){
 				break;
@@ -87,7 +101,12 @@ public class CoGrouperConfig {
   }
 
 	void addSource(Schema schema) {
-		sourceSchemas.put(schema.getName(), schema);
+		if (sourceNames.contains(schema.getName())){
+			throw new IllegalArgumentException("There's a schema with that name '" + schema.getName() + "'");
+		}
+		sourceNameToId.put(schema.getName(),sourceNames.size());
+		sourceNames.add(schema.getName());
+		sourceSchemas.add(schema);
 	}
 
 	void setGroupByFields(String... groupByFields) {
@@ -99,10 +118,20 @@ public class CoGrouperConfig {
 	}
 
 	public Schema getSourceSchema(String source){
-		return sourceSchemas.get(source);
+		Integer id = getSourceIdByName(source);
+		return (id == null) ? null : sourceSchemas.get(id);
 	}
 	
-	public Map<String,Schema> getSourceSchemas(){
+	public Schema getSourceSchema(int sourceId){
+		return sourceSchemas.get(sourceId);
+	}
+	
+	public int getSourceIdByName(String name){
+		return sourceNameToId.get(name);
+	}
+	
+	
+	public List<Schema> getSourceSchemas(){
 		return sourceSchemas;
 	}
 	
@@ -111,14 +140,14 @@ public class CoGrouperConfig {
 		b.append("sourceSchemas: ").append(sourceSchemas.toString()).append("\n");
 		b.append("groupByFields: ").append(groupByFields).append("\n");
 		b.append("rollupFrom: ").append(rollupFrom).append("\n");
-		b.append("commonOrdering: ").append(commonOrdering.toString()).append("\n");
-		b.append("particularSourcesOrdering: ").append(particularOrderings.toString()).append("\n");
+		b.append("commonSortBy: ").append(commonSortBy.toString()).append("\n");
+		b.append("secondarySortBys: ").append(secondarySortBys.toString()).append("\n");
 		return b.toString();
 	}
 
 	@SuppressWarnings("unchecked")
-	public static CoGrouperConfig parseJSON(String json, ObjectMapper mapper) throws CoGrouperException {
-		
+	public static CoGrouperConfig parseJSON(String json) throws CoGrouperException {
+		ObjectMapper mapper = new ObjectMapper();
 		if (json == null){
 			throw new CoGrouperException("Non existing pangool grouperConf set in Configuration");
 		}
@@ -128,21 +157,20 @@ public class CoGrouperConfig {
 		try{
 			HashMap<String, Object> jsonData = mapper.readValue(json, HashMap.class);
 			result.setRollupFrom((String) jsonData.get("rollupFrom"));
-			ArrayList<String> list = (ArrayList<String>) jsonData.get("groupByFields");
+			List<String> list = (List<String>) jsonData.get("groupByFields");
 			result.setGroupByFields(list.toArray(new String[list.size()]));
-	    LinkedHashMap<String, String> jsonSources = (LinkedHashMap<String, String>) jsonData.get("sourceSchemas");
-
+	    List<String> jsonSources = (List<String>) jsonData.get("sourceSchemas");
 	    
-			for(Map.Entry<String, String> jsonSchema: jsonSources.entrySet()) {
-				result.addSource(Schema.parse(jsonSchema.getValue()));
+			for(String jsonSchema: jsonSources) {
+				result.addSource(Schema.parse(jsonSchema));
 			}
-			List<Map> listOrderings = (List<Map>)jsonData.get("commonOrdering");
+			List<Map> listOrderings = (List<Map>)jsonData.get("commonSortBy");
 			
 			result.setCommonSortBy(new SortBy(mapsToSortElements(listOrderings)));
-			Map<String, List<SortElement>> jsonParticularOrderings = (Map<String, List<SortElement>>) jsonData.get("particularOrderings");
+			List<List> jsonParticularOrderings = (List<List>) jsonData.get("secondarySortBys");
 			
-			for(Map.Entry<String, List<SortElement>> entry: jsonParticularOrderings.entrySet()) {
-				result.particularOrderings.put(entry.getKey(), new SortBy(mapsToSortElements((List)entry.getValue())));
+			for(List entry: jsonParticularOrderings) {
+				result.secondarySortBys.add((entry == null) ? null : new SortBy(mapsToSortElements((List)entry)));
 			}
 			return result;
 		} catch(Exception e){
@@ -163,9 +191,8 @@ public class CoGrouperConfig {
 	
 	
 	public static CoGrouperConfig get(Configuration conf) throws CoGrouperException {
-		ObjectMapper jsonSerDe = new ObjectMapper();
 			String serialized =conf.get(CoGrouperConfig.CONF_PANGOOL_CONF);
-	    return (serialized == null || serialized.isEmpty()) ? null : CoGrouperConfig.parseJSON(serialized, jsonSerDe);
+	    return (serialized == null || serialized.isEmpty()) ? null : CoGrouperConfig.parseJSON(serialized);
 	}
 	
 	public static void set(CoGrouperConfig grouperConfig,Configuration conf) throws CoGrouperException{
@@ -178,23 +205,22 @@ public class CoGrouperConfig {
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> jsonableData = new HashMap<String, Object>();
 		
-		LinkedHashMap<String, String> jsonableSources = new LinkedHashMap<String, String>();
+		List<String> jsonableSources = new ArrayList<String>();
 		
-		for(Map.Entry<String, Schema> schemaEntry : sourceSchemas.entrySet()) {
-			jsonableSources.put(schemaEntry.getKey(), schemaEntry.getValue().toString());
+		for(Schema schema : sourceSchemas) {
+			jsonableSources.add(schema.toString());
 		}
 		
 		jsonableData.put("sourceSchemas", jsonableSources);
-		jsonableData.put("commonOrdering", commonOrdering.getElements());
+		jsonableData.put("commonSortBy", commonSortBy.getElements());
 		//jsonableData.put("interSourcesOrdering", interSourcesOrdering);
 		
-		Map<String, List> jsonableParticularOrderings = new HashMap<String, List>();
-		
-		for(Map.Entry<String, SortBy> entry : particularOrderings.entrySet()) {
-			jsonableParticularOrderings.put(entry.getKey(), entry.getValue().getElements());
+		List<List> jsonableParticularOrderings = new ArrayList<List>();
+		for(SortBy sortBy : secondarySortBys) {
+			jsonableParticularOrderings.add(sortBy.getElements());
 		}
 		
-		jsonableData.put("particularOrderings", jsonableParticularOrderings);
+		jsonableData.put("secondarySortBys", jsonableParticularOrderings);
 		jsonableData.put("groupByFields", groupByFields);
 		jsonableData.put("rollupFrom", rollupFrom);
 		return mapper.writeValueAsString(jsonableData);

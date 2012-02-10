@@ -37,56 +37,6 @@ public interface ITuple /*,Comparable<ITuple>*/{
 	public void set(String field, Object object);
 	public Object get(String field);
 	
-	public Integer getInt(int pos);
-	public Integer getInt(String field);
-	
-	public Long getLong(int pos);
-	public Long getLong(String field);
-	
-	public Float getFloat(int pos);
-	public Float getFloat(String field);
-	
-	public Double getDouble(int pos);
-	public Double getDouble(String field);
-	
-	public Text getString(int pos);
-	public Text getString(String field);
-	
-	public Enum<? extends Enum<?>> getEnum(int pos);
-	public Enum<? extends Enum<?>> getEnum(String field);
-	
-
-	
-	// Setters
-	
-	public void setEnum(int pos, Enum<? extends Enum<?>> value);
-	public void setEnum(String field, Enum<? extends Enum<?>> value);
-	
-	public void setInt(int pos, int value);
-	public void setInt(String field, int value);
-	
-	public void setString(int pos, Text value);
-	public void setString(String field, Text value);
-	
-	public void setString(int pos, String value);
-	public void setString(String field, String value);
-	
-	public void setLong(int pos, long value) ;
-	public void setLong(String field, long value) ;
-	
-	public void setFloat(int pos, float value) ;
-	public void setFloat(String field, float value) ;
-	
-	public void setDouble(int pos, double value) ;
-	public void setDouble(String field, double value) ;
-	
-	public void setBoolean(int pos, boolean value) ;
-	public void setBoolean(String field, boolean value);
-	
-	
-	
-	public <T> void setObject(Class<T> valueType, int pos, T value) ;
-	public <T> void setObject(Class<T> valueType,String field, T value) ;
 	
 	
 	/**

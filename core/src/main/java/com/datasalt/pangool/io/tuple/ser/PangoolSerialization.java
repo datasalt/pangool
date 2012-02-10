@@ -97,7 +97,7 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 	 */
 	public static Map<String, Enum<?>[]> getEnums(CoGrouperConfig grouperConfig) {
 		Map<String, Enum<?>[]> result = new HashMap<String, Enum<?>[]>();
-		for(Schema s : grouperConfig.getSourceSchemas().values()) {
+		for(Schema s : grouperConfig.getSourceSchemas()) {
 			extractEnumsFromSchema(result, s);
 		}
 		return result;

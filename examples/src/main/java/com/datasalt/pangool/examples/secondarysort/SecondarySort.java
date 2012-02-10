@@ -49,8 +49,8 @@ public class SecondarySort {
 		    throws IOException, InterruptedException {
 			Tuple tuple = new Tuple(schema);
 			String[] fields = value.toString().trim().split(" ");
-			tuple.setInt(FIRST, Integer.parseInt(fields[0]));
-			tuple.setInt(SECOND, Integer.parseInt(fields[1]));
+			tuple.set(FIRST, Integer.parseInt(fields[0]));
+			tuple.set(SECOND, Integer.parseInt(fields[1]));
 			collector.write(tuple);
 		}
 	}
@@ -67,7 +67,7 @@ public class SecondarySort {
 		    throws IOException, InterruptedException, CoGrouperException {
 
 			for(ITuple tuple : tuples) {
-				collector.write(new Text(tuple.getInt(FIRST) + "\t" + tuple.getInt(SECOND)), NullWritable.get());
+				collector.write(new Text(tuple.get(FIRST) + "\t" + tuple.get(SECOND)), NullWritable.get());
 			}
 		}
 	}

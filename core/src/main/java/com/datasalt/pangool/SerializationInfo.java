@@ -12,10 +12,8 @@ public class SerializationInfo {
 
 	private CoGrouperConfig grouperConfig;
 	private Schema commonSchema;
-	private Map<String,Schema> specificSchemas;
-	private Map<String,Integer> sourceIdsByName;
-	private Map<String,int[]> fieldsToPartition=new HashMap<String,int[]>();
-	private String[] sourceNames;
+	private List<Schema> specificSchemas;
+	private List<int[]> fieldsToPartition=new ArrayList<int[]>();
 	private Schema groupSchema;
 	
 	public SerializationInfo(CoGrouperConfig grouperConfig) throws CoGrouperException{
@@ -27,14 +25,6 @@ public class SerializationInfo {
 		}
 	}
 	
-	public int getSourceIdByName(String sourceName){
-		return sourceIdsByName.get(sourceName);
-	}
-	
-	public String getSourceNameById(int sourceId){
-		return sourceNames[sourceId];
-	}
-	
 	private void initializeOneSource() throws CoGrouperException {
 		calculateOneSourceCommonSchema();
 		calculatePartitionFields();
@@ -42,13 +32,12 @@ public class SerializationInfo {
 	}
 	
 	private void initializeMultipleSources() throws CoGrouperException{
-		calculateSourceIdsByName();
 		calculateMultipleSourcesIntermediateSchemas();
 		calculatePartitionFields();
 		calculateGroupSchema();
 	}
 
-	public Map<String,int[]> getFieldsToPartition(){
+	public List<int[]> getFieldsToPartition(){
 		return fieldsToPartition;
 	}
 	
@@ -58,35 +47,21 @@ public class SerializationInfo {
 		this.groupSchema = new Schema("group",groupFields);
 	}
 	
-	private void calculateSourceIdsByName(){
-		sourceIdsByName = new HashMap<String,Integer>();
-		int sourceId=0;
-		sourceNames = new String[grouperConfig.getNumSources()];
-		for (Map.Entry<String,Schema> entry : grouperConfig.getSourceSchemas().entrySet()	){
-			sourceNames[sourceId] = entry.getKey();
-			sourceIdsByName.put(entry.getKey(), sourceId);
-			sourceId++;
-		}
-	}
-	
 	private void calculatePartitionFields() {
 		List<String> partitionFields = grouperConfig.getRollupBaseFields();
 		int numFields = partitionFields.size();
-		for (Map.Entry<String,Schema> entry : grouperConfig.getSourceSchemas().entrySet()){
-			String sourceName = entry.getKey();
-			Schema schema = entry.getValue();
+		for (Schema schema : grouperConfig.getSourceSchemas()){
 			int[] posFields = new int[numFields];
 			for (int i = 0 ; i < partitionFields.size(); i++){
 				int pos = schema.getFieldPos(partitionFields.get(i));
 				posFields[i]=pos;
 			}
-			fieldsToPartition.put(sourceName,posFields);
+			fieldsToPartition.add(posFields);
 		}
 	}
 	
 	private void calculateOneSourceCommonSchema() throws CoGrouperException {
-		Schema sourceSchema =grouperConfig.getSourceSchemas().values().iterator().next(); 
-		String sourceName = sourceSchema.getName();
+		Schema sourceSchema =grouperConfig.getSourceSchemas().get(0); 
 		
 		SortBy commonSortCriteria = grouperConfig.getCommonSortBy();
 		List<Field> commonFields = new ArrayList<Field>();
@@ -97,10 +72,10 @@ public class SerializationInfo {
 		}
 
 		//add particular fields if any..
-		SortBy particularOrderBy = grouperConfig.getSecondarySortBys().get(sourceName);
+		SortBy particularOrderBy = grouperConfig.getSecondarySortBys().get(0);
 		for (SortElement sortElement : particularOrderBy.getElements()){
 			String fieldName = sortElement.getName();
-			Class<?> fieldType = checkFieldInSource(fieldName, sourceName);
+			Class<?> fieldType = checkFieldInSource(fieldName, 0);
 			commonFields.add(new Field(fieldName,fieldType));
 		}
 		
@@ -124,29 +99,30 @@ public class SerializationInfo {
 		}
 
 		this.commonSchema = new Schema("common",commonFields);
-		this.specificSchemas = new HashMap<String,Schema>();
-		Map<String,List<Field>> specificFieldsBySource = new HashMap<String,List<Field>>();
+		this.specificSchemas = new ArrayList<Schema>();
+		List<List<Field>> specificFieldsBySource = new ArrayList<List<Field>>();
 		
-		for (Map.Entry<String,SortBy> entry : grouperConfig.getSecondarySortBys().entrySet()){
+		
+		for (int sourceId=0 ; sourceId < grouperConfig.getNumSources(); sourceId++){
+			SortBy specificCriteria = grouperConfig.getSecondarySortBys().get(sourceId);
 			List<Field> specificFields = new ArrayList<Field>();
-			SortBy specificCriteria = entry.getValue(); String sourceName = entry.getKey();
 			for (SortElement sortElement : specificCriteria.getElements()){
 				String fieldName = sortElement.getName();
-				Class<?> fieldType = checkFieldInSource(fieldName, sourceName);
+				Class<?> fieldType = checkFieldInSource(fieldName, sourceId);
 				specificFields.add(new Field(fieldName,fieldType));
 			}
-			specificFieldsBySource.put(sourceName,specificFields);
+			specificFieldsBySource.add(specificFields);
 		}
 		
-		for (Map.Entry<String,Schema> entry : grouperConfig.getSourceSchemas().entrySet()){
-			Schema sourceSchema = entry.getValue(); String sourceName = entry.getKey();
-			List<Field> specificFields = specificFieldsBySource.get(sourceName);
+		for (int i= 0 ; i < grouperConfig.getNumSources(); i++){
+			Schema sourceSchema = grouperConfig.getSourceSchema(i);
+			List<Field> specificFields = specificFieldsBySource.get(i);
 			for (Field field : sourceSchema.getFields()){
 				if (!commonSchema.containsFieldName(field.name()) && !containsFieldName(field.name(),specificFields)){
 					specificFields.add(field);
 				}
 			}
-			this.specificSchemas.put(sourceName,new Schema("specific",specificFields));
+			this.specificSchemas.add(new Schema("specific",specificFields));
 		}
 	}
 	
@@ -163,8 +139,8 @@ public class SerializationInfo {
 	
 	private Class<?> checkFieldInAllSources(String name) throws CoGrouperException{
 		Class<?> type = null;
-		for (String sourceName: grouperConfig.getSourceSchemas().keySet()){
-			Class<?> typeInSource = checkFieldInSource(name,sourceName);
+		for (int i=0 ; i < grouperConfig.getSourceSchemas().size() ; i++){
+			Class<?> typeInSource = checkFieldInSource(name,i);
 			if (type == null){
 				type = typeInSource;
 			} else if (type != typeInSource){
@@ -174,11 +150,11 @@ public class SerializationInfo {
 		return type;
 	}
 	
-	private Class<?> checkFieldInSource(String fieldName,String sourceName ) throws CoGrouperException{
-		Schema schema = grouperConfig.getSourceSchema(sourceName);
+	private Class<?> checkFieldInSource(String fieldName,int sourceId ) throws CoGrouperException{
+		Schema schema = grouperConfig.getSourceSchema(sourceId);
 		Field field =schema.getField(fieldName); 
 		if (field == null){
-			throw new CoGrouperException("Field '" + fieldName + "' not present in source '" +  sourceName + "' " + schema);
+			throw new CoGrouperException("Field '" + fieldName + "' not present in source '" +  schema.getName() + "' " + schema);
 		} 
 		return field.getType();
 	}
@@ -187,11 +163,11 @@ public class SerializationInfo {
 		return commonSchema;
 	}
 	
-	public Schema getSpecificSchema(String sourceName){
-		return specificSchemas.get(sourceName);
+	public Schema getSpecificSchema(int sourceId){
+		return specificSchemas.get(sourceId);
 	}
 	
-	public Map<String,Schema> getSpecificSchemas(){
+	public List<Schema> getSpecificSchemas(){
 		return specificSchemas;
 	}
 	
@@ -202,10 +178,10 @@ public class SerializationInfo {
 	
 	public static class PositionMapping {
 		
-		public Map<String,int[]> commonTranslation;
-		public Map<String,int[]> particularTranslation;
+		public List<int[]> commonTranslation;
+		public List<int[]> particularTranslation;
 		
-		PositionMapping(Map<String,int[]> commonTranslation, Map<String,int[]> particularTranslation){
+		PositionMapping(List<int[]> commonTranslation, List<int[]> particularTranslation){
 			this.commonTranslation = commonTranslation;
 			this.particularTranslation = particularTranslation;
 		}
@@ -214,25 +190,24 @@ public class SerializationInfo {
 		public String toString(){
 			StringBuilder b = new StringBuilder();
 			
-			for (Map.Entry<String,int[]> entry : commonTranslation.entrySet()){
-				String source = entry.getKey();
-				int[] currentArray = entry.getValue();
+			int source=0;
+			for (int[] currentArray : commonTranslation){
 				b.append("common source:["+source +"]=>");
 				for (int i=0 ; i < currentArray.length ; i++){
 					b.append(currentArray[i]).append(",");
 				}
 				b.append("\n");
-			
+				source++;
 			}
 			
-			for (Map.Entry<String,int[]> entry : particularTranslation.entrySet()){
-				String source = entry.getKey();
-				int[] currentArray = entry.getValue();
+			source=0;
+			for (int[] currentArray : particularTranslation){
 				b.append("particular source:["+source +"]=>");
 				for (int i=0 ; i < currentArray.length ; i++){
 					b.append(currentArray[i]).append(",");
 				}
 				b.append("\n");
+				source++;
 			}
 			
 			
@@ -243,17 +218,15 @@ public class SerializationInfo {
 	
 	
 	public PositionMapping getSerializationTranslation(){
-		Map<String,int[]> commonTranslation = new HashMap<String,int[]>();
-		Map<String,int[]> particularTranslation = new HashMap<String,int[]>();
-		for (Map.Entry<String,Schema> entry : grouperConfig.getSourceSchemas().entrySet()){
-			String sourceName = entry.getKey();
-			Schema sourceSchema = entry.getValue();
-			commonTranslation.put(sourceName,getIndexTranslation(commonSchema,sourceSchema));
-			
+		List<int[]> commonTranslation = new ArrayList<int[]>();
+		List<int[]> particularTranslation = new ArrayList<int[]>();
+		for (int sourceId = 0 ; sourceId < grouperConfig.getSourceSchemas().size() ; sourceId++){
+			Schema sourceSchema = grouperConfig.getSourceSchema(sourceId);
+			commonTranslation.add(getIndexTranslation(commonSchema,sourceSchema));
 			Schema particularSchema = null;
 			if (specificSchemas != null && !specificSchemas.isEmpty()){
-				particularSchema = specificSchemas.get(sourceName);
-				particularTranslation.put(sourceName,getIndexTranslation(particularSchema,sourceSchema));
+				particularSchema = specificSchemas.get(sourceId);
+				particularTranslation.add(getIndexTranslation(particularSchema,sourceSchema));
 			}
 		}
 		return new PositionMapping(commonTranslation, particularTranslation);

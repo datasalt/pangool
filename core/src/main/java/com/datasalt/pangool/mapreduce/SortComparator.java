@@ -110,13 +110,12 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		offsets.offset2 += vintSize;
 		
 		//sources are the same
-		String sourceName = serInfo.getSourceNameById(sourceId1);
-		SortBy sortBy = grouperConf.getSecondarySortBys().get(sourceName); //TODO avoid using name instead of id. SLOWW!
+		SortBy sortBy = grouperConf.getSecondarySortBys().get(sourceId1); 
 		if (sortBy == null){
 			return 0;
 		}
 		
-		Schema specificSchema = serInfo.getSpecificSchema(sourceName); //TODO avoid using name instead of id. SLOWW!!
+		Schema specificSchema = serInfo.getSpecificSchema(sourceId1);
 		return compare(b1,offsets.offset1,b2,offsets.offset2,specificSchema,sortBy,offsets);
 	
 	}

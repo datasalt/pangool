@@ -9,7 +9,7 @@ import com.datasalt.pangool.Schema.Field;
  * Useful for creating views over {@link ITuple} for some
  * particular fields.
  */
-public class FilteredReadOnlyTuple extends BaseTuple {
+public class FilteredReadOnlyTuple implements ITuple {
 
 	private ITuple delegated;
 	private Schema schema;

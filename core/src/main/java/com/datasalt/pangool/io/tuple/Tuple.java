@@ -27,7 +27,7 @@ import com.datasalt.pangool.Schema.Field;
  * This is the basic implementation of {@link ITuple}. It extends a HashMap<String, Object>
  */
 @SuppressWarnings("serial")
-public class Tuple extends BaseTuple implements Serializable {
+public class Tuple implements ITuple,Serializable {
 
 	private Object[] array;
 	private Schema schema;

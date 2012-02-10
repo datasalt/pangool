@@ -93,25 +93,24 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		Tuple commonTuple = new Tuple(commonSchema,true); //TODO this needs to be reused
 		readFields(commonTuple,in);
 		int sourceId = WritableUtils.readVInt(in);
-		String sourceName = serInfo.getSourceNameById(sourceId);
-		Schema specificSchema = serInfo.getSpecificSchema(sourceName); //TODO this can be accessed by sourceId
+		Schema specificSchema = serInfo.getSpecificSchema(sourceId); 
 		Tuple specificTuple = new Tuple(specificSchema,true);//TODO this needs to be reused
 		readFields(specificTuple,in);
 		
-		Schema sourceSchema = coGrouperConf.getSourceSchema(sourceName); //TODO this should be accessed by index
+		Schema sourceSchema = coGrouperConf.getSourceSchema(sourceId);
 		Tuple result = new Tuple(sourceSchema); //TODO needs to be cached
-		mixIntermediateIntoResult(commonTuple,specificTuple,result,sourceName);
+		mixIntermediateIntoResult(commonTuple,specificTuple,result,sourceId);
 		return result;
 	}
 	
-	private void mixIntermediateIntoResult(ITuple commonTuple,ITuple specificTuple,ITuple result,String sourceName){
-		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.get(sourceName);
+	private void mixIntermediateIntoResult(ITuple commonTuple,ITuple specificTuple,ITuple result,int sourceId){
+		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.get(sourceId);
 		for (int i =0 ; i < commonTranslation.length ; i++){
 			int destPos = commonTranslation[i];
 			result.set(destPos,commonTuple.get(i));
 		}
 		
-		int[] specificTranslation = serInfo.getSerializationTranslation().particularTranslation.get(sourceName);
+		int[] specificTranslation = serInfo.getSerializationTranslation().particularTranslation.get(sourceId);
 		for (int i =0 ; i < specificTranslation.length ; i++){
 			int destPos = specificTranslation[i];
 			result.set(destPos,specificTuple.get(i));
@@ -124,10 +123,10 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		readFields(commonTuple,in);
 		
 		if (tuple == null){
-			Schema destSchema = coGrouperConf.getSourceSchemas().values().iterator().next(); //This needs to be optimized
+			Schema destSchema = coGrouperConf.getSourceSchemas().get(0); //This needs to be optimized
 			tuple = new Tuple(destSchema);
 		}
-		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.values().iterator().next();
+		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.get(0);
 		for (int i =0 ; i < commonTranslation.length ; i++){
 			int destPos = commonTranslation[i];
 			tuple.set(destPos,commonTuple.get(i));
@@ -141,22 +140,22 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			Class<?> fieldType = schema.getField(index).getType();
 			String fieldName = schema.getField(index).name();
 			if(fieldType == VIntWritable.class) {
-				tuple.setInt(index,WritableUtils.readVInt(input));
+				tuple.set(index,WritableUtils.readVInt(input));
 			} else if(fieldType == VLongWritable.class) {
-				tuple.setLong(index,WritableUtils.readVLong(input));
+				tuple.set(index,WritableUtils.readVLong(input));
 			} else if(fieldType == Integer.class) {
-				tuple.setInt(index,input.readInt());
+				tuple.set(index,input.readInt());
 			} else if(fieldType == Long.class) {
-				tuple.setLong(index,input.readLong());
+				tuple.set(index,input.readLong());
 			} else if(fieldType == Double.class) {
-				tuple.setDouble(index,input.readDouble());
+				tuple.set(index,input.readDouble());
 			} else if(fieldType == Float.class) {
-				tuple.setFloat(index,input.readFloat());
+				tuple.set(index,input.readFloat());
 			} else if(fieldType == String.class) {
 				((Text)tuple.get(index)).readFields(input);
 			} else if(fieldType == Boolean.class) {
 				byte b = input.readByte();
-				tuple.setBoolean(index,(b != 0));
+				tuple.set(index,(b != 0));
 			} else if(fieldType.isEnum()) {
 				int ordinal = WritableUtils.readVInt(input);
 				try {
@@ -164,7 +163,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 					if(enums == null) {
 						throw new IOException("Field " + fieldName + " is not a enum type");
 					}
-					tuple.setEnum(index,enums[ordinal]);
+					tuple.set(index,enums[ordinal]);
 				} catch(ArrayIndexOutOfBoundsException e) {
 					throw new RuntimeException(e);
 				}

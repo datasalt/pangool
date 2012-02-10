@@ -70,7 +70,7 @@ public class AvroUtils {
 			if(obj instanceof Utf8) {
 				Utf8 utf8 = (Utf8) obj;
 				text.set(utf8.getBytes(),0,utf8.getByteLength());
-				tuple.setString(index, text);
+				tuple.set(index, text);
 			} else if(obj instanceof Comparable) {
 				tuple.set(index, obj);
 			}
