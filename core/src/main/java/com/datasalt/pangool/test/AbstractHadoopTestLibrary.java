@@ -184,7 +184,7 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 			AvroWrapper<Record> wrapper = new AvroWrapper<Record>();
 			while(reader.hasNext()) {
 				wrapper.datum(reader.next(wrapper.datum()));
-				Tuple tuple = new Tuple(reader.getSchema().getFields().size());
+				Tuple tuple = null; //TODO fix this
 				AvroUtils.toTuple(wrapper.datum(), tuple, reader.getSchema());
 				outs.add(new Pair<Object, Object>(tuple, NullWritable.get()));
 			}

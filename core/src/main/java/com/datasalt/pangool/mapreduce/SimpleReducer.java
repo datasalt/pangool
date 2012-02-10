@@ -26,25 +26,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.SerializationInfo;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.commons.DCUtils;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
-public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
+public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	public final static String CONF_REDUCER_HANDLER = SimpleReducer.class.getName() + ".reducer.handler";
 
-	public final static Logger log = LoggerFactory.getLogger(SimpleReducer.class);
+	private final static Logger log = LoggerFactory.getLogger(SimpleReducer.class);
 	
 	// Following variables protected to be shared by Combiners
-	protected CoGrouperConfig pangoolConfig;
-	protected GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
-	protected TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
-	protected FilteredReadOnlyTuple groupTuple; // Tuple view over the group
-	protected GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.CoGrouperContext context;
+	private CoGrouperConfig pangoolConfig;
+	private SerializationInfo serInfo;
+	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
+	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
+	private FilteredReadOnlyTuple groupTuple; // Tuple view over the group
+	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.CoGrouperContext context;
 
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
@@ -52,11 +54,12 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
   public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
-			log.info("Getting CoGrouper config.");
-			this.pangoolConfig = CoGrouperConfigBuilder.get(context.getConfiguration());
-			log.info("Getting CoGrouper config done.");
+			log.info("Getting CoGrouper grouperConf.");
+			this.pangoolConfig = CoGrouperConfig.get(context.getConfiguration());
+			this.serInfo = pangoolConfig.getSerializationInfo();
+			log.info("Getting CoGrouper grouperConf done.");
 			
-			this.groupTuple = new FilteredReadOnlyTuple(pangoolConfig.getGroupByFields());
+			this.groupTuple = new FilteredReadOnlyTuple(serInfo.getGroupSchema());
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 			
 			// setting handler
@@ -88,14 +91,14 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<ITuple, Nul
 	}
 
 	@Override
-	public final void reduce(ITuple key, Iterable<NullWritable> values, Context context) throws IOException,	
+	public final void reduce(DatumWrapper<ITuple> key, Iterable<NullWritable> values, Context context) throws IOException,	
 	    InterruptedException {
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
 	
 			// We get the firts tuple, to create the groupTuple view
-			ITuple firstTupleGroup = key;
+			ITuple firstTupleGroup = key.currentDatum();
 	
 			// A view is created over the first tuple to give the user the group fields
 			groupTuple.setDelegatedTuple(firstTupleGroup);

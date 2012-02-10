@@ -17,177 +17,92 @@ package com.datasalt.pangool.io.tuple;
 
 import java.io.Serializable;
 
-import org.apache.avro.util.Utf8;
 
-import com.datasalt.pangool.mapreduce.SortComparator;
+import org.apache.hadoop.io.Text;
+
+import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.Schema.Field;
 
 /**
  * This is the basic implementation of {@link ITuple}. It extends a HashMap<String, Object>
  */
 @SuppressWarnings("serial")
-public class Tuple implements ITuple, Serializable {
+public class Tuple implements ITuple,Serializable {
 
-	Object[] array;
+	private Object[] array;
+	private Schema schema;
 
-	public Tuple() {
-	}
-
-	public Tuple(int size) {
+	public Tuple(Schema schema,boolean initializeTexts) {
+		this.schema = schema;
+		int size = schema.getFields().size();
 		this.array = new Object[size];
+		if (initializeTexts){
+			initializeTexts(schema);
+		}
 	}
 	
-	public Tuple(Object[] array) {
-		this.array = array;
+	private void initializeTexts(Schema schema){
+		for (int i=0 ; i < schema.getFields().size() ; i++){
+			if (schema.getField(i).getType() == String.class){
+				set(i,new Text());
+			}
+		}
 	}
-
-	public Object[] getArray() {
-		return array;
+	
+	public Tuple(Schema schema){
+		this(schema,false);
 	}
-
+	
 	@Override
-	public Integer getInt(int pos) {
-		return (Integer) array[pos];
-	}
-
-	@Override
-	public Long getLong(int pos) {
-		return (Long) array[pos];
-	}
-
-	@Override
-	public Float getFloat(int pos) {
-		return (Float) array[pos];
-	}
-
-	@Override
-	public Double getDouble(int pos) {
-		return (Double) array[pos];
-	}
-
-	@Override
-	public byte[] getString(int pos) {
-		return (byte[]) array[pos];
-	}
-
-	@Override
-	public Object getObject(int pos) {
+	public Object get(int pos) {
 		return array[pos];
 	}
 
 	@Override
-	public Enum<?> getEnum(int pos) {
-		return (Enum<?>) array[pos];
-	}
-
-	private void setField(int pos, Object obj) {
-		array[pos] = obj;
+	public void set(int pos, Object object) {
+		array[pos] = object;
 	}
 
 	@Override
-	public void setEnum(int pos, Enum<? extends Enum<?>> value) {
-		setField(pos, value);
+	public String toString(){
+		return toString(this);
 	}
 
-	@Override
-	public void setInt(int pos, int value) {
-		setField(pos, value);
-	}
-
-	@Override
-	public void setString(int pos, byte[] value) {
-		setField(pos, value);
-	}
-
-	@Override
-	public void setLong(int pos, long value) {
-		setField(pos, value);
-	}
-
-	@Override
-	public void setFloat(int pos, float value) {
-		setField(pos, value);
-	}
-
-	@Override
-	public void setDouble(int pos, double value) {
-		setField(pos, value);
-	}
-
-	@Override
-	public void setBoolean(int pos, boolean value) {
-		setField(pos, value);
-	}
-
-	@Override
-	public void setObject(int pos, Object object) {
-		setField(pos, object);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T getObject(Class<T> clazz, int pos) {
-		return (T) array[pos];
-	}
-
-	@Override
-	public <T> void setObject(Class<T> valueType, int pos, T value) {
-		setField(pos, value);
-	}
-
-	/**
-	 * Calculates a combinated hashCode using the specified number of fieldsfields.
-	 * 
-	 * @param fields
-	 * 
-	 */
-	@Override
-	public int partialHashCode(int nFields) {
-		int result = 0;
-		for(int i = 0; i < nFields; i++) {
-			result = result * 31 + array[i].hashCode();
+	public static String toString(ITuple tuple) {
+		Schema schema = tuple.getSchema();
+		StringBuilder b = new StringBuilder();
+		b.append("{");
+		for (int i = 0 ; i < schema.getFields().size() ; i++){
+			Field f = schema.getField(i);
+			b.append("\"").append(f.name()).append("\"").append(":").append("\"").append(tuple.get(i)).append("\"").append(" , ");
 		}
-		return result & Integer.MAX_VALUE;
+		String str = b.toString();
+		//nasty
+		return str.substring(0, str.length() - 2) + "}";
 	}
+	
 
 	@Override
-	public int compareTo(ITuple that) {
-		if(array.length != that.getArray().length) {
-			return array.length > that.getArray().length ? -1 : 1;
-		}
-		for(int i = 0; i < array.length; i++) {
-			int comparison = SortComparator.compareObjects(array[i], that.getArray()[i]);
-			if(comparison != 0) {
-				return comparison;
+  public void clear() {
+		if (array!= null){
+			for (int i=0 ; i < array.length ; i++){
+				array[i] = null;
 			}
 		}
-		return 0;
-	}
+  }
 
 	@Override
-	public String toString() {
-		String str = "";
-		for(Object obj: array) {
-			if(obj instanceof byte[]) {
-				str += new Utf8((byte[])obj).toString() + ",";
-			} else {
-				str += obj.toString() + ",";
-			}
-		}
-		return str.substring(0, str.length() - 1);
-	}
+  public Schema getSchema() {
+	  return schema;
+  }
+
+		@Override
+  public Object get(String field) {
+	  return get(schema.getFieldPos(field));
+  }
 
 	@Override
-	public int size() {
-		return array.length;
-	}
-
-	@Override
-	public void clear() {
-		// Nothing to be done
-	}
-
-	@Override
-	public void setArray(Object[] array) {
-		this.array = array;
-	}
+  public void set(String field, Object object) {
+	  set(schema.getFieldPos(field),object);
+  }
 }

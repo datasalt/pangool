@@ -10,17 +10,26 @@ import org.apache.commons.collections.BidiMap;
 import org.apache.commons.collections.bidimap.DualHashBidiMap;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
-
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Encapsulates one Pangool schame composed of {@link Field} instances.
- * 
- * @author pere
- *
  */
 public class Schema {
 
+	static final JsonFactory FACTORY = new JsonFactory();
+  static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
+
+  //private static final int NO_HASHCODE = Integer.MIN_VALUE;
+
+  static {
+    FACTORY.enable(JsonParser.Feature.ALLOW_COMMENTS);
+    FACTORY.setCodec(MAPPER);
+  }
+	
+	
 	public static class PrimitiveTypes {
 
 		public final static String INT = "int";
@@ -45,35 +54,8 @@ public class Schema {
 		strClassMap.put(PrimitiveTypes.STRING, String.class);
 		strClassMap.put(PrimitiveTypes.BOOLEAN, Boolean.class);
 	}
-
-	/**
-	 * Convenience class for dealing with lists of Field
-	 * 
-	 * @author pere
-	 *
-	 */
-	@SuppressWarnings("serial")
-	public static class Fields extends ArrayList<Field> {
-
-		public Field get(String fieldName) {
-			for(int i = 0; i < size(); i++) {
-				Field currentField = get(i);
-				if(currentField.getName().equals(fieldName)) {
-					return currentField;
-				}
-			}
-			return null;
-		}
-		
-		public boolean contains(String fieldName) {
-			return get(fieldName) != null;
-		}
-	}
 	
 	public static class Field {
-		
-		public final static String SOURCE_ID_FIELD_NAME = "#source#";
-		public final static Field SOURCE_ID = new Field(SOURCE_ID_FIELD_NAME, VIntWritable.class);
 		
 		private String name;
 		private Class<?> type;
@@ -90,7 +72,7 @@ public class Schema {
 			return type;
 		}
 
-		public String getName() {
+		public String name() {
 			return name;
 		}
 		
@@ -99,7 +81,8 @@ public class Schema {
 		}
 	}
 
-	private Field[] fields;
+	private List<Field> fields;
+	private String name;
 
 	public static Class<?> strToClass(String str) throws ClassNotFoundException {
 		Class<?> clazz = (Class<?>) strClassMap.get(str);
@@ -120,40 +103,57 @@ public class Schema {
 
 	private Map<String, Integer> indexByFieldName = new HashMap<String, Integer>();
 
-	public Schema(List<Field> fields) {
-		this.fields = new Field[fields.size()];
-		for(int i = 0; i < fields.size(); i++) {
-			this.fields[i] = fields.get(i);
+	public Schema(String name,List<Field> fields) {
+		if (name == null || name.isEmpty()){
+			throw new IllegalArgumentException("Name for schema can't be null");
 		}
+		this.name = name;
+		this.fields = new ArrayList<Field>();
+		this.fields.addAll(fields);
+		this.fields = Collections.unmodifiableList(this.fields);
+		
 		int index = 0;
-		for(Field field : fields) {
-			this.indexByFieldName.put(field.getName(), index);
+		for(Field field : this.fields) {
+			this.indexByFieldName.put(field.name(), index);
 			index++;
 		}
 	}
 
-	public Field[] getFields() {
+	public List<Field> getFields() {
 		return fields;
 	}
+	
+	public String getName(){
+		return name;
+	}
 
+	public Integer getFieldPos(String fieldName){
+		return indexByFieldName.get(fieldName);
+	}
+	
 	public Field getField(String fieldName) {
-		int index = indexByFieldName(fieldName);
-		return fields[index];
+		Integer index = getFieldPos(fieldName);
+		return (index == null) ? null : fields.get(index);
 	}
 
 	public Field getField(int i) {
-		return fields[i];
+		return fields.get(i);
 	}
 
 	public String serialize() {
 		StringBuilder b = new StringBuilder();
-		String fieldName = fields[0].name;
-		Class<?> fieldType = fields[0].type;
-		b.append(fieldName).append(":").append(classToStr(fieldType));
-		for(int i = 1; i < fields.length; i++) {
-			fieldName = fields[i].name;
-			fieldType = fields[i].type;
-			String clazzStr = classToStr(fieldType);
+		b.append(name).append(";");
+		String fieldName = fields.get(0).name;
+		Class<?> fieldType = fields.get(0).type;
+		String clazzStr = classToStr(fieldType);
+		if(clazzStr == null) {
+			clazzStr = fieldType.getName();
+		}
+		b.append(fieldName).append(":").append(clazzStr);
+		for(int i = 1; i < fields.size(); i++) {
+			fieldName = fields.get(i).name;
+			fieldType = fields.get(i).type;
+			clazzStr = classToStr(fieldType);
 			if(clazzStr == null) {
 				clazzStr = fieldType.getName();
 			}
@@ -166,32 +166,33 @@ public class Schema {
 		return indexByFieldName.containsKey(fieldName);
 	}
 
-	public int indexByFieldName(String name) {
-		return indexByFieldName.get(name);
-	}
+	
 
 	@Override
 	public String toString() {
 		return serialize();
 	}
 
-	public static Schema parse(String serialized) throws CoGrouperException, InvalidFieldException {
-		SchemaBuilder builder = new SchemaBuilder();
+	public static Schema parse(String serialized) throws CoGrouperException /*, InvalidFieldException */{
+		
 		try {
 			if(serialized == null || serialized.isEmpty()) {
 				return null;
 			}
-			String[] fieldsStr = serialized.split(",");
+			String[] tokens =serialized.split(";");
+			String name = tokens[0];
+			String[] fieldsStr = tokens[1].split(",");
+			List<Field> fields = new ArrayList<Field>();
 			for(String field : fieldsStr) {
 				String[] nameType = field.split(":");
 				if(nameType.length != 2) {
 					throw new CoGrouperException("Incorrect fields description " + serialized);
 				}
-				String name = nameType[0].trim();
-				String type = nameType[1].trim();
-				builder.innerAdd(name, strToClass(type));
+				String fieldName = nameType[0].trim();
+				String fieldType = nameType[1].trim();
+				fields.add(new Field(fieldName, strToClass(fieldType)));
 			}
-			return builder.createSchema();
+			return new Schema(name,fields);
 		} catch(ClassNotFoundException e) {
 			throw new CoGrouperException(e);
 		}

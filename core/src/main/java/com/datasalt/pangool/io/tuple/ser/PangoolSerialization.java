@@ -30,32 +30,31 @@ import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 
-import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperConfigBuilder;
+import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
-import com.datasalt.pangool.io.tuple.ITupleInternal;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.tuple.ITuple;
 
 /**
- * A {@link Serialization} for types that implements {@link ITupleInternal}
+ * A {@link Serialization} for {@link DatumWrapper} 
  * <p>
  * To use this serialization with Hadoop, use the method {@link #enableSerialization(Configuration)} over the Hadoop
  * configuration.
  */
-public class TupleInternalSerialization implements Serialization<ITupleInternal>, Configurable {
+public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>, Configurable {
 
 	private Configuration conf;
 	private com.datasalt.pangool.io.Serialization ser;
 	private CoGrouperConfig pangoolConfig;
 
-	public TupleInternalSerialization() {
+	public PangoolSerialization() {
 	}
 
 	@Override
 	public boolean accept(Class<?> c) {
-		return(DoubleBufferedTuple.class.isAssignableFrom(c));
+		return DatumWrapper.class.isAssignableFrom(c);
 	}
 
 	@Override
@@ -72,7 +71,7 @@ public class TupleInternalSerialization implements Serialization<ITupleInternal>
 				// Mega tricky!!!!. This is to avoid recursive serialization instantiation!!
 				disableSerialization(this.conf);
 
-				this.pangoolConfig = CoGrouperConfigBuilder.get(conf);
+				this.pangoolConfig = CoGrouperConfig.get(conf);
 				this.ser = new com.datasalt.pangool.io.Serialization(this.conf);
 			}
 		} catch(CoGrouperException e) {
@@ -83,25 +82,22 @@ public class TupleInternalSerialization implements Serialization<ITupleInternal>
 	}
 
 	@Override
-	public Serializer<ITupleInternal> getSerializer(Class<ITupleInternal> c) {
-		return new TupleInternalSerializer(this.ser, this.pangoolConfig);
+	public Serializer<DatumWrapper<ITuple>> getSerializer(Class<DatumWrapper<ITuple>> c) {
+		return new PangoolSerializer(this.ser, this.pangoolConfig);
 	}
 
 	@Override
-	public Deserializer<ITupleInternal> getDeserializer(Class<ITupleInternal> c) {
-		return new TupleInternalDeserializer(this.ser, this.pangoolConfig, c);
+	public Deserializer<DatumWrapper<ITuple>> getDeserializer(Class<DatumWrapper<ITuple>> c) {
+		return new PangoolDeserializer(this.ser, this.pangoolConfig);
 	}
 
 	/**
 	 * Caches the values from the enum fields. This is done just once for efficiency since it uses reflection.
 	 * 
 	 */
-	public static Map<String, Enum<?>[]> getEnums(CoGrouperConfig pangoolConfig) {
+	public static Map<String, Enum<?>[]> getEnums(CoGrouperConfig grouperConfig) {
 		Map<String, Enum<?>[]> result = new HashMap<String, Enum<?>[]>();
-		Schema schema = pangoolConfig.getCommonOrderedSchema();
-		extractEnumsFromSchema(result, schema);
-		Map<Integer, Schema> specificSchemas = pangoolConfig.getSpecificOrderedSchemas();
-		for(Schema s : specificSchemas.values()) {
+		for(Schema s : grouperConfig.getSourceSchemas()) {
 			extractEnumsFromSchema(result, s);
 		}
 		return result;
@@ -114,7 +110,7 @@ public class TupleInternalSerialization implements Serialization<ITupleInternal>
 				if(type.isEnum()) {
 					Method method = type.getMethod("values", (Class<?>[]) null);
 					Object values = method.invoke(null);
-					mapToFill.put(field.getName(), (Enum[]) values);
+					mapToFill.put(field.name(), (Enum[]) values);
 				}
 			}
 
@@ -127,7 +123,7 @@ public class TupleInternalSerialization implements Serialization<ITupleInternal>
 	 * Use this method to enable this serialization in Hadoop
 	 */
 	public static void enableSerialization(Configuration conf) {
-		String serClass = TupleInternalSerialization.class.getName();
+		String serClass = PangoolSerialization.class.getName();
 		Collection<String> currentSers = conf.getStringCollection("io.serializations");
 
 		if(currentSers.size() == 0) {
@@ -147,7 +143,7 @@ public class TupleInternalSerialization implements Serialization<ITupleInternal>
 	 */
 	public static void disableSerialization(Configuration conf) {
 		String ser = conf.get("io.serializations").trim();
-		String stToSearch = Pattern.quote("," + TupleInternalSerialization.class.getName());
+		String stToSearch = Pattern.quote("," + PangoolSerialization.class.getName());
 		ser = ser.replaceAll(stToSearch, "");
 		conf.set("io.serializations", ser);
 	}

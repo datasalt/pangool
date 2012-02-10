@@ -17,6 +17,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
+import com.datasalt.pangool.SortBy.SortElement;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
@@ -27,9 +28,9 @@ import com.datasalt.pangool.io.AvroUtils;
 import com.datasalt.pangool.io.PangoolMultipleOutputs;
 import com.datasalt.pangool.io.TupleInputFormat;
 import com.datasalt.pangool.io.TupleOutputFormat;
-import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ser.TupleInternalSerialization;
+import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.tuple.ser.PangoolSerialization;
 import com.datasalt.pangool.mapreduce.GroupComparator;
 import com.datasalt.pangool.mapreduce.Partitioner;
 import com.datasalt.pangool.mapreduce.RollupReducer;
@@ -43,14 +44,14 @@ public class CoGrouper {
 
 	private static final class Output {
 
-		String name;
-		Class<? extends OutputFormat> outputFormat;
-		Class keyClass;
-		Class valueClass;
+		private String name;
+		private Class<? extends OutputFormat> outputFormat;
+		private Class keyClass;
+		private Class valueClass;
 
-		Map<String, String> specificContext = new HashMap<String, String>();
+		private Map<String, String> specificContext = new HashMap<String, String>();
 
-		Output(String name, Class<? extends OutputFormat> outputFormat, Class keyClass, Class valueClass,
+		private Output(String name, Class<? extends OutputFormat> outputFormat, Class keyClass, Class valueClass,
 		    Map<String, String> specificContext) {
 			this.outputFormat = outputFormat;
 			this.keyClass = keyClass;
@@ -64,9 +65,9 @@ public class CoGrouper {
 
 	private static final class Input {
 
-		Path path;
-		Class<? extends InputFormat> inputFormat;
-		InputProcessor inputProcessor;
+		private Path path;
+		private Class<? extends InputFormat> inputFormat;
+		private InputProcessor inputProcessor;
 
 		Input(Path path, Class<? extends InputFormat> inputFormat, InputProcessor inputProcessor) {
 			this.path = path;
@@ -76,7 +77,7 @@ public class CoGrouper {
 	}
 
 	private Configuration conf;
-	private CoGrouperConfig config;
+	private CoGrouperConfig grouperConf;
 
 	private GroupHandler grouperHandler;
 	private CombinerHandler combinerHandler;
@@ -84,18 +85,49 @@ public class CoGrouper {
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass;
 	private Class<?> outputValueClass;
+	
+	private RichSortBy commonOrderBy;
+	private Map<String,SortBy> secondarysOrderBy=new HashMap<String,SortBy>();
 
 	private Path outputPath;
 
 	private List<Input> multiInputs = new ArrayList<Input>();
 	private List<Output> namedOutputs = new ArrayList<Output>();
 
-	public CoGrouper(CoGrouperConfig config, Configuration conf) {
+	public CoGrouper(Configuration conf) {
 		this.conf = conf;
-		this.config = config;
+		this.grouperConf = new CoGrouperConfig();
 	}
 
 	// ------------------------------------------------------------------------- //
+
+	public void setOrderBy(RichSortBy ordering) {
+		this.commonOrderBy = ordering;
+	}
+	
+	public void setSecondaryOrderBy(String sourceName,SortBy ordering) {
+		if (this.grouperConf.getNumSources() >=2){
+			if (grouperConf.getSourceSchema(sourceName) != null){
+				this.secondarysOrderBy.put(sourceName, ordering);
+			} else {
+				throw new IllegalStateException("No known source with name '" + sourceName + "'");
+			}
+		} else {
+			throw new IllegalStateException("Not allowed to use secondary order with just one source");
+		}
+	}
+
+	public void addSourceSchema(Schema schema) throws CoGrouperException {
+		grouperConf.addSource(schema);
+	}
+	
+	public void setGroupByFields(String... groupByFields) {
+		grouperConf.setGroupByFields(groupByFields);
+	}
+	
+	public void setRollupFrom(String rollupFrom) {
+		grouperConf.setRollupFrom(rollupFrom);
+	}
 
 	public CoGrouper setJarByClass(Class<?> jarByClass) {
 		this.jarByClass = jarByClass;
@@ -188,6 +220,33 @@ public class CoGrouper {
 		}
 	}
 
+	private static SortBy getCommonSortBy(RichSortBy richSortBy){
+		if (richSortBy.getSourceOrderIndex() == null || richSortBy.getSourceOrderIndex() == richSortBy.getElements().size()){
+			return new SortBy(richSortBy.getElements());
+		} else {
+			List<SortElement> sortElements = richSortBy.getElements().subList(0,richSortBy.getSourceOrderIndex());
+			return new SortBy(sortElements);
+		}
+	}
+	
+	private static Map<String,SortBy> getSecondarySortBys(RichSortBy commonSortBy,Map<String,SortBy> secondarys){
+		if (commonSortBy.getSourceOrderIndex() == null || commonSortBy.getSourceOrderIndex() == commonSortBy.getElements().size()){
+			return secondarys;
+		} else {
+			List<SortElement> toPrepend = commonSortBy.getElements().subList(commonSortBy.getSourceOrderIndex(),commonSortBy.getElements().size());
+			Map<String,SortBy> result = new HashMap<String,SortBy>();
+			for (Map.Entry<String,SortBy> entry : secondarys.entrySet()){
+				SortBy sortBy = entry.getValue();
+				List<SortElement> newList = new ArrayList<SortElement>();
+				newList.addAll(toPrepend);
+				newList.addAll(sortBy.getElements());
+				result.put(entry.getKey(),new SortBy(newList));
+			}
+			return result;
+		}
+	}
+	
+	
 	public Job createJob() throws IOException, CoGrouperException {
 
 		raiseExceptionIfNull(grouperHandler, "Need to set a group handler");
@@ -197,13 +256,13 @@ public class CoGrouper {
 		raiseExceptionIfNull(outputValueClass, "Need to set outputValueClass");
 		raiseExceptionIfNull(outputPath, "Need to set outputPath");
 
-		if(config.getRollupFrom() != null) {
+		if(grouperConf.getRollupFrom() != null) {
 
 			// Check that rollupFrom is contained in groupBy
 
-			if(!config.getGroupByFields().contains(config.getRollupFrom())) {
-				throw new CoGrouperException("Rollup from [" + config.getRollupFrom() + "] not contained in group by fields "
-				    + config.getGroupByFields());
+			if(!grouperConf.getGroupByFields().contains(grouperConf.getRollupFrom())) {
+				throw new CoGrouperException("Rollup from [" + grouperConf.getRollupFrom() + "] not contained in group by fields "
+				    + grouperConf.getGroupByFields());
 			}
 
 			// Check that we are using the appropriate Handler
@@ -215,17 +274,28 @@ public class CoGrouper {
 		}
 
 		// Serialize PangoolConf in Hadoop Configuration
-		CoGrouperConfig.setPangoolConfig(config, conf);
+		
+		SortBy convertedCommonOrder =getCommonSortBy(commonOrderBy);
+		System.out.println("Converted common order " + convertedCommonOrder);
+		grouperConf.setCommonSortBy(convertedCommonOrder);
+		Map<String,SortBy> convertedParticularOrderings = getSecondarySortBys(commonOrderBy, secondarysOrderBy);
+		for (Map.Entry<String,SortBy> entry : convertedParticularOrderings.entrySet()){
+			System.out.println("Converted specific order " + entry);
+			grouperConf.setSecondarySortBy(entry.getKey(), entry.getValue());
+		}
+		
+		
+		CoGrouperConfig.set(grouperConf, conf);
 		Job job = new Job(conf);
 
 		List<String> partitionerFields;
 
-		if(config.getRollupFrom() != null) {
+		if(grouperConf.getRollupFrom() != null) {
 			// Grouper with rollup: calculate rollupBaseGroupFields from "rollupFrom"
 			List<String> rollupBaseGroupFields = new ArrayList<String>();
-			for(String groupByField : config.getGroupByFields()) {
+			for(String groupByField : grouperConf.getGroupByFields()) {
 				rollupBaseGroupFields.add(groupByField);
-				if(groupByField.equals(config.getRollupFrom())) {
+				if(groupByField.equals(grouperConf.getRollupFrom())) {
 					break;
 				}
 			}
@@ -233,13 +303,11 @@ public class CoGrouper {
 			job.setReducerClass(RollupReducer.class);
 		} else {
 			// Simple grouper
-			partitionerFields = config.getGroupByFields();
+			partitionerFields = grouperConf.getGroupByFields();
 			job.setReducerClass(SimpleReducer.class);
 		}
 
-		// Set fields to partition by in Hadoop Configuration
-		Partitioner.setPartitionerFields(job.getConfiguration(), partitionerFields);
-
+		
 		if(combinerHandler != null) {
 			job.setCombinerClass(SimpleCombiner.class); // not rollup by now
 			// Set Combiner Handler
@@ -260,11 +328,11 @@ public class CoGrouper {
 		}
 
 		// Enabling serialization
-		TupleInternalSerialization.enableSerialization(job.getConfiguration());
+		PangoolSerialization.enableSerialization(job.getConfiguration());
 
 		job.setJarByClass((jarByClass != null) ? jarByClass : grouperHandler.getClass());
 		job.setOutputFormatClass(outputFormat);
-		job.setMapOutputKeyClass(DoubleBufferedTuple.class);
+		job.setMapOutputKeyClass(DatumWrapper.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(Partitioner.class);
 		job.setGroupingComparatorClass(GroupComparator.class);

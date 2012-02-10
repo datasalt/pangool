@@ -15,59 +15,29 @@
  */
 package com.datasalt.pangool.io.tuple;
 
+import org.apache.hadoop.io.Text;
+
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.Schema.Field;
 
 /**
  * This is the common interface implemented by {@link Tuple} and {@link DoubleBufferPangolinTuple}.
  * A Tuple is basically a map that can be used in Pangool for carrying data. 
  */
-public interface ITuple extends Comparable<ITuple>{
-	
-	Object[] getArray();
-	
-	public void setArray(Object[] array);
+public interface ITuple /*,Comparable<ITuple>*/{
+
+	public Schema getSchema();
 	
 	public void clear();
 	
-	public int partialHashCode(int nFields);
+	public Object get(int pos);
+	public void set(int pos, Object object);
 	
-	public int size();
+	public void set(String field, Object object);
+	public Object get(String field);
 	
-	public Integer getInt(int pos);
 	
-	public Long getLong(int pos);
-	
-	public Float getFloat(int pos);
-	
-	public Double getDouble(int pos);
-	
-	public byte[] getString(int pos);
-	
-	public Object getObject(int pos);
-	
-	public <T> T getObject(Class<T> clazz, int pos);
-	
-	public Enum<? extends Enum<?>> getEnum(int pos);
-	
-	// Setters
-	
-	public void setEnum(int pos, Enum<? extends Enum<?>> value);
-	
-	public void setInt(int pos, int value);
-	
-	public void setString(int pos, byte[] value);
-	
-	public void setLong(int pos, long value) ;
-	
-	public void setFloat(int pos, float value) ;
-	
-	public void setDouble(int pos, double value) ;
-	
-	public void setBoolean(int pos, boolean value) ;
-	
-	public void setObject(int pos, Object object) ;
-	
-	public <T> void setObject(Class<T> valueType, int pos, T value) ;
 	
 	/**
 	 * Thrown when a field is not present in schema
@@ -89,4 +59,7 @@ public interface ITuple extends Comparable<ITuple>{
 			super(e);
 		}
 	}
+	
+	
+	
 }

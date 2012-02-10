@@ -6,11 +6,9 @@ import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import com.datasalt.pangool.SortCriteria.SortOrder;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.api.InputProcessor;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 @SuppressWarnings("rawtypes")
 public abstract class BaseCoGrouperTest {
@@ -31,18 +29,7 @@ public abstract class BaseCoGrouperTest {
 		}
 	};
 
-	protected Sorting getTestSorting() throws InvalidFieldException, CoGrouperException {
-
-		return new SortingBuilder()
-			.add("url", SortOrder.ASC)
-			.add("date", SortOrder.DESC)
-			.addSourceId(SortOrder.ASC)
-		  .secondarySort(1)
-		  	.add("content", SortOrder.ASC)
-		  .secondarySort(2)
-		   	.add("name", SortOrder.ASC)
-		  .buildSorting();
-	}
+	
 	
 	
 	@BeforeClass

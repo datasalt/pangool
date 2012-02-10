@@ -82,7 +82,8 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> {
 						
 			wrapper.datum(reader.next(wrapper.datum()));
 			if(tuple == null) {
-				tuple = new Tuple(reader.getSchema().getFields().size());
+				//TODO convert schema from FileReader to pangool Schema
+				//tuple = new Tuple(reader.getSchema());
 			}
 			AvroUtils.toTuple(wrapper.datum(), tuple, reader.getSchema());
 

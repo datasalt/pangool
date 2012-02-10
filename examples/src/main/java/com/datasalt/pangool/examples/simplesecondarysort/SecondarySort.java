@@ -1,6 +1,8 @@
 package com.datasalt.pangool.examples.simplesecondarysort;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -12,10 +14,11 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.RichSortBy;
 import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Sorting;
+import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.SortBy.Order;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -33,21 +36,21 @@ public class SecondarySort {
 	public final static int FIRST = 0;
 	public final static int SECOND = 1;
 
-	public static class IProcessor extends InputProcessor<LongWritable, Text> {
+	private static class IProcessor extends InputProcessor<LongWritable, Text> {
 
-		/**
-     * 
-     */
-		private static final long serialVersionUID = 1L;
-		Tuple tuple = new Tuple(2);
-
+		private Schema schema;
+		
+		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
+			this.schema = context.getCoGrouperConfig().getSourceSchema("my_schema");
+		}
+		
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
-
+			Tuple tuple = new Tuple(schema);
 			String[] fields = value.toString().trim().split(" ");
-			tuple.setInt(FIRST, Integer.parseInt(fields[0]));
-			tuple.setInt(SECOND, Integer.parseInt(fields[1]));
+			tuple.set(FIRST, Integer.parseInt(fields[0]));
+			tuple.set(SECOND, Integer.parseInt(fields[1]));
 			collector.write(tuple);
 		}
 	}
@@ -64,21 +67,22 @@ public class SecondarySort {
 		    throws IOException, InterruptedException, CoGrouperException {
 
 			for(ITuple tuple : tuples) {
-				collector.write(new Text(tuple.getInt(FIRST) + "\t" + tuple.getInt(SECOND)), NullWritable.get());
+				collector.write(new Text(tuple.get(FIRST) + "\t" + tuple.get(SECOND)), NullWritable.get());
 			}
 		}
 	}
 
 	public Job getJob(Configuration conf, String input, String output) throws CoGrouperException, IOException {
 		// Configure schema, sort and group by
-		Schema schema = Schema.parse("first:int, second:int");
-		Sorting sort = Sorting.parse("first asc, second asc");
-		CoGrouperConfigBuilder config = new CoGrouperConfigBuilder();
-		config.addSchema(0, schema);
-		config.setGroupByFields("first");
-		config.setSorting(sort).build();
-
-		CoGrouper grouper = new CoGrouper(config.build(), conf);
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(new Field("first",Integer.class));
+		fields.add(new Field("second",Integer.class));
+		
+		Schema schema = new Schema("my_schema",fields);
+		CoGrouper grouper = new CoGrouper(conf);
+		grouper.addSourceSchema(schema);
+		grouper.setGroupByFields("first");
+		grouper.setOrderBy(new RichSortBy().add("first",Order.ASC).add("second",Order.ASC));
 		// Input / output and such
 		grouper.setGroupHandler(new Handler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
