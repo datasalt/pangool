@@ -7,13 +7,13 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 
 import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.SortBy;
-import com.datasalt.pangool.SortBy.SortElement;
+import com.datasalt.pangool.Criteria;
+import com.datasalt.pangool.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 public class GroupComparator extends SortComparator {
 
-	private SortBy groupSortBy;
+	private Criteria groupSortBy;
 	@Override
 	public int compare(ITuple w1, ITuple w2) {
 		//TODO
@@ -40,7 +40,7 @@ public class GroupComparator extends SortComparator {
 			List<SortElement> groupSortElements = new ArrayList<SortElement>();
 			groupSortElements.addAll(sortElements);
 			groupSortElements = groupSortElements.subList(0,numGroupByFields);
-			groupSortBy = new SortBy(groupSortElements);
+			groupSortBy = new Criteria(groupSortElements);
 		}
 	}
 

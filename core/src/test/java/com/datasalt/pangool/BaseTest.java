@@ -15,7 +15,7 @@ import org.junit.Before;
 
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.SortBy.Order;
+import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.io.Serialization;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;

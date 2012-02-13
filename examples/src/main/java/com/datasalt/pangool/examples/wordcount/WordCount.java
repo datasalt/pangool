@@ -1,7 +1,6 @@
 package com.datasalt.pangool.examples.wordcount;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -18,10 +17,8 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.RichSortBy;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.SortBy.Order;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
@@ -31,9 +28,9 @@ import com.datasalt.pangool.io.tuple.Tuple;
 
 public class WordCount {
 
-	private static final int WORD_FIELD = 0;
-	private static final int COUNT_FIELD = 1;
-	public final static Charset UTF8 = Charset.forName("UTF-8");
+	private static final String WORD_FIELD = "word";
+	private static final String COUNT_FIELD = "count";
+	
 
 	@SuppressWarnings("serial")
 	public static class Split extends InputProcessor<LongWritable, Text> {
@@ -41,7 +38,7 @@ public class WordCount {
 		private Tuple tuple;
 		
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			Schema schema = context.getCoGrouperConfig().getSourceSchema("schema");
+			Schema schema = context.getCoGrouperConfig().getSourceSchema(0);
 			this.tuple = new Tuple(schema);
 		}
 		
@@ -111,8 +108,8 @@ public class WordCount {
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("word",String.class));
-		fields.add(new Field("count",Integer.class));
+		fields.add(new Field(WORD_FIELD,String.class));
+		fields.add(new Field(COUNT_FIELD,Integer.class));
 		
 		CoGrouper cg = new CoGrouper(conf);
 		cg.addSourceSchema(new Schema("schema",fields));
@@ -120,7 +117,6 @@ public class WordCount {
 		cg.addInput(new Path(input), TextInputFormat.class, new Split());
 		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class, Text.class);
 		cg.setGroupByFields("word");
-		cg.setOrderBy(new RichSortBy().add("word", Order.ASC));
 		cg.setGroupHandler(new Count());
 		cg.setCombinerHandler(new CountCombiner());
 

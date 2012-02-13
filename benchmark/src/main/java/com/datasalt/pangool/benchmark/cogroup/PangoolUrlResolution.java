@@ -16,11 +16,10 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.RichSortBy;
+import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortBy;
-import com.datasalt.pangool.SortBy.Order;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.commons.HadoopUtils;
@@ -113,7 +112,7 @@ public class PangoolUrlResolution {
 		grouper.addSourceSchema(new Schema("urlMap", urlMapFields));
 
 		grouper.setGroupByFields("url");
-		grouper.setOrderBy(new RichSortBy().add("url", Order.ASC));
+		grouper.setOrderBy(new SortBy().add("url", Order.ASC));
 		grouper.setSecondaryOrderBy("urlRegister", new SortBy().add("timestamp", Order.ASC));
 
 		grouper.setGroupHandler(new Handler());

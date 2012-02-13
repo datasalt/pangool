@@ -10,20 +10,20 @@ import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.datasalt.pangool.SortBy.Order;
-import com.datasalt.pangool.SortBy.SortElement;
+import com.datasalt.pangool.Criteria.Order;
+import com.datasalt.pangool.Criteria.SortElement;
 
 
 public class CoGrouperConfig {
 
 	private final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
 
-	private SortBy commonSortBy;
+	private Criteria commonSortBy;
 	
 	private List<String> sourceNames=new ArrayList<String>();
 	private Map<String,Integer> sourceNameToId = new HashMap<String,Integer>();
 	
-	private List<SortBy> secondarySortBys=new ArrayList<SortBy>();
+	private List<Criteria> secondarySortBys=new ArrayList<Criteria>();
 	
 	private List<Schema> sourceSchemas = new ArrayList<Schema>();
 	private List<String> groupByFields;
@@ -31,7 +31,7 @@ public class CoGrouperConfig {
 	
 	private SerializationInfo serInfo;
 	
-	void setSecondarySortBy(String sourceName,SortBy sortBy){
+	void setSecondarySortBy(String sourceName,Criteria criteria){
 		if (this.secondarySortBys.isEmpty()){
 			for (int i = 0; i < getNumSources() ; i++){
 				this.secondarySortBys.add(null);
@@ -42,10 +42,10 @@ public class CoGrouperConfig {
 		if (pos == null){
 			throw new IllegalArgumentException("Not known source with name '" + sourceName + "'");
 		}
-		secondarySortBys.set(pos, sortBy);
+		secondarySortBys.set(pos, criteria);
 	}
 	
-	public List<SortBy> getSecondarySortBys(){
+	public List<Criteria> getSecondarySortBys(){
 		return secondarySortBys;
 	}
 	
@@ -68,11 +68,11 @@ public class CoGrouperConfig {
 		return sourceSchemas.size();
 	}
 
-	void setCommonSortBy(SortBy ordering) {
+	void setCommonSortBy(Criteria ordering) {
 		this.commonSortBy = ordering;
 	}
 
-	public SortBy getCommonSortBy() {
+	public Criteria getCommonSortBy() {
   	return commonSortBy;
   }
 
@@ -165,11 +165,11 @@ public class CoGrouperConfig {
 			}
 			List<Map> listOrderings = (List<Map>)jsonData.get("commonSortBy");
 			
-			result.setCommonSortBy(new SortBy(mapsToSortElements(listOrderings)));
+			result.setCommonSortBy(new Criteria(mapsToSortElements(listOrderings)));
 			List<List> jsonParticularOrderings = (List<List>) jsonData.get("secondarySortBys");
 			
 			for(List entry: jsonParticularOrderings) {
-				result.secondarySortBys.add((entry == null) ? null : new SortBy(mapsToSortElements((List)entry)));
+				result.secondarySortBys.add((entry == null) ? null : new Criteria(mapsToSortElements((List)entry)));
 			}
 			return result;
 		} catch(Exception e){
@@ -215,8 +215,8 @@ public class CoGrouperConfig {
 		//jsonableData.put("interSourcesOrdering", interSourcesOrdering);
 		
 		List<List> jsonableParticularOrderings = new ArrayList<List>();
-		for(SortBy sortBy : secondarySortBys) {
-			jsonableParticularOrderings.add(sortBy.getElements());
+		for(Criteria criteria : secondarySortBys) {
+			jsonableParticularOrderings.add(criteria.getElements());
 		}
 		
 		jsonableData.put("secondarySortBys", jsonableParticularOrderings);

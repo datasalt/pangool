@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.SortBy.SortElement;
+import com.datasalt.pangool.Criteria.SortElement;
 
 public class SerializationInfo {
 
@@ -86,7 +86,7 @@ public class SerializationInfo {
 	private void calculateOneSourceCommonSchema() throws CoGrouperException {
 		Schema sourceSchema =grouperConfig.getSourceSchemas().get(0); 
 		
-		SortBy commonSortCriteria = grouperConfig.getCommonSortBy();
+		Criteria commonSortCriteria = grouperConfig.getCommonSortBy();
 		List<Field> commonFields = new ArrayList<Field>();
 		for (SortElement sortElement : commonSortCriteria.getElements()){
 			String fieldName = sortElement.getName();
@@ -105,7 +105,7 @@ public class SerializationInfo {
 	
 	
 	private void calculateMultipleSourcesIntermediateSchemas() throws CoGrouperException {
-		SortBy commonSortCriteria = grouperConfig.getCommonSortBy();
+		Criteria commonSortCriteria = grouperConfig.getCommonSortBy();
 		List<Field> commonFields = new ArrayList<Field>();
 		for (SortElement sortElement : commonSortCriteria.getElements()){
 			String fieldName = sortElement.getName();
@@ -119,7 +119,7 @@ public class SerializationInfo {
 		
 		
 		for (int sourceId=0 ; sourceId < grouperConfig.getNumSources(); sourceId++){
-			SortBy specificCriteria = grouperConfig.getSecondarySortBys().get(sourceId);
+			Criteria specificCriteria = grouperConfig.getSecondarySortBys().get(sourceId);
 			List<Field> specificFields = new ArrayList<Field>();
 			for (SortElement sortElement : specificCriteria.getElements()){
 				String fieldName = sortElement.getName();

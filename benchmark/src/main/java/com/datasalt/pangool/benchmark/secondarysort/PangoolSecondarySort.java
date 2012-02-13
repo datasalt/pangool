@@ -17,10 +17,10 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.RichSortBy;
+import com.datasalt.pangool.SortBy;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.SortBy.Order;
+import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.commons.HadoopUtils;
@@ -37,8 +37,6 @@ import com.datasalt.pangool.io.tuple.Tuple;
  */
 public class PangoolSecondarySort {
 
-	public final static int INTFIELD = 0, STRINGFIELD = 1, LONGFIELD = 2, DOUBLEFIELD = 3;
-
 	@SuppressWarnings("serial")
 	public static class IProcessor extends InputProcessor<LongWritable, Text> {
 		private Tuple tuple;
@@ -51,10 +49,10 @@ public class PangoolSecondarySort {
 			}
 
 			String[] fields = value.toString().trim().split("\t");
-			tuple.set(INTFIELD, Integer.parseInt(fields[0]));
-			tuple.set(STRINGFIELD, Utf8.getBytesFor(fields[1]));
-			tuple.set(LONGFIELD, Long.parseLong(fields[2]));
-			tuple.set(DOUBLEFIELD, Double.parseDouble(fields[3]));
+			tuple.set("intField", Integer.parseInt(fields[0]));
+			tuple.set("strField", fields[1]);
+			tuple.set("longField", Long.parseLong(fields[2]));
+			tuple.set("doubleField", Double.parseDouble(fields[3]));
 			collector.write(tuple);
 		}
 	}
@@ -62,23 +60,17 @@ public class PangoolSecondarySort {
 	@SuppressWarnings("serial")
 	public static class Handler extends GroupHandler<Text, DoubleWritable> {
 
-		private Text outputKey;
-		private DoubleWritable outputValue;
-
-		public void setup(CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
-		    CoGrouperException {
-			outputKey = new Text();
-			outputValue = new DoubleWritable();
-		};
+		private final Text outputKey= new Text();
+		private final DoubleWritable outputValue = new DoubleWritable();
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
 
-			String groupStr = group.get(INTFIELD) + "\t" + group.get(STRINGFIELD);
+			String groupStr = group.get("intField") + "\t" + group.get("strField");
 			double accumPayments = 0;
 			for(ITuple tuple : tuples) {
-				accumPayments += (Double) tuple.get(DOUBLEFIELD);
+				accumPayments += (Double) tuple.get("doubleField");
 			}
 			outputValue.set(accumPayments);
 			outputKey.set(groupStr);
@@ -97,7 +89,7 @@ public class PangoolSecondarySort {
 		CoGrouper grouper = new CoGrouper(conf);
 		grouper.addSourceSchema(schema);
 		grouper.setGroupByFields("intField", "strField");
-		grouper.setOrderBy(new RichSortBy().add("intField", Order.ASC).add("strField", Order.ASC)
+		grouper.setOrderBy(new SortBy().add("intField", Order.ASC).add("strField", Order.ASC)
 		    .add("longField", Order.ASC));
 		grouper.setGroupHandler(new Handler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, DoubleWritable.class);

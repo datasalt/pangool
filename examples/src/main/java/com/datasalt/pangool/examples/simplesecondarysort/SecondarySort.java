@@ -15,10 +15,10 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.RichSortBy;
+import com.datasalt.pangool.SortBy;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.SortBy.Order;
+import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -82,7 +82,7 @@ public class SecondarySort {
 		CoGrouper grouper = new CoGrouper(conf);
 		grouper.addSourceSchema(schema);
 		grouper.setGroupByFields("first");
-		grouper.setOrderBy(new RichSortBy().add("first",Order.ASC).add("second",Order.ASC));
+		grouper.setOrderBy(new SortBy().add("first",Order.ASC).add("second",Order.ASC));
 		// Input / output and such
 		grouper.setGroupHandler(new Handler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);

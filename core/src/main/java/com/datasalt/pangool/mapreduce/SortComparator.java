@@ -21,9 +21,9 @@ import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SerializationInfo;
-import com.datasalt.pangool.SortBy;
-import com.datasalt.pangool.SortBy.Order;
-import com.datasalt.pangool.SortBy.SortElement;
+import com.datasalt.pangool.Criteria;
+import com.datasalt.pangool.Criteria.Order;
+import com.datasalt.pangool.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 @SuppressWarnings("rawtypes")
@@ -38,7 +38,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		protected int offset2=0;
 	}
 	protected Offsets offsets = new Offsets();
-	protected boolean multipleSources;
+	protected boolean isMultipleSources;
 	
 
 	protected CoGrouperConfig getConfig() {
@@ -82,7 +82,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		try{
-			return (multipleSources) ? compareMultipleSources(b1,s1,l1,b2,s2,l2) : compareOneSource(b1,s1,l1,b2,s2,l2);
+			return (isMultipleSources) ? compareMultipleSources(b1,s1,l1,b2,s2,l2) : compareOneSource(b1,s1,l1,b2,s2,l2);
 		} catch(IOException e){
 			throw new RuntimeException(e);
 		}
@@ -90,7 +90,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	
 	private int compareMultipleSources(byte[] b1,int s1,int l1,byte[] b2,int s2,int l2) throws IOException {
 		Schema commonSchema = serInfo.getCommonSchema();
-		SortBy commonOrder = grouperConf.getCommonSortBy();
+		Criteria commonOrder = grouperConf.getCommonSortBy();
 
 		int comparison = compare(b1,s1,b2,s2,commonSchema,commonOrder,offsets);
 		if (comparison != 0){
@@ -109,29 +109,29 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		offsets.offset2 += vintSize;
 		
 		//sources are the same
-		SortBy sortBy = grouperConf.getSecondarySortBys().get(sourceId1); 
-		if (sortBy == null){
+		Criteria criteria = grouperConf.getSecondarySortBys().get(sourceId1); 
+		if (criteria == null){
 			return 0;
 		}
 		
 		Schema specificSchema = serInfo.getSpecificSchema(sourceId1);
-		return compare(b1,offsets.offset1,b2,offsets.offset2,specificSchema,sortBy,offsets);
+		return compare(b1,offsets.offset1,b2,offsets.offset2,specificSchema,criteria,offsets);
 	
 	}
 	
 	private int compareOneSource(byte[] b1,int s1,int l1,byte[] b2,int s2,int l2) throws IOException {
 		Schema commonSchema = serInfo.getCommonSchema();
-		SortBy commonOrder = grouperConf.getCommonSortBy();
+		Criteria commonOrder = grouperConf.getCommonSortBy();
 		return compare(b1,s1,b2,s2,commonSchema,commonOrder,offsets);
 	}
 	
-	protected int compare(byte[] b1, int s1,byte[] b2, int s2,Schema schema,SortBy sortBy,Offsets o) throws IOException {
+	protected int compare(byte[] b1, int s1,byte[] b2, int s2,Schema schema,Criteria criteria,Offsets o) throws IOException {
 			o.offset1 = s1;
 			o.offset2 = s2;
-			for(int depth = 0; depth < sortBy.getElements().size(); depth++) {
+			for(int depth = 0; depth < criteria.getElements().size(); depth++) {
 				Field field = schema.getField(depth);
 				Class<?> type = field.getType();
-				SortElement sortElement = sortBy.getElements().get(depth);
+				SortElement sortElement = criteria.getElements().get(depth);
 				Order sort = sortElement.getOrder();
 				Class<? extends RawComparator> comparatorClass =sortElement.getCustomComparator(); 
 				RawComparator comparator = null; //TODO fix this
@@ -255,7 +255,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				this.conf = conf;
 				grouperConf = CoGrouperConfig.get(conf);
 				this.serInfo = grouperConf.getSerializationInfo();
-				this.multipleSources = grouperConf.getNumSources() >= 2;
+				this.isMultipleSources = grouperConf.getNumSources() >= 2;
 				
 			}
 		} catch(Exception e) {

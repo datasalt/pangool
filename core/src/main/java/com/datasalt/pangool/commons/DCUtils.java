@@ -34,7 +34,7 @@ import com.datasalt.pangool.mapreduce.lib.input.DelegatingMapper;
  */
 public class DCUtils {
 
-	static Logger log = LoggerFactory.getLogger(DelegatingMapper.class);
+	private static Logger log = LoggerFactory.getLogger(DCUtils.class);
 
 	/**
 	 * Utility method for serializing an object and saving it in the Distributed Cache.

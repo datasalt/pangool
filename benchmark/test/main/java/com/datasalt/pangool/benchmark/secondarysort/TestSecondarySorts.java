@@ -25,7 +25,7 @@ public class TestSecondarySorts extends BaseBenchmarkTest {
 	public final static String OUT_PANGOOL = "out-pangool-ss";
 	public final static String OUT_CASCADING = "out-cascading-ss";
 	public final static String OUT_CRUNCH = "out-crunch-ss";
-	public final static String OUT_MAPRED = "out-mapred-ss";
+	public final static String OUT_HADOOP = "out-mapred-ss";
 
 	@Before
 	@After
@@ -35,26 +35,40 @@ public class TestSecondarySorts extends BaseBenchmarkTest {
 		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
 		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
 		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_MAPRED));
+		HadoopUtils.deleteIfExists(fS, new Path(OUT_HADOOP));
 	}
 
+	
 	@Test
-	public void test() throws Exception {
-		PangoolSecondarySort.main(new String[] { TEST_FILE, OUT_PANGOOL });
-		CascadingSecondarySort.main(new String[] { TEST_FILE, OUT_CASCADING });
-		CrunchSecondarySort.main(new String[] { TEST_FILE, OUT_CRUNCH });
-		HadoopSecondarySort.main(new String[] { TEST_FILE, OUT_MAPRED });
-		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
-		String outCascading = getOutputAsText(OUT_CASCADING + "/part-00000");
-		String outCrunch = getReducerOutputAsText(OUT_CRUNCH);
-		String outMapred = getReducerOutputAsText(OUT_MAPRED);
-
+	public void testHadoop() throws Exception {
+		HadoopSecondarySort.main(new String[] { TEST_FILE, OUT_HADOOP });
+		String outMapred = getReducerOutputAsText(OUT_HADOOP);
 		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
-
-		assertEquals(outPangool, expectedOutput);
-
-		assertEquals(outPangool, outCascading);
-		assertEquals(outPangool, outCrunch);
-		assertEquals(outPangool, outMapred);
+		assertEquals(expectedOutput,outMapred);
 	}
+	
+	@Test
+	public void testPangool() throws Exception {
+		PangoolSecondarySort.main(new String[] { TEST_FILE, OUT_PANGOOL });
+		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
+		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
+		assertEquals(expectedOutput,outPangool);
+	}
+	
+	@Test
+	public void testCascading() throws Exception {
+		CascadingSecondarySort.main(new String[] { TEST_FILE, OUT_CASCADING });
+		String out = getOutputAsText(OUT_CASCADING + "/part-00000");
+		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
+		assertEquals(expectedOutput,out);
+	}
+	
+	@Test
+	public void testCrunch() throws Exception {
+		CrunchSecondarySort.main(new String[] { TEST_FILE, OUT_CRUNCH });
+		String outCrunch = getReducerOutputAsText(OUT_CRUNCH);
+		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
+		assertEquals(expectedOutput,outCrunch);
+	}
+	
 }

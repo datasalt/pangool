@@ -17,8 +17,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.datasalt.pangool.SortBy.Order;
-import com.datasalt.pangool.SortBy.SortElement;
+import com.datasalt.pangool.Criteria.Order;
+import com.datasalt.pangool.Criteria.SortElement;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
@@ -87,7 +87,7 @@ public class CoGrouper {
 	private Class<?> outputKeyClass;
 	private Class<?> outputValueClass;
 	
-	private RichSortBy commonOrderBy;
+	private SortBy commonOrderBy;
 	private Map<String,SortBy> secondarysOrderBy=new HashMap<String,SortBy>();
 
 	private Path outputPath;
@@ -102,19 +102,29 @@ public class CoGrouper {
 
 	// ------------------------------------------------------------------------- //
 
-	public void setOrderBy(RichSortBy ordering) {
+	public void setOrderBy(SortBy ordering) {
+		if (this.commonOrderBy != null){
+			throw new UnsupportedOperationException("OrderBy was already previously set");
+		}
 		this.commonOrderBy = ordering;
 	}
 	
 	public void setSecondaryOrderBy(String sourceName,SortBy ordering) {
+		if (this.commonOrderBy == null){
+			throw new UnsupportedOperationException("Need to set common orderBy with method setOrderBy previously");
+		}
+		
 		if (this.grouperConf.getNumSources() >=2){
 			if (grouperConf.getSourceSchema(sourceName) != null){
+				if (ordering.getSourceOrderIndex() != null){
+					throw new IllegalArgumentException("Not allowed to use SourceOrder in secondary order");
+				}
 				this.secondarysOrderBy.put(sourceName, ordering);
 			} else {
-				throw new IllegalStateException("No known source with name '" + sourceName + "'");
+				throw new IllegalArgumentException("No known source with name '" + sourceName + "'");
 			}
 		} else {
-			throw new IllegalStateException("Not allowed to use secondary order with just one source");
+			throw new IllegalArgumentException("Not allowed to use secondary order with just one source");
 		}
 	}
 
@@ -123,10 +133,17 @@ public class CoGrouper {
 	}
 	
 	public void setGroupByFields(String... groupByFields) {
-		grouperConf.setGroupByFields(groupByFields);
+		if (grouperConf.getGroupByFields() == null || grouperConf.getGroupByFields().isEmpty()){
+			grouperConf.setGroupByFields(groupByFields);
+		} else {
+			throw new UnsupportedOperationException("Group by fields was already set");
+		}
 	}
 	
 	public void setRollupFrom(String rollupFrom) {
+		if (grouperConf.getRollupFrom() != null){
+			throw new UnsupportedOperationException("Rollup was already set : " + rollupFrom);
+		}
 		grouperConf.setRollupFrom(rollupFrom);
 	}
 
@@ -177,7 +194,6 @@ public class CoGrouper {
 
 	public CoGrouper addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
 	    Class valueClass) throws CoGrouperException {
-
 		return addNamedOutput(namedOutput, outputFormatClass, keyClass, valueClass, null);
 	}
 
@@ -221,38 +237,42 @@ public class CoGrouper {
 		}
 	}
 
-	private SortBy getCommonSortBy(RichSortBy richSortBy){
-		if (richSortBy == null){
+	private Criteria getCommonSortBy(SortBy sortBy){
+		if (sortBy == null){
 			//then the common sortBy is by default the group fields in ASC order
 			List<SortElement> elements = new ArrayList<SortElement>();
 			for (String groupField : grouperConf.getGroupByFields()){
 				elements.add(new SortElement(groupField,Order.ASC));
 			}
-			return new SortBy(elements);
-		} else if (richSortBy.getSourceOrderIndex() == null || richSortBy.getSourceOrderIndex() == richSortBy.getElements().size()){
-			return new SortBy(richSortBy.getElements());
+			return new Criteria(elements);
+		} else if (sortBy.getSourceOrderIndex() == null || sortBy.getSourceOrderIndex() == sortBy.getElements().size()){
+			return new Criteria(sortBy.getElements());
 		} else {
-			List<SortElement> sortElements = richSortBy.getElements().subList(0,richSortBy.getSourceOrderIndex());
-			return new SortBy(sortElements);
+			List<SortElement> sortElements = sortBy.getElements().subList(0,sortBy.getSourceOrderIndex());
+			return new Criteria(sortElements);
 		}
 	}
 	
-	private static Map<String,SortBy> getSecondarySortBys(RichSortBy commonSortBy,Map<String,SortBy> secondarys){
+	private static Map<String,Criteria> getSecondarySortBys(SortBy commonSortBy,Map<String,SortBy> secondarys){
 		if (secondarys == null){
 			return null;
 		} else if (commonSortBy == null){
 			throw new IllegalArgumentException("Common sort by must not be null if secondary sort by is set");
 		}	else if (commonSortBy.getSourceOrderIndex() == null || commonSortBy.getSourceOrderIndex() == commonSortBy.getElements().size()){
-			return secondarys;
+			Map<String,Criteria> result = new HashMap<String,Criteria>();
+			for (Map.Entry<String,SortBy> entry : secondarys.entrySet()){
+				result.put(entry.getKey(),new Criteria(entry.getValue().getElements()));
+			}
+			return result;
 		} else {
 			List<SortElement> toPrepend = commonSortBy.getElements().subList(commonSortBy.getSourceOrderIndex(),commonSortBy.getElements().size());
-			Map<String,SortBy> result = new HashMap<String,SortBy>();
+			Map<String,Criteria> result = new HashMap<String,Criteria>();
 			for (Map.Entry<String,SortBy> entry : secondarys.entrySet()){
-				SortBy sortBy = entry.getValue();
+				SortBy criteria = entry.getValue();
 				List<SortElement> newList = new ArrayList<SortElement>();
 				newList.addAll(toPrepend);
-				newList.addAll(sortBy.getElements());
-				result.put(entry.getKey(),new SortBy(newList));
+				newList.addAll(criteria.getElements());
+				result.put(entry.getKey(),new Criteria(newList));
 			}
 			return result;
 		}
@@ -286,12 +306,12 @@ public class CoGrouper {
 		}
 
 		
-		SortBy convertedCommonOrder =getCommonSortBy(commonOrderBy);
+		Criteria convertedCommonOrder =getCommonSortBy(commonOrderBy);
 		grouperConf.setCommonSortBy(convertedCommonOrder);
 		
 		if (commonOrderBy != null){
-			Map<String,SortBy> convertedParticularOrderings = getSecondarySortBys(commonOrderBy, secondarysOrderBy);
-			for (Map.Entry<String,SortBy> entry : convertedParticularOrderings.entrySet()){
+			Map<String,Criteria> convertedParticularOrderings = getSecondarySortBys(commonOrderBy, secondarysOrderBy);
+			for (Map.Entry<String,Criteria> entry : convertedParticularOrderings.entrySet()){
 				grouperConf.setSecondarySortBy(entry.getKey(), entry.getValue());
 			}
 		}
@@ -348,7 +368,7 @@ public class CoGrouper {
 				    contextKeyValue.getValue());
 			}
 		}
-		if(namedOutputs.size() > 0) {
+		if(!namedOutputs.isEmpty()) {
 			// Configure a {@link ProxyOutputFormat} for Pangool's Multiple Outputs to work: {@link PangoolMultipleOutput}
 			try {
 				job.getConfiguration().setClass(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, job.getOutputFormatClass(),
