@@ -15,9 +15,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 /**
- * Code for solving the simple WordCount problem in Hadoop Java Map/Red API.
+ * Code for solving the simple PangoolWordCount problem in Hadoop Java Map/Red API.
  */
-public class MapRedWordCount {
+public class HadoopWordCount {
 
 	public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable> {
 
@@ -56,7 +56,7 @@ public class MapRedWordCount {
 			System.exit(2);
 		}
 		Job job = new Job(conf, "word count");
-		job.setJarByClass(MapRedWordCount.class);
+		job.setJarByClass(HadoopWordCount.class);
 		job.setMapperClass(TokenizerMapper.class);
 		job.setCombinerClass(IntSumReducer.class);
 		job.setReducerClass(IntSumReducer.class);

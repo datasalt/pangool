@@ -41,10 +41,10 @@ public class TestCoGroupers extends BaseBenchmarkTest {
 
 	@Test
 	public void test() throws Exception {
-		UrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_PANGOOL });
+		PangoolUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_PANGOOL });
 		CascadingUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_CASCADING });
 		CrunchUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_CRUNCH });
-		MapRedUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_MAPRED });
+		HadoopUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_MAPRED });
 		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
 		String outCascading = getOutputAsText(OUT_CASCADING + "/part-00000");
 		String outCrunch = getReducerOutputAsText(OUT_CRUNCH);

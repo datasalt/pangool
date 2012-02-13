@@ -70,7 +70,7 @@ public class CrunchSecondarySort extends Configured implements Tool, Serializabl
 		Configuration conf = getConf();
 		// Set the Avro schema for group comparator
 		conf.set(AvroGroupComparator.GROUP_SCHEMA, Schemas.groupSchema.toString());
-		Pipeline pipeline = new MRPipeline(SecondarySort.class, conf);
+		Pipeline pipeline = new MRPipeline(PangoolSecondarySort.class, conf);
 		// Reference a given text file as a collection of Strings.
 		PCollection<String> lines = pipeline.readTextFile(args[0]);
 

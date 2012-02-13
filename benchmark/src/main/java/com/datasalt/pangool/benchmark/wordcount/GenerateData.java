@@ -6,11 +6,11 @@ import java.io.IOException;
 
 import com.datasalt.pangool.benchmark.secondarysort.CascadingSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.CrunchSecondarySort;
-import com.datasalt.pangool.benchmark.secondarysort.MapredSecondarySort;
-import com.datasalt.pangool.benchmark.secondarysort.SecondarySort;
+import com.datasalt.pangool.benchmark.secondarysort.HadoopSecondarySort;
+import com.datasalt.pangool.benchmark.secondarysort.PangoolSecondarySort;
 
 /**
- * This program generates input that can be used for running {@link SecondarySort}, {@link MapredSecondarySort},
+ * This program generates input that can be used for running {@link PangoolSecondarySort}, {@link HadoopSecondarySort},
  * {@link CascadingSecondarySort}, {@link CrunchSecondarySort}
  * <p>
  * The generated output will a tabulated text file with the form: {department idPerson timestamp sale}

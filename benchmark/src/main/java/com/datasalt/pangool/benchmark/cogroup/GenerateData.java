@@ -5,7 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 /**
- * Generates data that can be used as input for {@link UrlResolution}, {@link MapRedUrlResolution},
+ * Generates data that can be used as input for {@link PangoolUrlResolution}, {@link HadoopUrlResolution},
  * {@link CascadingUrlResolution}, {@link CrunchUrlResolution}
  * <p>
  * The generated output will be two tabulated text files: one containing a URL mapping in the form of: {url

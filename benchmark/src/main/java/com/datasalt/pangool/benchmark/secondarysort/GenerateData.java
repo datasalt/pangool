@@ -5,7 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 /**
- * This program generates input that can be used for running {@link SecondarySort}, {@link MapredSecondarySort},
+ * This program generates input that can be used for running {@link PangoolSecondarySort}, {@link HadoopSecondarySort},
  * {@link CascadingSecondarySort}, {@link CrunchSecondarySort}
  * <p>
  * The generated output will a tabulated text file with the form: {department idPerson timestamp sale}

@@ -31,7 +31,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
  * obtain total sales value for certain periods of time, therefore we need to registers in each group to come sorted by
  * "timestamp".
  */
-public class MapredSecondarySort {
+public class HadoopSecondarySort {
 
 	public static class ComplexType implements WritableComparable<ComplexType> {
 
@@ -222,7 +222,7 @@ public class MapredSecondarySort {
 		FileSystem fS = FileSystem.get(conf);
 		fS.delete(new Path(otherArgs[1]), true);
 
-		job.setJarByClass(MapredSecondarySort.class);
+		job.setJarByClass(HadoopSecondarySort.class);
 		job.setMapperClass(MapClass.class);
 		job.setReducerClass(Reduce.class);
 

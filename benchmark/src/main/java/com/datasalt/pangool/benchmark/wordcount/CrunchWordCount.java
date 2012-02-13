@@ -17,7 +17,7 @@ import org.apache.hadoop.util.ToolRunner;
 import java.io.Serializable;
 
 /**
- * Code for solving the simple WordCount problem in Crunch.
+ * Code for solving the simple PangoolWordCount problem in Crunch.
  */
 @SuppressWarnings("serial")
 public class CrunchWordCount extends Configured implements Tool, Serializable {
@@ -32,7 +32,7 @@ public class CrunchWordCount extends Configured implements Tool, Serializable {
       return 1;
     }
     // Create an object to coordinate pipeline creation and execution.
-    Pipeline pipeline = new MRPipeline(WordCount.class, getConf());
+    Pipeline pipeline = new MRPipeline(PangoolWordCount.class, getConf());
     // Reference a given text file as a collection of Strings.
     PCollection<String> lines = pipeline.readTextFile(args[0]);
 

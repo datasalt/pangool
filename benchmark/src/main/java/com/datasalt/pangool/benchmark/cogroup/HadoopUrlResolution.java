@@ -34,7 +34,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
  * the canonical one according to the mapping file: {canonicalUrl timestamp ip}.
  */
 @SuppressWarnings("deprecation")
-public class MapRedUrlResolution {
+public class HadoopUrlResolution {
 
 	public final static int SOURCE_URL_MAP = 0;
 	public final static int SOURCE_URL_REGISTER = 1;
@@ -289,7 +289,7 @@ public class MapRedUrlResolution {
 		MultipleInputs.addInputPath(job, new Path(otherArgs[0]), TextInputFormat.class, UrlMapClass.class);
 		MultipleInputs.addInputPath(job, new Path(otherArgs[1]), TextInputFormat.class, UrlRegisterMapClass.class);
 
-		job.setJarByClass(MapRedUrlResolution.class);
+		job.setJarByClass(HadoopUrlResolution.class);
 
 		job.setPartitionerClass(KeyPartitioner.class);
 		job.setOutputValueGroupingComparator(GroupingComparator.class);

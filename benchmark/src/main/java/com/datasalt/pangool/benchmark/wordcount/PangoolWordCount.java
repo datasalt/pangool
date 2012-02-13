@@ -2,6 +2,8 @@ package com.datasalt.pangool.benchmark.wordcount;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
@@ -15,10 +17,9 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.SortingBuilder;
+import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
@@ -27,26 +28,28 @@ import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
- * Code for solving the simple WordCount problem in Pangool.
+ * Code for solving the simple PangoolWordCount problem in Pangool.
  */
-public class WordCount {
+public class PangoolWordCount {
 
-	private static final int WORD_FIELD = 0;
-	private static final int COUNT_FIELD = 1;
 	public final static Charset UTF8 = Charset.forName("UTF-8");
 	
 	@SuppressWarnings("serial")
 	public static class Split extends InputProcessor<LongWritable, Text> {
 
-		Tuple tuple = new Tuple(2);
+		private Tuple tuple;
 		
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
+			if (tuple == null){
+				tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema(0));
+			}
+			
 			StringTokenizer itr = new StringTokenizer(value.toString());
-			tuple.setInt(COUNT_FIELD, 1);
+			tuple.set(1, 1);
 			while(itr.hasMoreTokens()) {
-				tuple.setString(WORD_FIELD, itr.nextToken().getBytes(UTF8));
+				tuple.set(0, itr.nextToken());
 				collector.write(tuple);
 			}
 		}
@@ -55,43 +58,33 @@ public class WordCount {
 	@SuppressWarnings("serial")
 	public static class CountCombiner extends CombinerHandler {
 
-		Tuple tuple = new Tuple(2);
-
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
 			int count = 0;
-			tuple.setString(WORD_FIELD, group.getString(WORD_FIELD));
+			ITuple outputTuple=null;
 			for(ITuple tuple : tuples) {
-				count += (Integer) tuple.getArray()[1];
+				outputTuple = tuple;
+				count += (Integer) tuple.get(1);
 			}
-			tuple.setInt(COUNT_FIELD, count);
-			collector.write(this.tuple);
+			outputTuple.set(1, count);
+			collector.write(outputTuple);
 		}
 	}
 
 	@SuppressWarnings("serial")
 	public static class Count extends GroupHandler<Text, IntWritable> {
-
-		IntWritable countToEmit;
-		Text text;
+		private IntWritable outputCount = new IntWritable();
 		
-		public void setup(CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
-		    CoGrouperException {
-			countToEmit = new IntWritable();
-			text = new Text();
-		};
-
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
 			int count = 0;
 			for(ITuple tuple : tuples) {
-				count += (Integer) tuple.getArray()[1];
+				count += (Integer) tuple.get(1);
 			}
-			countToEmit.set(count);
-			text.set(group.getString(WORD_FIELD));
-			collector.write(text, countToEmit);
+			outputCount.set(count);
+			collector.write((Text)group.get(0), outputCount);
 		}
 	}
 
@@ -100,13 +93,16 @@ public class WordCount {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);
 
-		CoGrouperConfigBuilder config = new CoGrouperConfigBuilder();
-		config.addSchema(0, Schema.parse("word:string, count:int"));
-		config.setGroupByFields("word");
-		config.setSorting(new SortingBuilder().add("word").buildSorting()).build();
+		
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(new Field("word",String.class));
+		fields.add(new Field("count",Integer.class));
+		Schema schema = new Schema("schema",fields);
 
-		CoGrouper cg = new CoGrouper(config.build(), conf);
-		cg.setJarByClass(WordCount.class);
+		CoGrouper cg = new CoGrouper(conf);
+		cg.addSourceSchema(schema);
+		cg.setGroupByFields("word");
+		cg.setJarByClass(PangoolWordCount.class);
 		cg.addInput(new Path(input), TextInputFormat.class, new Split());
 		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class, Text.class);
 		cg.setGroupHandler(new Count());
@@ -115,7 +111,7 @@ public class WordCount {
 		return cg.createJob();
 	}
 
-	private static final String HELP = "Usage: WordCount [input_path] [output_path]";
+	private static final String HELP = "Usage: PangoolWordCount [input_path] [output_path]";
 
 	public static void main(String args[]) throws CoGrouperException, IOException, InterruptedException,
 	    ClassNotFoundException {
@@ -126,6 +122,6 @@ public class WordCount {
 		}
 
 		Configuration conf = new Configuration();
-		new WordCount().getJob(conf, args[0], args[1]).waitForCompletion(true);
+		new PangoolWordCount().getJob(conf, args[0], args[1]).waitForCompletion(true);
 	}
 }

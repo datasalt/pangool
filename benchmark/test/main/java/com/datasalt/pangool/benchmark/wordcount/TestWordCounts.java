@@ -41,10 +41,10 @@ public class TestWordCounts extends BaseBenchmarkTest {
 
 	@Test
 	public void test() throws Exception {
-		WordCount.main(new String[] { TEST_FILE, OUT_PANGOOL });
+		PangoolWordCount.main(new String[] { TEST_FILE, OUT_PANGOOL });
 		CascadingWordCount.main(new String[] { TEST_FILE, OUT_CASCADING });
 		CrunchWordCount.main(new String[] { TEST_FILE, OUT_CRUNCH });
-		MapRedWordCount.main(new String[] { TEST_FILE, OUT_MAPRED });
+		HadoopWordCount.main(new String[] { TEST_FILE, OUT_MAPRED });
 		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
 		String outCascading = getOutputAsText(OUT_CASCADING + "/part-00000");
 		String outCrunch = getReducerOutputAsText(OUT_CRUNCH);

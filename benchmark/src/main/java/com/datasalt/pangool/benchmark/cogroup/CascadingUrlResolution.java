@@ -60,7 +60,7 @@ public class CascadingUrlResolution {
 
 		// initialize app properties, tell Hadoop which jar file to use
 		Properties properties = new Properties();
-		FlowConnector.setApplicationJarClass(properties, UrlResolution.class);
+		FlowConnector.setApplicationJarClass(properties, PangoolUrlResolution.class);
 
 		// plan a new Flow from the assembly using the source and sink Taps
 		// with the above properties

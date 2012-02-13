@@ -17,6 +17,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
+import com.datasalt.pangool.SortBy.Order;
 import com.datasalt.pangool.SortBy.SortElement;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
@@ -220,8 +221,15 @@ public class CoGrouper {
 		}
 	}
 
-	private static SortBy getCommonSortBy(RichSortBy richSortBy){
-		if (richSortBy.getSourceOrderIndex() == null || richSortBy.getSourceOrderIndex() == richSortBy.getElements().size()){
+	private SortBy getCommonSortBy(RichSortBy richSortBy){
+		if (richSortBy == null){
+			//then the common sortBy is by default the group fields in ASC order
+			List<SortElement> elements = new ArrayList<SortElement>();
+			for (String groupField : grouperConf.getGroupByFields()){
+				elements.add(new SortElement(groupField,Order.ASC));
+			}
+			return new SortBy(elements);
+		} else if (richSortBy.getSourceOrderIndex() == null || richSortBy.getSourceOrderIndex() == richSortBy.getElements().size()){
 			return new SortBy(richSortBy.getElements());
 		} else {
 			List<SortElement> sortElements = richSortBy.getElements().subList(0,richSortBy.getSourceOrderIndex());
@@ -230,7 +238,11 @@ public class CoGrouper {
 	}
 	
 	private static Map<String,SortBy> getSecondarySortBys(RichSortBy commonSortBy,Map<String,SortBy> secondarys){
-		if (commonSortBy.getSourceOrderIndex() == null || commonSortBy.getSourceOrderIndex() == commonSortBy.getElements().size()){
+		if (secondarys == null){
+			return null;
+		} else if (commonSortBy == null){
+			throw new IllegalArgumentException("Common sort by must not be null if secondary sort by is set");
+		}	else if (commonSortBy.getSourceOrderIndex() == null || commonSortBy.getSourceOrderIndex() == commonSortBy.getElements().size()){
 			return secondarys;
 		} else {
 			List<SortElement> toPrepend = commonSortBy.getElements().subList(commonSortBy.getSourceOrderIndex(),commonSortBy.getElements().size());
@@ -273,40 +285,26 @@ public class CoGrouper {
 			}
 		}
 
-		// Serialize PangoolConf in Hadoop Configuration
 		
 		SortBy convertedCommonOrder =getCommonSortBy(commonOrderBy);
-		System.out.println("Converted common order " + convertedCommonOrder);
 		grouperConf.setCommonSortBy(convertedCommonOrder);
-		Map<String,SortBy> convertedParticularOrderings = getSecondarySortBys(commonOrderBy, secondarysOrderBy);
-		for (Map.Entry<String,SortBy> entry : convertedParticularOrderings.entrySet()){
-			System.out.println("Converted specific order " + entry);
-			grouperConf.setSecondarySortBy(entry.getKey(), entry.getValue());
+		
+		if (commonOrderBy != null){
+			Map<String,SortBy> convertedParticularOrderings = getSecondarySortBys(commonOrderBy, secondarysOrderBy);
+			for (Map.Entry<String,SortBy> entry : convertedParticularOrderings.entrySet()){
+				grouperConf.setSecondarySortBy(entry.getKey(), entry.getValue());
+			}
 		}
 		
-		
+		// Serialize PangoolConf in Hadoop Configuration
 		CoGrouperConfig.set(grouperConf, conf);
 		Job job = new Job(conf);
 
-		List<String> partitionerFields;
-
 		if(grouperConf.getRollupFrom() != null) {
-			// Grouper with rollup: calculate rollupBaseGroupFields from "rollupFrom"
-			List<String> rollupBaseGroupFields = new ArrayList<String>();
-			for(String groupByField : grouperConf.getGroupByFields()) {
-				rollupBaseGroupFields.add(groupByField);
-				if(groupByField.equals(grouperConf.getRollupFrom())) {
-					break;
-				}
-			}
-			partitionerFields = rollupBaseGroupFields;
-			job.setReducerClass(RollupReducer.class);
+				job.setReducerClass(RollupReducer.class);
 		} else {
-			// Simple grouper
-			partitionerFields = grouperConf.getGroupByFields();
 			job.setReducerClass(SimpleReducer.class);
 		}
-
 		
 		if(combinerHandler != null) {
 			job.setCombinerClass(SimpleCombiner.class); // not rollup by now

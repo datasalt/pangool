@@ -15,11 +15,8 @@
  */
 package com.datasalt.pangool.io.tuple;
 
-import org.apache.hadoop.io.Text;
-
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Schema.Field;
 
 /**
  * This is the common interface implemented by {@link Tuple} and {@link DoubleBufferPangolinTuple}.

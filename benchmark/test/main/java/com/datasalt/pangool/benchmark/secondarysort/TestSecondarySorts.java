@@ -40,10 +40,10 @@ public class TestSecondarySorts extends BaseBenchmarkTest {
 
 	@Test
 	public void test() throws Exception {
-		SecondarySort.main(new String[] { TEST_FILE, OUT_PANGOOL });
+		PangoolSecondarySort.main(new String[] { TEST_FILE, OUT_PANGOOL });
 		CascadingSecondarySort.main(new String[] { TEST_FILE, OUT_CASCADING });
 		CrunchSecondarySort.main(new String[] { TEST_FILE, OUT_CRUNCH });
-		MapredSecondarySort.main(new String[] { TEST_FILE, OUT_MAPRED });
+		HadoopSecondarySort.main(new String[] { TEST_FILE, OUT_MAPRED });
 		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
 		String outCascading = getOutputAsText(OUT_CASCADING + "/part-00000");
 		String outCrunch = getReducerOutputAsText(OUT_CRUNCH);

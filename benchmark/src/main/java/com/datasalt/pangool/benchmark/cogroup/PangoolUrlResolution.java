@@ -1,8 +1,9 @@
 package com.datasalt.pangool.benchmark.cogroup;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -14,11 +15,9 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperConfigBuilder;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Sorting;
-import com.datasalt.pangool.SortingBuilder;
+import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.commons.HadoopUtils;
@@ -32,26 +31,25 @@ import com.datasalt.pangool.io.tuple.Tuple;
  * canonical URL mapping: {url canonicalUrl}. We want to obtain the URL Registers file with the url substituted with the
  * canonical one according to the mapping file: {canonicalUrl timestamp ip}.
  */
-public class UrlResolution {
+public class PangoolUrlResolution {
 
-	public final static int SOURCE_URL_MAP = 0;
-	public final static int SOURCE_URL_REGISTER = 1;
+
 
 	@SuppressWarnings("serial")
 	public static class UrlProcessor extends InputProcessor<LongWritable, Text> {
-
-		public final static int URL = 0, SOURCEID = 1, TIMESTAMP = 2, IP = 3;
-		Tuple tuple = new Tuple(4);
+		private Tuple tuple;
 
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
 
+			if (tuple == null){
+				tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema(0));
+			}
 			String[] fields = value.toString().split("\t");
-			tuple.setString(URL, Utf8.getBytesFor(fields[0]));
-			tuple.setInt(SOURCEID, SOURCE_URL_REGISTER);
-			tuple.setLong(TIMESTAMP, Long.parseLong(fields[1]));
-			tuple.setString(IP, Utf8.getBytesFor(fields[2]));
+			tuple.set("url", fields[0]);
+			tuple.set("timestamp", Long.parseLong(fields[1]));
+			tuple.set("ip", fields[2]);
 			collector.write(tuple);
 		}
 	}
@@ -59,17 +57,18 @@ public class UrlResolution {
 	@SuppressWarnings("serial")
 	public static class UrlMapProcessor extends InputProcessor<LongWritable, Text> {
 
-		public final static int URL = 0, SOURCEID = 1, CANNONICAL_URL = 2;
-		Tuple tuple = new Tuple(3);
+		private Tuple tuple;
 
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
-
+			if (tuple == null){
+				tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema("urlMap"));
+			}
+			
 			String[] fields = value.toString().split("\t");
-			tuple.setString(URL, Utf8.getBytesFor(fields[0]));
-			tuple.setInt(SOURCEID, SOURCE_URL_MAP);
-			tuple.setString(CANNONICAL_URL, Utf8.getBytesFor(fields[1]));
+			tuple.set("url", fields[0]);
+			tuple.set("canonicalUrl",fields[1]);
 			collector.write(tuple);
 		}
 	}
@@ -77,22 +76,16 @@ public class UrlResolution {
 	@SuppressWarnings("serial")
 	public static class Handler extends GroupHandler<Text, NullWritable> {
 
-		Text result;
-
+		private Text result=new Text();
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
-
-			if(result == null) {
-				result = new Text();
-			}
 			String cannonicalUrl = null;
 			for(ITuple tuple : tuples) {
-				if(tuple.getInt(1) == SOURCE_URL_MAP) {
-					cannonicalUrl = new Utf8(tuple.getString(2)).toString();
-				} else { // SOURCE_URL_REGISTER
-					result.set(cannonicalUrl + "\t" + tuple.getLong(UrlProcessor.TIMESTAMP) + "\t"
-					    + new Utf8(tuple.getString(UrlProcessor.IP)));
+				if("urlMap".equals(tuple.getSchema().getName())) {
+					cannonicalUrl = tuple.get("canonicalUrl").toString();
+				} else { 
+					result.set(cannonicalUrl + "\t" + tuple.get("timestamp") + "\t" + tuple.get("ip"));
 					collector.write(result, NullWritable.get());
 				}
 			}
@@ -101,18 +94,19 @@ public class UrlResolution {
 
 	public Job getJob(Configuration conf, String input1, String input2, String output) throws CoGrouperException,
 	    IOException {
-		// Configure schema, sort and group by
-		Schema schema1 = Schema.parse("url:string, timestamp:long, ip:string");
-		Schema schema2 = Schema.parse("url:string, cannonicalUrl:string");
-		Sorting sort = new SortingBuilder().add("url").addSourceId().buildSorting();
-		CoGrouperConfigBuilder config = new CoGrouperConfigBuilder();
-		config.addSchema(SOURCE_URL_REGISTER, schema1);
-		config.addSchema(SOURCE_URL_MAP, schema2);
-		config.setGroupByFields("url");
-		config.setSorting(sort).build();
+		List<Field> urlRegisterFields = new ArrayList<Field>();
+		urlRegisterFields.add(new Field("url",String.class));
+		urlRegisterFields.add(new Field("timestamp",Long.class));
+		urlRegisterFields.add(new Field("ip",String.class));
+		
+		List<Field> urlMapFields = new ArrayList<Field>();
+		urlMapFields.add(new Field("url",String.class));
+		urlMapFields.add(new Field("canonicalUrl",String.class));
+		
+		CoGrouper grouper = new CoGrouper(conf);
+		grouper.addSourceSchema(new Schema("urlRegister",urlRegisterFields));
+		grouper.addSourceSchema(new Schema("urlMap",urlMapFields));
 
-		CoGrouper grouper = new CoGrouper(config.build(), conf);
-		// Input / output and such
 		grouper.setGroupHandler(new Handler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
 		grouper.addInput(new Path(input1), TextInputFormat.class, new UrlMapProcessor());
@@ -129,6 +123,6 @@ public class UrlResolution {
 		String input2 = args[1];
 		String output = args[2];
 		HadoopUtils.deleteIfExists(fS, new Path(output));
-		new UrlResolution().getJob(conf, input1, input2, output).waitForCompletion(true);
+		new PangoolUrlResolution().getJob(conf, input1, input2, output).waitForCompletion(true);
 	}
 }

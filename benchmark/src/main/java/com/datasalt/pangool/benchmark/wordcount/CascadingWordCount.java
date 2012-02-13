@@ -20,7 +20,7 @@ import cascading.tap.Tap;
 import cascading.tuple.Fields;
 
 /**
- * Code for solving the simple WordCount problem in Cascading.
+ * Code for solving the simple PangoolWordCount problem in Cascading.
  */
 public class CascadingWordCount {
 
