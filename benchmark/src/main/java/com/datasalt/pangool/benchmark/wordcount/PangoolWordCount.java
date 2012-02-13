@@ -74,11 +74,15 @@ public class PangoolWordCount {
 
 	@SuppressWarnings("serial")
 	public static class Count extends GroupHandler<Text, IntWritable> {
-		private IntWritable outputCount = new IntWritable();
+		private IntWritable outputCount;
 		
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
+			
+			if(outputCount == null) {
+				outputCount = new IntWritable();
+			}
 			int count = 0;
 			for(ITuple tuple : tuples) {
 				count += (Integer) tuple.get(1);

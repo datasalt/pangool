@@ -46,7 +46,7 @@ public class PangoolSecondarySort {
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
-			if (tuple == null){
+			if(tuple == null) {
 				tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema(0));
 			}
 
@@ -62,18 +62,23 @@ public class PangoolSecondarySort {
 	@SuppressWarnings("serial")
 	public static class Handler extends GroupHandler<Text, DoubleWritable> {
 
-		private Text outputKey=new Text();
-		private DoubleWritable outputValue = new DoubleWritable();
+		private Text outputKey;
+		private DoubleWritable outputValue;
+
+		public void setup(CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
+		    CoGrouperException {
+			outputKey = new Text();
+			outputValue = new DoubleWritable();
+		};
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
 
-			
 			String groupStr = group.get(INTFIELD) + "\t" + group.get(STRINGFIELD);
 			double accumPayments = 0;
 			for(ITuple tuple : tuples) {
-				accumPayments += (Double)tuple.get(DOUBLEFIELD);
+				accumPayments += (Double) tuple.get(DOUBLEFIELD);
 			}
 			outputValue.set(accumPayments);
 			outputKey.set(groupStr);
@@ -83,16 +88,17 @@ public class PangoolSecondarySort {
 
 	public Job getJob(Configuration conf, String input, String output) throws CoGrouperException, IOException {
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("intField",Integer.class));
-		fields.add(new Field("strField",String.class));
-		fields.add(new Field("longField",Long.class));
-		fields.add(new Field("doubleField",Double.class));
-		Schema schema = new Schema("schema",fields);
-		
+		fields.add(new Field("intField", Integer.class));
+		fields.add(new Field("strField", String.class));
+		fields.add(new Field("longField", Long.class));
+		fields.add(new Field("doubleField", Double.class));
+		Schema schema = new Schema("schema", fields);
+
 		CoGrouper grouper = new CoGrouper(conf);
 		grouper.addSourceSchema(schema);
-		grouper.setGroupByFields("intField","strField");
-		grouper.setOrderBy(new RichSortBy().add("intField", Order.ASC).add("strField",Order.ASC).add("longField",Order.ASC));
+		grouper.setGroupByFields("intField", "strField");
+		grouper.setOrderBy(new RichSortBy().add("intField", Order.ASC).add("strField", Order.ASC)
+		    .add("longField", Order.ASC));
 		grouper.setGroupHandler(new Handler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, DoubleWritable.class);
 		grouper.addInput(new Path(input), TextInputFormat.class, new IProcessor());

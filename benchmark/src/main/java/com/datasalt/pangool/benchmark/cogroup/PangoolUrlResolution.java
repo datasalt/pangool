@@ -16,8 +16,11 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.RichSortBy;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.SortBy;
+import com.datasalt.pangool.SortBy.Order;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.commons.HadoopUtils;
@@ -33,8 +36,6 @@ import com.datasalt.pangool.io.tuple.Tuple;
  */
 public class PangoolUrlResolution {
 
-
-
 	@SuppressWarnings("serial")
 	public static class UrlProcessor extends InputProcessor<LongWritable, Text> {
 		private Tuple tuple;
@@ -43,7 +44,7 @@ public class PangoolUrlResolution {
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
 
-			if (tuple == null){
+			if(tuple == null) {
 				tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema(0));
 			}
 			String[] fields = value.toString().split("\t");
@@ -62,13 +63,13 @@ public class PangoolUrlResolution {
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
-			if (tuple == null){
+			if(tuple == null) {
 				tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema("urlMap"));
 			}
-			
+
 			String[] fields = value.toString().split("\t");
 			tuple.set("url", fields[0]);
-			tuple.set("canonicalUrl",fields[1]);
+			tuple.set("canonicalUrl", fields[1]);
 			collector.write(tuple);
 		}
 	}
@@ -76,15 +77,19 @@ public class PangoolUrlResolution {
 	@SuppressWarnings("serial")
 	public static class Handler extends GroupHandler<Text, NullWritable> {
 
-		private Text result=new Text();
+		private Text result;
+
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
+			if(result == null) {
+				result = new Text();
+			}
 			String cannonicalUrl = null;
 			for(ITuple tuple : tuples) {
 				if("urlMap".equals(tuple.getSchema().getName())) {
 					cannonicalUrl = tuple.get("canonicalUrl").toString();
-				} else { 
+				} else {
 					result.set(cannonicalUrl + "\t" + tuple.get("timestamp") + "\t" + tuple.get("ip"));
 					collector.write(result, NullWritable.get());
 				}
@@ -95,17 +100,21 @@ public class PangoolUrlResolution {
 	public Job getJob(Configuration conf, String input1, String input2, String output) throws CoGrouperException,
 	    IOException {
 		List<Field> urlRegisterFields = new ArrayList<Field>();
-		urlRegisterFields.add(new Field("url",String.class));
-		urlRegisterFields.add(new Field("timestamp",Long.class));
-		urlRegisterFields.add(new Field("ip",String.class));
-		
+		urlRegisterFields.add(new Field("url", String.class));
+		urlRegisterFields.add(new Field("timestamp", Long.class));
+		urlRegisterFields.add(new Field("ip", String.class));
+
 		List<Field> urlMapFields = new ArrayList<Field>();
-		urlMapFields.add(new Field("url",String.class));
-		urlMapFields.add(new Field("canonicalUrl",String.class));
-		
+		urlMapFields.add(new Field("url", String.class));
+		urlMapFields.add(new Field("canonicalUrl", String.class));
+
 		CoGrouper grouper = new CoGrouper(conf);
-		grouper.addSourceSchema(new Schema("urlRegister",urlRegisterFields));
-		grouper.addSourceSchema(new Schema("urlMap",urlMapFields));
+		grouper.addSourceSchema(new Schema("urlRegister", urlRegisterFields));
+		grouper.addSourceSchema(new Schema("urlMap", urlMapFields));
+
+		grouper.setGroupByFields("url");
+		grouper.setOrderBy(new RichSortBy().add("url", Order.ASC));
+		grouper.setSecondaryOrderBy("urlRegister", new SortBy().add("timestamp", Order.ASC));
 
 		grouper.setGroupHandler(new Handler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
