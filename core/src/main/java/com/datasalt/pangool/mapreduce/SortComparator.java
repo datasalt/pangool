@@ -36,7 +36,6 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	private static final class Offsets {
 		protected int offset1=0;
 		protected int offset2=0;
-		//public void clear(){ offset1=0; offset2=0; }
 	}
 	protected Offsets offsets = new Offsets();
 	protected boolean multipleSources;

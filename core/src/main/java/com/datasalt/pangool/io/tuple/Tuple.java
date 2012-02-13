@@ -32,26 +32,26 @@ public class Tuple implements ITuple,Serializable {
 	private Object[] array;
 	private Schema schema;
 
-	public Tuple(Schema schema,boolean initializeTexts) {
+	public Tuple(Schema schema) {
 		this.schema = schema;
 		int size = schema.getFields().size();
 		this.array = new Object[size];
-		if (initializeTexts){
-			initializeTexts(schema);
-		}
+//		if (initializeTexts){
+//			initializeTexts(schema);
+//		}
 	}
 	
-	private void initializeTexts(Schema schema){
-		for (int i=0 ; i < schema.getFields().size() ; i++){
-			if (schema.getField(i).getType() == String.class){
-				set(i,new Text());
-			}
-		}
-	}
+//	private void initializeTexts(Schema schema){
+//		for (int i=0 ; i < schema.getFields().size() ; i++){
+//			if (schema.getField(i).getType() == String.class){
+//				set(i,new Text());
+//			}
+//		}
+//	}
 	
-	public Tuple(Schema schema){
-		this(schema,false);
-	}
+//	public Tuple(Schema schema){
+//		this(schema,false);
+//	}
 	
 	@Override
 	public Object get(int pos) {

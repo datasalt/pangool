@@ -95,22 +95,22 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 	 * Caches the values from the enum fields. This is done just once for efficiency since it uses reflection.
 	 * 
 	 */
-	public static Map<String, Enum<?>[]> getEnums(CoGrouperConfig grouperConfig) {
-		Map<String, Enum<?>[]> result = new HashMap<String, Enum<?>[]>();
+	public static Map<Class<?>, Enum<?>[]> getEnums(CoGrouperConfig grouperConfig) {
+		Map<Class<?>, Enum<?>[]> result = new HashMap<Class<?>, Enum<?>[]>();
 		for(Schema s : grouperConfig.getSourceSchemas()) {
 			extractEnumsFromSchema(result, s);
 		}
 		return result;
 	}
 
-	public static void extractEnumsFromSchema(Map<String, Enum<?>[]> mapToFill, Schema schema) {
+	public static void extractEnumsFromSchema(Map<Class<?>, Enum<?>[]> mapToFill, Schema schema) {
 		try {
 			for(Field field : schema.getFields()) {
 				Class<?> type = field.getType();
 				if(type.isEnum()) {
 					Method method = type.getMethod("values", (Class<?>[]) null);
 					Object values = method.invoke(null);
-					mapToFill.put(field.name(), (Enum[]) values);
+					mapToFill.put(type, (Enum[]) values);
 				}
 			}
 

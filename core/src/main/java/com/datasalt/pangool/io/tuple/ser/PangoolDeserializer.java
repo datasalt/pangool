@@ -22,7 +22,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,18 +44,18 @@ import com.datasalt.pangool.io.tuple.Tuple;
 
 public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 
-	private CoGrouperConfig coGrouperConf;
-	private SerializationInfo serInfo;
-	private DataInputStream in;
-	private Serialization ser;
-	private boolean isRollup;
-	private boolean multipleSources;
-	private Map<String, Enum<?>[]> cachedEnums = new HashMap<String, Enum<?>[]>();
+	private final CoGrouperConfig coGrouperConf;
+	private final SerializationInfo serInfo;
+	private  DataInputStream in;
+	private final Serialization ser;
+	private final boolean isRollup;
+	private final boolean multipleSources;
+	private final Map<Class<?>, Enum<?>[]> cachedEnums;
 
-	private Buffer tmpInputBuffer = new Buffer();
-	private ITuple commonTuple;
-	private List<ITuple> specificTuples=new ArrayList<ITuple>();
-	private List<ITuple> sourceTuples = new ArrayList<ITuple>();
+	private final Buffer tmpInputBuffer = new Buffer();
+	private final ITuple commonTuple;
+	private final List<ITuple> specificTuples=new ArrayList<ITuple>();
+	private final List<ITuple> sourceTuples = new ArrayList<ITuple>();
 
 	public PangoolDeserializer(Serialization ser, CoGrouperConfig grouperConfig) {
 		this.coGrouperConf = grouperConfig;
@@ -66,15 +65,13 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		this.isRollup = coGrouperConf.getRollupFrom() != null && !coGrouperConf.getRollupFrom().isEmpty();
 		this.multipleSources = coGrouperConf.getNumSources() >= 2;
 		Schema commonSchema = serInfo.getCommonSchema();
-		//this comon tuple needs to have texts initialized
-		this.commonTuple = new Tuple(commonSchema,true); 
+		this.commonTuple = new Tuple(commonSchema); 
 		for (Schema sourceSchema : coGrouperConf.getSourceSchemas()){
 			sourceTuples.add(new Tuple(sourceSchema));
 		}
-		
 		if (multipleSources){
 			for(Schema specificSchema : serInfo.getSpecificSchemas()){
-				specificTuples.add(new Tuple(specificSchema,true)); //texts initialized
+				specificTuples.add(new Tuple(specificSchema));
 			}
 		} 
 	}
@@ -144,7 +141,6 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		Schema schema = tuple.getSchema();
 		for(int index = 0; index < schema.getFields().size(); index++) {
 			Class<?> fieldType = schema.getField(index).getType();
-			String fieldName = schema.getField(index).name();
 			if(fieldType == VIntWritable.class) {
 				tuple.set(index,WritableUtils.readVInt(input));
 			} else if(fieldType == VLongWritable.class) {
@@ -158,35 +154,53 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			} else if(fieldType == Float.class) {
 				tuple.set(index,input.readFloat());
 			} else if(fieldType == String.class) {
-				((Text)tuple.get(index)).readFields(input);
+				readText(input,tuple,index);
 			} else if(fieldType == Boolean.class) {
 				byte b = input.readByte();
 				tuple.set(index,(b != 0));
 			} else if(fieldType.isEnum()) {
-				int ordinal = WritableUtils.readVInt(input);
-				try {
-					Enum<?>[] enums = cachedEnums.get(fieldName);
-					if(enums == null) {
-						throw new IOException("Field " + fieldName + " is not a enum type");
-					}
-					tuple.set(index,enums[ordinal]);
-				} catch(ArrayIndexOutOfBoundsException e) {
-					throw new RuntimeException(e);
-				}
+				readEnum(input,tuple,fieldType,index);
 			} else {
-				int size = WritableUtils.readVInt(input);
-				if(size != 0) {
-					tmpInputBuffer.setSize(size);
-					input.readFully(tmpInputBuffer.getBytes(), 0, size);
-					if(tuple.get(index) == null) {
-						tuple.set(index, ReflectionUtils.newInstance(fieldType, null));
-					}
-					Object ob = ser.deser(tuple.get(index), tmpInputBuffer.getBytes(), 0, size);
-					tuple.set(index, ob);
-				}
+				readCustomObject(input,tuple,fieldType,index);
 			} // end for
 		}
 	}
+	
+	protected void readText(DataInput input,ITuple tuple,int index) throws IOException {
+		Text t = (Text)tuple.get(index);
+		if (t == null){
+			t = new Text();
+			tuple.set(index,t);
+		}
+		t.readFields(input);
+	}
+	
+	protected void readCustomObject(DataInput input,ITuple tuple,Class<?> expectedType,int index) throws IOException{
+		int size = WritableUtils.readVInt(input);
+		if(size != 0) {
+			tmpInputBuffer.setSize(size);
+			input.readFully(tmpInputBuffer.getBytes(), 0, size);
+			if(tuple.get(index) == null) {
+				tuple.set(index, ReflectionUtils.newInstance(expectedType, null));
+			}
+			Object ob = ser.deser(tuple.get(index), tmpInputBuffer.getBytes(), 0, size);
+			tuple.set(index, ob);
+		}
+	}
+	
+	protected void readEnum(DataInput input,ITuple tuple,Class<?> fieldType,int index) throws IOException{
+		int ordinal = WritableUtils.readVInt(input);
+		try {
+			Enum<?>[] enums = cachedEnums.get(fieldType);
+			if(enums == null) {
+				throw new IOException("Field " + fieldType + " is not a enum type");
+			}
+			tuple.set(index,enums[ordinal]);
+		} catch(ArrayIndexOutOfBoundsException e) {
+			throw new IOException("Ordinal serialized for ");
+		}
+	}
+	
 
 	@Override
 	public void close() throws IOException {

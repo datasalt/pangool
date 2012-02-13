@@ -22,20 +22,22 @@ import com.datasalt.pangool.io.tuple.ITuple;
 
 public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 
-	private Serialization ser;
+	private final Serialization ser;
 	
 	private DataOutputStream out;
-	private CoGrouperConfig coGrouperConfig;
-	private Text HELPER_TEXT = new Text();
+	private final CoGrouperConfig coGrouperConfig;
+	private final Text HELPER_TEXT = new Text();
 	private static final Text EMPTY_TEXT = new Text("");
 	private boolean isMultipleSources=false;
-	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
-	private SerializationInfo serInfo;
+	private final DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
+	private final SerializationInfo serInfo;
+	private final Schema commonSchema;
 	
 	public PangoolSerializer(Serialization ser,CoGrouperConfig grouperConfig) {
 		this.ser = ser;
 		this.coGrouperConfig = grouperConfig;
 		this.serInfo = grouperConfig.getSerializationInfo();
+		this.commonSchema = this.serInfo.getCommonSchema();
 		this.isMultipleSources = (coGrouperConfig.getNumSources() >= 2);
 	}
 
@@ -59,7 +61,6 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	
 	private void oneSourceSerialization(ITuple tuple) throws IOException {
 		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(0);
-		Schema commonSchema = serInfo.getCommonSchema();
 		write(commonSchema,tuple,commonTranslation,out);
 	}
 	
@@ -68,7 +69,6 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 		int sourceId = coGrouperConfig.getSourceIdByName(sourceName);
 		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(sourceId); 
 		//serialize common 
-		Schema commonSchema = serInfo.getCommonSchema();
 		write(commonSchema,tuple,commonTranslation,out);
 		//serialize source id
 		WritableUtils.writeVInt(out, sourceId);
@@ -123,27 +123,41 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 				} else if(fieldType == Boolean.class) {
 					output.write((Boolean) element ? 1 : 0);
 				} else if(fieldType.isEnum()) {
-					Enum<?> e = (Enum<?>) element;
-					if(e.getClass() != fieldType) {
-						throw new IOException("Field '" + fieldName + "' contains '" + element + "' which is "
-						    + element.getClass().getName() + ".The expected type is " + fieldType.getName());
-					}
-					WritableUtils.writeVInt(output, e.ordinal());
+					writeEnum((Enum<?>)element,fieldType,fieldName,output);
 				} else {
-					if(element == null) {
-						WritableUtils.writeVInt(output, 0);
-					} else {
-						tmpOutputBuffer.reset();
-						ser.ser(element, tmpOutputBuffer);
-						WritableUtils.writeVInt(output, tmpOutputBuffer.getLength());
-						output.write(tmpOutputBuffer.getData(), 0, tmpOutputBuffer.getLength());
-					}
+					writeCustomObject(element,output);
 				}
 			} catch(ClassCastException e) {
-				throw new IOException("Field '" + fieldName + "' contains '" + element + "' which is "
-				    + element.getClass().getName() + ".The expected type is " + fieldType.getName());
+				raiseClassCastException(fieldName, element, fieldType);
 			} // end for
 		} 
 		
 	}
+	
+	private void writeCustomObject(Object element, DataOutput output) throws IOException{
+		if(element == null) {
+			WritableUtils.writeVInt(output, 0);
+		} else {
+			tmpOutputBuffer.reset();
+			ser.ser(element, tmpOutputBuffer);
+			//the length of the object is prepended
+			WritableUtils.writeVInt(output, tmpOutputBuffer.getLength());
+			output.write(tmpOutputBuffer.getData(), 0, tmpOutputBuffer.getLength());
+		}
+	}
+	
+	private void writeEnum(Enum<?> element,Class<?> expectedType,String fieldName,DataOutput output) throws IOException{
+		Enum<?> e = (Enum<?>) element;
+		if(e.getClass() != expectedType) {
+			throw new IOException("Field '" + fieldName + "' contains '" + element + "' which is "
+			    + element.getClass().getName() + ".The expected type is " + expectedType.getName());
+		}
+		WritableUtils.writeVInt(output, e.ordinal());
+	}
+	
+	private void raiseClassCastException(String fieldName,Object element,Class<?> expectedType) throws IOException {
+		throw new IOException("Field '" + fieldName + "' contains '" + element + "' which is "
+		    + element.getClass().getName() + ".The expected type is " + expectedType.getName());
+	}
+	
 }

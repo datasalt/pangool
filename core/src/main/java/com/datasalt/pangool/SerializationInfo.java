@@ -9,7 +9,7 @@ import com.datasalt.pangool.SortBy.SortElement;
 
 public class SerializationInfo {
 
-	private CoGrouperConfig grouperConfig;
+	private final CoGrouperConfig grouperConfig;
 	private Schema commonSchema;
 	private List<Schema> specificSchemas;
 	private Schema groupSchema;
