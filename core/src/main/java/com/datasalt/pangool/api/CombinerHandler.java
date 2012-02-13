@@ -39,7 +39,13 @@ public class CombinerHandler implements Serializable {
 		
     private ReduceContext<DatumWrapper<ITuple>, NullWritable, DatumWrapper<ITuple>, NullWritable> context;
 
-    private DatumWrapper<ITuple> cachedSourcedTuple = new DatumWrapper<ITuple>();
+    private ThreadLocal<DatumWrapper<ITuple>> cachedDatum = new ThreadLocal<DatumWrapper<ITuple>>(){
+			@Override
+			public DatumWrapper<ITuple> get(){
+				return new DatumWrapper<ITuple>();
+			}
+		};
+    
     private NullWritable nullWritable = NullWritable.get();
     
 		public Collector(CoGrouperConfig pangoolConfig, ReduceContext<DatumWrapper<ITuple>, NullWritable, DatumWrapper<ITuple>, NullWritable> context){
@@ -47,8 +53,9 @@ public class CombinerHandler implements Serializable {
 		}
 		
     public void write(ITuple tuple) throws IOException,InterruptedException {
-    	cachedSourcedTuple.datum(tuple);
-			context.write(cachedSourcedTuple, nullWritable);
+    	DatumWrapper<ITuple> outputDatum = cachedDatum.get();
+    	outputDatum.datum(tuple);
+			context.write(outputDatum, nullWritable);
 		}
 	}
   

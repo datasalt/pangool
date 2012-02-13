@@ -103,7 +103,13 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 	public static class Collector extends MultipleOutputsCollector {
 
 		private Mapper.Context context;
-		private DatumWrapper<ITuple> cachedSourcedTuple = new DatumWrapper<ITuple>();
+		
+		private ThreadLocal<DatumWrapper<ITuple>> cachedDatum = new ThreadLocal<DatumWrapper<ITuple>>(){
+			@Override
+			public DatumWrapper<ITuple> get(){
+				return new DatumWrapper<ITuple>();
+			}
+		};
 			
 		private NullWritable nullWritable;
 		
@@ -114,9 +120,10 @@ public abstract class InputProcessor<INPUT_KEY, INPUT_VALUE> extends
 		}
 
 		@SuppressWarnings("unchecked")
-    public synchronized void write(ITuple tuple) throws IOException, InterruptedException {
-			cachedSourcedTuple.datum(tuple);
-			context.write(cachedSourcedTuple, nullWritable);
+    public void write(ITuple tuple) throws IOException, InterruptedException {
+			DatumWrapper<ITuple> outputDatum = cachedDatum.get();
+			outputDatum.datum(tuple);
+			context.write(outputDatum, nullWritable);
 		}
 	}
 	
