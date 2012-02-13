@@ -114,13 +114,13 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	}
 	
 	private void mixIntermediateIntoResult(ITuple commonTuple,ITuple specificTuple,ITuple result,int sourceId){
-		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.get(sourceId);
+		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(sourceId);
 		for (int i =0 ; i < commonTranslation.length ; i++){
 			int destPos = commonTranslation[i];
 			result.set(destPos,commonTuple.get(i));
 		}
 		
-		int[] specificTranslation = serInfo.getSerializationTranslation().particularTranslation.get(sourceId);
+		int[] specificTranslation = serInfo.getSpecificSchemaIndexTranslation(sourceId);
 		for (int i =0 ; i < specificTranslation.length ; i++){
 			int destPos = specificTranslation[i];
 			result.set(destPos,specificTuple.get(i));
@@ -132,7 +132,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		if (reuse == null){
 			reuse = sourceTuples.get(0);
 		}
-		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.get(0);
+		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(0); //just one common schema
 		for (int i =0 ; i < commonTranslation.length ; i++){
 			int destPos = commonTranslation[i];
 			reuse.set(destPos,commonTuple.get(i));

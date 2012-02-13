@@ -26,9 +26,9 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	
 	private DataOutputStream out;
 	private CoGrouperConfig coGrouperConfig;
-	private Text text = new Text();
+	private Text HELPER_TEXT = new Text();
 	private static final Text EMPTY_TEXT = new Text("");
-	private boolean multipleSources=false;
+	private boolean isMultipleSources=false;
 	private DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 	private SerializationInfo serInfo;
 	
@@ -36,7 +36,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 		this.ser = ser;
 		this.coGrouperConfig = grouperConfig;
 		this.serInfo = grouperConfig.getSerializationInfo();
-		this.multipleSources = (coGrouperConfig.getNumSources() >= 2);
+		this.isMultipleSources = (coGrouperConfig.getNumSources() >= 2);
 	}
 
 	public void open(OutputStream out) {
@@ -50,7 +50,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	public void serialize(DatumWrapper<ITuple> wrapper) throws IOException {
 		ITuple tuple = wrapper.currentDatum();
 		//TODO check that schema is valid
-		if (multipleSources){
+		if (isMultipleSources){
 			multipleSourcesSerialization(tuple);
 		} else {
 			oneSourceSerialization(tuple);
@@ -58,7 +58,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	}
 	
 	private void oneSourceSerialization(ITuple tuple) throws IOException {
-		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.get(0); //TODO this should be cached
+		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(0);
 		Schema commonSchema = serInfo.getCommonSchema();
 		write(commonSchema,tuple,commonTranslation,out);
 	}
@@ -66,13 +66,15 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	private void multipleSourcesSerialization(ITuple tuple) throws IOException {
 		String sourceName = tuple.getSchema().getName();
 		int sourceId = coGrouperConfig.getSourceIdByName(sourceName);
-		int[] commonTranslation = serInfo.getSerializationTranslation().commonTranslation.get(sourceId); 
-		int[] specificTranslation =serInfo.getSerializationTranslation().particularTranslation.get(sourceId);
+		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(sourceId); 
+		//serialize common 
 		Schema commonSchema = serInfo.getCommonSchema();
-		Schema specificSchema = serInfo.getSpecificSchema(sourceId);
-		
 		write(commonSchema,tuple,commonTranslation,out);
+		//serialize source id
 		WritableUtils.writeVInt(out, sourceId);
+		//serialize rest of the fields
+		Schema specificSchema = serInfo.getSpecificSchema(sourceId);
+		int[] specificTranslation =serInfo.getSpecificSchemaIndexTranslation(sourceId);
 		write(specificSchema,tuple,specificTranslation,out);
 	}
 
@@ -115,8 +117,8 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 					} else if (element instanceof Text){
 						((Text)element).write(output);
 					} else if (element instanceof String){
-						text.set((String)element);
-						text.write(output);
+						HELPER_TEXT.set((String)element);
+						HELPER_TEXT.write(output);
 					} 
 				} else if(fieldType == Boolean.class) {
 					output.write((Boolean) element ? 1 : 0);

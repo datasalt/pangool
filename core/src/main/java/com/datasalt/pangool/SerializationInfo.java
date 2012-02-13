@@ -1,21 +1,24 @@
 package com.datasalt.pangool;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-import com.datasalt.pangool.SortBy.SortElement;
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.SortBy.SortElement;
 
 public class SerializationInfo {
 
 	private CoGrouperConfig grouperConfig;
 	private Schema commonSchema;
 	private List<Schema> specificSchemas;
-	private List<int[]> fieldsToPartition=new ArrayList<int[]>();
 	private Schema groupSchema;
-	private List<int[]> groupTranslationFields;
+	private List<int[]> fieldsToPartition=new ArrayList<int[]>();
+	private List<int[]> commonToSourcesIndexes=new ArrayList<int[]>();
+	private List<int[]> groupToSourcesIndexes=new ArrayList<int[]>();
+	private List<int[]> specificToSourcesIndexes=new ArrayList<int[]>();
+	
+	
 	
 	public SerializationInfo(CoGrouperConfig grouperConfig) throws CoGrouperException{
 		this.grouperConfig = grouperConfig;
@@ -30,19 +33,36 @@ public class SerializationInfo {
 		calculateOneSourceCommonSchema();
 		calculatePartitionFields();
 		calculateGroupSchema();
-		//calculateGroupTranslationFields();
+		calculateIndexTranslations();
 	}
 	
 	private void initializeMultipleSources() throws CoGrouperException{
 		calculateMultipleSourcesIntermediateSchemas();
 		calculatePartitionFields();
 		calculateGroupSchema();
-		//calculateGroupTranslationFields();
+		calculateIndexTranslations();
 	}
 
 	public List<int[]> getFieldsToPartition(){
 		return fieldsToPartition;
 	}
+	
+	public int[] getFieldsToPartition(int sourceId){
+		return fieldsToPartition.get(sourceId);
+	}
+	
+	public int[] getCommonSchemaIndexTranslation(int sourceId){
+		return commonToSourcesIndexes.get(sourceId);
+	}
+	
+	public int[] getSpecificSchemaIndexTranslation(int sourceId){
+		return specificToSourcesIndexes.get(sourceId);
+	}
+	
+	public int[] getGroupSchemaIndexTranslation(int sourceId){
+		return groupToSourcesIndexes.get(sourceId);
+	}
+	
 	
 	private void calculateGroupSchema(){
 		List<Field> fields = commonSchema.getFields();
@@ -75,11 +95,14 @@ public class SerializationInfo {
 		}
 
 		//add particular fields if any..
+		//TODO is this necessary. Do we allow particular sorting with just one source? 
 		SortBy particularOrderBy = grouperConfig.getSecondarySortBys().get(0);
-		for (SortElement sortElement : particularOrderBy.getElements()){
-			String fieldName = sortElement.getName();
-			Class<?> fieldType = checkFieldInSource(fieldName, 0);
-			commonFields.add(new Field(fieldName,fieldType));
+		if (particularOrderBy != null){
+			for (SortElement sortElement : particularOrderBy.getElements()){
+				String fieldName = sortElement.getName();
+				Class<?> fieldType = checkFieldInSource(fieldName, 0);
+				commonFields.add(new Field(fieldName,fieldType));
+			}
 		}
 		
 		//adding the rest
@@ -126,7 +149,9 @@ public class SerializationInfo {
 				}
 			}
 			this.specificSchemas.add(new Schema("specific",specificFields));
+			
 		}
+		this.specificSchemas = Collections.unmodifiableList(this.specificSchemas);
 	}
 	
 	
@@ -178,61 +203,19 @@ public class SerializationInfo {
 		return groupSchema;
 	}
 	
-	
-	public static class PositionMapping {
-		
-		public List<int[]> commonTranslation;
-		public List<int[]> particularTranslation;
-		
-		PositionMapping(List<int[]> commonTranslation, List<int[]> particularTranslation){
-			this.commonTranslation = commonTranslation;
-			this.particularTranslation = particularTranslation;
-		}
-		
-		@Override
-		public String toString(){
-			StringBuilder b = new StringBuilder();
-			
-			int source=0;
-			for (int[] currentArray : commonTranslation){
-				b.append("common source:["+source +"]=>");
-				for (int i=0 ; i < currentArray.length ; i++){
-					b.append(currentArray[i]).append(",");
-				}
-				b.append("\n");
-				source++;
-			}
-			
-			source=0;
-			for (int[] currentArray : particularTranslation){
-				b.append("particular source:["+source +"]=>");
-				for (int i=0 ; i < currentArray.length ; i++){
-					b.append(currentArray[i]).append(",");
-				}
-				b.append("\n");
-				source++;
-			}
-			
-			
-			return b.toString();
-		}
-	}
-	
-	
-	
-	public PositionMapping getSerializationTranslation(){ //TODO cache this
-		List<int[]> commonTranslation = new ArrayList<int[]>();
-		List<int[]> particularTranslation = new ArrayList<int[]>();
+	private void calculateIndexTranslations(){ 
 		for (int sourceId = 0 ; sourceId < grouperConfig.getSourceSchemas().size() ; sourceId++){
 			Schema sourceSchema = grouperConfig.getSourceSchema(sourceId);
-			commonTranslation.add(getIndexTranslation(commonSchema,sourceSchema));
-			Schema particularSchema = null;
+			commonToSourcesIndexes.add(getIndexTranslation(commonSchema,sourceSchema));
+			groupToSourcesIndexes.add(getIndexTranslation(groupSchema,sourceSchema));
 			if (specificSchemas != null && !specificSchemas.isEmpty()){
-				particularSchema = specificSchemas.get(sourceId);
-				particularTranslation.add(getIndexTranslation(particularSchema,sourceSchema));
+				Schema particularSchema = specificSchemas.get(sourceId);
+				specificToSourcesIndexes.add(getIndexTranslation(particularSchema,sourceSchema));
 			}
 		}
-		return new PositionMapping(commonTranslation, particularTranslation);
+		commonToSourcesIndexes = Collections.unmodifiableList(commonToSourcesIndexes);
+		groupToSourcesIndexes = Collections.unmodifiableList(groupToSourcesIndexes);
+		specificToSourcesIndexes = Collections.unmodifiableList(specificToSourcesIndexes);
 	}
 	
 	
