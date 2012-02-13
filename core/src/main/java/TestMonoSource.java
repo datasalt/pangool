@@ -93,7 +93,7 @@ public class TestMonoSource {
 		coGrouper.setGroupByFields("user_id","name");
 		
 		coGrouper.setOrderBy(new RichSortBy().add("user_id",Order.ASC).add("name",Order.ASC).addSourceOrder(Order.ASC));
-		coGrouper.setSecondaryOrderBy("usuarios", new SortBy().add("age",Order.ASC));
+		//coGrouper.setSecondaryOrderBy("usuarios", new SortBy().add("age",Order.ASC));
 		
 		
 		coGrouper.addInput(new Path("pangool_input.txt"), TextInputFormat.class, new MyInputProcessor());

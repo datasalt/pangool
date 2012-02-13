@@ -94,17 +94,6 @@ public class SerializationInfo {
 			commonFields.add(new Field(fieldName,type));
 		}
 
-		//add particular fields if any..
-		//TODO is this necessary. Do we allow particular sorting with just one source? 
-		SortBy particularOrderBy = grouperConfig.getSecondarySortBys().get(0);
-		if (particularOrderBy != null){
-			for (SortElement sortElement : particularOrderBy.getElements()){
-				String fieldName = sortElement.getName();
-				Class<?> fieldType = checkFieldInSource(fieldName, 0);
-				commonFields.add(new Field(fieldName,fieldType));
-			}
-		}
-		
 		//adding the rest
 			for (Field field : sourceSchema.getFields()){
 				if (!containsFieldName(field.name(),commonFields)){
