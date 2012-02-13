@@ -1,19 +1,25 @@
 package com.datasalt.pangool;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.apache.avro.SchemaParseException;
 import org.apache.commons.collections.BidiMap;
 import org.apache.commons.collections.bidimap.DualHashBidiMap;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
-
 /**
  * Encapsulates one Pangool schame composed of {@link Field} instances.
  */
@@ -79,10 +85,29 @@ public class Schema {
 		public String toString() {
 			return name + ":" + type;
 		}
+		
+		static Field parse(JsonNode node) throws IOException {
+		 String name = node.get("name").getTextValue();
+		 String clazz = node.get("type").getTextValue();
+		 try{
+		 return new Field(name,strToClass(clazz));
+		 } catch(ClassNotFoundException e){
+			 throw new IOException(e);
+		 }
+		}
+		
+		void toJson(JsonGenerator gen) throws IOException {
+			gen.writeStartObject();
+      gen.writeStringField("name", name());
+      gen.writeStringField("type",getType().getName());
+      gen.writeEndObject();
+		}
+		
+		
 	}
 
-	private List<Field> fields;
-	private String name;
+	private final List<Field> fields;
+	private final String name;
 
 	public static Class<?> strToClass(String str) throws ClassNotFoundException {
 		Class<?> clazz = (Class<?>) strClassMap.get(str);
@@ -108,9 +133,7 @@ public class Schema {
 			throw new IllegalArgumentException("Name for schema can't be null");
 		}
 		this.name = name;
-		this.fields = new ArrayList<Field>();
-		this.fields.addAll(fields);
-		this.fields = Collections.unmodifiableList(this.fields);
+		this.fields = Collections.unmodifiableList(new ArrayList<Field>(fields));
 		
 		int index = 0;
 		for(Field field : this.fields) {
@@ -166,37 +189,56 @@ public class Schema {
 		return indexByFieldName.containsKey(fieldName);
 	}
 
-	
-
 	@Override
 	public String toString() {
-		return serialize();
+		return toString(true);
 	}
 
-	public static Schema parse(String serialized) throws CoGrouperException /*, InvalidFieldException */{
-		
-		try {
-			if(serialized == null || serialized.isEmpty()) {
-				return null;
-			}
-			String[] tokens =serialized.split(";");
-			String name = tokens[0];
-			String[] fieldsStr = tokens[1].split(",");
-			List<Field> fields = new ArrayList<Field>();
-			for(String field : fieldsStr) {
-				String[] nameType = field.split(":");
-				if(nameType.length != 2) {
-					throw new CoGrouperException("Incorrect fields description " + serialized);
-				}
-				String fieldName = nameType[0].trim();
-				String fieldType = nameType[1].trim();
-				fields.add(new Field(fieldName, strToClass(fieldType)));
-			}
-			return new Schema(name,fields);
-		} catch(ClassNotFoundException e) {
-			throw new CoGrouperException(e);
-		}
+	public String toString(boolean pretty) {
+	    try {
+	      StringWriter writer = new StringWriter();
+	      JsonGenerator gen = FACTORY.createJsonGenerator(writer);
+	      if (pretty) gen.useDefaultPrettyPrinter();
+	      toJson(gen);
+	      gen.flush();
+	      return writer.toString();
+	    } catch (IOException e) {
+	      throw new RuntimeException(e);
+	    }
 	}
+	
+
+	/** Parse a schema from the provided string.
+   * If named, the schema is added to the names known to this parser. */
+  public static Schema parse(String s) {
+    try {
+      return parse(FACTORY.createJsonParser(new StringReader(s)));
+    } catch (IOException e) {
+      throw new SchemaParseException(e);
+    }
+  }
+
+  private static Schema parse(JsonParser parser) throws IOException {
+    try {
+      return Schema.parse(MAPPER.readTree(parser));
+    } catch (JsonParseException e) {
+      throw new IOException(e);
+    } finally {
+      
+    }
+  }
+  
+  static Schema parse(JsonNode schema) throws IOException {
+  	String name = schema.get("name").getTextValue();
+  	List<Field> fields = new ArrayList<Field>();
+  	JsonNode fieldsNode =schema.get("fields"); 
+  	while(fieldsNode.getElements().hasNext()){
+  		JsonNode fieldNode = fieldsNode.getElements().next();
+  		fields.add(Field.parse(fieldNode));
+  		
+  	}
+  	return new Schema(name,fields);
+  }
 
 	@Override
 	public boolean equals(Object o) {
@@ -205,4 +247,23 @@ public class Schema {
 		}
 		return false;
 	}
+	
+	
+	void toJson(JsonGenerator gen) throws IOException {
+    gen.writeStartObject();
+    gen.writeStringField("name", name);
+    gen.writeFieldName("fields");
+    fieldsToJson(gen);
+    gen.writeEndObject();
+  }
+
+  void fieldsToJson(JsonGenerator gen) throws IOException {
+    gen.writeStartArray();
+    for (Field f : fields) {
+    	f.toJson(gen);
+    }
+    gen.writeEndArray();
+  }
 }
+	
+	

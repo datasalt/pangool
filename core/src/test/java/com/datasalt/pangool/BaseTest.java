@@ -38,11 +38,11 @@ public abstract class BaseTest extends AbstractBaseTest {
 	 * Fills the fields specified by the range (minIndex, maxIndex) with random data.
 	 * 
 	 */
-	protected static void fillTuple(boolean isRandom, Schema schema, ITuple tuple, int minIndex, int maxIndex) {
+	protected static void fillTuple(boolean isRandom, ITuple tuple, int minIndex, int maxIndex) {
 		try {
 			Random random = new Random();
 			for(int i = minIndex; i <= maxIndex; i++) {
-				Field field = schema.getField(i);
+				Field field = tuple.getSchema().getField(i);
 				Class fieldType = field.getType();
 				if(fieldType == Integer.class || fieldType == VIntWritable.class) {
 					tuple.set(i, isRandom ? random.nextInt() : 0);

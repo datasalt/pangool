@@ -222,7 +222,9 @@ public class CoGrouperConfig {
 		jsonableData.put("secondarySortBys", jsonableParticularOrderings);
 		jsonableData.put("groupByFields", groupByFields);
 		jsonableData.put("rollupFrom", rollupFrom);
-		return mapper.writeValueAsString(jsonableData);
+		String result =mapper.writeValueAsString(jsonableData);
+		System.out.println("Config serialized : " + result);
+		return result;
 		} catch(Exception e){
 			throw new CoGrouperException(e);
 		}

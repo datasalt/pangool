@@ -17,9 +17,6 @@ package com.datasalt.pangool.io.tuple;
 
 import java.io.Serializable;
 
-
-import org.apache.hadoop.io.Text;
-
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 

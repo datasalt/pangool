@@ -73,13 +73,8 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
 	    InterruptedException {
 
 		Schema pangoolOutputSchema;
-		try {
-			pangoolOutputSchema = Schema.parse(context.getConfiguration().get(CONF_TUPLE_OUTPUT_SCHEMA));
-		} catch(InvalidFieldException e) {
-			throw new RuntimeException(e);
-		} catch(CoGrouperException e) {
-			throw new RuntimeException(e);
-		}
+		pangoolOutputSchema = Schema.parse(context.getConfiguration().get(CONF_TUPLE_OUTPUT_SCHEMA));
+		
 
 		org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(pangoolOutputSchema);
 		DataFileWriter<Record> writer = new DataFileWriter<Record>(new ReflectDatumWriter<Record>());
