@@ -21,6 +21,9 @@
 //import com.datasalt.pangool.CoGrouperConfig;
 //
 //import com.datasalt.pangool.CoGrouperException;
+//import com.datasalt.pangool.Criteria;
+//import com.datasalt.pangool.Criteria.Order;
+//import com.datasalt.pangool.Criteria.SortElement;
 //import com.datasalt.pangool.Schema;
 //import com.datasalt.pangool.Schema.Field;
 //import com.datasalt.pangool.io.HadoopSerialization;
@@ -51,7 +54,7 @@
 //
 //		for(int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
 //			Schema schema = permuteSchema(SCHEMA);
-//			Sorting sortCriteria = createRandomSortCriteria(schema, customComparators, maxIndex + 1);
+//			Criteria sortCriteria = createRandomSortCriteria(schema, customComparators, maxIndex + 1);
 //			String[] groupFields = getFirstFields(sortCriteria.getCommonSortCriteria(), random.nextInt(sortCriteria.getCommonSortCriteria().getSortElements().length));
 //
 //			CoGrouperConfig config = new CoGrouperConfig();
@@ -96,7 +99,7 @@
 //		}
 //	}
 //
-//	private int compareInBinary1(SortComparator comp, DoubleBufferedTuple tuple1, DoubleBufferedTuple tuple2) throws IOException {
+//	private int compareInBinary1(SortComparator comp, ITuple tuple1, ITuple tuple2) throws IOException {
 //		DataOutputBuffer buffer1 = new DataOutputBuffer();
 //		ser.ser(tuple1, buffer1);
 //		
@@ -111,7 +114,7 @@
 //	 * Checks that the binary comparison matches the comparison by objects.
 //	 * 
 //	 */
-//	private void assertSameComparison(String alias, SortComparator comparator, DoubleBufferedTuple tuple1, DoubleBufferedTuple tuple2)
+//	private void assertSameComparison(String alias, SortComparator comparator, ITuple tuple1, ITuple tuple2)
 //	    throws IOException {
 //
 //		int compObjects = comparator.compare(tuple1, tuple2);
@@ -130,13 +133,13 @@
 //	/**
 //	 * Checks that comp(tuple1,tuple2) is -comp(tuple2,tuple1)
 //	 */
-//	private void assertOppositeOrEqualsComparison(SortComparator comp, DoubleBufferedTuple tuple1, DoubleBufferedTuple tuple2) throws IOException {
+//	private void assertOppositeOrEqualsComparison(SortComparator comp, ITuple tuple1, ITuple tuple2) throws IOException {
 //		int comp1 = comp.compare(tuple1, tuple2);
 //		int comp2 = comp.compare(tuple2, tuple1);
 //		if(comp1 > 0 && comp2 > 0 || comp1 < 0 && comp2 < 0) {
 //			Assert.fail("Same comparison in OBJECTS: " + comp1 + " , " + comp2 + ".It should be opposite" + "' for tuples:"
 //			    + "\nTUPLE1:" + tuple1 + "\nTUPLE2:" + tuple2 + "\nCRITERIA:"
-//			    + comp.getConfig().getSorting().getCommonSortCriteria());
+//			    + comp.getConfig().getCommonSortCriteria());
 //		}
 //
 //		comp1 = compareInBinary1(comp, tuple1, tuple2);
@@ -209,18 +212,10 @@
 //	 * Creates a copy of the schema with the fields shuffled.
 //	 */
 //	private static Schema permuteSchema(Schema schema) {
-//		List<Field> fields = Arrays.asList(schema.getFields());
+//		List<Field> fields = schema.getFields();
 //		List<Field> permutedFields = new ArrayList<Field>(fields);
 //		Collections.shuffle(permutedFields);
-//		SchemaBuilder builder = new SchemaBuilder();
-//		for(Field field : permutedFields) {
-//			try {
-//				builder.add(field.getName(), field.getType());
-//			} catch(InvalidFieldException e) {
-//				throw new RuntimeException(e);
-//			}
-//		}
-//		return builder.createSchema();
+//		return new Schema("new_schema",permutedFields);
 //	}
 //
 //	/**
@@ -228,28 +223,23 @@
 //	 * Creates a random sort criteria based in the specified schema.
 //	 * @throws CoGrouperException 
 //	 */
-//	private static Sorting createRandomSortCriteria(Schema schema, Map<String, Class> customComparators,
+//	private static Criteria createRandomSortCriteria(Schema schema, Map<String, Class> customComparators,
 //	    int numFields) throws CoGrouperException {
-//		try {
 //			Random random = new Random();
-//			SortingBuilder builder = new SortingBuilder();
+//			List<SortElement> builder = new ArrayList<SortElement>();
 //			for(int i = 0; i < numFields; i++) {
 //				Field field = schema.getField(i);
-//
-//				builder.add(field.getName(), random.nextBoolean() ? SortOrder.ASC : SortOrder.DESC,
-//				    customComparators.get(field.getName()));
+//				builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC : Order.DESC,
+//				    customComparators.get(field.getName())));
 //			}
-//			return builder.buildSorting();
-//		} catch(InvalidFieldException e) {
-//			throw new RuntimeException(e);
-//		}
+//			return new Criteria(builder);
 //	}
 //
-//	private String[] getFirstFields(SortCriteria sortCriteria, int numFields) {
+//	private String[] getFirstFields(Criteria sortCriteria, int numFields) {
 //		String[] result = new String[numFields];
 //		for(int i = 0; i < numFields; i++) {
-//			SortElement element = sortCriteria.getSortElements()[i];
-//			result[i] = element.getFieldName();
+//			SortElement element = sortCriteria.getElements().get(i);
+//			result[i] = element.getName();
 //		}
 //		return result;
 //	}
