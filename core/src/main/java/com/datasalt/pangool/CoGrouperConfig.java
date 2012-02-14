@@ -12,7 +12,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.Criteria.SortElement;
-import com.datasalt.pangool.api.GroupHandlerWithRollup;
 
 
 public class CoGrouperConfig {
@@ -234,8 +233,10 @@ public class CoGrouperConfig {
 		//jsonableData.put("interSourcesOrdering", interSourcesOrdering);
 		
 		List<List> jsonableParticularOrderings = new ArrayList<List>();
-		for(Criteria criteria : secondarySortBys) {
-			jsonableParticularOrderings.add(criteria.getElements());
+		if (secondarySortBys != null){
+			for(Criteria criteria : secondarySortBys) {
+				jsonableParticularOrderings.add((criteria == null) ? null : criteria.getElements());
+			}
 		}
 		
 		jsonableData.put("secondarySortBys", jsonableParticularOrderings);

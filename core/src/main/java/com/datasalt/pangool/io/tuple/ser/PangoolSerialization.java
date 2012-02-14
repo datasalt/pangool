@@ -34,6 +34,7 @@ import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.io.HadoopSerialization;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 
@@ -47,9 +48,14 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 
 	private Configuration conf;
 	private com.datasalt.pangool.io.HadoopSerialization ser;
-	private CoGrouperConfig pangoolConfig;
+	private CoGrouperConfig grouperConfig;
 
 	public PangoolSerialization() {
+	}
+	
+	public PangoolSerialization(HadoopSerialization ser,CoGrouperConfig grouperConf){
+		this.ser = ser;
+		this.grouperConfig = grouperConf;
 	}
 
 	@Override
@@ -71,7 +77,7 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 				// Mega tricky!!!!. This is to avoid recursive serialization instantiation!!
 				disableSerialization(this.conf);
 
-				this.pangoolConfig = CoGrouperConfig.get(conf);
+				this.grouperConfig = CoGrouperConfig.get(conf);
 				this.ser = new com.datasalt.pangool.io.HadoopSerialization(this.conf);
 			}
 		} catch(CoGrouperException e) {
@@ -83,12 +89,12 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 
 	@Override
 	public Serializer<DatumWrapper<ITuple>> getSerializer(Class<DatumWrapper<ITuple>> c) {
-		return new PangoolSerializer(this.ser, this.pangoolConfig);
+		return new PangoolSerializer(this.ser, this.grouperConfig);
 	}
 
 	@Override
 	public Deserializer<DatumWrapper<ITuple>> getDeserializer(Class<DatumWrapper<ITuple>> c) {
-		return new PangoolDeserializer(this.ser, this.pangoolConfig);
+		return new PangoolDeserializer(this.ser, this.grouperConfig);
 	}
 
 	/**

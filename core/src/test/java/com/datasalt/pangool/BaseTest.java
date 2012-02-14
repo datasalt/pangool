@@ -2,7 +2,13 @@ package com.datasalt.pangool;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +26,9 @@ import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.HadoopSerialization;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.ser.PangoolDeserializer;
+import com.datasalt.pangool.io.tuple.ser.PangoolSerialization;
+import com.datasalt.pangool.io.tuple.ser.PangoolSerializer;
 import com.datasalt.pangool.test.AbstractBaseTest;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -42,15 +51,20 @@ public abstract class BaseTest extends AbstractBaseTest {
 	}
 
 	
+	
+	protected static void fillTuple(boolean random,ITuple tuple){
+		fillTuple(random,tuple,0,tuple.getSchema().getFields().size()-1);
+	}
+	
 	/**
 	 * Fills the fields specified by the range (minIndex, maxIndex) with random data.
 	 * 
 	 */
-	protected static void fillTuple(boolean isRandom, Schema schema, ITuple tuple, int minIndex, int maxIndex) {
+	protected static void fillTuple(boolean isRandom,ITuple tuple, int minIndex, int maxIndex) {
 		try {
 			Random random = new Random();
 			for(int i = minIndex; i <= maxIndex; i++) {
-				Field field = schema.getField(i);
+				Field field = tuple.getSchema().getField(i);
 				Class fieldType = field.getType();
 				if(fieldType == Integer.class || fieldType == VIntWritable.class) {
 					tuple.set(i, isRandom ? random.nextInt() : 0);
@@ -87,8 +101,7 @@ public abstract class BaseTest extends AbstractBaseTest {
 		}
 	}
 
-	protected void assertSerializable(HadoopSerialization ser,ITuple tuple, boolean debug) throws IOException {
-
+	protected static void assertSerializable(HadoopSerialization ser,ITuple tuple, boolean debug) throws IOException {
 		DataInputBuffer input = new DataInputBuffer();
 		DataOutputBuffer output = new DataOutputBuffer();
 		DatumWrapper<ITuple> wrapper = new DatumWrapper<ITuple>(tuple);
@@ -102,6 +115,39 @@ public abstract class BaseTest extends AbstractBaseTest {
 			System.out.println("D:" + wrapper2.currentDatum());
 		}
 		assertEquals(tuple, wrapper2.currentDatum());
+	}
+	
+	protected static void assertSerializable(CoGrouperConfig config,ITuple tuple,boolean debug) throws IOException {
+		//HadoopSerialization hadoopSerialization = new HadoopSerialization(conf)
+		PangoolSerialization serialization = new PangoolSerialization();
+	}
+	
+	protected static void assertSerializable(PangoolSerialization serialization,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
+		
+		PangoolSerializer ser = (PangoolSerializer)serialization.getSerializer(null); //TODO why not able to set tuple.getClass() ?
+		PangoolDeserializer deser = (PangoolDeserializer)serialization.getDeserializer(null); //TODO why not able to set tuple.getClass() ?
+		assertSerializable(ser,deser,tuple,debug);
+	}
+	
+	protected static void assertSerializable(PangoolSerializer ser,PangoolDeserializer deser,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
+		
+		DataOutputBuffer output = new DataOutputBuffer();
+		ser.open(output);
+		ser.serialize(tuple);
+		ser.close();
+
+		DataInputBuffer input = new DataInputBuffer();
+		input.reset(output.getData(), 0, output.getLength());
+		DatumWrapper<ITuple> deserializedTuple = new DatumWrapper<ITuple>();
+		
+		deser.open(input);
+		deserializedTuple = deser.deserialize(deserializedTuple);
+		deser.close();
+		
+		if(debug) {
+			System.out.println("D:" + deserializedTuple.currentDatum());
+		}
+		assertEquals(tuple, deserializedTuple.currentDatum());
 	}
 
 }
