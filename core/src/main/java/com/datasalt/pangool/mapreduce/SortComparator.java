@@ -52,10 +52,50 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 */
 	@Override
 	public int compare(ITuple w1, ITuple w2) {
-		//TODO 
-		return 0;
+		if (isMultipleSources){
+			int sourceId1 = grouperConf.getSourceIdByName(w1.getSchema().getName());
+			int sourceId2 = grouperConf.getSourceIdByName(w2.getSchema().getName());
+			int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(sourceId1);
+			int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(sourceId2);
+			Criteria c = grouperConf.getCommonSortBy();
+			int comparison = compare(c,w1,indexes1,w2,indexes2);
+			if (comparison != 0){
+				return comparison;
+			} else if (sourceId1 != sourceId2){
+				int r = sourceId1 - sourceId2; 
+				return (grouperConf.getSourcesOrder() == Order.ASC) ? r : -r;
+			}
+			int source = sourceId1;
+			c = grouperConf.getSecondarySortBys().get(source);
+			if (c != null){
+				int[] indexes = serInfo.getSpecificSchemaIndexTranslation(source);
+				return compare(c,w1,indexes,w2,indexes);
+			} else {
+				return 0;
+			}
+		} else {
+			
+			int[] indexes = serInfo.getCommonSchemaIndexTranslation(0);
+			Criteria c = grouperConf.getCommonSortBy();
+			return compare(c,w1,indexes,w2,indexes);
+		}
+		
 	}
 
+	public int compare(Criteria c,ITuple w1,int[] index1,ITuple w2,int[] index2){
+		for (int i=0 ; i < c.getElements().size() ; i++){
+			SortElement e = c.getElements().get(i);
+			Object o1 = w1.get(index1[i]);
+			Object o2 = w2.get(index2[i]);
+			int comparison = compareObjects(o1,o2); //TODO BAD . This doesn't take in account custom comparator!!
+			if (comparison != 0){
+				return (e.getOrder() == Order.ASC ? comparison : -comparison);
+			}
+		}
+		return 0;
+	}
+	
+	
 	/**
 	 * Compares two objects
 	 */
@@ -99,11 +139,11 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		
 		int sourceId1 = readVInt(b1, offsets.offset1);
 		int sourceId2 = readVInt(b2, offsets.offset2);
-		if(sourceId1 > sourceId2) {
-			return  1;  
-		} else if(sourceId1 < sourceId2) {
-			return -1;
+		if (sourceId1 != sourceId2){
+			int r = sourceId1 - sourceId2;
+			return (grouperConf.getSourcesOrder() == Order.ASC) ? r : -r;
 		}
+		
 		int vintSize = WritableUtils.decodeVIntSize(b1[offsets.offset1]);
 		offsets.offset1 += vintSize;
 		offsets.offset2 += vintSize;

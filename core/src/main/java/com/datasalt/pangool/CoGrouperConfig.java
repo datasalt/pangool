@@ -30,18 +30,27 @@ public class CoGrouperConfig {
     FACTORY.setCodec(MAPPER);
   }
 	
-	private Criteria commonSortBy;
 	
 	private List<String> sourceNames=new ArrayList<String>();
 	private Map<String,Integer> sourceNameToId = new HashMap<String,Integer>();
 	
+	private Criteria commonSortBy;
 	private List<Criteria> secondarySortBys=new ArrayList<Criteria>();
+	private Order interSourcesOrder;
 	
 	private List<Schema> sourceSchemas = new ArrayList<Schema>();
 	private List<String> groupByFields;
 	private String rollupFrom;
 	
 	private SerializationInfo serInfo;
+	
+	void setSourceOrder(Order order){
+		this.interSourcesOrder = order;
+	}
+	
+	public Order getSourcesOrder(){
+		return interSourcesOrder;
+	}
 	
 	void setSecondarySortBy(String sourceName,Criteria criteria){
 		if (this.secondarySortBys.isEmpty()){
@@ -61,23 +70,23 @@ public class CoGrouperConfig {
 		return secondarySortBys;
 	}
 	
-//	if(grouperConf.getRollupFrom() != null) {
-//
-//		// Check that rollupFrom is contained in groupBy
-//
-//		if(!grouperConf.getGroupByFields().contains(grouperConf.getRollupFrom())) {
-//			throw new CoGrouperException("Rollup from [" + grouperConf.getRollupFrom() + "] not contained in group by fields "
-//			    + grouperConf.getGroupByFields());
+//if(grouperConf.getRollupFrom() != null) {
+	//
+//			// Check that rollupFrom is contained in groupBy
+	//
+//			if(!grouperConf.getGroupByFields().contains(grouperConf.getRollupFrom())) {
+//				throw new CoGrouperException("Rollup from [" + grouperConf.getRollupFrom() + "] not contained in group by fields "
+//				    + grouperConf.getGroupByFields());
+//			}
+	//
+//			// Check that we are using the appropriate Handler
+	//
+//			if(!(grouperHandler instanceof GroupHandlerWithRollup)) {
+//				throw new CoGrouperException("Can't use " + grouperHandler + " with rollup. Please use "
+//				    + GroupHandlerWithRollup.class + " instead.");
+//			}
 //		}
-//
-//		// Check that we are using the appropriate Handler
-//
-//		if(!(grouperHandler instanceof GroupHandlerWithRollup)) {
-//			throw new CoGrouperException("Can't use " + grouperHandler + " with rollup. Please use "
-//			    + GroupHandlerWithRollup.class + " instead.");
-//		}
-//	}
-//	
+	//	
 	
 	
 	CoGrouperConfig() {
@@ -171,6 +180,7 @@ public class CoGrouperConfig {
 		b.append("rollupFrom: ").append(rollupFrom).append("\n");
 		b.append("commonSortBy: ").append(commonSortBy.toString()).append("\n");
 		b.append("secondarySortBys: ").append(secondarySortBys.toString()).append("\n");
+		b.append("interSourcesOrder:").append(interSourcesOrder).append("\n");
 		return b.toString();
 	}
 
@@ -194,6 +204,7 @@ public class CoGrouperConfig {
 				result.addSource(Schema.parse(jsonSchema));
 			}
 			List<Map> listOrderings = (List<Map>)jsonData.get("commonSortBy");
+			result.interSourcesOrder = Order.valueOf((String)jsonData.get("interSourcesOrder"));
 			
 			result.setCommonSortBy(new Criteria(mapsToSortElements(listOrderings)));
 			List<List> jsonParticularOrderings = (List<List>) jsonData.get("secondarySortBys");
@@ -242,7 +253,7 @@ public class CoGrouperConfig {
 		
 		jsonableData.put("sourceSchemas", jsonableSources);
 		jsonableData.put("commonSortBy", commonSortBy.getElements());
-		//jsonableData.put("interSourcesOrdering", interSourcesOrdering);
+		jsonableData.put("interSourcesOrder", interSourcesOrder.toString());
 		
 		List<List> jsonableParticularOrderings = new ArrayList<List>();
 		if (secondarySortBys != null){

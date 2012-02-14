@@ -55,6 +55,12 @@ public class ConfigBuilder {
 		conf.setGroupByFields(groupByFields);
 		conf.setRollupFrom(rollupFrom);
 		Criteria convertedCommonOrder =convertCommonSortByToCriteria(commonSortBy);
+		if (commonSortBy.getSourceOrder() != null){
+			conf.setSourceOrder(commonSortBy.getSourceOrder());
+		} else {
+			conf.setSourceOrder(Order.ASC);
+		}
+		
 		conf.setCommonSortBy(convertedCommonOrder);
 		
 		if (commonSortBy != null){

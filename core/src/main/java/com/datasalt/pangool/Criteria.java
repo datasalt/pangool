@@ -50,7 +50,7 @@ public class Criteria {
 			public String getName() {
       	return name;
       }
-			public void setName(String name) {
+			public void setName(String name) { //TODO remove this setters and make proper Json serialization
       	this.name = name;
       }
 			public Order getOrder() {
@@ -63,6 +63,11 @@ public class Criteria {
 			public SortElement(String name,Order order,Class<? extends RawComparator<?>> comparator){
 				this(name,order); 
 				this.customComparator = comparator;
+			}
+			
+			public String toString(){
+				//TODO do proper Json serializing
+				return name + " " + order + " " +customComparator;
 			}
 		}
 		
