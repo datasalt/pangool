@@ -64,7 +64,6 @@ public class HadoopSerialization {
     }
 	};
 	
-
 	/**
 	 * Serializes the given object using the Hadoop 
 	 * serialization system.
