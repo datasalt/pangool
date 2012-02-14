@@ -7,9 +7,9 @@ import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.mapred.AvroOutputFormat;
 import org.apache.avro.reflect.ReflectDatumWriter;
-import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -42,9 +42,14 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
 		Record record;
 		DataFileWriter<Record> writer;
 		Schema pangoolSchema;
-
-		public TupleRecordWriter(org.apache.avro.Schema schema, Schema pangoolSchema, DataFileWriter<Record> writer) {
+		org.apache.avro.Schema avroSchema;
+		private final HadoopSerialization ser;
+		private final DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
+		
+		public TupleRecordWriter(org.apache.avro.Schema schema, Schema pangoolSchema, DataFileWriter<Record> writer,  HadoopSerialization ser) {
 			record = new Record(schema);
+			this.ser = ser;
+			this.avroSchema = schema;
 			this.writer = writer;
 			this.pangoolSchema = pangoolSchema;
 		}
@@ -56,14 +61,7 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
 
 		@Override
 		public void write(ITuple tuple, NullWritable ignore) throws IOException, InterruptedException {
-			// Convert Tuple to Record
-			for(int i = 0; i < pangoolSchema.getFields().size(); i++) {
-				Object obj = tuple.get(i);
-				if(obj instanceof byte[]) {
-					obj = new Utf8((byte[])obj).toString();
-				}
-				record.put(pangoolSchema.getField(i).name(), obj);
-			}
+			AvroUtils.toRecord(pangoolSchema, avroSchema, tuple, record, tmpOutputBuffer, ser);
 			writer.append(record);
 		}
 	}
@@ -94,6 +92,6 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
 		Path file = getDefaultWorkFile(context, "");
 		writer.create(avroSchema, file.getFileSystem(context.getConfiguration()).create(file));
 
-		return new TupleRecordWriter(avroSchema, pangoolOutputSchema, writer);
+		return new TupleRecordWriter(avroSchema, pangoolOutputSchema, writer, new HadoopSerialization(conf));
 	}
 }

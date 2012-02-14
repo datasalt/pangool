@@ -49,6 +49,24 @@ public class CoGrouperConfig {
 		return secondarySortBys;
 	}
 	
+//	if(grouperConf.getRollupFrom() != null) {
+//
+//		// Check that rollupFrom is contained in groupBy
+//
+//		if(!grouperConf.getGroupByFields().contains(grouperConf.getRollupFrom())) {
+//			throw new CoGrouperException("Rollup from [" + grouperConf.getRollupFrom() + "] not contained in group by fields "
+//			    + grouperConf.getGroupByFields());
+//		}
+//
+//		// Check that we are using the appropriate Handler
+//
+//		if(!(grouperHandler instanceof GroupHandlerWithRollup)) {
+//			throw new CoGrouperException("Can't use " + grouperHandler + " with rollup. Please use "
+//			    + GroupHandlerWithRollup.class + " instead.");
+//		}
+//	}
+//	
+	
 	
 	CoGrouperConfig() {
 	}
@@ -215,8 +233,10 @@ public class CoGrouperConfig {
 		//jsonableData.put("interSourcesOrdering", interSourcesOrdering);
 		
 		List<List> jsonableParticularOrderings = new ArrayList<List>();
-		for(Criteria criteria : secondarySortBys) {
-			jsonableParticularOrderings.add(criteria.getElements());
+		if (secondarySortBys != null){
+			for(Criteria criteria : secondarySortBys) {
+				jsonableParticularOrderings.add((criteria == null) ? null : criteria.getElements());
+			}
 		}
 		
 		jsonableData.put("secondarySortBys", jsonableParticularOrderings);

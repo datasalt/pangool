@@ -17,11 +17,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.datasalt.pangool.Criteria.Order;
-import com.datasalt.pangool.Criteria.SortElement;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.api.ProxyOutputFormat;
 import com.datasalt.pangool.commons.DCUtils;
@@ -29,8 +26,8 @@ import com.datasalt.pangool.io.AvroUtils;
 import com.datasalt.pangool.io.PangoolMultipleOutputs;
 import com.datasalt.pangool.io.TupleInputFormat;
 import com.datasalt.pangool.io.TupleOutputFormat;
-import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ser.PangoolSerialization;
 import com.datasalt.pangool.mapreduce.GroupComparator;
 import com.datasalt.pangool.mapreduce.Partitioner;
@@ -41,7 +38,7 @@ import com.datasalt.pangool.mapreduce.SortComparator;
 import com.datasalt.pangool.mapreduce.lib.input.PangoolMultipleInputs;
 
 @SuppressWarnings("rawtypes")
-public class CoGrouper {
+public class CoGrouper extends ConfigBuilder{
 
 	private static final class Output {
 
@@ -78,7 +75,7 @@ public class CoGrouper {
 	}
 
 	private Configuration conf;
-	private CoGrouperConfig grouperConf;
+	
 
 	private GroupHandler grouperHandler;
 	private CombinerHandler combinerHandler;
@@ -86,9 +83,6 @@ public class CoGrouper {
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass;
 	private Class<?> outputValueClass;
-	
-	private SortBy commonOrderBy;
-	private Map<String,SortBy> secondarysOrderBy=new HashMap<String,SortBy>();
 
 	private Path outputPath;
 
@@ -97,55 +91,8 @@ public class CoGrouper {
 
 	public CoGrouper(Configuration conf) {
 		this.conf = conf;
-		this.grouperConf = new CoGrouperConfig();
 	}
 
-	// ------------------------------------------------------------------------- //
-
-	public void setOrderBy(SortBy ordering) {
-		if (this.commonOrderBy != null){
-			throw new UnsupportedOperationException("OrderBy was already previously set");
-		}
-		this.commonOrderBy = ordering;
-	}
-	
-	public void setSecondaryOrderBy(String sourceName,SortBy ordering) {
-		if (this.commonOrderBy == null){
-			throw new UnsupportedOperationException("Need to set common orderBy with method setOrderBy previously");
-		}
-		
-		if (this.grouperConf.getNumSources() >=2){
-			if (grouperConf.getSourceSchema(sourceName) != null){
-				if (ordering.getSourceOrderIndex() != null){
-					throw new IllegalArgumentException("Not allowed to use SourceOrder in secondary order");
-				}
-				this.secondarysOrderBy.put(sourceName, ordering);
-			} else {
-				throw new IllegalArgumentException("No known source with name '" + sourceName + "'");
-			}
-		} else {
-			throw new IllegalArgumentException("Not allowed to use secondary order with just one source");
-		}
-	}
-
-	public void addSourceSchema(Schema schema) throws CoGrouperException {
-		grouperConf.addSource(schema);
-	}
-	
-	public void setGroupByFields(String... groupByFields) {
-		if (grouperConf.getGroupByFields() == null || grouperConf.getGroupByFields().isEmpty()){
-			grouperConf.setGroupByFields(groupByFields);
-		} else {
-			throw new UnsupportedOperationException("Group by fields was already set");
-		}
-	}
-	
-	public void setRollupFrom(String rollupFrom) {
-		if (grouperConf.getRollupFrom() != null){
-			throw new UnsupportedOperationException("Rollup was already set : " + rollupFrom);
-		}
-		grouperConf.setRollupFrom(rollupFrom);
-	}
 
 	public CoGrouper setJarByClass(Class<?> jarByClass) {
 		this.jarByClass = jarByClass;
@@ -237,46 +184,7 @@ public class CoGrouper {
 		}
 	}
 
-	private Criteria getCommonSortBy(SortBy sortBy){
-		if (sortBy == null){
-			//then the common sortBy is by default the group fields in ASC order
-			List<SortElement> elements = new ArrayList<SortElement>();
-			for (String groupField : grouperConf.getGroupByFields()){
-				elements.add(new SortElement(groupField,Order.ASC));
-			}
-			return new Criteria(elements);
-		} else if (sortBy.getSourceOrderIndex() == null || sortBy.getSourceOrderIndex() == sortBy.getElements().size()){
-			return new Criteria(sortBy.getElements());
-		} else {
-			List<SortElement> sortElements = sortBy.getElements().subList(0,sortBy.getSourceOrderIndex());
-			return new Criteria(sortElements);
-		}
-	}
 	
-	private static Map<String,Criteria> getSecondarySortBys(SortBy commonSortBy,Map<String,SortBy> secondarys){
-		if (secondarys == null){
-			return null;
-		} else if (commonSortBy == null){
-			throw new IllegalArgumentException("Common sort by must not be null if secondary sort by is set");
-		}	else if (commonSortBy.getSourceOrderIndex() == null || commonSortBy.getSourceOrderIndex() == commonSortBy.getElements().size()){
-			Map<String,Criteria> result = new HashMap<String,Criteria>();
-			for (Map.Entry<String,SortBy> entry : secondarys.entrySet()){
-				result.put(entry.getKey(),new Criteria(entry.getValue().getElements()));
-			}
-			return result;
-		} else {
-			List<SortElement> toPrepend = commonSortBy.getElements().subList(commonSortBy.getSourceOrderIndex(),commonSortBy.getElements().size());
-			Map<String,Criteria> result = new HashMap<String,Criteria>();
-			for (Map.Entry<String,SortBy> entry : secondarys.entrySet()){
-				SortBy criteria = entry.getValue();
-				List<SortElement> newList = new ArrayList<SortElement>();
-				newList.addAll(toPrepend);
-				newList.addAll(criteria.getElements());
-				result.put(entry.getKey(),new Criteria(newList));
-			}
-			return result;
-		}
-	}
 	
 	
 	public Job createJob() throws IOException, CoGrouperException {
@@ -288,34 +196,7 @@ public class CoGrouper {
 		raiseExceptionIfNull(outputValueClass, "Need to set outputValueClass");
 		raiseExceptionIfNull(outputPath, "Need to set outputPath");
 
-		if(grouperConf.getRollupFrom() != null) {
-
-			// Check that rollupFrom is contained in groupBy
-
-			if(!grouperConf.getGroupByFields().contains(grouperConf.getRollupFrom())) {
-				throw new CoGrouperException("Rollup from [" + grouperConf.getRollupFrom() + "] not contained in group by fields "
-				    + grouperConf.getGroupByFields());
-			}
-
-			// Check that we are using the appropriate Handler
-
-			if(!(grouperHandler instanceof GroupHandlerWithRollup)) {
-				throw new CoGrouperException("Can't use " + grouperHandler + " with rollup. Please use "
-				    + GroupHandlerWithRollup.class + " instead.");
-			}
-		}
-
-		
-		Criteria convertedCommonOrder =getCommonSortBy(commonOrderBy);
-		grouperConf.setCommonSortBy(convertedCommonOrder);
-		
-		if (commonOrderBy != null){
-			Map<String,Criteria> convertedParticularOrderings = getSecondarySortBys(commonOrderBy, secondarysOrderBy);
-			for (Map.Entry<String,Criteria> entry : convertedParticularOrderings.entrySet()){
-				grouperConf.setSecondarySortBy(entry.getKey(), entry.getValue());
-			}
-		}
-		
+		CoGrouperConfig grouperConf = buildConf();
 		// Serialize PangoolConf in Hadoop Configuration
 		CoGrouperConfig.set(grouperConf, conf);
 		Job job = new Job(conf);

@@ -20,12 +20,15 @@ import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SortBy;
 import com.datasalt.pangool.api.GroupHandler;
+import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
+import com.datasalt.pangool.api.GroupHandler.Collector;
 import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Tuple;
 
-public class TestMonoSource {
+public class TestMonoSourceRollUp {
 
 	public static class MyInputProcessor extends InputProcessor<LongWritable, Text>{
 
@@ -61,7 +64,7 @@ public class TestMonoSource {
 		
 	}
 	
-	public static final class MyGroupHandler extends GroupHandler<Text, Text> {
+	public static final class MyGroupHandler extends GroupHandlerWithRollup<Text, Text> {
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples,
 				CoGrouperContext coGrouperContext, Collector collector)
 				throws IOException, InterruptedException, CoGrouperException {
@@ -70,6 +73,16 @@ public class TestMonoSource {
 				String i = Integer.toHexString(System.identityHashCode(r));
 				System.out.println(r + " => " + r.getSchema().getName());
 			}
+		}
+		
+		public void onOpenGroup(int depth, String field, ITuple firstElement, CoGrouperContext context, Collector collector)
+		    throws IOException, InterruptedException, CoGrouperException {
+			System.out.println("Open group " + depth + " " + field);
+		}
+		
+		public void onCloseGroup(int depth, String field, ITuple lastElement,
+		    CoGrouperContext context, Collector collector) throws IOException, InterruptedException, CoGrouperException {
+			System.out.println("Close group " + depth + " " + field);
 		}
 	}
 	
@@ -87,6 +100,7 @@ public class TestMonoSource {
 		CoGrouper coGrouper = new CoGrouper(new Configuration());
 		coGrouper.addSourceSchema(usersSchema);
 		coGrouper.setGroupByFields("user_id","name");
+		coGrouper.setRollupFrom("user_id");
 		
 		coGrouper.setOrderBy(new SortBy().add("user_id",Order.ASC).add("name",Order.ASC).addSourceOrder(Order.ASC));
 		//coGrouper.setSecondaryOrderBy("usuarios", new Criteria().add("age",Order.ASC));

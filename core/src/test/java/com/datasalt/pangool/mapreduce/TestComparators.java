@@ -19,18 +19,11 @@
 //import com.datasalt.pangolin.thrift.test.A;
 //import com.datasalt.pangool.BaseTest;
 //import com.datasalt.pangool.CoGrouperConfig;
-//import com.datasalt.pangool.CoGrouperConfigBuilder;
+//
 //import com.datasalt.pangool.CoGrouperException;
 //import com.datasalt.pangool.Schema;
 //import com.datasalt.pangool.Schema.Field;
-//import com.datasalt.pangool.SchemaBuilder;
-//import com.datasalt.pangool.SortCriteria;
-//import com.datasalt.pangool.SortCriteria.SortElement;
-//import com.datasalt.pangool.SortCriteria.SortOrder;
-//import com.datasalt.pangool.Sorting;
-//import com.datasalt.pangool.SortingBuilder;
-//import com.datasalt.pangool.io.Serialization;
-//import com.datasalt.pangool.io.tuple.DoubleBufferedTuple;
+//import com.datasalt.pangool.io.HadoopSerialization;
 //import com.datasalt.pangool.io.tuple.ITuple;
 //import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 //import com.datasalt.pangool.io.tuple.Tuple;
@@ -44,28 +37,25 @@
 //public class TestComparators extends BaseTest {
 //
 //	private int MAX_RANDOM_SCHEMAS = 50;
-//	private Serialization ser;
+//	private HadoopSerialization ser;
 //
 //	@Test
 //	public void test() throws CoGrouperException, IOException {
 //		Random random = new Random();
 //		Configuration conf = getConf();
 //
-//		int maxIndex = SCHEMA.getFields().length - 1;
+//		int maxIndex = SCHEMA.getFields().size() - 1;
 //
 //		Map<String, Class> customComparators = new HashMap<String, Class>();
 //		customComparators.put("thrift_field", AComparator.class);
 //
 //		for(int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
-//
 //			Schema schema = permuteSchema(SCHEMA);
 //			Sorting sortCriteria = createRandomSortCriteria(schema, customComparators, maxIndex + 1);
 //			String[] groupFields = getFirstFields(sortCriteria.getCommonSortCriteria(), random.nextInt(sortCriteria.getCommonSortCriteria().getSortElements().length));
 //
-//			DoubleBufferedTuple base1 = new DoubleBufferedTuple(new Tuple(SCHEMA), new Tuple(SCHEMA));
-//			DoubleBufferedTuple base2 = new DoubleBufferedTuple(new Tuple(SCHEMA), new Tuple(SCHEMA));
-//
-//			DoubleBufferedTuple[] tuples = new DoubleBufferedTuple[] { base1, base2 };
+//			CoGrouperConfig config = new CoGrouperConfig();
+//			ITuple[] tuples = new ITuple[] { new Tuple(SCHEMA), new Tuple(SCHEMA) };
 //			for(ITuple tuple: tuples) {
 //				fillTuple(false, schema, tuple, 0, maxIndex);
 //			}
@@ -74,14 +64,14 @@
 //				/*
 //				 * Set everything into the Hadoop Conf.
 //				 */
-//				CoGrouperConfigBuilder builder = new CoGrouperConfigBuilder();
+//				
 //				builder.setGroupByFields(groupFields);
 //				builder.setSorting(sortCriteria);
 //				builder.addSchema(0, schema);
 //				CoGrouperConfig grouperConf = builder.build();
 //				CoGrouperConfig.set(grouperConf, conf);
 //				// grouperConf has changed -> we need a new Serialization object
-//				ser = new Serialization(conf);
+//				ser = new HadoopSerialization(conf);
 //				
 //				SortComparator sortComparator = new SortComparator();
 //				GroupComparator groupComparator = new GroupComparator();
@@ -167,7 +157,7 @@
 //	private static class AComparator implements RawComparator<com.datasalt.pangolin.thrift.test.A>, Configurable {
 //
 //		private Configuration conf;
-//		private Serialization ser;
+//		private HadoopSerialization ser;
 //
 //		private A cachedInstance1 = new A();
 //		private A cachedInstance2 = new A();
@@ -202,7 +192,7 @@
 //			if(conf != null) {
 //				this.conf = conf;
 //				try {
-//					this.ser = new Serialization(conf);
+//					this.ser = new HadoopSerialization(conf);
 //				} catch(IOException e) {
 //					throw new RuntimeException(e);
 //				}

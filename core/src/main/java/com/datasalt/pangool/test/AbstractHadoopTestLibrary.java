@@ -29,6 +29,8 @@ import org.junit.Before;
 
 import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.io.AvroUtils;
+import com.datasalt.pangool.io.HadoopSerialization;
+import com.datasalt.pangool.io.TupleInputFormat.TupleInputReader;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Tuple;
 
@@ -134,8 +136,8 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 
 	public void withTupleOutput(String output, ITuple tuple) throws IOException {
 		List<Pair<Object, Object>> outs = ensureTupleOutput(output);
-		for(Pair<Object, Object> out: outs) {
-			ITuple theTuple = (ITuple)out.getFirst();
+		for(Pair<Object, Object> out : outs) {
+			ITuple theTuple = (ITuple) out.getFirst();
 			if(theTuple.toString().equals(tuple.toString())) {
 				return;
 			}
@@ -176,21 +178,20 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 
 	public List<Pair<Object, Object>> ensureTupleOutput(String output) throws IOException {
 		List<Pair<Object, Object>> outs = outputs.get(output);
-		if(outs == null) {
-			outs = new ArrayList<Pair<Object, Object>>();
-			SpecificDatumReader<Record> specificReader = new SpecificDatumReader<Record>();
-			FsInput fSInput = new FsInput(new Path(output), getConf());
-			FileReader<Record> reader = DataFileReader.openReader(fSInput, specificReader);
-			AvroWrapper<Record> wrapper = new AvroWrapper<Record>();
-			while(reader.hasNext()) {
-				wrapper.datum(reader.next(wrapper.datum()));
-				Tuple tuple = null; //TODO fix this
-				AvroUtils.toTuple(wrapper.datum(), tuple, reader.getSchema());
-				outs.add(new Pair<Object, Object>(tuple, NullWritable.get()));
+		try {
+			if(outs == null) {
+				outs = new ArrayList<Pair<Object, Object>>();
+				TupleInputReader reader = new TupleInputReader(getConf());
+				reader.initialize(new Path(output), getConf());
+				while(reader.nextKeyValueNoSync()) {
+					ITuple tuple = reader.getCurrentKey();
+					outs.add(new Pair<Object, Object>(tuple, NullWritable.get()));
+				}
+				reader.close();
 			}
-			reader.close();
+		} catch(InterruptedException e) {
+			throw new IOException(e);
 		}
-
 		return outs;
 	}
 

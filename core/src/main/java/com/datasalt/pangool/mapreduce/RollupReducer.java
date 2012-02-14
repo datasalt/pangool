@@ -115,6 +115,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	@Override
 	public final void reduce(DatumWrapper<ITuple> key, Iterable<NullWritable> values, Context context) throws IOException,
 	    InterruptedException {
+		
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
@@ -157,9 +158,15 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	 * @return
 	 */
 	private int indexMismatch(ITuple tuple1, ITuple tuple2, int minFieldIndex, int maxFieldIndex) {
+		int sourceId1 = grouperConfig.getSourceIdByName(tuple1.getSchema().getName());
+		int sourceId2 = grouperConfig.getSourceIdByName(tuple2.getSchema().getName());
+		int[] translationTuple1 = serInfo.getGroupSchemaIndexTranslation(sourceId1);
+		int[] translationTuple2 = serInfo.getGroupSchemaIndexTranslation(sourceId2);
+		
+		//TODO this is completely inconsistent with Custom comparators!!! FIXX
 		for(int i = minFieldIndex; i <= maxFieldIndex; i++) {
-			Object obj1 = tuple1.get(i);
-			Object obj2 = tuple2.get(i);
+			Object obj1 = tuple1.get(translationTuple1[i]);
+			Object obj2 = tuple2.get(translationTuple2[i]);
 			if(obj1 instanceof byte[]) {
 				if(!Arrays.equals((byte[])obj1, (byte[])obj2)) { //TODO this not correct
 					return i;

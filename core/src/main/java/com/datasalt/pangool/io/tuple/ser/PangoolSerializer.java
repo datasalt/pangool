@@ -16,13 +16,13 @@ import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SerializationInfo;
-import com.datasalt.pangool.io.Serialization;
+import com.datasalt.pangool.io.HadoopSerialization;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 
-	private final Serialization ser;
+	private final HadoopSerialization ser;
 	
 	private DataOutputStream out;
 	private final CoGrouperConfig coGrouperConfig;
@@ -33,7 +33,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	private final SerializationInfo serInfo;
 	private final Schema commonSchema;
 	
-	public PangoolSerializer(Serialization ser,CoGrouperConfig grouperConfig) {
+	public PangoolSerializer(HadoopSerialization ser,CoGrouperConfig grouperConfig) {
 		this.ser = ser;
 		this.coGrouperConfig = grouperConfig;
 		this.serInfo = grouperConfig.getSerializationInfo();

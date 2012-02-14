@@ -34,11 +34,11 @@ import org.apache.hadoop.io.serializer.Serializer;
  * efficient.
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class Serialization {
+public class HadoopSerialization {
 
 	private SerializationFactory serialization;
 	
-	public Serialization(Configuration conf) throws IOException {
+	public HadoopSerialization(Configuration conf) throws IOException {
 		serialization = new SerializationFactory(conf);
 	}
 	
