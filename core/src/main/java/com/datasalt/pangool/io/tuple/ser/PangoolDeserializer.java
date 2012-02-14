@@ -113,7 +113,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			this.cachedTuples.swapInstances();
 		}
 
-		ITuple tuple = (multipleSources) ? deserializeMultipleSources() : deserializeOneSource(t.currentDatum());
+		ITuple tuple = (multipleSources) ? deserializeMultipleSources() : deserializeOneSource(t.datum());
 		t.datum(tuple);
 		
 		return t;
@@ -121,7 +121,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	
 	
 	private ITuple deserializeMultipleSources() throws IOException {
-		CachedTuples tuples = cachedTuples.currentDatum();
+		CachedTuples tuples = cachedTuples.datum();
 		ITuple commonTuple =tuples.commonTuple; 
 		readFields(commonTuple,in);
 		int sourceId = WritableUtils.readVInt(in);
@@ -147,7 +147,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	}
 	
 	private ITuple deserializeOneSource(ITuple reuse) throws IOException {
-		CachedTuples tuples = cachedTuples.currentDatum();
+		CachedTuples tuples = cachedTuples.datum();
 		ITuple commonTuple = tuples.commonTuple;
 		readFields(commonTuple,in);
 		if (reuse == null){
@@ -209,6 +209,8 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			}
 			Object ob = ser.deser(tuple.get(index), tmpInputBuffer.getBytes(), 0, size);
 			tuple.set(index, ob);
+		} else {
+			tuple.set(index,null); 
 		}
 	}
 	

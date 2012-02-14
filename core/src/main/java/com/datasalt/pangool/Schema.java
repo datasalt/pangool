@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -27,8 +28,6 @@ public class Schema {
 
 	static final JsonFactory FACTORY = new JsonFactory();
   static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
-
-  //private static final int NO_HASHCODE = Integer.MIN_VALUE;
 
   static {
     FACTORY.enable(JsonParser.Feature.ALLOW_COMMENTS);
@@ -70,6 +69,13 @@ public class Schema {
 		}
 
 		public Field(String name, Class<?> clazz) {
+			if (name == null){
+				throw new IllegalArgumentException("Field name can't be null");
+			}
+			
+			if (clazz == null){
+				throw new IllegalArgumentException("Field type can't be null");
+			}
 			this.name = name;
 			this.type = clazz;
 		}
@@ -78,12 +84,28 @@ public class Schema {
 			return type;
 		}
 
-		public String name() {
+		public String getName() {
 			return name;
 		}
 		
+		public boolean equals(Object a){
+			if (!(a instanceof Field)){
+				return false;
+			}
+			Field that = (Field)a;
+			return name.equals(that.getName()) && type.equals(that.getType());
+		}
+		
 		public String toString() {
-			return name + ":" + type;
+			try {
+	      StringWriter writer = new StringWriter();
+	      JsonGenerator gen = FACTORY.createJsonGenerator(writer);
+	      toJson(gen);
+	      gen.flush();
+	      return writer.toString();
+	    } catch (IOException e) {
+	      throw new RuntimeException(e);
+	    }
 		}
 		
 		static Field parse(JsonNode node) throws IOException {
@@ -98,7 +120,7 @@ public class Schema {
 		
 		void toJson(JsonGenerator gen) throws IOException {
 			gen.writeStartObject();
-      gen.writeStringField("name", name());
+      gen.writeStringField("name", getName());
       gen.writeStringField("type",getType().getName());
       gen.writeEndObject();
 		}
@@ -137,7 +159,7 @@ public class Schema {
 		
 		int index = 0;
 		for(Field field : this.fields) {
-			this.indexByFieldName.put(field.name(), index);
+			this.indexByFieldName.put(field.getName(), index);
 			index++;
 		}
 	}
@@ -161,28 +183,6 @@ public class Schema {
 
 	public Field getField(int i) {
 		return fields.get(i);
-	}
-
-	public String serialize() {
-		StringBuilder b = new StringBuilder();
-		b.append(name).append(";");
-		String fieldName = fields.get(0).name;
-		Class<?> fieldType = fields.get(0).type;
-		String clazzStr = classToStr(fieldType);
-		if(clazzStr == null) {
-			clazzStr = fieldType.getName();
-		}
-		b.append(fieldName).append(":").append(clazzStr);
-		for(int i = 1; i < fields.size(); i++) {
-			fieldName = fields.get(i).name;
-			fieldType = fields.get(i).type;
-			clazzStr = classToStr(fieldType);
-			if(clazzStr == null) {
-				clazzStr = fieldType.getName();
-			}
-			b.append(",").append(fieldName).append(":").append(clazzStr);
-		}
-		return b.toString();
 	}
 
 	public boolean containsFieldName(String fieldName) {
@@ -231,9 +231,10 @@ public class Schema {
   static Schema parse(JsonNode schema) throws IOException {
   	String name = schema.get("name").getTextValue();
   	List<Field> fields = new ArrayList<Field>();
-  	JsonNode fieldsNode =schema.get("fields"); 
-  	while(fieldsNode.getElements().hasNext()){
-  		JsonNode fieldNode = fieldsNode.getElements().next();
+  	JsonNode fieldsNode =schema.get("fields");
+  	Iterator<JsonNode> fieldsNodes = fieldsNode.getElements();
+  	while(fieldsNodes.hasNext()){
+  		JsonNode fieldNode = fieldsNodes.next();
   		fields.add(Field.parse(fieldNode));
   		
   	}

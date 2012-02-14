@@ -88,7 +88,7 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			grouperIterator.setIterator(iterator);
 
 			// We get the firts tuple, to create the groupTuple view
-			ITuple firstTupleGroup = key.currentDatum();
+			ITuple firstTupleGroup = key.datum();
 
 			// A view is created over the first tuple to give the user the group fields
 			groupTuple.setDelegatedTuple(firstTupleGroup);

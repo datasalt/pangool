@@ -88,9 +88,9 @@ public class AvroUtils {
 			} else {
 				// Complex types
 				fieldsSchema = org.apache.avro.Schema.create(Type.BYTES);
-				complexTypesMetadata.put(field.name(), field.getType().getName());
+				complexTypesMetadata.put(field.getName(), field.getType().getName());
 			}
-			avroFields.add(new org.apache.avro.Schema.Field(field.name(), fieldsSchema, null, null));
+			avroFields.add(new org.apache.avro.Schema.Field(field.getName(), fieldsSchema, null, null));
 		}
 
 		org.apache.avro.Schema avroSchema = org.apache.avro.Schema.createRecord(pangoolSchema.getName(), null, null, false);
@@ -110,15 +110,15 @@ public class AvroUtils {
 				obj = new Utf8(((Text) obj).toString()).toString();
 			}
 			Field field = pangoolSchema.getField(i);
-			String clazz = avroSchema.getProp(pangoolSchema.getField(i).name());
+			String clazz = avroSchema.getProp(pangoolSchema.getField(i).getName());
 			if(clazz != null) {
 				tmpOutputBuffer.reset();
 				ser.ser(obj, tmpOutputBuffer);
 				byte[] toSet = new byte[tmpOutputBuffer.getLength()];
 				System.arraycopy(tmpOutputBuffer.getData(), 0, toSet, 0, tmpOutputBuffer.getLength());
-				record.put(field.name(), toSet);
+				record.put(field.getName(), toSet);
 			} else {
-				record.put(field.name(), obj);
+				record.put(field.getName(), obj);
 			}
 		}
 	}

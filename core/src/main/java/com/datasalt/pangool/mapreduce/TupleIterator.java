@@ -56,7 +56,7 @@ public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>,
 	@Override
   public ITuple next() {
 			iterator.next(); //advances one key
-			return context.getCurrentKey().currentDatum();
+			return context.getCurrentKey().datum();
   }
 
 	@Override

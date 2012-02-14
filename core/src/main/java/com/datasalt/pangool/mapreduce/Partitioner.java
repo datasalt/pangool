@@ -22,7 +22,7 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 	
 	@Override
 	public int getPartition(DatumWrapper<ITuple> key, NullWritable value, int numPartitions) {
-		ITuple tuple = key.currentDatum();
+		ITuple tuple = key.datum();
 		String sourceName = tuple.getSchema().getName();
 		int sourceId = grouperConfig.getSourceIdByName(sourceName);
 		int[] fieldsToPartition = serInfo.getFieldsToPartition().get(sourceId);

@@ -50,7 +50,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	}
 
 	public void serialize(DatumWrapper<ITuple> wrapper) throws IOException {
-		ITuple tuple = wrapper.currentDatum();
+		ITuple tuple = wrapper.datum();
 		//TODO check that schema is valid
 		if (isMultipleSources){
 			multipleSourcesSerialization(tuple);
@@ -95,7 +95,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	private void write(Schema destinationSchema, ITuple tuple,int[] translationTable, DataOutput output) throws IOException {
 		for(int i=0; i < destinationSchema.getFields().size(); i++) {
 			Field field = destinationSchema.getField(i);
-			String fieldName = field.name();
+			String fieldName = field.getName();
 			Class<?> fieldType = field.getType();
 			Object element = tuple.get(translationTable[i]);
 			try {

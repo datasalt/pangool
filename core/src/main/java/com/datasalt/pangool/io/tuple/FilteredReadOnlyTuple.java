@@ -30,7 +30,7 @@ public class FilteredReadOnlyTuple implements ITuple {
 	@Override
   public Object get(int pos) {
 		Field field = schema.getField(pos);
-		return (field == null) ? null : delegated.get(field.name());//TODO this needs to be accesssed directly with translation table
+		return (field == null) ? null : delegated.get(field.getName());//TODO this needs to be accesssed directly with translation table
   }
 
 	@Override

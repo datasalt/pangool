@@ -104,7 +104,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 
 			// close last group
 			for(int i = maxDepth; i >= minDepth; i--) {
-				handler.onCloseGroup(i, groupByFields.get(i), context.getCurrentKey().currentDatum(), this.context, collector);
+				handler.onCloseGroup(i, groupByFields.get(i), context.getCurrentKey().datum(), this.context, collector);
 			}
 			cleanup(context);
 		} catch(CoGrouperException e) {
@@ -119,7 +119,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
-			ITuple currentTuple = key.currentDatum();
+			ITuple currentTuple = key.datum();
 			int indexMismatch;
 			if(firstIteration) {
 				indexMismatch = minDepth;

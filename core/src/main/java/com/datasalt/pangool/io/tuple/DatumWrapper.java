@@ -9,12 +9,16 @@ public class DatumWrapper<T> {
 		this.currentDatum = datum;
 	}
 	
+	public DatumWrapper(T current,T previous){
+		this.currentDatum = current;
+		this.previousDatum = previous;
+	}
+	
 	public DatumWrapper(){
 		
 	}
 	
-	
-	public T currentDatum(){
+	public T datum(){
 		return currentDatum;
 	}
 	
@@ -34,12 +38,10 @@ public class DatumWrapper<T> {
 	
 	@Override
 	public String toString(){
-		if (currentDatum != null){
-			return currentDatum.toString();
-		} else {
-			return "";
-		}
+		StringBuilder b = new StringBuilder();
+		b.append("{ current:").append(currentDatum);
+		b.append("\n  previous:").append(previousDatum);
+		b.append("}");
+		return b.toString();
 	}
-	
-	
 }

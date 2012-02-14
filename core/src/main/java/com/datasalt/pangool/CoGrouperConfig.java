@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.Criteria.Order;
@@ -18,6 +20,16 @@ public class CoGrouperConfig {
 
 	private final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
 
+	static final JsonFactory FACTORY = new JsonFactory();
+  static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
+
+  //private static final int NO_HASHCODE = Integer.MIN_VALUE;
+
+  static {
+    FACTORY.enable(JsonParser.Feature.ALLOW_COMMENTS);
+    FACTORY.setCodec(MAPPER);
+  }
+	
 	private Criteria commonSortBy;
 	
 	private List<String> sourceNames=new ArrayList<String>();

@@ -96,7 +96,7 @@ public class SerializationInfo {
 
 		//adding the rest
 			for (Field field : sourceSchema.getFields()){
-				if (!containsFieldName(field.name(),commonFields)){
+				if (!containsFieldName(field.getName(),commonFields)){
 					commonFields.add(field);
 				}
 			}
@@ -121,10 +121,12 @@ public class SerializationInfo {
 		for (int sourceId=0 ; sourceId < grouperConfig.getNumSources(); sourceId++){
 			Criteria specificCriteria = grouperConfig.getSecondarySortBys().get(sourceId);
 			List<Field> specificFields = new ArrayList<Field>();
-			for (SortElement sortElement : specificCriteria.getElements()){
-				String fieldName = sortElement.getName();
-				Class<?> fieldType = checkFieldInSource(fieldName, sourceId);
-				specificFields.add(new Field(fieldName,fieldType));
+			if (specificCriteria != null){
+				for (SortElement sortElement : specificCriteria.getElements()){
+					String fieldName = sortElement.getName();
+					Class<?> fieldType = checkFieldInSource(fieldName, sourceId);
+					specificFields.add(new Field(fieldName,fieldType));
+				}
 			}
 			specificFieldsBySource.add(specificFields);
 		}
@@ -133,7 +135,7 @@ public class SerializationInfo {
 			Schema sourceSchema = grouperConfig.getSourceSchema(i);
 			List<Field> specificFields = specificFieldsBySource.get(i);
 			for (Field field : sourceSchema.getFields()){
-				if (!commonSchema.containsFieldName(field.name()) && !containsFieldName(field.name(),specificFields)){
+				if (!commonSchema.containsFieldName(field.getName()) && !containsFieldName(field.getName(),specificFields)){
 					specificFields.add(field);
 				}
 			}
@@ -147,7 +149,7 @@ public class SerializationInfo {
 	
 	private boolean containsFieldName(String fieldName,List<Field> fields){
 		for (Field field : fields){
-			if (field.name().equals(fieldName)){
+			if (field.getName().equals(fieldName)){
 				return true;
 			}
 		}
@@ -217,7 +219,7 @@ public class SerializationInfo {
 	public static final int[] getIndexTranslation(Schema source,Schema dest){
 		int[] result = new int[source.getFields().size()];
 		for (int i=0 ; i < result.length ; i++){
-			String fieldName = source.getField(i).name();
+			String fieldName = source.getField(i).getName();
 			int destPos = dest.getFieldPos(fieldName);
 			result[i] = destPos;
 		}

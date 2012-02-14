@@ -17,6 +17,8 @@ package com.datasalt.pangool.io.tuple;
 
 import java.io.Serializable;
 
+import org.apache.hadoop.io.Text;
+
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 
@@ -33,23 +35,8 @@ public class Tuple implements ITuple,Serializable {
 		this.schema = schema;
 		int size = schema.getFields().size();
 		this.array = new Object[size];
-//		if (initializeTexts){
-//			initializeTexts(schema);
-//		}
 	}
-	
-//	private void initializeTexts(Schema schema){
-//		for (int i=0 ; i < schema.getFields().size() ; i++){
-//			if (schema.getField(i).getType() == String.class){
-//				set(i,new Text());
-//			}
-//		}
-//	}
-	
-//	public Tuple(Schema schema){
-//		this(schema,false);
-//	}
-	
+
 	@Override
 	public Object get(int pos) {
 		return array[pos];
@@ -71,7 +58,7 @@ public class Tuple implements ITuple,Serializable {
 		b.append("{");
 		for (int i = 0 ; i < schema.getFields().size() ; i++){
 			Field f = schema.getField(i);
-			b.append("\"").append(f.name()).append("\"").append(":").append("\"").append(tuple.get(i)).append("\"").append(" , ");
+			b.append("\"").append(f.getName()).append("\"").append(":").append("\"").append(tuple.get(i)).append("\"").append(" , ");
 		}
 		String str = b.toString();
 		//nasty
@@ -81,11 +68,9 @@ public class Tuple implements ITuple,Serializable {
 
 	@Override
   public void clear() {
-		if (array!= null){
 			for (int i=0 ; i < array.length ; i++){
 				array[i] = null;
 			}
-		}
   }
 
 	@Override
@@ -102,4 +87,36 @@ public class Tuple implements ITuple,Serializable {
   public void set(String field, Object object) {
 	  set(schema.getFieldPos(field),object);
   }
+	
+	public boolean equals(Object that){
+		if (!(that instanceof ITuple)){
+			return false;
+		}
+		boolean schemaEquals = this.schema.equals(((ITuple)that).getSchema());
+		if (!schemaEquals){
+			return false;
+		}
+		
+		for (int i=0 ; i < array.length; i++){
+			Object o1 = get(i);
+			Object o2 = ((ITuple)that).get(i);
+			if (o1 == null){
+				if (o2 != null){
+					return false;
+				}
+			} else {
+				if (o1 instanceof Text){
+					o1 = o1.toString();
+				}
+				if (o2 != null && o2 instanceof Text){
+					o2 = o2.toString();
+				}
+				if (!o1.equals(o2)){
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
 }

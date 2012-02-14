@@ -107,15 +107,15 @@ public abstract class BaseTest extends AbstractBaseTest {
 		
 		wrapper2 = ser.deser(wrapper2, input);
 		if(debug) {
-			System.out.println("D:" + wrapper2.currentDatum());
+			System.out.println("D:" + wrapper2.datum());
 		}
-		assertEquals(tuple, wrapper2.currentDatum());
+		assertEquals(tuple, wrapper2.datum());
 	}
 	
-	protected static void assertSerializable(CoGrouperConfig config,ITuple tuple,boolean debug) throws IOException {
-		//HadoopSerialization hadoopSerialization = new HadoopSerialization(conf)
-		PangoolSerialization serialization = new PangoolSerialization();
-	}
+//	protected static void assertSerializable(CoGrouperConfig config,ITuple tuple,boolean debug) throws IOException {
+//		//HadoopSerialization hadoopSerialization = new HadoopSerialization(conf)
+//		PangoolSerialization serialization = new PangoolSerialization();
+//	}
 	
 	protected static void assertSerializable(PangoolSerialization serialization,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
 		
@@ -140,9 +140,9 @@ public abstract class BaseTest extends AbstractBaseTest {
 		deser.close();
 		
 		if(debug) {
-			System.out.println("D:" + deserializedTuple.currentDatum());
+			System.out.println("D:" + deserializedTuple.datum());
 		}
-		assertEquals(tuple, deserializedTuple.currentDatum());
+		assertEquals(tuple.datum(), deserializedTuple.datum());
 	}
 
 }
