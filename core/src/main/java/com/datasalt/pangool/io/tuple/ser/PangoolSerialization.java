@@ -46,7 +46,7 @@ import com.datasalt.pangool.io.tuple.ITuple;
 public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>, Configurable {
 
 	private Configuration conf;
-	private com.datasalt.pangool.io.Serialization ser;
+	private com.datasalt.pangool.io.HadoopSerialization ser;
 	private CoGrouperConfig pangoolConfig;
 
 	public PangoolSerialization() {
@@ -72,7 +72,7 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 				disableSerialization(this.conf);
 
 				this.pangoolConfig = CoGrouperConfig.get(conf);
-				this.ser = new com.datasalt.pangool.io.Serialization(this.conf);
+				this.ser = new com.datasalt.pangool.io.HadoopSerialization(this.conf);
 			}
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);

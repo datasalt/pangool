@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.apache.hadoop.io.DataInputBuffer;
@@ -11,29 +13,35 @@ import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.util.ReflectionUtils;
-import org.junit.Before;
 
 import com.datasalt.pangolin.thrift.test.A;
-import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.Criteria.Order;
-import com.datasalt.pangool.io.Serialization;
+import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.io.HadoopSerialization;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.test.AbstractBaseTest;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public abstract class BaseTest extends AbstractBaseTest {
 
-	public static Schema SCHEMA;
-
-	@Before
-	public void prepareBaseSchema() throws CoGrouperException, IOException, InvalidFieldException {
-		SCHEMA = Schema.parse("int_field:int," + "long_field:long," + "vint_field:vint," + "vlong_field:vlong,"
-		    + "float_field:float," + "double_field:double," + "string_field:string," + "boolean_field:boolean,"
-		    + "enum_field:" + Order.class.getName() + "," + "thrift_field:" + A.class.getName());
+	public final static  Schema SCHEMA;
+	
+	static{
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(new Field("int_field",Integer.class));
+		fields.add(new Field("string_field",String.class));
+		fields.add(new Field("vint_field",VIntWritable.class));
+		fields.add(new Field("vlong_field",VLongWritable.class));
+		fields.add(new Field("float_field",Float.class));
+		fields.add(new Field("double_field",Double.class));
+		fields.add(new Field("boolean_field",Boolean.class));
+		fields.add(new Field("enum_field",Order.class));
+		fields.add(new Field("thrift_field",A.class));
+		SCHEMA = new Schema("schema",fields);
 	}
 
+	
 	/**
 	 * Fills the fields specified by the range (minIndex, maxIndex) with random data.
 	 * 
@@ -79,7 +87,7 @@ public abstract class BaseTest extends AbstractBaseTest {
 		}
 	}
 
-	protected void assertSerializable(Serialization ser,ITuple tuple, boolean debug) throws IOException {
+	protected void assertSerializable(HadoopSerialization ser,ITuple tuple, boolean debug) throws IOException {
 
 		DataInputBuffer input = new DataInputBuffer();
 		DataOutputBuffer output = new DataOutputBuffer();

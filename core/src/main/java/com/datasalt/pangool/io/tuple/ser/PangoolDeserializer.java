@@ -36,7 +36,7 @@ import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SerializationInfo;
 import com.datasalt.pangool.io.Buffer;
-import com.datasalt.pangool.io.Serialization;
+import com.datasalt.pangool.io.HadoopSerialization;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Tuple;
@@ -47,7 +47,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private final CoGrouperConfig coGrouperConf;
 	private final SerializationInfo serInfo;
 	private  DataInputStream in;
-	private final Serialization ser;
+	private final HadoopSerialization ser;
 	private final boolean isRollup;
 	private final boolean multipleSources;
 	private final Map<Class<?>, Enum<?>[]> cachedEnums;
@@ -57,7 +57,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private final List<ITuple> specificTuples=new ArrayList<ITuple>();
 	private final List<ITuple> sourceTuples = new ArrayList<ITuple>();
 
-	public PangoolDeserializer(Serialization ser, CoGrouperConfig grouperConfig) {
+	public PangoolDeserializer(HadoopSerialization ser, CoGrouperConfig grouperConfig) {
 		this.coGrouperConf = grouperConfig;
 		this.serInfo = coGrouperConf.getSerializationInfo();
 		this.ser = ser;
