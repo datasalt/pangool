@@ -136,9 +136,8 @@ public class AvroUtils {
 			} else if(obj instanceof ByteBuffer) {
 				String clazz = avroSchema.getProp(field.name());
 				if(clazz != null) {
-					if(tuple.get(index) == null) {
-						tuple.set(index, ReflectionUtils.newInstance(Class.forName(clazz), conf));
-					}
+					// TODO Should we reuse the custom object? Maybe the user doesn't have deepCopy implemented when it needs it
+					tuple.set(index, ReflectionUtils.newInstance(Class.forName(clazz), conf));
 					ByteBuffer byteBuffer = (ByteBuffer)obj;
 					byte[] bytes = byteBuffer.array();
 					ser.deser(tuple.get(index), bytes, 0, bytes.length);
