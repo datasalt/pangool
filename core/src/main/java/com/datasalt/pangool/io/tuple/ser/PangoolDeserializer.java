@@ -53,9 +53,9 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private final Map<Class<?>, Enum<?>[]> cachedEnums;
 
 	private final Buffer tmpInputBuffer = new Buffer();
-	private final ITuple commonTuple;
-	private final List<ITuple> specificTuples=new ArrayList<ITuple>();
-	private final DatumWrapper<List<ITuple>> sourceTuples = new DatumWrapper<List<ITuple>>();
+	private final DatumWrapper<ITuple> commonTupleWrapper = new DatumWrapper<ITuple>();
+	private final DatumWrapper<List<ITuple>> specificTuplesWrapper=new DatumWrapper<List<ITuple>>();
+	private final DatumWrapper<List<ITuple>> sourceTuplesWrapper = new DatumWrapper<List<ITuple>>();
 
 	public PangoolDeserializer(HadoopSerialization ser, CoGrouperConfig grouperConfig) {
 		this.coGrouperConf = grouperConfig;
@@ -65,17 +65,26 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		this.isRollup = coGrouperConf.getRollupFrom() != null && !coGrouperConf.getRollupFrom().isEmpty();
 		this.multipleSources = coGrouperConf.getNumSources() >= 2;
 		Schema commonSchema = serInfo.getCommonSchema();
-		this.commonTuple = new Tuple(commonSchema); 
+		this.commonTupleWrapper.datum(new Tuple(commonSchema)); 
 		
 		initializeSourceTuples();
-		sourceTuples.doDoubleBuffering();
+		sourceTuplesWrapper.swapInstances();
 		initializeSourceTuples(); //fill instances for double buffering
 		
 		
 		if (multipleSources){
+			List<ITuple> tuples = new ArrayList<ITuple>();
 			for(Schema specificSchema : serInfo.getSpecificSchemas()){
-				specificTuples.add(new Tuple(specificSchema));
+				tuples.add(new Tuple(specificSchema));
 			}
+			
+			specificTuplesWrapper.datum(tuples);
+			specificTuplesWrapper.swapInstances();
+			tuples = new ArrayList<ITuple>();
+			for(Schema specificSchema : serInfo.getSpecificSchemas()){
+				tuples.add(new Tuple(specificSchema));
+			}
+			specificTuplesWrapper.datum(tuples);
 		} 
 	}
 	
@@ -84,7 +93,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		for (Schema sourceSchema : coGrouperConf.getSourceSchemas()){
 			tuples.add(new Tuple(sourceSchema));
 		}
-		sourceTuples.datum(tuples);
+		sourceTuplesWrapper.datum(tuples);
 	}
 
 	@Override
@@ -102,8 +111,10 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			t = new DatumWrapper<ITuple>();
 		}
 		if(isRollup) {
-			t.doDoubleBuffering();
-			sourceTuples.doDoubleBuffering();
+			t.swapInstances();
+			sourceTuplesWrapper.swapInstances();
+			commonTupleWrapper.swapInstances();
+			specificTuplesWrapper.swapInstances(); //TODO this 3 swapInstances could be grouped in the same structure
 		}
 
 		ITuple tuple = (multipleSources) ? deserializeMultipleSources() : deserializeOneSource(t.currentDatum());
@@ -114,11 +125,12 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	
 	
 	private ITuple deserializeMultipleSources() throws IOException {
+		ITuple commonTuple =this.commonTupleWrapper.currentDatum(); 
 		readFields(commonTuple,in);
 		int sourceId = WritableUtils.readVInt(in);
-		ITuple specificTuple = specificTuples.get(sourceId);
+		ITuple specificTuple = specificTuplesWrapper.currentDatum().get(sourceId);
 		readFields(specificTuple,in);
-		ITuple result = sourceTuples.currentDatum().get(sourceId);
+		ITuple result = sourceTuplesWrapper.currentDatum().get(sourceId);
 		mixIntermediateIntoResult(commonTuple,specificTuple,result,sourceId);
 		return result;
 	}
@@ -138,9 +150,10 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	}
 	
 	private ITuple deserializeOneSource(ITuple reuse) throws IOException {
+		ITuple commonTuple = commonTupleWrapper.currentDatum();
 		readFields(commonTuple,in);
 		if (reuse == null){
-			reuse = sourceTuples.currentDatum().get(0);
+			reuse = sourceTuplesWrapper.currentDatum().get(0);
 		}
 		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(0); //just one common schema
 		for (int i =0 ; i < commonTranslation.length ; i++){
