@@ -30,7 +30,7 @@ public class ConfigBuilder {
 	}
 	
 	public void setRollupFrom(String rollupFrom) {
-		if (rollupFrom != null){
+		if (this.rollupFrom != null){
 			throw new UnsupportedOperationException("Rollup was already set : " + rollupFrom);
 		}
 		this.rollupFrom = rollupFrom;
