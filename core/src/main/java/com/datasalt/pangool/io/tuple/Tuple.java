@@ -105,6 +105,9 @@ public class Tuple implements ITuple,Serializable {
 					return false;
 				}
 			} else {
+				//TODO this special case shouldn't be treated here.Tuples don't care about Texts or Strings. 
+				//Create a new equals method outside that takes in consideration 
+				//this particular case concerning Serialization/deser
 				if (o1 instanceof Text){
 					o1 = o1.toString();
 				}

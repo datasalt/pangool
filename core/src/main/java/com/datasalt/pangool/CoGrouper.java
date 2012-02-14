@@ -93,72 +93,63 @@ public class CoGrouper extends ConfigBuilder{
 		this.conf = conf;
 	}
 
-
-	public CoGrouper setJarByClass(Class<?> jarByClass) {
+	public void setJarByClass(Class<?> jarByClass) {
 		this.jarByClass = jarByClass;
-		return this;
 	}
 
-	public CoGrouper addTupleInput(Path path, InputProcessor<ITuple, NullWritable> inputProcessor) {
+	public void addTupleInput(Path path, InputProcessor<ITuple, NullWritable> inputProcessor) {
 		this.multiInputs.add(new Input(path, TupleInputFormat.class, inputProcessor));
 		AvroUtils.addAvroSerialization(conf);
-		return this;
+		
 	}
 
-	public CoGrouper addInput(Path path, Class<? extends InputFormat> inputFormat, InputProcessor inputProcessor) {
+	public void addInput(Path path, Class<? extends InputFormat> inputFormat, InputProcessor inputProcessor) {
 		this.multiInputs.add(new Input(path, inputFormat, inputProcessor));
-		return this;
 	}
 
-	public CoGrouper setCombinerHandler(CombinerHandler combinerHandler) {
+	public void setCombinerHandler(CombinerHandler combinerHandler) {
 		this.combinerHandler = combinerHandler;
-		return this;
 	}
 
-	public CoGrouper setOutput(Path outputPath, Class<? extends OutputFormat> outputFormat, Class<?> outputKeyClass,
+	public void setOutput(Path outputPath, Class<? extends OutputFormat> outputFormat, Class<?> outputKeyClass,
 	    Class<?> outputValueClass) {
 		this.outputFormat = outputFormat;
 		this.outputKeyClass = outputKeyClass;
 		this.outputValueClass = outputValueClass;
 		this.outputPath = outputPath;
-		return this;
 	}
 
-	public CoGrouper setTupleOutput(Path outputPath, Schema schema) {
+	public void setTupleOutput(Path outputPath, Schema schema) {
 		this.outputPath = outputPath;
 		this.outputFormat = TupleOutputFormat.class;
 		this.outputKeyClass = ITuple.class;
 		this.outputValueClass = NullWritable.class;
 		conf.set(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, schema.toString());
 		AvroUtils.addAvroSerialization(conf);
-		return this;
 	}
 
-	public CoGrouper setGroupHandler(GroupHandler groupHandler) {
+	public void setGroupHandler(GroupHandler groupHandler) {
 		this.grouperHandler = groupHandler;
-		return this;
 	}
 
-	public CoGrouper addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
+	public void addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
 	    Class valueClass) throws CoGrouperException {
-		return addNamedOutput(namedOutput, outputFormatClass, keyClass, valueClass, null);
+		 addNamedOutput(namedOutput, outputFormatClass, keyClass, valueClass, null);
 	}
 
-	public CoGrouper addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
+	public void addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
 	    Class valueClass, Map<String, String> specificContext) throws CoGrouperException {
 		validateNamedOutput(namedOutput);
 		namedOutputs.add(new Output(namedOutput, outputFormatClass, keyClass, valueClass, specificContext));
-		return this;
 	}
 
-	public CoGrouper addNamedTupleOutput(String namedOutput, Schema outputSchema) throws CoGrouperException {
+	public void addNamedTupleOutput(String namedOutput, Schema outputSchema) throws CoGrouperException {
 		validateNamedOutput(namedOutput);
 		Map<String, String> specificContext = new HashMap<String, String>();
 		specificContext.put(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, outputSchema.toString());
 		Output output = new Output(namedOutput, TupleOutputFormat.class, ITuple.class, NullWritable.class, specificContext);
 		AvroUtils.addAvroSerialization(conf);
 		namedOutputs.add(output);
-		return this;
 	}
 
 	private void validateNamedOutput(String namedOutput) throws CoGrouperException {
