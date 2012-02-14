@@ -11,6 +11,7 @@ import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -59,8 +60,8 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
 			// Convert Tuple to Record
 			for(int i = 0; i < pangoolSchema.getFields().size(); i++) {
 				Object obj = tuple.get(i);
-				if(obj instanceof byte[]) {
-					obj = new Utf8((byte[])obj).toString();
+				if(obj instanceof Text) {
+					obj = new Utf8(((Text)obj).toString()).toString();
 				}
 				record.put(pangoolSchema.getField(i).name(), obj);
 			}

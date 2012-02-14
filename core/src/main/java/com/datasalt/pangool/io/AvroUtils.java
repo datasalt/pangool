@@ -2,7 +2,9 @@ package com.datasalt.pangool.io;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData.Record;
@@ -16,7 +18,6 @@ import org.apache.hadoop.io.VLongWritable;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Tuple;
 
 public class AvroUtils {
 
@@ -30,6 +31,7 @@ public class AvroUtils {
 
 	public static org.apache.avro.Schema toAvroSchema(Schema pangoolSchema) {
 		List<org.apache.avro.Schema.Field> avroFields = new ArrayList<org.apache.avro.Schema.Field>();
+		Map<String, String> complexTypesMetadata = new HashMap<String, String>();
 		for(Field field : pangoolSchema.getFields()) {
 			org.apache.avro.Schema fieldsSchema = null;
 			if(field.getType().equals(String.class)) {
@@ -48,12 +50,18 @@ public class AvroUtils {
 				fieldsSchema = org.apache.avro.Schema.create(Type.DOUBLE);
 			} else if(field.getType().equals(Boolean.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.BOOLEAN);
+			} else {
+				// Complex types
+				fieldsSchema = org.apache.avro.Schema.create(Type.BYTES);
+				complexTypesMetadata.put(field.name(), field.getClass().getName());
 			}
-			// TODO Complex types
 			avroFields.add(new org.apache.avro.Schema.Field(field.name(), fieldsSchema, null, null));
 		}
 
 		org.apache.avro.Schema avroSchema = org.apache.avro.Schema.createRecord("pangool", null, null, false);
+		for(Map.Entry<String, String> props: complexTypesMetadata.entrySet()) {
+			avroSchema.addProp(props.getKey(), props.getValue());
+		}
 		avroSchema.setFields(avroFields);
 		return avroSchema;
 	}

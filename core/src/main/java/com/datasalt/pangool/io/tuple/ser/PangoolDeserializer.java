@@ -105,9 +105,10 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			t.doDoubleBuffering();
 			sourceTuples.doDoubleBuffering();
 		}
-		
+
 		ITuple tuple = (multipleSources) ? deserializeMultipleSources() : deserializeOneSource(t.currentDatum());
 		t.datum(tuple);
+		
 		return t;
 	}
 	

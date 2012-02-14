@@ -115,6 +115,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	@Override
 	public final void reduce(DatumWrapper<ITuple> key, Iterable<NullWritable> values, Context context) throws IOException,
 	    InterruptedException {
+		
+		System.out.println("Reduce: " + key);
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
