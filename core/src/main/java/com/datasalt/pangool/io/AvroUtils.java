@@ -101,6 +101,9 @@ public class AvroUtils {
 		return avroSchema;
 	}
 
+	/**
+	 * Moves data between a Tuple and an Avro Record 
+	 */
 	public static void toRecord(Schema pangoolSchema, org.apache.avro.Schema avroSchema, ITuple tuple, Record record,
 	    DataOutputBuffer tmpOutputBuffer, HadoopSerialization ser) throws IOException {
 		// Convert Tuple to Record
@@ -114,15 +117,17 @@ public class AvroUtils {
 			if(clazz != null) {
 				tmpOutputBuffer.reset();
 				ser.ser(obj, tmpOutputBuffer);
-				byte[] toSet = new byte[tmpOutputBuffer.getLength()];
-				System.arraycopy(tmpOutputBuffer.getData(), 0, toSet, 0, tmpOutputBuffer.getLength());
-				record.put(field.getName(), toSet);
+				ByteBuffer buffer = ByteBuffer.wrap(tmpOutputBuffer.getData(),0,tmpOutputBuffer.getLength());
+				record.put(field.getName(), buffer);
 			} else {
 				record.put(field.getName(), obj);
 			}
 		}
 	}
 
+	/**
+	 * Moves data between a Record and a Tuple 
+	 */
 	public static void toTuple(Record record, ITuple tuple, org.apache.avro.Schema avroSchema, Configuration conf, HadoopSerialization ser) throws ClassNotFoundException, IOException {
 		int index = 0;
 		for(org.apache.avro.Schema.Field field : avroSchema.getFields()) {
@@ -136,8 +141,9 @@ public class AvroUtils {
 			} else if(obj instanceof ByteBuffer) {
 				String clazz = avroSchema.getProp(field.name());
 				if(clazz != null) {
-					// TODO Should we reuse the custom object? Maybe the user doesn't have deepCopy implemented when it needs it
-					tuple.set(index, ReflectionUtils.newInstance(Class.forName(clazz), conf));
+					if(tuple.get(index) == null) {
+						tuple.set(index, ReflectionUtils.newInstance(Class.forName(clazz), conf));
+					}
 					ByteBuffer byteBuffer = (ByteBuffer)obj;
 					byte[] bytes = byteBuffer.array();
 					ser.deser(tuple.get(index), bytes, 0, bytes.length);
