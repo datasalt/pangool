@@ -8,6 +8,8 @@ import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.mapred.AvroWrapper;
 import org.apache.avro.mapred.FsInput;
 import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
@@ -26,13 +28,17 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> {
 		private FileReader<Record> reader;
 		private long start;
 		private long end;
+		private HadoopSerialization ser;
+		private Configuration conf;
 
 		Tuple tuple;
 		AvroWrapper<Record> wrapper;
 
-		protected TupleInputReader() throws IOException, InterruptedException {
+		public TupleInputReader(Configuration conf) throws IOException, InterruptedException {
 			specificReader = new SpecificDatumReader<Record>();
 			wrapper = new AvroWrapper<Record>();
+			this.conf = conf;
+			this.ser = new HadoopSerialization(conf);
 		}
 
 		@Override
@@ -52,42 +58,67 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> {
 
 		@Override
 		public float getProgress() throws IOException, InterruptedException {
-	    if (end == start) {
-	      return 0.0f;
-	    } else {
-	      return Math.min(1.0f, (getPos() - start) / (float)(end - start));
-	    }
+			if(end == start) {
+				return 0.0f;
+			} else {
+				return Math.min(1.0f, (getPos() - start) / (float) (end - start));
+			}
 		}
 
-	  public long getPos() throws IOException {
-	    return reader.tell();
-	  }
-	  
+		public long getPos() throws IOException {
+			return reader.tell();
+		}
+
 		@Override
 		public void initialize(InputSplit split, TaskAttemptContext arg1) throws IOException, InterruptedException {
-			FileSplit fileSplit = (FileSplit)split;
-			
-			FsInput fSInput = new FsInput(fileSplit.getPath(), arg1.getConfiguration());
-			reader = DataFileReader.openReader(fSInput, specificReader);
-			
+			FileSplit fileSplit = (FileSplit) split;
+			initialize(fileSplit.getPath(), arg1.getConfiguration());
 			reader.sync(fileSplit.getStart()); // sync to start
 			this.start = reader.tell();
 			this.end = fileSplit.getStart() + split.getLength();
 		}
 
-		@Override
-		public boolean nextKeyValue() throws IOException, InterruptedException {
-			if(!reader.hasNext() || reader.pastSync(end))
+		/*
+		 * To be used when used externally
+		 */
+		public void initialize(Path path, Configuration conf) throws IOException {
+			FsInput fSInput = new FsInput(path, conf);
+			reader = DataFileReader.openReader(fSInput, specificReader);
+			end = Long.MAX_VALUE;
+			reader.sync(0);
+			start = reader.tell();
+		}
+		
+		/*
+		 * To be used when used externally
+		 */
+		public boolean nextKeyValueNoSync() throws IOException {
+			if(!reader.hasNext()) {
 				return false;
-						
+			}
 			wrapper.datum(reader.next(wrapper.datum()));
 			if(tuple == null) {
-				//TODO convert schema from FileReader to pangool Schema
-				//tuple = new Tuple(reader.getSchema());
+				try {
+					// Convert schema from FileReader to pangool Schema
+					tuple = new Tuple(AvroUtils.toPangoolSchema(reader.getSchema()));
+				} catch(ClassNotFoundException e) {
+					throw new IOException(e);
+				}
 			}
-			AvroUtils.toTuple(wrapper.datum(), tuple, reader.getSchema());
-
+			try {
+	      AvroUtils.toTuple(wrapper.datum(), tuple, reader.getSchema(), conf, ser);
+      } catch(ClassNotFoundException e) {
+      	throw new IOException(e);
+      }
 			return true;
+		}
+
+		@Override
+		public boolean nextKeyValue() throws IOException, InterruptedException {
+			if(reader.pastSync(end)) {
+				return false;
+			}
+			return nextKeyValueNoSync();
 		}
 	}
 
@@ -95,6 +126,6 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> {
 	public RecordReader<ITuple, NullWritable> createRecordReader(InputSplit split, TaskAttemptContext context)
 	    throws IOException, InterruptedException {
 
-		return new TupleInputReader();
+		return new TupleInputReader(context.getConfiguration());
 	}
 }
