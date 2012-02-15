@@ -56,7 +56,7 @@ public class GroupComparator extends SortComparator {
 	@Override
 	protected void setGrouperConf(CoGrouperConfig config){
 		super.setGrouperConf(config);
-		List<SortElement> sortElements = grouperConf.getCommonSortBy().getElements();
+		List<SortElement> sortElements = grouperConf.getCommonCriteria().getElements();
 		int numGroupByFields = grouperConf.getGroupByFields().size();
 		List<SortElement> groupSortElements = new ArrayList<SortElement>();
 		groupSortElements.addAll(sortElements);

@@ -36,6 +36,7 @@ import com.datasalt.pangool.mapreduce.SimpleCombiner;
 import com.datasalt.pangool.mapreduce.SimpleReducer;
 import com.datasalt.pangool.mapreduce.SortComparator;
 import com.datasalt.pangool.mapreduce.lib.input.PangoolMultipleInputs;
+import static com.datasalt.pangool.CoGrouperException.*;
 
 @SuppressWarnings("rawtypes")
 public class CoGrouper extends ConfigBuilder{
@@ -163,29 +164,34 @@ public class CoGrouper extends ConfigBuilder{
 
 	// ------------------------------------------------------------------------- //
 
-	private void raiseExceptionIfNull(Object ob, String message) throws CoGrouperException {
-		if(ob == null) {
-			throw new CoGrouperException(message);
-		}
-	}
-
-	private void raiseExceptionIfEmpty(Collection ob, String message) throws CoGrouperException {
-		if(ob == null || ob.isEmpty()) {
-			throw new CoGrouperException(message);
-		}
-	}
-
+	//if(grouperConf.getRollupFrom() != null) {
+	//
+	//			// Check that rollupFrom is contained in groupBy
+	//
+	//			if(!grouperConf.getGroupByFields().contains(grouperConf.getRollupFrom())) {
+	//				throw new CoGrouperException("Rollup from [" + grouperConf.getRollupFrom() + "] not contained in group by fields "
+	//				    + grouperConf.getGroupByFields());
+//			}
+	//
+//			// Check that we are using the appropriate Handler
+	//
+//			if(!(grouperHandler instanceof GroupHandlerWithRollup)) {
+//				throw new CoGrouperException("Can't use " + grouperHandler + " with rollup. Please use "
+//				    + GroupHandlerWithRollup.class + " instead.");
+//			}
+//		}
+	//	
 	
 	
 	
 	public Job createJob() throws IOException, CoGrouperException {
 
-		raiseExceptionIfNull(grouperHandler, "Need to set a group handler");
-		raiseExceptionIfEmpty(multiInputs, "Need to add at least one input");
-		raiseExceptionIfNull(outputFormat, "Need to set output format");
-		raiseExceptionIfNull(outputKeyClass, "Need to set outputKeyClass");
-		raiseExceptionIfNull(outputValueClass, "Need to set outputValueClass");
-		raiseExceptionIfNull(outputPath, "Need to set outputPath");
+		failIfNull(grouperHandler, "Need to set a group handler");
+		failIfEmpty(multiInputs, "Need to add at least one input");
+		failIfNull(outputFormat, "Need to set output format");
+		failIfNull(outputKeyClass, "Need to set outputKeyClass");
+		failIfNull(outputValueClass, "Need to set outputValueClass");
+		failIfNull(outputPath, "Need to set outputPath");
 
 		CoGrouperConfig grouperConf = buildConf();
 		// Serialize PangoolConf in Hadoop Configuration

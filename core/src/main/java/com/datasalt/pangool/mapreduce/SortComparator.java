@@ -62,7 +62,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			int sourceId2 = grouperConf.getSourceIdByName(w2.getSchema().getName());
 			int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(sourceId1);
 			int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(sourceId2);
-			Criteria c = grouperConf.getCommonSortBy();
+			Criteria c = grouperConf.getCommonCriteria();
 			int comparison = compare(c,w1,indexes1,w2,indexes2);
 			if (comparison != 0){
 				return comparison;
@@ -81,7 +81,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		} else {
 			
 			int[] indexes = serInfo.getCommonSchemaIndexTranslation(0);
-			Criteria c = grouperConf.getCommonSortBy();
+			Criteria c = grouperConf.getCommonCriteria();
 			return compare(c,w1,indexes,w2,indexes);
 		}
 		
@@ -135,7 +135,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	
 	private int compareMultipleSources(byte[] b1,int s1,int l1,byte[] b2,int s2,int l2) throws IOException {
 		Schema commonSchema = serInfo.getCommonSchema();
-		Criteria commonOrder = grouperConf.getCommonSortBy();
+		Criteria commonOrder = grouperConf.getCommonCriteria();
 
 		int comparison = compare(b1,s1,b2,s2,commonSchema,commonOrder,offsets);
 		if (comparison != 0){
@@ -166,7 +166,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	
 	private int compareOneSource(byte[] b1,int s1,int l1,byte[] b2,int s2,int l2) throws IOException {
 		Schema commonSchema = serInfo.getCommonSchema();
-		Criteria commonOrder = grouperConf.getCommonSortBy();
+		Criteria commonOrder = grouperConf.getCommonCriteria();
 		return compare(b1,s1,b2,s2,commonSchema,commonOrder,offsets);
 	}
 	

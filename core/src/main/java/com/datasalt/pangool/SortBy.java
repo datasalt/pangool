@@ -3,7 +3,6 @@ package com.datasalt.pangool;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.hadoop.io.RawComparator;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.Criteria.Order;
@@ -31,12 +30,22 @@ public class SortBy {
 		return sourceOrderIndex;
 	}
 	
+	private void failIfFieldNamePresent(String name){
+		for (SortElement e : elements){
+			if (e.getName().equals(name)){
+				throw new IllegalArgumentException("Sort element with field name '" + name + "' is already present");
+			}
+		}
+	}
+	
 	public SortBy add(String name, Order order){
+		failIfFieldNamePresent(name);
 		this.elements.add(new SortElement(name,order));
 		return this;
 	}
 	
 	public SortBy add(String name, Order order,Class comparator){
+		failIfFieldNamePresent(name);
 		this.elements.add(new SortElement(name,order,comparator));
 		return this;
 	}

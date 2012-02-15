@@ -40,7 +40,7 @@ public class TestPangoolSerialization extends BaseTest{
 		b.addSourceSchema(new Schema("schema5",Fields.parse("booleanField:boolean, intField:int, longField:long, vlongField:vlong,vintField:vint,strField:string, enumField:"+TestEnum.class.getName() + ",thriftField:" + A.class.getName())));
 		
 		b.setGroupByFields("booleanField","intField");
-		b.setOrderBy(new SortBy().add("booleanField",Order.ASC).add("intField",Order.DESC));
+		b.setOrderBy(new SortBy().add("booleanField",Order.ASC).add("intField",Order.DESC).addSourceOrder(Order.DESC));
 		b.setSecondaryOrderBy("schema1",new SortBy().add("strField",Order.DESC));
 		b.setSecondaryOrderBy("schema2",new SortBy().add("longField",Order.ASC));
 		pangoolConf = b.buildConf();

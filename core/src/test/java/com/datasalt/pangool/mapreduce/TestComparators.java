@@ -85,8 +85,8 @@ public class TestComparators extends ComparatorsBaseTest {
 		for(int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
 			Schema schema = permuteSchema(SCHEMA);
 			SortBy sortCriteria = createRandomSortCriteria(schema, customComparators, maxIndex + 1);
-			String[] groupFields = getFirstFields(sortCriteria, random.nextInt(sortCriteria.getElements().size()));
-
+			//TODO could we get empty group fields ??
+			String[] groupFields = getFirstFields(sortCriteria,1+ random.nextInt(sortCriteria.getElements().size()-1));
 			ITuple[] tuples = new ITuple[] { new Tuple(schema), new Tuple(schema) };
 			for(ITuple tuple: tuples) {
 				fillTuple(false, tuple, 0, maxIndex);
@@ -152,8 +152,8 @@ public class TestComparators extends ComparatorsBaseTest {
 
 			String error = alias + ",Not same comparison : Comp objects:'" + compObjects + "' Comp binary:'" + compBinary
 			    + "' for tuples:" + "\nTUPLE1:" + tuple1 + "\nTUPLE2:" + tuple2 + 
-			    "\nCOMMON ORDER:"  + comparator.getConfig().getCommonSortBy() + 
-			    "\nSECONDARY ORER:" + comparator.getConfig().getSecondarySortBys();
+			    "\nCONFIG:"  + comparator.getConfig(); 
+			    
 			Assert.fail(error);
 		}
 	}
@@ -168,8 +168,7 @@ public class TestComparators extends ComparatorsBaseTest {
 			Assert.fail("Same comparison in OBJECTS: " + comp1 + " , " + comp2 + ".It should be opposite" + "' for tuples:"
 			    + "\nTUPLE1:" + tuple1 + 
 			    "\nTUPLE2:" + tuple2 + 
-			    "\nCOMMON ORDER:"   + comp.getConfig().getCommonSortBy() + 
-			    "\nSECONDARY ORDER:"   + comp.getConfig().getSecondarySortBys());
+			    "\nCONFIG:"   + comp.getConfig());
 		}
 
 		comp1 = compareInBinary1(comp, tuple1, tuple2);
@@ -177,8 +176,8 @@ public class TestComparators extends ComparatorsBaseTest {
 		if(comp1 > 0 && comp2 > 0 || comp1 < 0 && comp2 < 0) {
 			Assert.fail("Same comparison in BINARY: " + comp1 + " , " + comp2 + ".It should be opposite" + "' for tuples:"
 			    + "\nTUPLE1:" + tuple1 + "\nTUPLE2:" + tuple2 + 
-			    "\nCOMMON CRITERIA:"  + comp.getConfig().getCommonSortBy() + 
-			    "\nSECONDARY ORDER:"   + comp.getConfig().getSecondarySortBys());
+			    "\nCONFIG:"  + comp.getConfig()); 
+			    
 		}
 	}
 

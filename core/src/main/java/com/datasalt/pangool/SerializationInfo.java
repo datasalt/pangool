@@ -86,7 +86,7 @@ public class SerializationInfo {
 	private void calculateOneSourceCommonSchema() throws CoGrouperException {
 		Schema sourceSchema =grouperConfig.getSourceSchemas().get(0); 
 		
-		Criteria commonSortCriteria = grouperConfig.getCommonSortBy();
+		Criteria commonSortCriteria = grouperConfig.getCommonCriteria();
 		List<Field> commonFields = new ArrayList<Field>();
 		for (SortElement sortElement : commonSortCriteria.getElements()){
 			String fieldName = sortElement.getName();
@@ -105,7 +105,7 @@ public class SerializationInfo {
 	
 	
 	private void calculateMultipleSourcesIntermediateSchemas() throws CoGrouperException {
-		Criteria commonSortCriteria = grouperConfig.getCommonSortBy();
+		Criteria commonSortCriteria = grouperConfig.getCommonCriteria();
 		List<Field> commonFields = new ArrayList<Field>();
 		for (SortElement sortElement : commonSortCriteria.getElements()){
 			String fieldName = sortElement.getName();
