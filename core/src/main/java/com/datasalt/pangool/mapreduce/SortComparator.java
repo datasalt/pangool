@@ -47,6 +47,11 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	public SortComparator() {}
 	
+	public SortComparator(CoGrouperConfig grouperConfig){
+		setGrouperConf(grouperConfig);
+	}
+	
+	
 	/**
 	 * Never called in MapRed jobs. Just for completion and test purposes
 	 */
@@ -293,13 +298,20 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		try {
 			if(conf != null) {
 				this.conf = conf;
-				grouperConf = CoGrouperConfig.get(conf);
-				this.serInfo = grouperConf.getSerializationInfo();
-				this.isMultipleSources = grouperConf.getNumSources() >= 2;
-				
+				setGrouperConf(CoGrouperConfig.get(conf));
 			}
 		} catch(Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	protected void setGrouperConf(CoGrouperConfig config){
+		if (this.grouperConf != null){
+			throw new RuntimeException("Grouper config is already set");
+		}
+		this.grouperConf = config;
+		this.serInfo = grouperConf.getSerializationInfo();
+		this.isMultipleSources = grouperConf.getNumSources() >= 2;
+	}
+	
 }

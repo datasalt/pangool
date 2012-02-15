@@ -21,7 +21,7 @@ public abstract class AbstractBaseTest {
 	}
 
 	public static Configuration createNewConfiguration() {
-		org.apache.hadoop.mapred.JobConf conf = new org.apache.hadoop.mapred.JobConf();
+		Configuration conf = new Configuration();
 		return conf;
 	}
 	
