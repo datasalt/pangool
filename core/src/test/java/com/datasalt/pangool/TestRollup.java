@@ -38,7 +38,7 @@ import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 
-public class TestGrouperWithRollup extends AbstractHadoopTestLibrary {
+public class TestRollup extends AbstractHadoopTestLibrary {
 
 	public static final String TEST_OUT = "TEST-OUTPUT";
 

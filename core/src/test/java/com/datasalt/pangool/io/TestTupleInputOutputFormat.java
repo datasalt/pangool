@@ -17,7 +17,7 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
-import com.datasalt.pangool.BaseCoGrouperTest;
+import com.datasalt.pangool.BaseTest;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Criteria.Order;
@@ -35,7 +35,7 @@ import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.google.common.io.Files;
 
-public class TestTupleInputOutputFormat extends BaseCoGrouperTest {
+public class TestTupleInputOutputFormat extends BaseTest {
 
 	public static String OUT = TestTupleInputOutputFormat.class.getName() + "-out";
 	public static String OUT_TEXT = TestTupleInputOutputFormat.class.getName() + "-out-text";

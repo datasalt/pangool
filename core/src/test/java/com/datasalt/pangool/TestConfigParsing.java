@@ -15,7 +15,7 @@ import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.Schema.Field;
 
-public class TestConfigJsonParsing {
+public class TestConfigParsing {
 
 	private Schema schema1;
 	private Schema schema2;

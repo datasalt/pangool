@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.Grouper;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 @SuppressWarnings("serial")

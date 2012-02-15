@@ -12,11 +12,12 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.datasalt.pangolin.thrift.test.A;
-import com.datasalt.pangool.BaseTest;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.ConfigBuilder;
@@ -28,9 +29,8 @@ import com.datasalt.pangool.SortBy;
 import com.datasalt.pangool.io.HadoopSerialization;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
-import com.datasalt.pangool.io.tuple.ser.PangoolSerialization;
-import com.datasalt.pangool.serialization.thrift.ThriftSerialization;
 
 /**
  * This tests either {@link SortComparator} or {@link MyAvroGroupComparator}.It checks that the binary comparison is coherent
@@ -38,13 +38,42 @@ import com.datasalt.pangool.serialization.thrift.ThriftSerialization;
  * 
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class TestComparators extends BaseTest {
+public class TestComparators extends ComparatorsBaseTest {
 
 	private int MAX_RANDOM_SCHEMAS = 50;
 	private HadoopSerialization ser;
+	
+	@Test
+	public void testObjectComparison() throws CoGrouperException, JsonGenerationException, JsonMappingException, IOException, InvalidFieldException  {
+		SortComparator c = new SortComparator();
+		setConf(c);
+		
+		// source 1
+		Assert.assertEquals(0, c.compare(getTuple1(true, 10, "a"), getTuple1(true, 10, "a")));
+		assertNegative(c,getTuple1(false, 10, "a"), getTuple1(true, 10, "a"));
+		assertPositive(c,getTuple1(true, 10, "a"), getTuple1(false, 10, "a"));
+		assertPositive(c,getTuple1(true, 1, "a"), getTuple1(true, 10, "a"));
+		assertNegative(c,getTuple1(true, 10, "a"), getTuple1(true, 1, "a"));
+		assertNegative(c,getTuple1(true, 10, "b"), getTuple1(true, 10, "a"));
+		assertPositive(c,getTuple1(true, 10, "a"), getTuple1(true, 10, "b"));
+		
+//		// Different sources comparing
+		assertPositive(c,getTuple1(true, 10, ""), getTuple2(true, 10, -1));
+		assertNegative(c,getTuple2(true, 10, -1), getTuple1(true, 10, ""));
+//
+		// source 2
+		Assert.assertEquals(0, c.compare(getTuple2(true, 10, 0), getTuple2(true, 10, 0)));
+		assertNegative(c,getTuple2(false, 10, 0), getTuple2(true, 10, 0));
+		assertPositive(c,getTuple2(true, 10, 0), getTuple2(false, 10, 0));
+		assertPositive(c,getTuple2(true, 1, 0), getTuple2(true, 10, 0));
+		assertNegative(c,getTuple2(true, 10, 0), getTuple2(true, 1, 0));
+		assertPositive(c,getTuple2(true, 10, 0), getTuple2(true, 10, 10));
+		assertNegative(c,getTuple2(true, 10, 10), getTuple2(true, 10, 0));
+	}
+	
 
 	@Test
-	public void test() throws CoGrouperException, IOException {
+	public void testCrossValidationOneSchema() throws CoGrouperException, IOException {
 		Random random = new Random();
 		Configuration conf = getConf();
 
@@ -156,8 +185,6 @@ public class TestComparators extends BaseTest {
 	/**
 	 * Custom comparator
 	 * 
-	 * @author epalace
-	 * 
 	 */
 	private static class AComparator implements RawComparator<com.datasalt.pangolin.thrift.test.A>, Configurable {
 
@@ -213,7 +240,7 @@ public class TestComparators extends BaseTest {
 	/**
 	 * Creates a copy of the schema with the fields shuffled.
 	 */
-	private static Schema permuteSchema(Schema schema) {
+	protected static Schema permuteSchema(Schema schema) {
 		List<Field> fields = schema.getFields();
 		List<Field> permutedFields = new ArrayList<Field>(fields);
 		Collections.shuffle(permutedFields);
@@ -225,7 +252,7 @@ public class TestComparators extends BaseTest {
 	 * Creates a random sort criteria based in the specified schema.
 	 * @throws CoGrouperException 
 	 */
-	private static SortBy createRandomSortCriteria(Schema schema, Map<String, Class> customComparators,
+	protected static SortBy createRandomSortCriteria(Schema schema, Map<String, Class> customComparators,
 	    int numFields) throws CoGrouperException {
 			Random random = new Random();
 			List<SortElement> builder = new ArrayList<SortElement>();
@@ -237,7 +264,7 @@ public class TestComparators extends BaseTest {
 			return new SortBy(builder);
 	}
 
-	private String[] getFirstFields(SortBy sortCriteria, int numFields) {
+	protected static String[] getFirstFields(SortBy sortCriteria, int numFields) {
 		String[] result = new String[numFields];
 		for(int i = 0; i < numFields; i++) {
 			SortElement element = sortCriteria.getElements().get(i);

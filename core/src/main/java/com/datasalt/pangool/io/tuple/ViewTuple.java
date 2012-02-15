@@ -1,7 +1,6 @@
 package com.datasalt.pangool.io.tuple;
 
 import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Schema.Field;
 
 /**
  * A {@link ITuple} with a contained one, but that creates a

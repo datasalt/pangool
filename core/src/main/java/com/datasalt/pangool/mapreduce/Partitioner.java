@@ -18,7 +18,7 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 	private SerializationInfo serInfo;
 	
 	private Configuration conf;
-	private final Text text = new Text(); //to perform hashCode of strings
+	private final Text HELPER_TEXT = new Text(); //to perform hashCode of strings
 	
 	@Override
 	public int getPartition(DatumWrapper<ITuple> key, NullWritable value, int numPartitions) {
@@ -57,8 +57,8 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 			Object o = tuple.get(field);
 			int hashCode;
 			if (o instanceof String){ //since String.hashCode() != Text.hashCode()
-				text.set((String)o);
-				hashCode = text.hashCode();
+				HELPER_TEXT.set((String)o); //TODO this can be inefficient
+				hashCode = HELPER_TEXT.hashCode();
 			} else {
 				hashCode = o.hashCode();
 			}

@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Assert;
 import org.junit.Before;
 
+import com.datasalt.pangool.BaseTest;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.ConfigBuilder;
@@ -20,7 +21,7 @@ import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 
-public abstract class ComparatorsBaseTest {
+public abstract class ComparatorsBaseTest extends BaseTest{
 	
 	private Schema schema1;
 	private Schema schema2;
