@@ -114,11 +114,13 @@ public class TestCoGrouper {
 		
 		coGrouper.setOrderBy(new SortBy().add("user_id",Order.ASC).add("name",Order.ASC).addSourceOrder(Order.ASC));
 		coGrouper.setSecondaryOrderBy("usuarios", new SortBy().add("age",Order.ASC));
-		coGrouper.setSecondaryOrderBy("countries",new SortBy().add("country", Order.DESC));
+		//coGrouper.setSecondaryOrderBy("countries",new SortBy().add("country", Order.DESC));
 		
 		coGrouper.addInput(new Path("pangool_input.txt"), TextInputFormat.class, new MyInputProcessor());
 		coGrouper.setGroupHandler(new MyGroupHandler());
 		coGrouper.setOutput(outputPath, TextOutputFormat.class, Text.class, Text.class);
+		CoGrouperConfig grouperConf = coGrouper.buildConf();
+		System.out.println(grouperConf);
 		Job job = coGrouper.createJob();
 		
 		HadoopUtils.deleteIfExists(FileSystem.get(job.getConfiguration()),outputPath);

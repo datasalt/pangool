@@ -3,6 +3,7 @@ package com.datasalt.pangool;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.hadoop.io.RawComparator;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.Criteria.Order;
@@ -32,6 +33,11 @@ public class SortBy {
 	
 	public SortBy add(String name, Order order){
 		this.elements.add(new SortElement(name,order));
+		return this;
+	}
+	
+	public SortBy add(String name, Order order,Class comparator){
+		this.elements.add(new SortElement(name,order,comparator));
 		return this;
 	}
 	

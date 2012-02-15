@@ -63,13 +63,13 @@ public class ConfigBuilder {
 		
 		conf.setCommonSortBy(convertedCommonOrder);
 		
+		
 		if (commonSortBy != null){
-			Map<String,Criteria> convertedParticularOrderings = getSecondarySortBys(commonSortBy, secondarysOrderBy);
+			Map<String,Criteria> convertedParticularOrderings = getSecondarySortBys(commonSortBy,sourceSchemas,secondarysOrderBy);
 			for (Map.Entry<String,Criteria> entry : convertedParticularOrderings.entrySet()){
 				conf.setSecondarySortBy(entry.getKey(), entry.getValue());
 			}
 		}
-		
 		return conf;
 	}
 	
@@ -89,7 +89,7 @@ public class ConfigBuilder {
 		}
 	}
 	
-	private static Map<String,Criteria> getSecondarySortBys(SortBy commonSortBy,Map<String,SortBy> secondarys){
+	private static Map<String,Criteria> getSecondarySortBys(SortBy commonSortBy,List<Schema> sourceSchemas,Map<String,SortBy> secondarys){
 		if (secondarys == null){
 			return null;
 		} else if (commonSortBy == null){
@@ -103,12 +103,15 @@ public class ConfigBuilder {
 		} else {
 			List<SortElement> toPrepend = commonSortBy.getElements().subList(commonSortBy.getSourceOrderIndex(),commonSortBy.getElements().size());
 			Map<String,Criteria> result = new HashMap<String,Criteria>();
-			for (Map.Entry<String,SortBy> entry : secondarys.entrySet()){
-				SortBy criteria = entry.getValue();
+			for (Schema sourceSchema : sourceSchemas){
+				String source = sourceSchema.getName();
 				List<SortElement> newList = new ArrayList<SortElement>();
 				newList.addAll(toPrepend);
-				newList.addAll(criteria.getElements());
-				result.put(entry.getKey(),new Criteria(newList));
+				SortBy criteria = secondarys.get(source);
+				if (criteria != null){
+					newList.addAll(criteria.getElements());
+				}
+				result.put(source,new Criteria(newList));
 			}
 			return result;
 		}

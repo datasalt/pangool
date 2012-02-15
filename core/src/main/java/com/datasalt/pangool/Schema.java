@@ -32,6 +32,7 @@ public class Schema {
   static {
     FACTORY.enable(JsonParser.Feature.ALLOW_COMMENTS);
     FACTORY.setCodec(MAPPER);
+    
   }
 	
 	
