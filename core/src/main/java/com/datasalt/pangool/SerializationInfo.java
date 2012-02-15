@@ -71,7 +71,7 @@ public class SerializationInfo {
 	}
 	
 	private void calculatePartitionFields() {
-		List<String> partitionFields = grouperConfig.getRollupBaseFields();
+		List<String> partitionFields = grouperConfig.calculateRollupBaseFields();
 		int numFields = partitionFields.size();
 		for (Schema schema : grouperConfig.getSourceSchemas()){
 			int[] posFields = new int[numFields];
@@ -135,7 +135,7 @@ public class SerializationInfo {
 			Schema sourceSchema = grouperConfig.getSourceSchema(i);
 			List<Field> specificFields = specificFieldsBySource.get(i);
 			for (Field field : sourceSchema.getFields()){
-				if (!commonSchema.containsFieldName(field.getName()) && !containsFieldName(field.getName(),specificFields)){
+				if (!commonSchema.containsField(field.getName()) && !containsFieldName(field.getName(),specificFields)){
 					specificFields.add(field);
 				}
 			}

@@ -124,7 +124,7 @@ public class CoGrouperConfig {
   	return groupByFields;
   }
 	
-	public List<String> getRollupBaseFields(){
+	public List<String> calculateRollupBaseFields(){
 		if (rollupFrom == null){
 			return getGroupByFields();
 		}
@@ -190,7 +190,6 @@ public class CoGrouperConfig {
 	public static void set(CoGrouperConfig grouperConfig,Configuration conf) throws CoGrouperException{
 		conf.set(CONF_PANGOOL_CONF, grouperConfig.toString());
 	}
-	
 	
 	static CoGrouperConfig parse(JsonNode node) throws IOException {
 		CoGrouperConfig result = new CoGrouperConfig();
@@ -301,28 +300,10 @@ public class CoGrouperConfig {
   	}
   	CoGrouperConfig that = (CoGrouperConfig)a;
   	
-  	if (this.getSourcesOrder() !=  that.getSourcesOrder()){
-  		return false;
-  	}
-  	
-  	if (!this.getCommonSortBy().equals(that.getCommonSortBy())){
-  		return false;
-  	}
-  	
-  	if (!this.getGroupByFields().equals(that.getGroupByFields())){
-  		return false;
-  	}
-  	
-  	if (!this.getSourceSchemas().equals(that.getSourceSchemas())){
-  		return false;
-  	}
-  	
-  	if (!this.getSecondarySortBys().equals(that.getSecondarySortBys())){
-  		return false;
-  	}
-  	
-  	return true;
+  	return (this.getSourcesOrder() ==  that.getSourcesOrder() &&
+  			this.getCommonSortBy().equals(that.getCommonSortBy()) && 
+  			this.getGroupByFields().equals(that.getGroupByFields()) &&
+  			this.getSourceSchemas().equals(that.getSourceSchemas()) &&
+  			this.getSecondarySortBys().equals(that.getSecondarySortBys()));
   }
-  
-	
 }

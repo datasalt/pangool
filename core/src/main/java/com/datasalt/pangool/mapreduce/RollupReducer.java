@@ -32,7 +32,7 @@ import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
-import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
+import com.datasalt.pangool.io.tuple.ViewTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 /**
@@ -48,24 +48,27 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	private List<String> groupByFields;
 	private int minDepth, maxDepth;
-	private FilteredReadOnlyTuple groupTuple;
+	private ViewTuple groupTuple;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	private GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> handler;
+	private boolean isMultipleSources;
 
 	@SuppressWarnings("unchecked")
   @Override
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
 			this.grouperConfig = CoGrouperConfig.get(context.getConfiguration());
+			this.isMultipleSources = this.grouperConfig.getNumSources() >=2;
 			this.serInfo = grouperConfig.getSerializationInfo();
-			
-			this.groupTuple = new FilteredReadOnlyTuple(serInfo.getGroupSchema()); //TODO this is not efficient (field name resolution..)
+			if (!isMultipleSources){
+				this.groupTuple = new ViewTuple(serInfo.getGroupSchema(),this.serInfo.getGroupSchemaIndexTranslation(0)); //by default translation for 0
+			} else {
+				this.groupTuple = new ViewTuple(serInfo.getGroupSchema()); 
+			}
 			this.groupByFields = grouperConfig.getGroupByFields();
-
 			List<String> groupFields = grouperConfig.getGroupByFields();
 			this.maxDepth = groupFields.size() - 1;
-			this.minDepth = grouperConfig.getRollupBaseFields().size() - 1;
-
+			this.minDepth = grouperConfig.calculateRollupBaseFields().size() - 1;
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
 			String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
@@ -137,7 +140,13 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			}
 
 			// We set a view over the group fields to the method.
-			groupTuple.setDelegatedTuple(currentTuple);
+			if (isMultipleSources){ //TODO consider not using index translation for multiple sources  
+				int sourceId = grouperConfig.getSourceIdByName(currentTuple.getSchema().getName());
+				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(sourceId);
+				groupTuple.setContained(currentTuple,indexTranslation);
+			} else {
+				groupTuple.setContained(currentTuple);
+			}
 
 			handler.onGroupElements(groupTuple, grouperIterator, this.context, collector);
 

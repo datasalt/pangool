@@ -1,5 +1,5 @@
 /**
- * Copyright [2011] [Datasalt Systems S.L.]
+ * Copyright [2012] [Datasalt Systems S.L.]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 
 /**
- * This is the basic implementation of {@link ITuple}. It extends a HashMap<String, Object>
+ * This is the basic implementation of {@link ITuple}.
  */
 @SuppressWarnings("serial")
 public class Tuple implements ITuple,Serializable {
@@ -53,6 +53,7 @@ public class Tuple implements ITuple,Serializable {
 	}
 
 	public static String toString(ITuple tuple) {
+		//TODO do proper JSON ser
 		Schema schema = tuple.getSchema();
 		StringBuilder b = new StringBuilder();
 		b.append("{");

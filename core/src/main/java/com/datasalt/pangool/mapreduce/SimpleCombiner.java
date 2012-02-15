@@ -26,12 +26,13 @@ import org.slf4j.LoggerFactory;
 
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.SerializationInfo;
 import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.CombinerHandler.CoGrouperContext;
 import com.datasalt.pangool.api.CombinerHandler.Collector;
 import com.datasalt.pangool.commons.DCUtils;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
-import com.datasalt.pangool.io.tuple.FilteredReadOnlyTuple;
+import com.datasalt.pangool.io.tuple.ViewTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,DatumWrapper<ITuple>, NullWritable> {
@@ -40,20 +41,28 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 	private final static Logger log = LoggerFactory.getLogger(SimpleCombiner.class);
 	
 	// Following variables protected to be shared by Combiners
-	private CoGrouperConfig pangoolConfig;
+	private CoGrouperConfig grouperConfig;
+	private SerializationInfo serInfo;
 	private TupleIterator<DatumWrapper<ITuple>, NullWritable> grouperIterator;
-	private FilteredReadOnlyTuple groupTuple; // Tuple view over the group
+	private ViewTuple groupTuple; // Tuple view over the group
 	private CoGrouperContext context;
 	private CombinerHandler handler;
 	private Collector collector;
+	private boolean isMultipleSources;
 
 	public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
 			log.info("Getting CoGrouper grouperConf.");
-			this.pangoolConfig = CoGrouperConfig.get(context.getConfiguration());
+			this.grouperConfig = CoGrouperConfig.get(context.getConfiguration());
+			this.serInfo = this.grouperConfig.getSerializationInfo();
+			this.isMultipleSources = this.grouperConfig.getNumSources() >= 2;
 			log.info("Getting CoGrouper grouperConf done.");
-			this.groupTuple = new FilteredReadOnlyTuple(null);
+			if (isMultipleSources){
+				this.groupTuple = new ViewTuple(serInfo.getGroupSchema());
+			} else {
+				this.groupTuple = new ViewTuple(serInfo.getGroupSchema(),serInfo.getGroupSchemaIndexTranslation(0));
+			}
 			this.grouperIterator = new TupleIterator<DatumWrapper<ITuple>, NullWritable>(context);
 
 			String fileName = context.getConfiguration().get(SimpleCombiner.CONF_COMBINER_HANDLER);
@@ -61,8 +70,8 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			if(handler instanceof Configurable) {
 				((Configurable) handler).setConf(context.getConfiguration());
 			}
-			collector = new Collector(pangoolConfig, context);
-			this.context = handler.new CoGrouperContext(context, pangoolConfig);
+			collector = new Collector(grouperConfig, context);
+			this.context = handler.new CoGrouperContext(context, grouperConfig);
 			handler.setup(this.context, collector);
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
@@ -91,7 +100,13 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			ITuple firstTupleGroup = key.datum();
 
 			// A view is created over the first tuple to give the user the group fields
-			groupTuple.setDelegatedTuple(firstTupleGroup);
+			if (isMultipleSources){ //TODO consider not using translation here
+				int sourceId = grouperConfig.getSourceIdByName(firstTupleGroup.getSchema().getName());
+				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(sourceId);
+				groupTuple.setContained(firstTupleGroup,indexTranslation);
+			} else {
+				groupTuple.setContained(firstTupleGroup);
+			}
 			handler.onGroupElements(groupTuple, grouperIterator, this.context, collector);
 
 		} catch(CoGrouperException e) {

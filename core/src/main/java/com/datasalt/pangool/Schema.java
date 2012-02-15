@@ -186,7 +186,7 @@ public class Schema {
 		return fields.get(i);
 	}
 
-	public boolean containsFieldName(String fieldName) {
+	public boolean containsField(String fieldName) {
 		return indexByFieldName.containsKey(fieldName);
 	}
 
