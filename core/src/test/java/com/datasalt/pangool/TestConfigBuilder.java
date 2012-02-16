@@ -42,7 +42,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.addSourceSchema(new Schema("schema2",Fields.parse("a:int,c:string,b:string,bloblo:string")));
 		b.setGroupByFields("c","b");
 		b.setOrderBy(new SortBy().add("b",Order.ASC).add("c",Order.DESC).addSourceOrder(Order.DESC).add("a",Order.DESC));
-		b.setSecondaryOrderBy("schema1",new SortBy().add("bloblo", Order.DESC));
+		b.setSecondaryOrderBy("schema1",new SortBy().add("blabla", Order.DESC));
 		CoGrouperConfig config = b.buildConf();
 		{
 			List<SortElement> expectedCommon = new ArrayList<SortElement>();
@@ -53,7 +53,7 @@ public class TestConfigBuilder extends BaseTest{
 		{
 			List<SortElement> expectedSchema1 = new ArrayList<SortElement>();
 			expectedSchema1.add(new SortElement("a",Order.DESC));
-			expectedSchema1.add(new SortElement("bloblo",Order.DESC));
+			expectedSchema1.add(new SortElement("blabla",Order.DESC));
 			Assert.assertEquals(new Criteria(expectedSchema1),config.getSecondarySortBys().get(0));
 		}
 		{

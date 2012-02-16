@@ -31,6 +31,7 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
+import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
 import com.datasalt.pangool.api.InputProcessor;
@@ -164,6 +165,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		CoGrouper grouper = new CoGrouper(getConf());
 		grouper.addSourceSchema(schema);
 		grouper.setGroupByFields("country","age","name");
+		grouper.setOrderBy(new SortBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
 		grouper.setRollupFrom("country");
 		grouper.setGroupHandler(new IdentityRed());
 		grouper.setOutput(outputPath, SequenceFileOutputFormat.class, Text.class, Text.class);

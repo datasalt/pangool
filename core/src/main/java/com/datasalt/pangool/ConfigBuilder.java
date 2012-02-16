@@ -85,11 +85,11 @@ public class ConfigBuilder {
 		failIfNotNull(this.rollupFrom,"Rollup was already set");
 		failIfEmpty(this.groupByFields,"GroupBy fields not set");
 		if (!this.groupByFields.contains(rollupFrom)){
-			throw new CoGrouperException("Rollup field must be in fields to group by '" + groupByFields + "'");
+			throw new CoGrouperException("Rollup field must be present fields to group by '" + groupByFields + "'");
 		}
 		if (this.commonSortBy == null){
 			//rollup needs explicit common orderby
-			throw new CoGrouperException("Rollup needs explicit common order by ");
+			throw new CoGrouperException("No common order previously set");
 		}
 		
 		this.rollupFrom = rollupFrom;
@@ -145,10 +145,12 @@ public class ConfigBuilder {
 		if (commonSortBy.getSourceOrderIndex() == null){
 			throw new CoGrouperException("Need to specify source order in common SortBy when using secondary SortBy");
 		}
-		
+		if (ordering.getSourceOrderIndex() != null){
+			throw new CoGrouperException("Not allowed to set source order in secondary order");
+		}
 		Schema sourceSchema = getSourceSchemaByName(sourceName);
 		for (SortElement e : ordering.getElements()){
-			if (sourceSchema.containsField(e.getName())){
+			if (!sourceSchema.containsField(e.getName())){
 				throw new CoGrouperException("Source '" + sourceName +"' doesn't contain field '" + e.getName());
 			}
 		}

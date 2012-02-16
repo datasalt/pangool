@@ -58,9 +58,9 @@ public class TestConfigParsing {
 		b.addSourceSchema(schema1);
 		b.addSourceSchema(schema2);
 		b.addSourceSchema(schema3);
-		b.setGroupByFields("int_field","boolean_field");
-		b.setRollupFrom("int_field");
+		b.setGroupByFields("int_field");
 		b.setOrderBy(new SortBy().add("int_field",Order.DESC).addSourceOrder(Order.DESC).add("boolean_field",Order.DESC));
+		b.setRollupFrom("int_field");
 		b.setSecondaryOrderBy(schema3.getName(),new SortBy().add("enum_field", Order.ASC,DummyComparator.class));
 		
 		CoGrouperConfig conf =b.buildConf();
