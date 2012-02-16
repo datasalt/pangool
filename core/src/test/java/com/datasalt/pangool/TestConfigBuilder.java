@@ -84,7 +84,9 @@ public class TestConfigBuilder extends BaseTest{
 		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
 		b.addSourceSchema(new Schema("schema2",Fields.parse("a:int,b:boolean")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("a",Order.ASC).addSourceOrder(Order.DESC).add("b",Order.DESC)); //TODO this could be possible, but we don't allow this case
+		//not allowed to sort in common order by a field that has different types even after source order
+		//it can be confusing
+		b.setOrderBy(new SortBy().add("a",Order.ASC).addSourceOrder(Order.DESC).add("b",Order.DESC)); 
 		b.buildConf();
 	}
 	
@@ -133,6 +135,17 @@ public class TestConfigBuilder extends BaseTest{
 		b.buildConf();
 	}
 	
+	@Test (expected=CoGrouperException.class)
+	public void testCommonOrderPrefixGroupBy2() throws CoGrouperException {
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string,c:string")));
+		b.addSourceSchema(new Schema("schema2",Fields.parse("a:int,b:string,d:string")));
+		b.setGroupByFields("a","b");
+		b.setOrderBy(new SortBy().add("b",Order.ASC).addSourceOrder(Order.DESC).add("a",Order.DESC));
+		b.buildConf();
+	}
+	
+	
 	@Test (expected=IllegalArgumentException.class)
 	public void testNotRepeatedFieldsInSortBy() {
 		new SortBy().add("foo",Order.ASC).add("foo",Order.DESC);
@@ -164,18 +177,36 @@ public class TestConfigBuilder extends BaseTest{
 	}
 	
 	@Test(expected=CoGrouperException.class)
-	public void testSecondaryOrderMatchesDeclaredSource() throws CoGrouperException {
-		//TODO
+	public void testSecondaryOrderExistingSource() throws CoGrouperException {
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addSourceSchema(new Schema("schema2",Fields.parse("c:int,b:string")));
+		b.setGroupByFields("b");
+		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
+		b.setSecondaryOrderBy("invented_schema", new SortBy().add("a",Order.DESC).addSourceOrder(Order.DESC));
+		b.buildConf();
 	}
 	
 	@Test(expected=CoGrouperException.class)
-	public void testSecondaryOrderNotNull(){
-		//TODO
+	public void testSecondaryOrderNotNull() throws CoGrouperException {
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addSourceSchema(new Schema("schema2",Fields.parse("c:int,b:string")));
+		b.setGroupByFields("b");
+		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
+		b.setSecondaryOrderBy("schema1", null);
+		b.buildConf();
 	}
 	
 	@Test(expected=CoGrouperException.class)
-	public void testSecondaryOrderNotEmpty(){
-		//TODO
+	public void testSecondaryOrderNotEmpty() throws CoGrouperException{
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addSourceSchema(new Schema("schema2",Fields.parse("c:int,b:string")));
+		b.setGroupByFields("b");
+		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
+		b.setSecondaryOrderBy("schema1", new SortBy());
+		b.buildConf();
 	}
 	
 	@Test(expected=CoGrouperException.class)
@@ -263,13 +294,9 @@ public class TestConfigBuilder extends BaseTest{
 		b.buildConf();
 	}
 	
-	
-	
-	@Test(expected=CoGrouperException.class)
-	public void testNotMutableConfig(){
-		//TODO
-	}
-	
-	
+//	@Test(expected=CoGrouperException.class)
+//	public void testNotMutableConfig(){
+//		//TODO
+//	}
 	
 }

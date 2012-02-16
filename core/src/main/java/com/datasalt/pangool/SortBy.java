@@ -31,11 +31,30 @@ public class SortBy {
 	}
 	
 	private void failIfFieldNamePresent(String name){
-		for (SortElement e : elements){
-			if (e.getName().equals(name)){
+			if (containsFieldName(name)){
 				throw new IllegalArgumentException("Sort element with field name '" + name + "' is already present");
 			}
+	}
+	
+	public boolean containsFieldName(String field){
+		for (SortElement e : elements){
+			if (e.getName().equals(field)){
+				return true;
+			}
 		}
+		return false;
+	}
+	
+	public boolean containsBeforeSourceOrder(String field){
+		if (sourceOrderIndex == null){
+			return containsFieldName(field);
+		}
+		for (int i=0 ; i < sourceOrderIndex ; i++){
+			if (elements.get(i).getName().equals(field)){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public SortBy add(String name, Order order){

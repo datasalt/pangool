@@ -55,20 +55,26 @@ public class ConfigBuilder {
 		return true;
 	}
 	
+	private boolean fieldPresentInAllSources(String field){
+		Class type = null;
+		for (Schema source : sourceSchemas){
+			if (!source.containsField(field)){
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	public void setGroupByFields(String... groupByFields) throws CoGrouperException {
 		failIfEmpty(groupByFields,"GroupBy fields can't be null or empty");
 		failIfEmpty(sourceSchemas,"No eschemas defined");
 		failIfNotNull(this.groupByFields,"GroupBy fields already set : " + groupByFields);
-		// check that all sources contain the fields
 		for (String field : groupByFields){
-			for(Schema source : this.sourceSchemas){
-				if (!source.containsField(field)){
-					throw new CoGrouperException("Can't group by field '" + field + "' . Source ' " + source + "' doesn't contain it");
-				}
-				if (!fieldSameTypeInAllSources(field)){
-					throw new CoGrouperException("Can't group by field '" +field + "' since its type differs among sources");
-				}
-				
+			if (!fieldPresentInAllSources(field)){
+				throw new CoGrouperException("Can't group by field '" + field + "' . Not present in all sources");
+			}
+			if (!fieldSameTypeInAllSources(field)){
+				throw new CoGrouperException("Can't group by field '" +field + "' since its type differs among sources");
 			}
 		}
 		this.groupByFields = Arrays.asList(groupByFields);
@@ -81,7 +87,10 @@ public class ConfigBuilder {
 		if (!this.groupByFields.contains(rollupFrom)){
 			throw new CoGrouperException("Rollup field must be in fields to group by '" + groupByFields + "'");
 		}
-		
+		if (this.commonSortBy == null){
+			//rollup needs explicit common orderby
+			throw new CoGrouperException("Rollup needs explicit common order by ");
+		}
 		
 		this.rollupFrom = rollupFrom;
 	}
@@ -90,6 +99,7 @@ public class ConfigBuilder {
 
 	public void setOrderBy(SortBy ordering) throws CoGrouperException {
 		failIfNull(ordering,"OrderBy can't be null");
+		failIfEmpty(ordering.getElements(),"OrderBy can't be empty");
 		failIfEmpty(sourceSchemas,"Need to specify source schemas");
 		failIfEmpty(groupByFields,"Need to specify group by fields");
 		if (sourceSchemas.size() == 1){
@@ -97,10 +107,31 @@ public class ConfigBuilder {
 				throw new CoGrouperException("Not able to use source order when just one source specified");
 			}
 		}
-		//TODO check that common sort by contains fields that are present in all sources (same name and same type)
+		for (SortElement sortElement : ordering.getElements()){
+			if (!fieldPresentInAllSources(sortElement.getName())){
+				throw new CoGrouperException("Can't sort by field '" + sortElement.getName() + "' . Not present in all sources");
+			}
+			if (!fieldSameTypeInAllSources(sortElement.getName())){
+				throw new CoGrouperException("Can't sort by field '" +sortElement.getName() + "' since its type differs among sources");
+			}
+		}
+		//group by fields need to be a prefix of sort by fields
+		for (String groupField : groupByFields){
+			if (!ordering.containsBeforeSourceOrder(groupField)){
+				throw new CoGrouperException("Group by field '" + groupField + "' is not present in common order by before source order");
+			}
+		}
 		
-		//TODO common sort by needs to be a prefix of group by
 		this.commonSortBy = ordering;
+	}
+		
+	private Schema getSourceSchemaByName(String name){
+		for (Schema s : sourceSchemas){
+			if (s.getName().equals(name)){
+				return s;
+			}
+		}
+		return null;
 	}
 	
 	public void setSecondaryOrderBy(String sourceName,SortBy ordering) throws CoGrouperException {
@@ -109,29 +140,31 @@ public class ConfigBuilder {
 			throw new CoGrouperException("Unknown source '" + sourceName +"' in secondary SortBy");
 		}
 		failIfNull(ordering,"Not able to set null criteria for source '" + sourceName + "'");
-		failIfNull(commonSortBy,"Not able to set secondary order with no previous OrderBy");
+		failIfEmpty(ordering.getElements(),"Can't set empty ordering");
+		failIfNull(commonSortBy,"Not able to set secondary order with no previous common OrderBy");
 		if (commonSortBy.getSourceOrderIndex() == null){
 			throw new CoGrouperException("Need to specify source order in common SortBy when using secondary SortBy");
 		}
 		
+		Schema sourceSchema = getSourceSchemaByName(sourceName);
+		for (SortElement e : ordering.getElements()){
+			if (sourceSchema.containsField(e.getName())){
+				throw new CoGrouperException("Source '" + sourceName +"' doesn't contain field '" + e.getName());
+			}
+		}
+		
+		for (SortElement e : ordering.getElements()){
+			if (commonSortBy.containsFieldName(e.getName())){
+				throw new CoGrouperException("Common sort by already contains sorting for field '" + e.getName());
+			}
+		}
 		this.secondarysOrderBy.put(sourceName, ordering);
 	}
 	
-//	protected void checkSortBys() throws CoGrouperException {
-//		//Common sort by
-//		
-//		
-//		
-//		 
-//		
-//		//TODO 
-//	}
-//	
-	
+
 	public CoGrouperConfig buildConf() throws CoGrouperException {
 		failIfEmpty(sourceSchemas," Need to declare at least one source schema");
 		failIfEmpty(groupByFields," Need to declare group by fields");
-//		checkSortBys();
 		
 		CoGrouperConfig conf =  new CoGrouperConfig();
 		for (Schema schema : sourceSchemas){
