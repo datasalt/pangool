@@ -57,7 +57,11 @@ public class AvroUtils {
 				fields.add(new Field(field.name(), Class.forName(clazz)));
 			}
 		}
-		Schema schema = new Schema(avroSchema.getNamespace() + "." + avroSchema.getName(), fields);
+		String name = avroSchema.getName();
+		if(avroSchema.getNamespace() != null) {
+			name = avroSchema.getNamespace() + "." + avroSchema.getName();
+		}
+		Schema schema = new Schema(name, fields);
 		return schema;
 	}
 
@@ -102,7 +106,7 @@ public class AvroUtils {
 	}
 
 	/**
-	 * Moves data between a Tuple and an Avro Record 
+	 * Moves data between a Tuple and an Avro Record
 	 */
 	public static void toRecord(Schema pangoolSchema, org.apache.avro.Schema avroSchema, ITuple tuple, Record record,
 	    DataOutputBuffer tmpOutputBuffer, HadoopSerialization ser) throws IOException {
@@ -117,7 +121,7 @@ public class AvroUtils {
 			if(clazz != null) {
 				tmpOutputBuffer.reset();
 				ser.ser(obj, tmpOutputBuffer);
-				ByteBuffer buffer = ByteBuffer.wrap(tmpOutputBuffer.getData(),0,tmpOutputBuffer.getLength());
+				ByteBuffer buffer = ByteBuffer.wrap(tmpOutputBuffer.getData(), 0, tmpOutputBuffer.getLength());
 				record.put(field.getName(), buffer);
 			} else {
 				record.put(field.getName(), obj);
@@ -126,9 +130,10 @@ public class AvroUtils {
 	}
 
 	/**
-	 * Moves data between a Record and a Tuple 
+	 * Moves data between a Record and a Tuple
 	 */
-	public static void toTuple(Record record, ITuple tuple, org.apache.avro.Schema avroSchema, Configuration conf, HadoopSerialization ser) throws ClassNotFoundException, IOException {
+	public static void toTuple(Record record, ITuple tuple, org.apache.avro.Schema avroSchema, Configuration conf,
+	    HadoopSerialization ser) throws ClassNotFoundException, IOException {
 		int index = 0;
 		for(org.apache.avro.Schema.Field field : avroSchema.getFields()) {
 			Object obj = record.get(field.name());
@@ -144,7 +149,7 @@ public class AvroUtils {
 					if(tuple.get(index) == null) {
 						tuple.set(index, ReflectionUtils.newInstance(Class.forName(clazz), conf));
 					}
-					ByteBuffer byteBuffer = (ByteBuffer)obj;
+					ByteBuffer byteBuffer = (ByteBuffer) obj;
 					byte[] bytes = byteBuffer.array();
 					ser.deser(tuple.get(index), bytes, 0, bytes.length);
 				}
