@@ -118,12 +118,10 @@ public class SerializationInfo {
 		List<List<Field>> specificFieldsBySource = new ArrayList<List<Field>>();
 		
 		
-		List<Criteria> criterias = grouperConfig.getSecondarySortBys();
 		for (int sourceId=0 ; sourceId < grouperConfig.getNumSources(); sourceId++){
-			Criteria specificCriteria = null;
+			Criteria specificCriteria = grouperConfig.getSecondarySortBys().get(sourceId);
 			List<Field> specificFields = new ArrayList<Field>();
-			if(sourceId < criterias.size()) {
-				specificCriteria = criterias.get(sourceId);
+			if (specificCriteria != null){
 				for (SortElement sortElement : specificCriteria.getElements()){
 					String fieldName = sortElement.getName();
 					Class<?> fieldType = checkFieldInSource(fieldName, sourceId);

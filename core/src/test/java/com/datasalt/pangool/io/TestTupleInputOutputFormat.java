@@ -13,6 +13,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
@@ -33,9 +34,10 @@ import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
 
-public class TestTupleInputOutputFormat extends BaseTest {
+public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 
 	public static String OUT = TestTupleInputOutputFormat.class.getName() + "-out";
 	public static String OUT_TEXT = TestTupleInputOutputFormat.class.getName() + "-out-text";
@@ -108,7 +110,8 @@ public class TestTupleInputOutputFormat extends BaseTest {
 		coGrouper.setGroupHandler(new MyGroupHandler());
 		coGrouper.setOutput(outPathText, TextOutputFormat.class, Text.class, Text.class);
 		coGrouper.addTupleInput(outPath, new IdentityInputProcessor()); // addTupleInput method
-		coGrouper.createJob().waitForCompletion(true);
+		Job job = coGrouper.createJob();
+		assertRun(job);
 
 		Assert.assertEquals("title\tbar2 foo2\ntitle\tfoo1 bar1",
 		    Files.toString(new File(OUT_TEXT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());

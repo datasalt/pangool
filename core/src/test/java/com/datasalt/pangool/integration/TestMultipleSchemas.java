@@ -134,10 +134,11 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 
 		CoGrouper grouper = new CoGrouper(new Configuration());
-		grouper.addSourceSchema(new Schema("user",Fields.parse("name:string, money:int, country:string")));
 		grouper.addSourceSchema(new Schema("country",Fields.parse("country:string, averageSalary:int")));
+		grouper.addSourceSchema(new Schema("user",Fields.parse("name:string, money:int, country:string")));
+		
 		grouper.setGroupByFields("country");
-		grouper.setOrderBy(new SortBy().add("country",Order.ASC));
+		grouper.setOrderBy(new SortBy().add("country",Order.ASC).addSourceOrder(Order.DESC));
 		grouper.setSecondaryOrderBy("user", new SortBy().add("money",Order.ASC));
 		
 		grouper.addInput(new Path("test-input"), TextInputFormat.class, new FirstInputProcessor());
@@ -145,7 +146,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		grouper.setOutput(new Path("test-output"), TextOutputFormat.class, NullWritable.class, NullWritable.class);
 		
 		Job job = grouper.createJob();
-		job.waitForCompletion(true);
+		assertRun(job);
 
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-input"));

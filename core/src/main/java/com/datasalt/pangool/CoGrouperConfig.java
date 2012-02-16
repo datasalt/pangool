@@ -224,7 +224,7 @@ public class CoGrouperConfig {
     gen.writeEndArray();
     
     if (rollupFrom != null){
-    	gen.writeFieldName("rollUpFrom");
+    	gen.writeFieldName("rollupFrom");
     	gen.writeString(rollupFrom);
     }
     
