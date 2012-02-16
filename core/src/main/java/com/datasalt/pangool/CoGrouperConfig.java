@@ -56,8 +56,12 @@ public class CoGrouperConfig {
 		return sourceSchemas.get(sourceId);
 	}
 	
-	public int getSourceIdByName(String name){
+	public Integer getSourceIdByName(String name){
 		return sourceNameToId.get(name);
+	}
+	
+	public List<String> getSourceNames(){
+		return sourceNames;
 	}
 	
 	
@@ -149,15 +153,19 @@ public class CoGrouperConfig {
 	
 	void setSecondarySortBy(String sourceName,Criteria criteria) throws CoGrouperException {
 		if (this.secondaryCriterias.isEmpty()){
-			for (int i = 0; i < getNumSources() ; i++){
-				this.secondaryCriterias.add(null);
-			}
+			initSecondaryCriteriasWithNull();
 		}
 		Integer pos = getSourceIdByName(sourceName);
 		secondaryCriterias.set(pos, criteria);
 	}
 
-	
+	private void initSecondaryCriteriasWithNull(){
+		List<Criteria> r = new ArrayList<Criteria>(sourceSchemas.size());
+		for (int i = 0 ; i < sourceSchemas.size(); i++){
+			r.add(null);
+		}
+		this.secondaryCriterias = r; 
+	}
 	
 	public static CoGrouperConfig get(Configuration conf) throws CoGrouperException {
 			String serialized =conf.get(CoGrouperConfig.CONF_PANGOOL_CONF);
@@ -233,6 +241,11 @@ public class CoGrouperConfig {
     
     gen.writeStringField("sourcesOrder",sourcesOrder.toString());
     
+    
+    //TODO this code should write a map with sourceName
+    if (secondaryCriterias == null || secondaryCriterias.isEmpty()){
+    	initSecondaryCriteriasWithNull();
+    }
     gen.writeArrayFieldStart("secondarySortBys");
     for (Criteria c : secondaryCriterias){
     	if (c == null){

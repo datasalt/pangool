@@ -22,7 +22,8 @@ public class TestConfigBuilder extends BaseTest{
 		ConfigBuilder b = new ConfigBuilder();
 		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
 		b.setGroupByFields("a");
-		b.buildConf();
+		CoGrouperConfig conf = b.buildConf();
+		conf.getSerializationInfo();
 	}
 	
 	@Test
@@ -32,7 +33,8 @@ public class TestConfigBuilder extends BaseTest{
 		b.addSourceSchema(new Schema("schema2",Fields.parse("a:int,b:string")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a",Order.ASC).addSourceOrder(Order.DESC).add("b",Order.DESC));
-		b.buildConf();
+		CoGrouperConfig conf = b.buildConf();
+		conf.getSerializationInfo();
 	}
 	
 	@Test
@@ -44,6 +46,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.setOrderBy(new SortBy().add("b",Order.ASC).add("c",Order.DESC).addSourceOrder(Order.DESC).add("a",Order.DESC));
 		b.setSecondaryOrderBy("schema1",new SortBy().add("blabla", Order.DESC));
 		CoGrouperConfig config = b.buildConf();
+		config.getSerializationInfo();
 		{
 			List<SortElement> expectedCommon = new ArrayList<SortElement>();
 			expectedCommon.add(new SortElement("b",Order.ASC));
@@ -70,6 +73,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string,c:string,blabla:string")));
 		b.setGroupByFields("c","b");
 		CoGrouperConfig config = b.buildConf();
+		config.getSerializationInfo();
 		{
 			List<SortElement> expectedCommon = new ArrayList<SortElement>();
 			expectedCommon.add(new SortElement("c",Order.ASC));

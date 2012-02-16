@@ -117,7 +117,6 @@ public class SerializationInfo {
 		this.specificSchemas = new ArrayList<Schema>();
 		List<List<Field>> specificFieldsBySource = new ArrayList<List<Field>>();
 		
-		
 		for (int sourceId=0 ; sourceId < grouperConfig.getNumSources(); sourceId++){
 			Criteria specificCriteria = grouperConfig.getSecondarySortBys().get(sourceId);
 			List<Field> specificFields = new ArrayList<Field>();
@@ -134,6 +133,9 @@ public class SerializationInfo {
 		for (int i= 0 ; i < grouperConfig.getNumSources(); i++){
 			Schema sourceSchema = grouperConfig.getSourceSchema(i);
 			List<Field> specificFields = specificFieldsBySource.get(i);
+//			if (specificFields == null){
+//				specificFields = new ArrayList<Field>();
+//			}
 			for (Field field : sourceSchema.getFields()){
 				if (!commonSchema.containsField(field.getName()) && !containsFieldName(field.getName(),specificFields)){
 					specificFields.add(field);
