@@ -57,8 +57,7 @@ public class AvroUtils {
 				fields.add(new Field(field.name(), Class.forName(clazz)));
 			}
 		}
-		String name = avroSchema.getName();
-		Schema schema = new Schema(name, fields);
+		Schema schema = new Schema(avroSchema.getFullName(), fields);
 		return schema;
 	}
 
