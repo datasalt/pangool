@@ -58,9 +58,6 @@ public class AvroUtils {
 			}
 		}
 		String name = avroSchema.getName();
-		if(avroSchema.getNamespace() != null) {
-			name = avroSchema.getNamespace() + "." + avroSchema.getName();
-		}
 		Schema schema = new Schema(name, fields);
 		return schema;
 	}
