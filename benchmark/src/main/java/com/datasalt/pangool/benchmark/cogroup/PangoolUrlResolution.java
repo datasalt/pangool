@@ -108,12 +108,13 @@ public class PangoolUrlResolution {
 		urlMapFields.add(new Field("canonicalUrl", String.class));
 
 		CoGrouper grouper = new CoGrouper(conf);
-		grouper.addSourceSchema(new Schema("urlRegister", urlRegisterFields));
 		grouper.addSourceSchema(new Schema("urlMap", urlMapFields));
+		grouper.addSourceSchema(new Schema("urlRegister", urlRegisterFields));
+		
 
 		grouper.setGroupByFields("url");
-		grouper.setOrderBy(new SortBy().add("url", Order.ASC));
-		grouper.setSecondaryOrderBy("urlRegister", new SortBy().add("timestamp", Order.ASC));
+		grouper.setOrderBy(new SortBy().add("url", Order.ASC).addSourceOrder(Order.ASC));
+		grouper.setSecondaryOrderBy("urlRegister", new SortBy().add("timestamp", Order.DESC));
 
 		grouper.setGroupHandler(new Handler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);

@@ -88,7 +88,7 @@ public class TestMonoSource {
 		coGrouper.addSourceSchema(usersSchema);
 		coGrouper.setGroupByFields("user_id","name");
 		
-		coGrouper.setOrderBy(new SortBy().add("user_id",Order.ASC).add("name",Order.ASC).addSourceOrder(Order.ASC));
+		coGrouper.setOrderBy(new SortBy().add("user_id",Order.ASC).add("name",Order.ASC));
 		//coGrouper.setSecondaryOrderBy("usuarios", new Criteria().add("age",Order.ASC));
 		
 		

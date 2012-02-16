@@ -40,22 +40,36 @@ public class TestCoGroupers extends BaseBenchmarkTest {
 	}
 
 	@Test
-	public void test() throws Exception {
-		PangoolUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_PANGOOL });
-		CascadingUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_CASCADING });
-		CrunchUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_CRUNCH });
+	public void testHadoop() throws Exception {
 		HadoopUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_MAPRED });
-		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
-		String outCascading = getOutputAsText(OUT_CASCADING + "/part-00000");
-		String outCrunch = getReducerOutputAsText(OUT_CRUNCH);
 		String outMapred = getReducerOutputAsText(OUT_MAPRED);
-
 		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
-
-		assertEquals(outPangool, expectedOutput);
-
-		assertEquals(outPangool, outCascading);
-		assertEquals(outPangool, outCrunch);
-		assertEquals(outPangool, outMapred);
+		assertEquals(expectedOutput, outMapred);
 	}
+	
+	@Test
+	public void testPangool() throws Exception {
+		PangoolUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_PANGOOL });
+		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
+		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
+		assertEquals(expectedOutput,outPangool);
+	}
+	
+	@Test
+	public void testCascading() throws Exception {
+		CascadingUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_CASCADING });
+		String outCascading = getOutputAsText(OUT_CASCADING + "/part-00000");
+		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
+		assertEquals(expectedOutput, outCascading);
+	}
+	
+	@Test
+	public void testCrunch() throws Exception {
+		CrunchUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_CRUNCH });
+		String outCrunch = getReducerOutputAsText(OUT_CRUNCH);
+		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
+		assertEquals(expectedOutput, outCrunch);
+	}
+	
+	
 }

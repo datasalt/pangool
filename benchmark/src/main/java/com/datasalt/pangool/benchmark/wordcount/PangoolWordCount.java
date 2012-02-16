@@ -12,6 +12,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -100,10 +101,10 @@ public class PangoolWordCount {
 		
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(new Field("word",String.class));
-		fields.add(new Field("count",Integer.class));
+		fields.add(new Field("count",VIntWritable.class));
 		Schema schema = new Schema("schema",fields);
 
-		CoGrouper cg = new CoGrouper(conf);
+		CoGrouper cg = new CoGrouper(conf,"Pangool WordCount");
 		cg.addSourceSchema(schema);
 		cg.setGroupByFields("word");
 		cg.setJarByClass(PangoolWordCount.class);

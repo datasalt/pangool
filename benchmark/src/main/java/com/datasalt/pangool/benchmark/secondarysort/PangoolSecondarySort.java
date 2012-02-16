@@ -23,6 +23,8 @@ import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
+import com.datasalt.pangool.api.GroupHandler.Collector;
 import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Tuple;
@@ -60,9 +62,15 @@ public class PangoolSecondarySort {
 	@SuppressWarnings("serial")
 	public static class Handler extends GroupHandler<Text, DoubleWritable> {
 
-		private final Text outputKey= new Text();
-		private final DoubleWritable outputValue = new DoubleWritable();
+		private Text outputKey;
+		private DoubleWritable outputValue;
 
+		public void setup(CoGrouperContext coGrouperContext, Collector collector)
+    throws IOException, InterruptedException, CoGrouperException {
+			outputKey  = new Text();
+			outputValue = new DoubleWritable();
+		}
+		
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {

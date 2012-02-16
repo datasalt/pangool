@@ -10,6 +10,7 @@ import com.datasalt.pangool.benchmark.secondarysort.CascadingSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.CrunchSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.HadoopSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.PangoolSecondarySort;
+import com.datasalt.pangool.benchmark.wordcount.CrunchWordCount;
 import com.datasalt.pangool.benchmark.wordcount.HadoopWordCount;
 import com.datasalt.pangool.benchmark.wordcount.PangoolWordCount;
 import com.datasalt.pangool.benchmark.wordcount.CascadingWordCount;
@@ -20,7 +21,7 @@ public class Driver extends ProgramDriver {
 		super();
 		addClass("pangool-wordcount", PangoolWordCount.class, "Typical word count in Pangool");
 		addClass("hadoop-wordcount", HadoopWordCount.class, "Typical word count in Hadoop Map/Red API");
-		addClass("crunch-wordcount", HadoopWordCount.class, "Typical word count in Crunch");
+		addClass("crunch-wordcount", CrunchWordCount.class, "Typical word count in Crunch");
 		addClass("cascading-wordcount", CascadingWordCount.class, "Typical word count in Cascading");
 		// ----------- //
 		addClass("pangool-secondarysort", PangoolSecondarySort.class, "Secondary sort example (Pangool)");

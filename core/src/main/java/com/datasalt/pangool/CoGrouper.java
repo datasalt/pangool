@@ -84,6 +84,7 @@ public class CoGrouper extends ConfigBuilder{
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass;
 	private Class<?> outputValueClass;
+	private String jobName;
 
 	private Path outputPath;
 
@@ -92,6 +93,11 @@ public class CoGrouper extends ConfigBuilder{
 
 	public CoGrouper(Configuration conf) {
 		this.conf = conf;
+	}
+	
+	public CoGrouper(Configuration conf,String name){
+		this.conf = conf;
+		this.jobName = name;
 	}
 
 	public void setJarByClass(Class<?> jarByClass) {
@@ -196,8 +202,7 @@ public class CoGrouper extends ConfigBuilder{
 		CoGrouperConfig grouperConf = buildConf();
 		// Serialize PangoolConf in Hadoop Configuration
 		CoGrouperConfig.set(grouperConf, conf);
-		Job job = new Job(conf);
-
+		Job job = (jobName == null) ? new Job(conf) : new Job(conf,jobName);
 		if(grouperConf.getRollupFrom() != null) {
 				job.setReducerClass(RollupReducer.class);
 		} else {
