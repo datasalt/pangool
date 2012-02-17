@@ -5,14 +5,31 @@ import java.util.Collections;
 import java.util.List;
 
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.mapreduce.Partitioner;
 import com.datasalt.pangool.Criteria.SortElement;
 
+/**
+ * 
+ * Contains information about how to perform binary internal serialization and comparison.
+ * This is used ,among others, in {@link PangoolSerialization} , {@link Partitioner} , {@link SortComparator},
+ * as well {@link SimpleReducer} and {@link RollupReducer}. 
+ */
 public class SerializationInfo {
 
 	private final CoGrouperConfig grouperConfig;
-	private Schema commonSchema;
-	private List<Schema> specificSchemas;
+	/* Fields that will be ser/deserialized before finding sourceId */
+	private Schema commonSchema; 
+	
+	/*Fields,for every source,that will be ser/deserialized after the sourceId.*/
+	private List<Schema> specificSchemas; 
+	
+	/** 
+	 * Fields that define a group. It matches the fields defined in 
+	 * {@link CoGrouperConfig#getGroupByFields()} ordered accordingly {@link CoGrouperConfig#getCommonCriteria()} 
+	 */ 
 	private Schema groupSchema;
+	
+	
 	private List<int[]> fieldsToPartition=new ArrayList<int[]>();
 	private List<int[]> commonToSourcesIndexes=new ArrayList<int[]>();
 	private List<int[]> groupToSourcesIndexes=new ArrayList<int[]>();

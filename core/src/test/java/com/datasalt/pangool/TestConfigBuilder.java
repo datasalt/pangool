@@ -118,7 +118,7 @@ public class TestConfigBuilder extends BaseTest{
 		ConfigBuilder b = new ConfigBuilder();
 		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
 		b.addSourceSchema(new Schema("schema1",Fields.parse("c:int,b:string")));
-		b.setGroupByFields("a");
+		b.setGroupByFields("b");
 		b.buildConf();
 	}
 	

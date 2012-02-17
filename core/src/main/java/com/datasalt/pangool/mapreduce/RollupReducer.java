@@ -27,6 +27,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SerializationInfo;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.GroupHandlerWithRollup;
@@ -41,17 +42,18 @@ import com.datasalt.pangool.io.tuple.ITuple;
  */
 public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
-	private boolean firstIteration = true;
+	
+	private boolean firstRun=true;
 	private CoGrouperConfig grouperConfig;
 	private SerializationInfo serInfo;
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.CoGrouperContext context;
 	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
-	private List<String> groupByFields;
 	private int minDepth, maxDepth;
 	private ViewTuple groupTuple;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	private GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> handler;
 	private boolean isMultipleSources;
+	private Schema groupSchema;
 
 	@SuppressWarnings("unchecked")
   @Override
@@ -60,12 +62,12 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			this.grouperConfig = CoGrouperConfig.get(context.getConfiguration());
 			this.isMultipleSources = this.grouperConfig.getNumSources() >=2;
 			this.serInfo = grouperConfig.getSerializationInfo();
+			this.groupSchema = this.serInfo.getGroupSchema();
 			if (!isMultipleSources){
-				this.groupTuple = new ViewTuple(serInfo.getGroupSchema(),this.serInfo.getGroupSchemaIndexTranslation(0)); //by default translation for 0
+				this.groupTuple = new ViewTuple(groupSchema,this.serInfo.getGroupSchemaIndexTranslation(0)); //by default translation for 0
 			} else {
-				this.groupTuple = new ViewTuple(serInfo.getGroupSchema()); 
+				this.groupTuple = new ViewTuple(groupSchema); 
 			}
-			this.groupByFields = grouperConfig.getGroupByFields();
 			List<String> groupFields = grouperConfig.getGroupByFields();
 			this.maxDepth = groupFields.size() - 1;
 			this.minDepth = grouperConfig.calculateRollupBaseFields().size() - 1;
@@ -99,7 +101,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	public final void run(Context context) throws IOException, InterruptedException {
 		try {
 			setup(context);
-			firstIteration = true;
+			firstRun = true;
 			while(context.nextKey()) {
 				reduce(context.getCurrentKey(), context.getValues(), context);
 				// TODO look if this matches super.run() implementation
@@ -107,7 +109,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 
 			// close last group
 			for(int i = maxDepth; i >= minDepth; i--) {
-				handler.onCloseGroup(i, groupByFields.get(i), context.getCurrentKey().datum(), this.context, collector);
+				handler.onCloseGroup(i, groupSchema.getField(i).getName(), context.getCurrentKey().datum(), this.context, collector);
 			}
 			cleanup(context);
 		} catch(CoGrouperException e) {
@@ -123,20 +125,23 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			Iterator<NullWritable> iterator = values.iterator();
 			grouperIterator.setIterator(iterator);
 			ITuple currentTuple = key.datum();
+			ITuple previousKey = key.previousDatum();
 			int indexMismatch;
-			if(firstIteration) {
+			if(firstRun) {
 				indexMismatch = minDepth;
-				firstIteration = false;
+				firstRun= false;
 			} else {
-				ITuple previousKey = key.previousDatum();
-				indexMismatch = indexMismatch(previousKey, currentTuple, minDepth, maxDepth);
+				indexMismatch = indexMismatch(previousKey, currentTuple, 0, maxDepth);
+				if (indexMismatch < minDepth){
+					indexMismatch = minDepth;
+				}
 				for(int i = maxDepth; i >= indexMismatch; i--) {
-					handler.onCloseGroup(i, groupByFields.get(i), previousKey, this.context, collector);
+					handler.onCloseGroup(i, groupSchema.getField(i).getName(), previousKey, this.context, collector);
 				}
 			}
 
 			for(int i = indexMismatch; i <= maxDepth; i++) {
-				handler.onOpenGroup(i, groupByFields.get(i), currentTuple, this.context, collector);
+				handler.onOpenGroup(i, groupSchema.getField(i).getName(), currentTuple, this.context, collector);
 			}
 
 			// We set a view over the group fields to the method.
@@ -164,6 +169,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	 * Compares sequentially the fields from two tuples and returns which field they differ. TODO: Use custom comparators
 	 * when provided. The provided RawComparators must implements "compare" so we should use them.
 	 * 
+	 * Important. The contract of this method is that the tuples will differ always between minField and maxField. If they are equal then
+	 * an Exception is thrown.
 	 * @return
 	 */
 	private int indexMismatch(ITuple tuple1, ITuple tuple2, int minFieldIndex, int maxFieldIndex) {
@@ -186,6 +193,6 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 				}
 			}
 		}
-		return -1;
+		throw new RuntimeException("Illegal state.The tuples "+ tuple1 + " and " + tuple2  + " compare the same between indexes " + minFieldIndex + " and " + maxFieldIndex);
 	}
 }
