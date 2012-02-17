@@ -44,7 +44,7 @@
   
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
-    <testSourceDirectory>test/main/java</testSourceDirectory>
+    <testSourceDirectory>src/test/java</testSourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
