@@ -6,7 +6,7 @@ import java.nio.charset.Charset;
 
 import com.google.common.io.Files;
 
-public class BaseBenchmarkTest {
+public abstract class BaseBenchmarkTest {
 
 	
 	public String getReducerOutputAsText(String outputDir) throws IOException {

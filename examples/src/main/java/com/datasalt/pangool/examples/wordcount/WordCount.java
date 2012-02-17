@@ -28,9 +28,6 @@ import com.datasalt.pangool.io.tuple.Tuple;
 
 public class WordCount {
 
-	private static final String WORD_FIELD = "word";
-	private static final String COUNT_FIELD = "count";
-	
 
 	@SuppressWarnings("serial")
 	public static class Split extends InputProcessor<LongWritable, Text> {
@@ -40,15 +37,15 @@ public class WordCount {
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
 			Schema schema = context.getCoGrouperConfig().getSourceSchema(0);
 			this.tuple = new Tuple(schema);
+			tuple.set("count", 1);
 		}
 		
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
 			StringTokenizer itr = new StringTokenizer(value.toString());
-			tuple.set(COUNT_FIELD, 1);
 			while(itr.hasMoreTokens()) {
-				tuple.set(WORD_FIELD, itr.nextToken());
+				tuple.set("word", itr.nextToken());
 				collector.write(tuple);
 			}
 		}
@@ -68,11 +65,11 @@ public class WordCount {
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
 			int count = 0;
-			tuple.set(WORD_FIELD, group.get(WORD_FIELD));
+			tuple.set("word", group.get("word"));
 			for(ITuple tuple : tuples) {
 				count += (Integer) tuple.get(1);
 			}
-			tuple.set(COUNT_FIELD, count);
+			tuple.set("count", count);
 			collector.write(this.tuple);
 		}
 	}
@@ -80,13 +77,11 @@ public class WordCount {
 	@SuppressWarnings("serial")
 	public static class Count extends GroupHandler<Text, IntWritable> {
 
-		IntWritable countToEmit;
-		Text text;
-
+		private IntWritable countToEmit;
+		
 		public void setup(CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
 		    CoGrouperException {
 			countToEmit = new IntWritable();
-			text = new Text();
 		};
 
 		@Override
@@ -97,7 +92,7 @@ public class WordCount {
 				count += (Integer) tuple.get(1);
 			}
 			countToEmit.set(count);
-			text.set((String)group.get(WORD_FIELD));
+			Text text = (Text)group.get("word");
 			collector.write(text, countToEmit);
 		}
 	}
@@ -108,8 +103,8 @@ public class WordCount {
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field(WORD_FIELD,String.class));
-		fields.add(new Field(COUNT_FIELD,Integer.class));
+		fields.add(new Field("word",String.class));
+		fields.add(new Field("count",Integer.class));
 		
 		CoGrouper cg = new CoGrouper(conf);
 		cg.addSourceSchema(new Schema("schema",fields));
