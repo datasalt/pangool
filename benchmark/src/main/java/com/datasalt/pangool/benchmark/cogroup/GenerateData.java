@@ -3,6 +3,7 @@ package com.datasalt.pangool.benchmark.cogroup;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * Generates data that can be used as input for {@link PangoolUrlResolution}, {@link HadoopUrlResolution},
@@ -35,18 +36,20 @@ public class GenerateData {
 		final int nCannonicalUrls = Integer.parseInt(args[2]);
 		final int nUrlsPerCannonical = Integer.parseInt(args[3]);
 		final int nTimestampsPerUrl = Integer.parseInt(args[4]);
-
+		Random r = new Random();
 		for(int i = 0; i < nCannonicalUrls; i++) {
-			String randomCannonicalUrl = "http://foo." + randomChar() + randomChar() + "." + randomChar() + randomChar()
-			    + "." + randomChar() + randomChar() + ".cannonical";
+			String randomCannonicalUrl = "http://foo." + System.currentTimeMillis() + "." + Math.abs(r.nextInt()) + ".cannonical";
 			for(int j = 0; j < nUrlsPerCannonical; j++) {
-				String randomUrl = "http://foo" + randomChar() + randomChar() + "." + randomChar() + randomChar() + "."
-				    + randomChar() + randomChar();
+				String randomUrl = "http://foo." + System.currentTimeMillis() + "." + Math.abs(r.nextInt());
 				writerUrlMap.write(randomUrl + "\t" + randomCannonicalUrl + "\n");
 				for(int k = 0; k < nTimestampsPerUrl; k++) {
 					long randomDate = System.currentTimeMillis() - (int) (Math.random() * TIMEFRAME);
-					writerUrlReg.write(randomUrl + "\t" + randomDate + "\tIP" + "\n");
+					long randomIp = Math.abs(r.nextInt());
+					writerUrlReg.write(randomUrl + "\t" + randomDate + "\t" + randomIp  + "\n");
 				}
+			}
+			if (i % 1000 == 0){
+				System.out.println(i/1000 + "K cannonical written");
 			}
 		}
 

@@ -279,7 +279,7 @@ public class HadoopUrlResolution {
 		Configuration conf = new Configuration();
 		String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 		if(otherArgs.length != 3) {
-			System.err.println("Usage: urlresolution <in1> <in2> <out>");
+			System.err.println("Usage: urlresolution <url-map> <url-register> <out>");
 			System.exit(2);
 		}
 		JobConf job = new JobConf(conf);

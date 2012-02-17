@@ -107,7 +107,7 @@ public class PangoolUrlResolution {
 		urlMapFields.add(new Field("url", String.class));
 		urlMapFields.add(new Field("canonicalUrl", String.class));
 
-		CoGrouper grouper = new CoGrouper(conf);
+		CoGrouper grouper = new CoGrouper(conf,"Pangool Url Resolution");
 		grouper.addSourceSchema(new Schema("urlMap", urlMapFields));
 		grouper.addSourceSchema(new Schema("urlRegister", urlRegisterFields));
 		

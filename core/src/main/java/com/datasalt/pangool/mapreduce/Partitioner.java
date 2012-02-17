@@ -22,14 +22,20 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 	
 	@Override
 	public int getPartition(DatumWrapper<ITuple> key, NullWritable value, int numPartitions) {
-		ITuple tuple = key.datum();
-		String sourceName = tuple.getSchema().getName();
-		Integer sourceId = grouperConfig.getSourceIdByName(sourceName);
-		if (sourceId == null){
-			throw new RuntimeException("Schema name '" + sourceName + "' is unknown. Known schemas are : " +grouperConfig.getSourceNames());
+		if(numPartitions == 1) {
+			//in this case the schema is not checked if it's valid
+			return 0;
+		} else {
+			ITuple tuple = key.datum();
+			String sourceName = tuple.getSchema().getName();
+			Integer sourceId = grouperConfig.getSourceIdByName(sourceName);
+			if(sourceId == null) {
+				throw new RuntimeException("Schema name '" + sourceName + "' is unknown. Known schemas are : "
+				    + grouperConfig.getSourceNames());
+			}
+			int[] fieldsToPartition = serInfo.getFieldsToPartition().get(sourceId);
+			return (partialHashCode(tuple, fieldsToPartition) & Integer.MAX_VALUE) % numPartitions;
 		}
-		int[] fieldsToPartition = serInfo.getFieldsToPartition().get(sourceId);
-		return (partialHashCode(tuple,fieldsToPartition) & Integer.MAX_VALUE) % numPartitions;
 	}
 
 	@Override
