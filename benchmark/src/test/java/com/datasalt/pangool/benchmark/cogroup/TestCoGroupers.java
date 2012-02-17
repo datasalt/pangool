@@ -22,14 +22,14 @@ import com.datasalt.pangool.commons.HadoopUtils;
  */
 public class TestCoGroupers extends BaseBenchmarkTest {
 
-	public final static String TEST_FILE_URL_MAP = "test/main/java/com/datasalt/pangool/benchmark/cogroup/url-map.txt";
-	public final static String TEST_FILE_URL_REG = "test/main/java/com/datasalt/pangool/benchmark/cogroup/url-reg.txt";
+	public final static String TEST_FILE_URL_MAP = "src/test/resources/cogroup/url-map.txt";
+	public final static String TEST_FILE_URL_REG = "src/test/resources/cogroup/url-reg.txt";
 
-	public final static String EXPECTED_OUTPUT = "test/main/java/com/datasalt/pangool/benchmark/cogroup/expected-output.txt";
-	public final static String OUT_PANGOOL = "out-pangool-co";
-	public final static String OUT_CASCADING = "out-cascading-co";
-	public final static String OUT_CRUNCH = "out-crunch-co";
-	public final static String OUT_MAPRED = "out-mapred-co";
+	public final static String EXPECTED_OUTPUT = "src/test/resources/cogroup/expected-output.txt";
+	public final static String OUT_PANGOOL = "src/test/resources/cogroup/out-pangool-co";
+	public final static String OUT_CASCADING = "src/test/resources/cogroup/out-cascading-co";
+	public final static String OUT_CRUNCH = "src/test/resources/cogroup/out-crunch-co";
+	public final static String OUT_MAPRED = "src/test/resources/cogroup/out-mapred-co";
 
 	@Before
 	@After

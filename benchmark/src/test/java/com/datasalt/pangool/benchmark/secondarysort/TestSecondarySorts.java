@@ -20,12 +20,12 @@ import com.datasalt.pangool.commons.HadoopUtils;
  */
 public class TestSecondarySorts extends BaseBenchmarkTest {
 
-	public final static String TEST_FILE = "test/main/java/com/datasalt/pangool/benchmark/secondarysort/test-data.txt";
-	public final static String EXPECTED_OUTPUT = "test/main/java/com/datasalt/pangool/benchmark/secondarysort/expected-output.txt";
-	public final static String OUT_PANGOOL = "out-pangool-ss";
-	public final static String OUT_CASCADING = "out-cascading-ss";
-	public final static String OUT_CRUNCH = "out-crunch-ss";
-	public final static String OUT_HADOOP = "out-mapred-ss";
+	public final static String TEST_FILE = "src/test/resources/secondarysort/test-data.txt";
+	public final static String EXPECTED_OUTPUT = "src/test/resources/secondarysort/expected-output.txt";
+	public final static String OUT_PANGOOL = "src/test/resources/secondarysort/out-pangool-ss";
+	public final static String OUT_CASCADING = "src/test/resources/secondarysort/out-cascading-ss";
+	public final static String OUT_CRUNCH = "src/test/resources/secondarysort/out-crunch-ss";
+	public final static String OUT_HADOOP = "src/test/resources/secondarysort/out-mapred-ss";
 
 	@Before
 	@After

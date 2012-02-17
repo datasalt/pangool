@@ -44,7 +44,7 @@ public class PangoolUrlResolution {
 		    throws IOException, InterruptedException {
 
 			if(tuple == null) {
-				tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema(0));
+				tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema("urlRegister"));
 			}
 			String[] fields = value.toString().split("\t");
 			tuple.set("url", fields[0]);
@@ -114,7 +114,8 @@ public class PangoolUrlResolution {
 
 		grouper.setGroupByFields("url");
 		grouper.setOrderBy(new SortBy().add("url", Order.ASC).addSourceOrder(Order.ASC));
-		grouper.setSecondaryOrderBy("urlRegister", new SortBy().add("timestamp", Order.DESC));
+		
+		//grouper.setSecondaryOrderBy("urlRegister", new SortBy().add("timestamp", Order.DESC));
 
 		grouper.setGroupHandler(new Handler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);

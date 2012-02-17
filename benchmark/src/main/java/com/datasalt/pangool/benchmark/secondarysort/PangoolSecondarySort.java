@@ -94,7 +94,7 @@ public class PangoolSecondarySort {
 		fields.add(new Field("doubleField", Double.class));
 		Schema schema = new Schema("schema", fields);
 
-		CoGrouper grouper = new CoGrouper(conf);
+		CoGrouper grouper = new CoGrouper(conf,"Pangool Secondary Sort");
 		grouper.addSourceSchema(schema);
 		grouper.setGroupByFields("intField", "strField");
 		grouper.setOrderBy(new SortBy().add("intField", Order.ASC).add("strField", Order.ASC)

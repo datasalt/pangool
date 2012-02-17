@@ -21,13 +21,13 @@ import com.datasalt.pangool.commons.HadoopUtils;
  */
 public class TestWordCounts extends BaseBenchmarkTest {
 
-	public final static String TEST_FILE = "test/main/java/com/datasalt/pangool/benchmark/wordcount/words.txt";
+	public final static String TEST_FILE = "src/test/resources/wordcount/words.txt";
 
-	public final static String EXPECTED_OUTPUT = "test/main/java/com/datasalt/pangool/benchmark/wordcount/expected-output.txt";
-	public final static String OUT_PANGOOL = "out-pangool-wc";
-	public final static String OUT_CASCADING = "out-cascading-wc";
-	public final static String OUT_CRUNCH = "out-crunch-wc";
-	public final static String OUT_MAPRED = "out-mapred-wc";
+	public final static String EXPECTED_OUTPUT = "src/test/resources/wordcount/expected-output.txt";
+	public final static String OUT_PANGOOL = "src/test/resources/out-pangool-wc";
+	public final static String OUT_CASCADING = "src/test/resources/out-cascading-wc";
+	public final static String OUT_CRUNCH = "src/test/resources/out-crunch-wc";
+	public final static String OUT_MAPRED = "src/test/resources/out-mapred-wc";
 
 	@Before
 	@After

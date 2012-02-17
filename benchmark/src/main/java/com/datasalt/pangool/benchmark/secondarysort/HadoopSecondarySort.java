@@ -218,7 +218,7 @@ public class HadoopSecondarySort {
 			System.err.println("Usage: secondarysrot <in> <out>");
 			System.exit(2);
 		}
-		Job job = new Job(conf, "secondary sort");
+		Job job = new Job(conf, "Hadoop Secondary Sort");
 		FileSystem fS = FileSystem.get(conf);
 		fS.delete(new Path(otherArgs[1]), true);
 
