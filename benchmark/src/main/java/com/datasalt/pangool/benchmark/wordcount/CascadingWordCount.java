@@ -2,6 +2,8 @@ package com.datasalt.pangool.benchmark.wordcount;
 
 import java.util.Properties;
 
+import sun.font.TextLineComponent;
+
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
 import cascading.operation.Aggregator;
@@ -31,6 +33,8 @@ public class CascadingWordCount {
 		String outputPath = args[1];
 
 		// Define source and sink Taps.
+		
+		
 		Scheme sourceScheme = new TextLine(new Fields("line"));
 		Tap source = new Hfs(sourceScheme, inputPath);
 
@@ -62,6 +66,9 @@ public class CascadingWordCount {
 
 		// plan a new Flow from the assembly using the source and sink Taps
 		// with the above properties
+		 
+		
+		
 		FlowConnector flowConnector = new FlowConnector(properties);
 		Flow flow = flowConnector.connect("word-count", source, sink, assembly);
 

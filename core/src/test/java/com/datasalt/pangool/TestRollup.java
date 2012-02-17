@@ -79,7 +79,6 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		@Override
 		public void setup(CoGrouperContext context, Collector collector) throws IOException,
 		    InterruptedException {
-			
 			outputKey = new Text();
 			outputValue = new Text();
 		}
@@ -137,7 +136,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 	}
 
 	@Test
-	public void test() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
+	public void test1() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
 	    IllegalAccessException, CoGrouperException {
 
 		String input = TEST_OUT + "/input";
@@ -225,6 +224,92 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		cleanUp();
 		trash(TEST_OUT);
 	}
+	
+	@Test
+	public void test2() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
+	    IllegalAccessException, CoGrouperException {
+
+		String input = TEST_OUT + "/input";
+		String output = TEST_OUT + "/output";
+
+		String[] inputElements = new String[] { 
+				"ES 20 listo 250", 
+				"US 14 beber 202", 
+				"US 14 perro 180", 
+				"US 14 perro 170",
+		    "US 15 jauja 160", 
+		    "US 16 listo 160", 
+		    "XE 20 listo 230" 
+		    };
+
+		Schema schema = new Schema("schema",Fields.parse("country:string, age:vint, name:string, height:int"));
+		ITuple[] tuples = new ITuple[inputElements.length];
+		int i = 0;
+		for(String inputElement : inputElements) {
+			withInput(input, writable(inputElement));
+			tuples[i++] = createTuple(inputElement,schema);
+		}
+		Path outputPath = new Path(output);
+
+		CoGrouper grouper = new CoGrouper(getConf());
+		grouper.addSourceSchema(schema);
+		grouper.setGroupByFields("country","age","name");
+		grouper.setOrderBy(new SortBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
+		grouper.setRollupFrom("age");
+		grouper.setGroupHandler(new IdentityRed());
+		grouper.setOutput(outputPath, SequenceFileOutputFormat.class, Text.class, Text.class);
+		grouper.addInput(new Path(input), SequenceFileInputFormat.class, new Map());
+
+		Job job = grouper.createJob();
+		job.setNumReduceTasks(1);
+
+		assertRun(job);
+
+		FileSystem fs = FileSystem.get(getConf());
+		Path outputFile = new Path(output + "/part-r-00000");
+		checkGrouperWithRollupOutput(outputFile, 1, 2);
+		SequenceFile.Reader reader = new SequenceFile.Reader(fs, outputFile, getConf());
+
+		assertOutput(reader, "OPEN 1", tuples[0]);
+		assertOutput(reader, "OPEN 2", tuples[0]);
+		assertOutput(reader, "ELEMENT", tuples[0]);
+		assertOutput(reader, "CLOSE 2", tuples[0]);
+		assertOutput(reader, "CLOSE 1", tuples[0]);
+
+		assertOutput(reader, "OPEN 1", tuples[1]);
+		assertOutput(reader, "OPEN 2", tuples[1]);
+		assertOutput(reader, "ELEMENT", tuples[1]);
+		assertOutput(reader, "CLOSE 2", tuples[1]);
+
+		assertOutput(reader, "OPEN 2", tuples[2]);
+		assertOutput(reader, "ELEMENT", tuples[2]);
+		assertOutput(reader, "ELEMENT", tuples[3]);
+		assertOutput(reader, "CLOSE 2", tuples[3]);
+		assertOutput(reader, "CLOSE 1", tuples[3]);
+
+		assertOutput(reader, "OPEN 1", tuples[4]);
+		assertOutput(reader, "OPEN 2", tuples[4]);
+		assertOutput(reader, "ELEMENT", tuples[4]);
+		assertOutput(reader, "CLOSE 2", tuples[4]);
+		assertOutput(reader, "CLOSE 1", tuples[4]);
+
+		assertOutput(reader, "OPEN 1", tuples[5]);
+		assertOutput(reader, "OPEN 2", tuples[5]);
+		assertOutput(reader, "ELEMENT", tuples[5]);
+		assertOutput(reader, "CLOSE 2", tuples[5]);
+		assertOutput(reader, "CLOSE 1", tuples[5]);
+
+		assertOutput(reader, "OPEN 1", tuples[6]);
+		assertOutput(reader, "OPEN 2", tuples[6]);
+		assertOutput(reader, "ELEMENT", tuples[6]);
+		assertOutput(reader, "CLOSE 2", tuples[6]);
+		assertOutput(reader, "CLOSE 1", tuples[6]);
+
+		cleanUp();
+		trash(TEST_OUT);
+	}
+	
+	
 
 	private enum State {
 		OPEN, CLOSE, ELEMENT
