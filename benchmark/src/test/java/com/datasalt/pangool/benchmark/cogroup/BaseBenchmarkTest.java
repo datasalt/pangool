@@ -8,7 +8,6 @@ import com.google.common.io.Files;
 
 public abstract class BaseBenchmarkTest {
 
-	
 	public String getReducerOutputAsText(String outputDir) throws IOException {
 		return getOutputAsText(outputDir + "/part-r-00000");
 	}
