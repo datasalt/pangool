@@ -214,7 +214,8 @@ public class CoGrouper extends ConfigBuilder{
 			// Set Combiner Handler
 			String uniqueName = UUID.randomUUID().toString() + '.' + "combiner-handler.dat";
 			try {
-				DCUtils.serializeToDC(combinerHandler, uniqueName, SimpleCombiner.CONF_COMBINER_HANDLER, job.getConfiguration());
+				DCUtils.serializeToDC(combinerHandler, uniqueName, job.getConfiguration());
+				job.getConfiguration().set(SimpleCombiner.CONF_COMBINER_HANDLER, uniqueName);
 			} catch(URISyntaxException e1) {
 				throw new CoGrouperException(e1);
 			}
@@ -223,7 +224,8 @@ public class CoGrouper extends ConfigBuilder{
 		// Set Group Handler
 		try {
 			String uniqueName = UUID.randomUUID().toString() + '.' + "group-handler.dat";
-			DCUtils.serializeToDC(grouperHandler, uniqueName, SimpleReducer.CONF_REDUCER_HANDLER, job.getConfiguration());
+			DCUtils.serializeToDC(grouperHandler, uniqueName,job.getConfiguration());
+			job.getConfiguration().set( SimpleReducer.CONF_REDUCER_HANDLER, uniqueName);
 		} catch(URISyntaxException e1) {
 			throw new CoGrouperException(e1);
 		}

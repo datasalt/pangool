@@ -69,7 +69,7 @@ public class PangoolMultipleInputs {
 		// Serialize the Mapper instance
 		String uniqueName = UUID.randomUUID().toString() + '.' + "mapper.dat";
 		try {
-			DCUtils.serializeToDC(mapperInstance, uniqueName, null, job.getConfiguration());
+			DCUtils.serializeToDC(mapperInstance, uniqueName, job.getConfiguration());
 		} catch(URISyntaxException e) {
 			throw new IOException(e);
 		}

@@ -20,8 +20,6 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datasalt.pangool.mapreduce.lib.input.DelegatingMapper;
-
 /**
  * This class contains useful methods for dealing with the Hadoop DistributedCache.
  * <p>
@@ -46,17 +44,13 @@ public class DCUtils {
 	 *          The obj instance to serialize using Java serialization.
 	 * @param serializeToLocalFile
 	 *          The local file where the instance will be serialized. It will be copied to the HDFS and removed.
-	 * @param dcConfigurationProperty
-	 *          (Optional) The Hadoop Configuration property that we will use to locate the instance in the Distributed
-	 *          Cache later on. May be null if you don't want to do this here.
 	 * @param conf
 	 *          The Hadoop Configuration.
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 */
-	public static void serializeToDC(Object obj, String serializeToLocalFile,
-	    String dcConfigurationProperty, Configuration conf) throws FileNotFoundException, IOException,
+	public static void serializeToDC(Object obj, String serializeToLocalFile, Configuration conf) throws FileNotFoundException, IOException,
 	    URISyntaxException {
 		File file = new File(System.getProperty("java.io.tmpdir"), serializeToLocalFile);
 		ObjectOutput out = new ObjectOutputStream(new FileOutputStream(file));
@@ -75,10 +69,6 @@ public class DCUtils {
 			DistributedCache.addCacheFile(toHdfs.toUri(), conf);
 		} else {
 			DistributedCache.addCacheFile(file.toURI(), conf);
-		}
-
-		if(dcConfigurationProperty != null) {
-			conf.set(dcConfigurationProperty, serializeToLocalFile);
 		}
 	}
 
