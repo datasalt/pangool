@@ -7,6 +7,9 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +52,8 @@ public class TestCoGroupers extends BaseBenchmarkTest {
 	
 	@Test
 	public void testPangool() throws Exception {
+		Logger root = Logger.getRootLogger();
+		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
 		PangoolUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_PANGOOL });
 		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
 		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
