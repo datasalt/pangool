@@ -210,7 +210,9 @@ public class Schema {
 	
 
 	/** Parse a schema from the provided string.
-   * If named, the schema is added to the names known to this parser. */
+   * If named, the schema is added to the names known to this parser. 
+   * TODO: SchemaParseException should not inherit from Avro and should not be Runtime
+   * */
   public static Schema parse(String s) {
     try {
       return parse(FACTORY.createJsonParser(new StringReader(s)));
@@ -219,6 +221,7 @@ public class Schema {
     }
   }
 
+  // TODO: Should throw SchemaParseException instead IOException
   private static Schema parse(JsonParser parser) throws IOException {
     try {
       return Schema.parse(MAPPER.readTree(parser));
@@ -229,6 +232,7 @@ public class Schema {
     }
   }
   
+  // TODO: Should throw SchemaParseException instead IOException
   static Schema parse(JsonNode schema) throws IOException {
   	String name = schema.get("name").getTextValue();
   	List<Field> fields = new ArrayList<Field>();

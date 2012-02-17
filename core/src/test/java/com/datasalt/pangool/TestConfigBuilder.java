@@ -298,6 +298,16 @@ public class TestConfigBuilder extends BaseTest{
 		b.buildConf();
 	}
 	
+	@Test(expected=CoGrouperException.class)
+	public void testSpecificSortingNotAllowedWithOneSource() throws CoGrouperException {
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.setGroupByFields("a");
+		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setSecondaryOrderBy("schema1", new SortBy().add("b", Order.ASC));		
+		b.buildConf();		
+	}
+	
 //	@Test(expected=CoGrouperException.class)
 //	public void testNotMutableConfig(){
 //		//TODO
