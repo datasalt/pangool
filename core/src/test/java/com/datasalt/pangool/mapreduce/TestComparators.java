@@ -1,6 +1,7 @@
 package com.datasalt.pangool.mapreduce;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,8 +80,8 @@ public class TestComparators extends ComparatorsBaseTest {
 
 		int maxIndex = SCHEMA.getFields().size() - 1;
 
-		Map<String, Class> customComparators = new HashMap<String, Class>();
-		customComparators.put("thrift_field", AComparator.class);
+		Map<String, RawComparator<?>> customComparators = new HashMap<String, RawComparator<?>>();
+		customComparators.put("thrift_field", new AComparator());
 
 		for(int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
 			Schema schema = permuteSchema(SCHEMA);
@@ -185,7 +186,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	 * Custom comparator
 	 * 
 	 */
-	private static class AComparator implements RawComparator<com.datasalt.pangolin.thrift.test.A>, Configurable {
+	private static class AComparator implements RawComparator<com.datasalt.pangolin.thrift.test.A>, Configurable, Serializable {
 
 		private Configuration conf;
 		private HadoopSerialization ser;
@@ -251,7 +252,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	 * Creates a random sort criteria based in the specified schema.
 	 * @throws CoGrouperException 
 	 */
-	protected static SortBy createRandomSortCriteria(Schema schema, Map<String, Class> customComparators,
+	protected static SortBy createRandomSortCriteria(Schema schema, Map<String, RawComparator<?>> customComparators,
 	    int numFields) throws CoGrouperException {
 			Random random = new Random();
 			List<SortElement> builder = new ArrayList<SortElement>();

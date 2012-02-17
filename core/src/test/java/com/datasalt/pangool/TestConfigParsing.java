@@ -1,9 +1,12 @@
 package com.datasalt.pangool;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.filecache.TaskDistributedCacheManager;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
@@ -40,7 +43,7 @@ public class TestConfigParsing {
 
 	}
 	
-	private static class DummyComparator implements RawComparator {
+	private static class DummyComparator implements RawComparator, Serializable {
 		@Override
     public int compare(Object arg0, Object arg1) {
 	    return 0;
@@ -50,6 +53,11 @@ public class TestConfigParsing {
     public int compare(byte[] arg0, int arg1, int arg2, byte[] arg3, int arg4, int arg5) {
 	    return 0;
     }
+		
+		@Override
+		public boolean equals(Object obj) {
+		  return obj instanceof DummyComparator;
+		}
 	}
 	
 	@Test
@@ -59,16 +67,23 @@ public class TestConfigParsing {
 		b.addSourceSchema(schema2);
 		b.addSourceSchema(schema3);
 		b.setGroupByFields("int_field");
-		b.setOrderBy(new SortBy().add("int_field",Order.DESC).addSourceOrder(Order.DESC).add("boolean_field",Order.DESC));
+		b.setOrderBy(new SortBy().add("int_field",Order.DESC).addSourceOrder(Order.DESC).add("boolean_field",Order.DESC, new DummyComparator()));
 		b.setRollupFrom("int_field");
-		b.setSecondaryOrderBy(schema3.getName(),new SortBy().add("enum_field", Order.ASC,DummyComparator.class));
+		b.setSecondaryOrderBy(schema3.getName(),new SortBy().add("enum_field", Order.ASC, new DummyComparator()));
 		
 		CoGrouperConfig conf =b.buildConf();
-		CoGrouperConfig deserConf = CoGrouperConfig.parse(conf.toString());
-		Assert.assertEquals(conf,deserConf);
-		CoGrouperConfig deserConf2 = CoGrouperConfig.parse(deserConf.toString());
-		Assert.assertEquals(conf,deserConf2);
+		Configuration hconf = new Configuration();
+		
+		CoGrouperConfig.set(conf, hconf);
+		CoGrouperConfig deserConf = CoGrouperConfig.get(hconf);
 		System.out.println(conf);
-		System.out.println(deserConf2);
+		System.out.println("------------");
+		System.out.println(deserConf);
+
+		Assert.assertEquals(conf,deserConf);
+		hconf = new Configuration();
+		CoGrouperConfig.set(deserConf, hconf);
+		CoGrouperConfig deserConf2 = CoGrouperConfig.get(hconf);
+		Assert.assertEquals(conf,deserConf2);
 	}
 }

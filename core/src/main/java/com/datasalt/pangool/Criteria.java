@@ -46,12 +46,12 @@ public class Criteria {
 		public static class SortElement {
 			private String name;
 			private Order order;
-			private Class<? extends RawComparator<?>> customComparator;
+			private RawComparator<?> customComparator;
 			
-			public Class<? extends RawComparator<?>> getCustomComparator() {
+			public RawComparator<?> getCustomComparator() {
 				return customComparator;
 			}
-			public void setCustomComparator(Class<? extends RawComparator<?>> customComparator) {
+			public void setCustomComparator(RawComparator<?> customComparator) {
 				this.customComparator = customComparator;
 			}
 			public String getName() {
@@ -69,14 +69,19 @@ public class Criteria {
 				}
 				
 				SortElement that = (SortElement)a;
-				if (this.getCustomComparator() != that.getCustomComparator()){
+				RawComparator<?> thisc = this.getCustomComparator(); 
+				RawComparator<?> thatc = this.getCustomComparator();
+				
+				if (thisc != null && thatc == null) {
 					return false;
-				}
+				} else if (thisc != null && !thisc.equals(thatc)){
+					return false;
+				} 
 				return this.getName().equals(that.getName()) && this.getOrder().equals(that.getOrder());
 			}
 			
 			public SortElement(String name,Order order){this.name =name; this.order = order;}
-			public SortElement(String name,Order order,Class<? extends RawComparator<?>> comparator){
+			public SortElement(String name,Order order, RawComparator<?> comparator){
 				this(name,order); 
 				this.customComparator = comparator;
 			}
@@ -85,28 +90,15 @@ public class Criteria {
 				gen.writeStartObject();
 				gen.writeStringField("name", name);
 				gen.writeStringField("order",order.toString());
-				if (customComparator != null){
-					gen.writeStringField("comparator", customComparator.getName().toString());
-				}
 				gen.writeEndObject();
 			}
 			
-			static SortElement parse(JsonNode node) throws IOException {
-				
+			static SortElement parse(JsonNode node) throws IOException {				
 				String name = node.get("name").getTextValue();
 				Order order = Order.valueOf(node.get("order").getTextValue());
-				if (node.get("comparator") != null){
-					Class customComparator;
-          try {
-	          customComparator = Class.forName(node.get("comparator").getTextValue());
-          } catch(ClassNotFoundException e) {
-	          throw new IOException(e);
-          }
-					return new SortElement(name,order,customComparator);
-				} else {
-					return new SortElement(name, order);
-				}
+				return new SortElement(name, order);
 			}
+			
 			@Override
 			public String toString(){
 				//TODO maybe refactor this

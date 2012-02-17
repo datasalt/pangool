@@ -178,7 +178,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				Class<?> type = field.getType();
 				SortElement sortElement = criteria.getElements().get(depth);
 				Order sort = sortElement.getOrder();
-				Class<? extends RawComparator> comparatorClass =sortElement.getCustomComparator(); 
+				//Class<? extends RawComparator> comparatorClass =sortElement.getCustomComparator(); 
 				RawComparator comparator = null; //TODO fix this
 				
 				if(comparator != null) {

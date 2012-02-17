@@ -93,6 +93,17 @@ public class DCUtils {
 		
 		log.info("[profile] Locate file in DC");
 		Path path = DCUtils.locateFileInDC(conf, fileName);
+		
+		/*
+		 * The following trick is for having the serialization, deserialization
+		 * working on testing environments. We know files are 
+		 */
+		if (path == null) {
+			String tmpdir = System.getProperty("java.io.tmpdir");
+			log.info("[profile] Not found in DC. Looking in " + System.getProperty("java.io.tmpdir") + " folder");
+			path = locateFileInFolder(tmpdir, fileName);
+		}
+		
 		log.info("[profile] Deserialize instance");
 		ObjectInput in = new ObjectInputStream(new FileInputStream(new File(path + "")));
 		T obj;
@@ -104,6 +115,16 @@ public class DCUtils {
 		in.close();
 		log.info("[profile] Done deserializing.");
 		return obj;
+	}
+	
+	static private Path locateFileInFolder(String folder, String fileStr) {
+		File[] files = new File(folder).listFiles();
+		for(File file: files) {
+			if (file.getName().equals(fileStr)) {
+				return new Path(folder, fileStr);
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -131,4 +152,5 @@ public class DCUtils {
 		}
 		return locatedFile;
 	}
+	
 }
