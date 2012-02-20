@@ -109,7 +109,7 @@ public class CoGrouper extends ConfigBuilder{
 		AvroUtils.addAvroSerialization(conf);
 		
 	}
-
+	
 	public void addInput(Path path, Class<? extends InputFormat> inputFormat, InputProcessor inputProcessor) {
 		this.multiInputs.add(new Input(path, inputFormat, inputProcessor));
 	}
@@ -138,6 +138,8 @@ public class CoGrouper extends ConfigBuilder{
 	public void setGroupHandler(GroupHandler groupHandler) {
 		this.grouperHandler = groupHandler;
 	}
+	
+
 
 	public void addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
 	    Class valueClass) throws CoGrouperException {

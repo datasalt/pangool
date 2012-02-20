@@ -40,7 +40,7 @@ public class ViewTuple implements ITuple {
 	@Override
   public Object get(int pos) {
 		if (pos >= schema.getFields().size()){
-			throw new IllegalArgumentException("Field not exists in schema:" + schema);
+			throw new IllegalArgumentException("Field '"+ pos + "' out of bounds in schema:" + schema);
 		}
 		if (indexTranslation != null){
 			return contained.get(indexTranslation[pos]);
@@ -67,7 +67,10 @@ public class ViewTuple implements ITuple {
 	
 	@Override
   public Object get(String field) {
-		int pos = schema.getFieldPos(field);
+		Integer pos = schema.getFieldPos(field);
+		if (pos == null){
+			throw new IllegalArgumentException("Not known field '" + field + "' in schema:" + schema);
+		}
 	  return get(pos);
   }
 

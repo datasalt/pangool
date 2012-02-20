@@ -7,6 +7,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,6 +50,7 @@ public class CoGrouperConfig {
 
 	private List<Schema> sourceSchemas = new ArrayList<Schema>();
 	private List<String> groupByFields;
+	private List<String> customPartitionFields = new ArrayList<String>();
 	private String rollupFrom;
 
 	private SerializationInfo serInfo;
@@ -82,6 +84,10 @@ public class CoGrouperConfig {
 		return secondaryCriterias;
 	}
 
+	public List<String> getCustomPartitionFields(){
+		return customPartitionFields;
+	}
+		
 	protected CoGrouperConfig() {
 	}
 
@@ -127,13 +133,19 @@ public class CoGrouperConfig {
 		return rollupFrom;
 	}
 
-	void addSource(Schema schema) throws CoGrouperException {
-		if(sourceNames.contains(schema.getName())) {
+	private void addSource(Schema schema) throws CoGrouperException {
+		if (sourceNames.contains(schema.getName())){
 			throw new CoGrouperException("There's a schema with that name '" + schema.getName() + "'");
 		}
 		sourceNameToId.put(schema.getName(), sourceNames.size());
 		sourceNames.add(schema.getName());
 		sourceSchemas.add(schema);
+	}
+
+	void setSourceSchemas(Collection<Schema> schemas) throws CoGrouperException {
+		for (Schema s : schemas){
+			addSource(s);
+		}
 	}
 
 	void setGroupByFields(List<String> groupByFields) {
@@ -151,9 +163,13 @@ public class CoGrouperConfig {
 	void setSourceOrder(Order order) {
 		this.sourcesOrder = order;
 	}
-
-	void setSecondarySortBy(String sourceName, Criteria criteria) throws CoGrouperException {
-		if(this.secondaryCriterias.isEmpty()) {
+	
+	void setCustomPartitionFields(List<String> customPartitionFields ){
+		this.customPartitionFields = customPartitionFields;
+	}
+	
+	void setSecondarySortBy(String sourceName,Criteria criteria) throws CoGrouperException {
+		if (this.secondaryCriterias.isEmpty()){
 			initSecondaryCriteriasWithNull();
 		}
 		Integer pos = getSourceIdByName(sourceName);
@@ -258,6 +274,7 @@ public class CoGrouperConfig {
 
 		if(comparatorRefs == null) {
 			return;
+
 		}
 		try {
 			for(int i = 0; i < comparatorRefs.length; i++) {
@@ -304,6 +321,15 @@ public class CoGrouperConfig {
 				result.rollupFrom = node.get("rollupFrom").getTextValue();
 			}
 
+			if (node.get("customPartitionFields") != null){
+				Iterator<JsonNode> partitionNodes = node.get("customPartitionFields").getElements();
+				List<String> partitionFields = new ArrayList<String>();
+				while (partitionNodes.hasNext()){
+					partitionFields.add(partitionNodes.next().getTextValue());
+				}
+				result.customPartitionFields = partitionFields;
+			}
+			
 			JsonNode commonSortByNode = node.get("commonSortBy");
 			result.commonCriteria = Criteria.parse(commonSortByNode);
 			result.sourcesOrder = Order.valueOf(node.get("sourcesOrder").getTextValue());
@@ -410,4 +436,5 @@ public class CoGrouperConfig {
 		    && this.getSourceSchemas().equals(that.getSourceSchemas()) && this.getSecondarySortBys().equals(
 		    that.getSecondarySortBys()));
 	}
+
 }

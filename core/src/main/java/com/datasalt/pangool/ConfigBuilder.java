@@ -25,6 +25,7 @@ public class ConfigBuilder {
 	private Map<String,SortBy> secondarysOrderBy=new HashMap<String,SortBy>();
 	private List<String> groupByFields;
 	private String rollupFrom;
+	private String[] fieldsToPartition;
 	
 	public ConfigBuilder(){
 		
@@ -97,6 +98,20 @@ public class ConfigBuilder {
 		}
 		
 		this.rollupFrom = rollupFrom;
+	}
+	
+	public void setCustomPartitionFields(String ... fields) throws CoGrouperException {
+		failIfEmpty(fields,"Need to specify at leas tone field to partition by");
+		//check if all fields are present in all sources and with the same type
+		for (String field : fields){
+			if (!fieldPresentInAllSources(field)){
+				throw new CoGrouperException("Can't group by field '" + field + "' . Not present in all sources");
+			}
+			if (!fieldSameTypeInAllSources(field)){
+				throw new CoGrouperException("Can't group by field '" +field + "' since its type differs among sources");
+			}
+		}
+		this.fieldsToPartition = fields;
 	}
 	
 //------------------------------------------------------------------------- //
@@ -173,12 +188,15 @@ public class ConfigBuilder {
 		failIfEmpty(groupByFields," Need to declare group by fields");
 		
 		CoGrouperConfig conf =  new CoGrouperConfig();
-		for (Schema schema : sourceSchemas){
-			conf.addSource(schema);
-		}
+		conf.setSourceSchemas(sourceSchemas);
+		
 		
 		conf.setGroupByFields(groupByFields);
 		conf.setRollupFrom(rollupFrom);
+		if (fieldsToPartition != null && fieldsToPartition.length != 0){
+			conf.setCustomPartitionFields(Arrays.asList(fieldsToPartition));
+		}
+		
 		Criteria convertedCommonOrder =convertCommonSortByToCriteria(commonSortBy);
 		if (commonSortBy != null && commonSortBy.getSourceOrder() != null){
 			conf.setSourceOrder(commonSortBy.getSourceOrder());

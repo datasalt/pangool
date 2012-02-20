@@ -245,7 +245,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 				"US 14 perro 170",
 		    "US 15 jauja 160", 
 		    "US 16 listo 160", 
-		    "XE 20 listo 230" 
+		    "XE 16 listo 230" 
 		    };
 
 		Schema schema = new Schema("schema",Fields.parse("country:string, age:vint, name:string, height:int"));

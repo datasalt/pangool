@@ -3,6 +3,7 @@ package com.datasalt.pangool.benchmark.secondarysort;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * This program generates input that can be used for running {@link PangoolSecondarySort}, {@link HadoopSecondarySort},
@@ -34,14 +35,14 @@ public class GenerateData {
 		final int nDeps = Integer.parseInt(args[1]);
 		final int nPersonPerDep = Integer.parseInt(args[2]);
 		final int nPaymentsPerPerson = Integer.parseInt(args[3]);
-
+		Random r = new Random();
 		for(int i = 0; i < nDeps; i++) {
-			int randomDep = (int) (Math.random() * INTRANGE);
+			int randomDep = (r.nextInt());
 			for(int j = 0; j < nPersonPerDep; j++) {
 				String randomName = "" + randomChar() + randomChar();
 				for(int k = 0; k < nPaymentsPerPerson; k++) {
-					long randomDate = System.currentTimeMillis() - (int) (Math.random() * TIMEFRAME);
-					double randomPrice = Math.random() * INTRANGE;
+					long randomDate = r.nextLong();
+					double randomPrice = r.nextDouble();
 					writer.write(randomDep + "\t" + randomName + "\t" + randomDate + "\t" + randomPrice + "\n");
 				}
 			}

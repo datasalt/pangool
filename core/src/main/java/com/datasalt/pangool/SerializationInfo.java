@@ -60,7 +60,7 @@ public class SerializationInfo {
 		calculateIndexTranslations();
 	}
 
-	public List<int[]> getFieldsToPartition(){
+	public List<int[]> getPartitionFieldsIndexes(){
 		return fieldsToPartition;
 	}
 	
@@ -88,7 +88,12 @@ public class SerializationInfo {
 	}
 	
 	private void calculatePartitionFields() {
-		List<String> partitionFields = grouperConfig.calculateRollupBaseFields();
+		List<String> partitionFields;
+		if (grouperConfig.getCustomPartitionFields() != null){
+			partitionFields = grouperConfig.getCustomPartitionFields();
+		} else {
+			partitionFields = grouperConfig.calculateRollupBaseFields();
+		}
 		int numFields = partitionFields.size();
 		for (Schema schema : grouperConfig.getSourceSchemas()){
 			int[] posFields = new int[numFields];
