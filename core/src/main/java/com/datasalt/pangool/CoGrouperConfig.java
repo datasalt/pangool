@@ -43,6 +43,7 @@ public class CoGrouperConfig {
 	
 	private List<Schema> sourceSchemas = new ArrayList<Schema>();
 	private List<String> groupByFields;
+	private List<String> customPartitionFields = new ArrayList<String>();
 	private String rollupFrom;
 	
 	private SerializationInfo serInfo;
@@ -75,6 +76,10 @@ public class CoGrouperConfig {
 	
 	public List<Criteria> getSecondarySortBys(){
 		return secondaryCriterias;
+	}
+	
+	public List<String> getCustomPartitionFields(){
+		return customPartitionFields;
 	}
 		
 	protected CoGrouperConfig() {
@@ -151,6 +156,10 @@ public class CoGrouperConfig {
 		this.sourcesOrder = order;
 	}
 	
+	void setCustomPartitionFields(List<String> customPartitionFields ){
+		this.customPartitionFields = customPartitionFields;
+	}
+	
 	void setSecondarySortBy(String sourceName,Criteria criteria) throws CoGrouperException {
 		if (this.secondaryCriterias.isEmpty()){
 			initSecondaryCriteriasWithNull();
@@ -189,15 +198,26 @@ public class CoGrouperConfig {
 			result.addSource(Schema.parse(sourceNode));
 		}
 		
-		Iterator<JsonNode> groupFieldsNode = node.get("groupByFields").getElements();
-		List<String> groupFields = new ArrayList<String>();
-		while (groupFieldsNode.hasNext()){
-			groupFields.add(groupFieldsNode.next().getTextValue());
+		{
+			Iterator<JsonNode> groupFieldsNode = node.get("groupByFields").getElements();
+			List<String> groupFields = new ArrayList<String>();
+			while (groupFieldsNode.hasNext()){
+				groupFields.add(groupFieldsNode.next().getTextValue());
+			}
+			result.groupByFields = Collections.unmodifiableList(groupFields);
 		}
-		result.groupByFields = Collections.unmodifiableList(groupFields);
 		
 		if (node.get("rollupFrom") != null){
 			result.rollupFrom = node.get("rollupFrom").getTextValue();
+		}
+		
+		if (node.get("customPartitionFields") != null){
+			Iterator<JsonNode> partitionNodes = node.get("customPartitionFields").getElements();
+			List<String> partitionFields = new ArrayList<String>();
+			while (partitionNodes.hasNext()){
+				partitionFields.add(partitionNodes.next().getTextValue());
+			}
+			result.customPartitionFields = partitionFields;
 		}
 		
 		JsonNode commonSortByNode = node.get("commonSortBy");
@@ -230,6 +250,14 @@ public class CoGrouperConfig {
     	gen.writeString(field);
     }
     gen.writeEndArray();
+    
+    if (this.customPartitionFields != null && !this.customPartitionFields.isEmpty()){
+    	gen.writeArrayFieldStart("customPartitionFields");
+    	for(String field : customPartitionFields){
+      	gen.writeString(field);
+      }
+    	gen.writeEndArray();
+    }
     
     if (rollupFrom != null){
     	gen.writeFieldName("rollupFrom");
@@ -302,6 +330,9 @@ public class CoGrouperConfig {
   			this.getCommonCriteria().equals(that.getCommonCriteria()) && 
   			this.getGroupByFields().equals(that.getGroupByFields()) &&
   			this.getSourceSchemas().equals(that.getSourceSchemas()) &&
-  			this.getSecondarySortBys().equals(that.getSecondarySortBys()));
+  			this.getSecondarySortBys().equals(that.getSecondarySortBys()) &&
+  			
+  			((this.getCustomPartitionFields() == null && that.getCustomPartitionFields() == null) ||
+  			this.getCustomPartitionFields().equals(that.getCustomPartitionFields())));
   }
 }

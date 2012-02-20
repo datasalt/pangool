@@ -308,6 +308,68 @@ public class TestConfigBuilder extends BaseTest{
 		b.buildConf();		
 	}
 	
+	@Test(expected=CoGrouperException.class)
+	public void testCustomPartitionFieldsNotEmpty() throws CoGrouperException {
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.setGroupByFields("a");
+		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setCustomPartitionFields();		
+		b.buildConf();	
+	}
+	
+	@Test(expected=CoGrouperException.class)
+	public void testCustomPartitionFieldsNotNull() throws CoGrouperException {
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.setGroupByFields("a");
+		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setCustomPartitionFields(null);		
+		b.buildConf();
+	}
+	
+	@Test(expected=CoGrouperException.class)
+	public void testCustomPartitionFieldsPresentInAllSources() throws CoGrouperException {
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addSourceSchema(new Schema("schema2",Fields.parse("a:int,b:string,c:long")));
+		b.setGroupByFields("a");
+		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setCustomPartitionFields("c");		
+		b.buildConf();
+	}
+	
+	@Test(expected=CoGrouperException.class)
+	public void testCustomPartitionFieldsPresentWithSameType() throws CoGrouperException {
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addSourceSchema(new Schema("schema2",Fields.parse("a:int,b:long")));
+		b.setGroupByFields("a");
+		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setCustomPartitionFields("b");		
+		b.buildConf();
+	}
+	
+	@Test
+	public void testCustomPartition() throws CoGrouperException {
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addSourceSchema(new Schema("schema2",Fields.parse("b:string,a:int")));
+		b.setGroupByFields("a");
+		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setCustomPartitionFields("b");		
+		CoGrouperConfig config = b.buildConf();
+		System.out.println(config);
+		SerializationInfo serInfo = config.getSerializationInfo();
+		int[] indexes0 = serInfo.getFieldsToPartition(0);
+		int[] indexes1 = serInfo.getFieldsToPartition(1);
+		Assert.assertArrayEquals(new int[]{1}, indexes0);
+		Assert.assertArrayEquals(new int[]{0}, indexes1);
+	}
+	
+	
+	
+	
 //	@Test(expected=CoGrouperException.class)
 //	public void testNotMutableConfig(){
 //		//TODO
