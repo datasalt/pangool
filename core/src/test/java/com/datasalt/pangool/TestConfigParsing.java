@@ -53,7 +53,20 @@ public class TestConfigParsing {
 	}
 	
 	@Test
-	public void test1() throws CoGrouperException, IOException {
+	public void testSimple() throws CoGrouperException, IOException {
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(schema1);
+		b.setGroupByFields("int_field");
+		CoGrouperConfig conf =b.buildConf();
+		CoGrouperConfig deserConf = CoGrouperConfig.parse(conf.toString());
+		Assert.assertEquals(conf,deserConf);
+		CoGrouperConfig deserConf2 = CoGrouperConfig.parse(deserConf.toString());
+		Assert.assertEquals(conf,deserConf2);
+	}
+	
+	
+	@Test
+	public void testExtended() throws CoGrouperException, IOException {
 		ConfigBuilder b = new ConfigBuilder();
 		b.addSourceSchema(schema1);
 		b.addSourceSchema(schema2);
@@ -71,6 +84,8 @@ public class TestConfigParsing {
 		System.out.println(conf);
 		System.out.println(deserConf2);
 	}
+	
+	
 	
 	
 	@Test

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datasalt.pangool.Criteria.Order;
@@ -369,10 +370,18 @@ public class TestConfigBuilder extends BaseTest{
 	
 	
 	
-	
-//	@Test(expected=CoGrouperException.class)
-//	public void testNotMutableConfig(){
-//		//TODO
-//	}
+	@Ignore
+	@Test(expected=UnsupportedOperationException.class)
+	public void testNotMutableConfig() throws CoGrouperException {
+		ConfigBuilder b = new ConfigBuilder();
+		b.addSourceSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addSourceSchema(new Schema("schema2",Fields.parse("b:string,a:int")));
+		b.setGroupByFields("a");
+		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setCustomPartitionFields("b");		
+		CoGrouperConfig config = b.buildConf();
+		//TODO 
+		
+	}
 	
 }

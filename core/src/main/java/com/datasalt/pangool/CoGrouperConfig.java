@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -129,7 +130,7 @@ public class CoGrouperConfig {
   	return rollupFrom;
   }
 
-	void addSource(Schema schema) throws CoGrouperException {
+	private void addSource(Schema schema) throws CoGrouperException {
 		if (sourceNames.contains(schema.getName())){
 			throw new CoGrouperException("There's a schema with that name '" + schema.getName() + "'");
 		}
@@ -138,8 +139,11 @@ public class CoGrouperConfig {
 		sourceSchemas.add(schema);
 	}
 
-	
-	
+	void setSourceSchemas(Collection<Schema> schemas) throws CoGrouperException {
+		for (Schema s : schemas){
+			addSource(s);
+		}
+	}
 	void setGroupByFields(List<String> groupByFields) {
 		this.groupByFields = groupByFields;
 	}

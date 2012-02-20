@@ -14,7 +14,9 @@ import org.apache.avro.mapred.FsInput;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -64,6 +66,10 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 			return new LongWritable((Long) obj);
 		} else if(obj instanceof String) {
 			return new Text((String) obj);
+		} else if(obj instanceof Float) {
+			return new FloatWritable((Float)obj);
+		} else if(obj instanceof Boolean){
+			return new BooleanWritable((Boolean)obj);
 		}
 		return null;
 	}
@@ -155,8 +161,7 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 		throw new AssertionError("Not found in output -> Tuple: " + tuple + ". Found tuples: " + outs);
 	}
 
-	public void withOutput(String output, Object key, Object value) throws IOException, ClassNotFoundException,
-	    InstantiationException, IllegalAccessException {
+	public void withOutput(String output, Object key, Object value) throws IOException {
 		List<Pair<Object, Object>> outs = ensureOutput(output);
 		for(Pair<Object, Object> inOutput : outs) {
 			if(inOutput.getFirst().equals(key) && inOutput.getSecond().equals(value)) {

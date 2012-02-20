@@ -66,7 +66,7 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 			Object o = tuple.get(field);
 			int hashCode;
 			if (o instanceof String){ //since String.hashCode() != Text.hashCode()
-				HELPER_TEXT.set((String)o); //TODO this can be inefficient
+				HELPER_TEXT.set((String)o); 
 				hashCode = HELPER_TEXT.hashCode();
 			} else {
 				hashCode = o.hashCode();

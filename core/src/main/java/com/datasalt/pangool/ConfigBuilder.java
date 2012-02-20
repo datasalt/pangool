@@ -184,9 +184,8 @@ public class ConfigBuilder {
 		failIfEmpty(groupByFields," Need to declare group by fields");
 		
 		CoGrouperConfig conf =  new CoGrouperConfig();
-		for (Schema schema : sourceSchemas){
-			conf.addSource(schema);
-		}
+		conf.setSourceSchemas(sourceSchemas);
+		
 		
 		conf.setGroupByFields(groupByFields);
 		conf.setRollupFrom(rollupFrom);
