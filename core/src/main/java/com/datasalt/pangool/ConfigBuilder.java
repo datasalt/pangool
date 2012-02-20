@@ -10,6 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.RawComparator;
+
 import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.Criteria.SortElement;
 import com.datasalt.pangool.Schema.Field;
@@ -89,7 +93,7 @@ public class ConfigBuilder {
 		}
 		if (this.commonSortBy == null){
 			//rollup needs explicit common orderby
-			throw new CoGrouperException("No common order previously set");
+			throw new CoGrouperException("Rollup needs explicit order by. No common order previously set");
 		}
 		
 		this.rollupFrom = rollupFrom;
@@ -238,4 +242,25 @@ public class ConfigBuilder {
 		}
 	}
 	
+	/**
+   * Initializes the custom comparator instances inside the given config criterias, 
+   * calling the {@link Configurable#setConf(Configuration)} method. 
+   */
+  public static void initializeComparators(Configuration conf, CoGrouperConfig groupConfig) {
+  	ConfigBuilder.initializeComparators(conf, groupConfig.getCommonCriteria());
+  	for(Criteria criteria : groupConfig.getSecondarySortBys()) {
+  		if (criteria != null) {
+  			ConfigBuilder.initializeComparators(conf, criteria);
+  		}
+  	}
+  }
+  
+	private static void initializeComparators(Configuration conf, Criteria criteria) {
+  	for (SortElement element : criteria.getElements()) {
+  		RawComparator<?> comparator = element.getCustomComparator();
+  		if (comparator != null && comparator instanceof Configurable) { 				
+  			((Configurable) comparator).setConf(conf);
+  		}
+  	}
+  }
 }

@@ -44,7 +44,7 @@ public abstract class BaseTest extends AbstractBaseTest {
 		SCHEMA = new Schema("schema",fields);
 	}
 
-	
+	static Random random = new Random(1);
 	
 	protected static void fillTuple(boolean random,ITuple tuple){
 		fillTuple(random,tuple,0,tuple.getSchema().getFields().size()-1);
@@ -57,7 +57,6 @@ public abstract class BaseTest extends AbstractBaseTest {
 
 	protected static void fillTuple(boolean isRandom,ITuple tuple, int minIndex, int maxIndex) {
 		try {
-			Random random = new Random();
 			for(int i = minIndex; i <= maxIndex; i++) {
 				Field field = tuple.getSchema().getField(i);
 				Class fieldType = field.getType();
@@ -85,6 +84,13 @@ public abstract class BaseTest extends AbstractBaseTest {
 					boolean toInstance = random.nextBoolean();
 					if(isRandom && toInstance) {
 						Object instance = ReflectionUtils.newInstance(fieldType, null);
+						
+						if (instance instanceof A) {
+							boolean toFill = random.nextBoolean();
+							A a = (A) instance;
+							a.setId(random.nextInt() + "");
+							a.setUrl(random.nextLong() + "");
+						}
 						tuple.set(i, instance);
 					} else {
 						tuple.set(i, null);

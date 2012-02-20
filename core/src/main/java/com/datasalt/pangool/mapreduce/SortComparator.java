@@ -15,9 +15,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
+import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
 
+import sun.security.action.GetLongAction;
+
 import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.ConfigBuilder;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
 import com.datasalt.pangool.SerializationInfo;
@@ -46,11 +50,6 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	}
 
 	public SortComparator() {}
-	
-	public SortComparator(CoGrouperConfig grouperConfig){
-		setGrouperConf(grouperConfig);
-	}
-	
 	
 	/**
 	 * Never called in MapRed jobs. Just for completion and test purposes
@@ -86,13 +85,16 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		}
 		
 	}
-
-	public int compare(Criteria c,ITuple w1,int[] index1,ITuple w2,int[] index2){
+	
+	/**
+	 * Compare two {@link ITuple} by the given indexes. 
+	 */
+	protected static int compare(Criteria c,ITuple w1,int[] index1,ITuple w2,int[] index2){
 		for (int i=0 ; i < c.getElements().size() ; i++){
 			SortElement e = c.getElements().get(i);
 			Object o1 = w1.get(index1[i]);
 			Object o2 = w2.get(index2[i]);
-			int comparison = compareObjects(o1,o2); //TODO BAD . This doesn't take in account custom comparator!!
+			int comparison = compareObjects(o1,o2, e.getCustomComparator()); 
 			if (comparison != 0){
 				return (e.getOrder() == Order.ASC ? comparison : -comparison);
 			}
@@ -102,10 +104,11 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	
 	
 	/**
-	 * Compares two objects
+	 * Compares two objects. Uses the given custom comparator
+	 * if present.
 	 */
 	@SuppressWarnings({ "unchecked" })
-	public static int compareObjects(Object elem1, Object elem2) {
+	protected static int compareObjects(Object elem1, Object elem2, RawComparator comparator) {
 		Object element1 = elem1;
 		Object element2 = elem2;
 		if(element1 == null) {
@@ -113,13 +116,17 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		} else if(element2 == null) {
 			return 1;
 		} else {
-			if(element1 instanceof Comparable) {
-				return ((Comparable) element1).compareTo(element2);
-			} else if(element2 instanceof Comparable) {
-				return -((Comparable) element2).compareTo(element1);
+			if (comparator != null) {
+				return comparator.compare(elem1, elem2);
 			} else {
-				// not Comparable -> we don't care
-				return 0;
+				if(element1 instanceof Comparable) {
+					return ((Comparable) element1).compareTo(element2);
+				} else if(element2 instanceof Comparable) {
+					return -((Comparable) element2).compareTo(element1);
+				} else {
+					// not Comparable -> we don't care
+					return 0;
+				}
 			}
 		}
 	}
@@ -133,7 +140,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		}
 	}
 	
-	private int compareMultipleSources(byte[] b1,int s1,int l1,byte[] b2,int s2,int l2) throws IOException {
+	protected int compareMultipleSources(byte[] b1,int s1,int l1,byte[] b2,int s2,int l2) throws IOException {
 		Schema commonSchema = serInfo.getCommonSchema();
 		Criteria commonOrder = grouperConf.getCommonCriteria();
 
@@ -177,22 +184,22 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				Field field = schema.getField(depth);
 				Class<?> type = field.getType();
 				SortElement sortElement = criteria.getElements().get(depth);
-				Order sort = sortElement.getOrder();
-				//Class<? extends RawComparator> comparatorClass =sortElement.getCustomComparator(); 
-				RawComparator comparator = null; //TODO fix this
+				Order sort = sortElement.getOrder(); 
+				RawComparator comparator = sortElement.getCustomComparator();
 				
 				if(comparator != null) {
-					// Provided specific Comparator
-					int length1 = readVInt(b1, o.offset1);
-					int length2 = readVInt(b2, o.offset2);
-					o.offset1 += WritableUtils.decodeVIntSize(b1[o.offset1]);
-					o.offset2 += WritableUtils.decodeVIntSize(b2[o.offset2]);
-					int comparison = comparator.compare(b1, o.offset1, length1, b2, o.offset2, length2);
+					// Provided specific Comparator. Some field types has different
+					// header length and field length.
+					int[] lengths1 = getHeaderLengthAndFieldLength(b1, o.offset1, type);
+					int[] lengths2 = getHeaderLengthAndFieldLength(b2, o.offset2, type);
+					o.offset1 += lengths1[0]; // Header size
+					o.offset2 += lengths2[0]; // Header size
+					int comparison = comparator.compare(b1, o.offset1, lengths1[1], b2, o.offset2, lengths2[1]);
 					if(comparison != 0) {
 						return (sort == Order.ASC) ? comparison : -comparison;
 					}
-					o.offset1 += length1;
-					o.offset2 += length2;
+					o.offset1 += lengths1[1];
+					o.offset2 += lengths2[1];					
 				} else if(type == Integer.class) {
 					// Integer
 					int value1 = readInt(b1, o.offset1);
@@ -230,7 +237,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				} else if(type == VLongWritable.class) {
 					// VLong
 					long value1 = readVLong(b1, o.offset1);
-					long value2 = readVLong(b2, o.offset2);
+					long value2 = readVLong(b2, o.offset2);					
 					if(value1 > value2) {
 						return (sort == Order.ASC) ? 1 : -1;
 					} else if(value1 < value2) {
@@ -288,6 +295,31 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		
 	}
 
+	/**
+	 * Return the header length and the field length for a field
+	 * of the given type in the given position at the buffer
+	 */
+	public static int[] getHeaderLengthAndFieldLength(byte[] b1, int offset1, Class<?> type) throws IOException {
+		if(type == Integer.class) {
+			return new int[]{0, Integer.SIZE / 8};
+		} else if(type == Long.class) {
+			return new int[]{0, Long.SIZE / 8};
+		} else if(type == VIntWritable.class || type.isEnum()) {
+			return new int[]{0, WritableUtils.decodeVIntSize(b1[offset1])};
+		} else if(type == VLongWritable.class) {
+			return new int[]{0, WritableUtils.decodeVIntSize(b1[offset1])};
+		} else if(type == Float.class) {
+			return new int[]{0, Float.SIZE / 8};
+		} else if(type == Double.class) {
+			return new int[]{0, Double.SIZE / 8};
+		} else if(type == Boolean.class) {
+			return new int[]{0, 1};
+		} else {
+			// String(Text) and the rest of types using compareBytes
+			return new int[]{WritableUtils.decodeVIntSize(b1[offset1]), readVInt(b1, offset1)};
+		}		
+	}
+	
 	@Override
 	public Configuration getConf() {
 		return conf;
@@ -299,6 +331,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			if(conf != null) {
 				this.conf = conf;
 				setGrouperConf(CoGrouperConfig.get(conf));
+				ConfigBuilder.initializeComparators(conf, this.grouperConf);
 			}
 		} catch(Exception e) {
 			throw new RuntimeException(e);

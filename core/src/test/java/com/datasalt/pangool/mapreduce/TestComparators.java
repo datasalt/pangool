@@ -1,5 +1,7 @@
 package com.datasalt.pangool.mapreduce;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.ConfigBuilder;
+import com.datasalt.pangool.Criteria;
 import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.Criteria.SortElement;
 import com.datasalt.pangool.Schema;
@@ -43,6 +46,7 @@ public class TestComparators extends ComparatorsBaseTest {
 
 	private int MAX_RANDOM_SCHEMAS = 50;
 	private HadoopSerialization ser;
+	static Random random = new Random(1);
 	
 	@Test
 	public void testObjectComparison() throws CoGrouperException, JsonGenerationException, JsonMappingException, IOException, InvalidFieldException  {
@@ -75,7 +79,6 @@ public class TestComparators extends ComparatorsBaseTest {
 
 	@Test
 	public void testCrossValidationOneSchema() throws CoGrouperException, IOException {
-		Random random = new Random();
 		Configuration conf = getConf();
 
 		int maxIndex = SCHEMA.getFields().size() - 1;
@@ -253,8 +256,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	 * @throws CoGrouperException 
 	 */
 	protected static SortBy createRandomSortCriteria(Schema schema, Map<String, RawComparator<?>> customComparators,
-	    int numFields) throws CoGrouperException {
-			Random random = new Random();
+	    int numFields) throws CoGrouperException {			
 			List<SortElement> builder = new ArrayList<SortElement>();
 			for(int i = 0; i < numFields; i++) {
 				Field field = schema.getField(i);
@@ -272,4 +274,57 @@ public class TestComparators extends ComparatorsBaseTest {
 		}
 		return result;
 	}
+	
+	@SuppressWarnings("unchecked")
+  RawComparator<Integer> revIntComp = new RawComparator() {
+
+		@Override
+    public int compare(Object o1, Object o2) {
+			return - ((Integer) o1).compareTo((Integer) o2);
+    }
+
+		@Override
+    public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
+			return 0;
+    }			
+	};
+	
+	@Test
+	public void testCompareObjects() {
+		
+		assertEquals(1, SortComparator.compareObjects(1, 2, revIntComp));
+		assertEquals(0, SortComparator.compareObjects(2, 2, revIntComp));		
+		assertEquals(-1, SortComparator.compareObjects(3, 2, revIntComp));	
+
+		assertEquals(-1, SortComparator.compareObjects(1, 2, null));
+		assertEquals(0, SortComparator.compareObjects(2, 2, null));		
+		assertEquals(1, SortComparator.compareObjects(3, 2, null));	
+
+		assertEquals(-1, SortComparator.compareObjects(null, 2, null));
+		assertEquals(0, SortComparator.compareObjects(null, null, null));
+		assertEquals(1, SortComparator.compareObjects(2, null, null));
+		
+		assertEquals(-1, SortComparator.compareObjects(null, 2, revIntComp));
+		assertEquals(0, SortComparator.compareObjects(null, null, revIntComp));
+		assertEquals(1, SortComparator.compareObjects(2, null, revIntComp));
+	}
+	
+	@Test
+	public void testCompare() {
+		ArrayList<Field> fields = new ArrayList<Field>();
+		fields.add(new Field("int", Integer.class));
+		Schema s = new Schema("schema", fields);
+		Criteria cWithCustom  =new Criteria(new SortBy().add("int", Order.ASC, revIntComp).getElements());
+		Criteria c  =new Criteria(new SortBy().add("int", Order.ASC).getElements());
+		Tuple t1 = new Tuple(s);
+		Tuple t2 = new Tuple(s);
+		int index[] = new int[]{0};
+		
+		t1.set("int", 1);
+		t2.set("int", 2);
+		
+		assertPositive(SortComparator.compare(cWithCustom, t1, index, t2, index));
+		assertNegative(SortComparator.compare(c, t1, index, t2, index));
+	}
+
 }

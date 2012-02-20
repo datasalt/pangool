@@ -8,6 +8,7 @@ import org.apache.hadoop.conf.Configuration;
 
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.ConfigBuilder;
 import com.datasalt.pangool.Criteria;
 import com.datasalt.pangool.Criteria.SortElement;
 import com.datasalt.pangool.Schema;
@@ -18,10 +19,6 @@ public class GroupComparator extends SortComparator {
 	private Criteria groupSortBy;
 	
 	public GroupComparator(){}
-	public GroupComparator(CoGrouperConfig grouperConfig){
-		
-	}
-	
 	
 	@Override
 	public int compare(ITuple w1, ITuple w2) {
@@ -47,6 +44,7 @@ public class GroupComparator extends SortComparator {
 		try{
 		if (conf != null){
 			setGrouperConf(CoGrouperConfig.get(conf));
+			ConfigBuilder.initializeComparators(conf, grouperConf);
 		}
 		} catch(CoGrouperException e){
 			throw new RuntimeException(e);
@@ -61,8 +59,7 @@ public class GroupComparator extends SortComparator {
 		List<SortElement> groupSortElements = new ArrayList<SortElement>();
 		groupSortElements.addAll(sortElements);
 		groupSortElements = groupSortElements.subList(0,numGroupByFields);
-		groupSortBy = new Criteria(groupSortElements);
-		
+		groupSortBy = new Criteria(groupSortElements);		
 	}
 	
 }

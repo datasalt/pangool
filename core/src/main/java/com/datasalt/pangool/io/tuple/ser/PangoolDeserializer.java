@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
@@ -35,6 +36,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	
 	
 	private final CoGrouperConfig coGrouperConf;
+	private final Configuration conf;
 	private final SerializationInfo serInfo;
 	private  DataInputStream in;
 	private final HadoopSerialization ser;
@@ -45,8 +47,9 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private final Buffer tmpInputBuffer = new Buffer();
 	private DatumWrapper<CachedTuples> cachedTuples = new DatumWrapper<CachedTuples>();
 
-	public PangoolDeserializer(HadoopSerialization ser, CoGrouperConfig grouperConfig) {
+	public PangoolDeserializer(HadoopSerialization ser, CoGrouperConfig grouperConfig, Configuration conf) {
 		this.coGrouperConf = grouperConfig;
+		this.conf = conf;
 		this.serInfo = coGrouperConf.getSerializationInfo();
 		this.ser = ser;
 		this.cachedEnums = PangoolSerialization.getEnums(grouperConfig);
@@ -75,8 +78,6 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		return r;
 	}
 	
-	
-
 	@Override
 	public void open(InputStream in) throws IOException {
 		if (in instanceof DataInputStream){
@@ -188,7 +189,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			tmpInputBuffer.setSize(size);
 			input.readFully(tmpInputBuffer.getBytes(), 0, size);
 			if(tuple.get(index) == null) {
-				tuple.set(index, ReflectionUtils.newInstance(expectedType, null));
+				tuple.set(index, ReflectionUtils.newInstance(expectedType, conf));
 			}
 			Object ob = ser.deser(tuple.get(index), tmpInputBuffer.getBytes(), 0, size);
 			tuple.set(index, ob);

@@ -166,29 +166,7 @@ public class CoGrouper extends ConfigBuilder{
 				throw new CoGrouperException("Duplicate named output: " + namedOutput);
 			}
 		}
-	}
-
-	// ------------------------------------------------------------------------- //
-
-	//if(grouperConf.getRollupFrom() != null) {
-	//
-	//			// Check that rollupFrom is contained in groupBy
-	//
-	//			if(!grouperConf.getGroupByFields().contains(grouperConf.getRollupFrom())) {
-	//				throw new CoGrouperException("Rollup from [" + grouperConf.getRollupFrom() + "] not contained in group by fields "
-	//				    + grouperConf.getGroupByFields());
-//			}
-	//
-//			// Check that we are using the appropriate Handler
-	//
-//			if(!(grouperHandler instanceof GroupHandlerWithRollup)) {
-//				throw new CoGrouperException("Can't use " + grouperHandler + " with rollup. Please use "
-//				    + GroupHandlerWithRollup.class + " instead.");
-//			}
-//		}
-	//	
-	
-	
+	}	
 	
 	public Job createJob() throws IOException, CoGrouperException {
 

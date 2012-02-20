@@ -94,7 +94,7 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 
 	@Override
 	public Deserializer<DatumWrapper<ITuple>> getDeserializer(Class<DatumWrapper<ITuple>> c) {
-		return new PangoolDeserializer(this.ser, this.grouperConfig);
+		return new PangoolDeserializer(this.ser, this.grouperConfig, this.conf);
 	}
 
 	/**

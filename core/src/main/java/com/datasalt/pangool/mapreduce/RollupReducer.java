@@ -23,10 +23,14 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.ConfigBuilder;
+import com.datasalt.pangool.Criteria;
+import com.datasalt.pangool.Criteria.SortElement;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SerializationInfo;
 import com.datasalt.pangool.api.GroupHandler;
@@ -42,7 +46,6 @@ import com.datasalt.pangool.io.tuple.ITuple;
  */
 public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
-	
 	private boolean firstRun=true;
 	private CoGrouperConfig grouperConfig;
 	private SerializationInfo serInfo;
@@ -54,6 +57,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	private GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> handler;
 	private boolean isMultipleSources;
 	private Schema groupSchema;
+	private RawComparator<?>[] customComparators;
 
 	@SuppressWarnings("unchecked")
   @Override
@@ -73,19 +77,44 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			this.minDepth = grouperConfig.calculateRollupBaseFields().size() - 1;
 			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 
-			String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
-			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandlerWithRollup.class, fileName);
-			if(handler instanceof Configurable) {
-				((Configurable) handler).setConf(context.getConfiguration());
-			}
-			collector = handler.new Collector(context);
-			this.context = handler.new CoGrouperContext(context, grouperConfig);
-			handler.setup(this.context, collector);
+			initHandlerContextAndCollector(context);
+			
+			initComparators();
 			
 		} catch(CoGrouperException e) {
 			throw new RuntimeException(e);
 		}
 	}
+
+	/**
+	 * Initialize the custom comparators. 
+	 * Creates a quick access array for the custom comparators.
+	 */
+	private void initComparators () {
+		// Initializing the custom comparators 
+		ConfigBuilder.initializeComparators(context.getHadoopContext().getConfiguration(), grouperConfig);
+		
+		customComparators = new RawComparator<?>[maxDepth+1];
+		for (int i=minDepth; i<=maxDepth; i++) {
+			SortElement element = grouperConfig.getCommonCriteria().getElements().get(i);
+			if (element.getCustomComparator() != null) {
+				customComparators[i] = element.getCustomComparator();
+			}
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+  private void initHandlerContextAndCollector(Context context) throws IOException, InterruptedException,
+      CoGrouperException {
+	  String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
+	  handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandlerWithRollup.class, fileName);
+	  if(handler instanceof Configurable) {
+	  	((Configurable) handler).setConf(context.getConfiguration());
+	  }
+	  collector = handler.new Collector(context);
+	  this.context = handler.new CoGrouperContext(context, grouperConfig);
+	  handler.setup(this.context, collector);
+  }
 
 	public void cleanup(Context context) throws IOException, InterruptedException {
 		try {
@@ -166,25 +195,27 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	}
 
 	/**
-	 * Compares sequentially the fields from two tuples and returns which field they differ. TODO: Use custom comparators
+	 * Compares sequentially the fields from two tuples and returns which field they differ. Use custom comparators
 	 * when provided. The provided RawComparators must implements "compare" so we should use them.
 	 * 
 	 * Important. The contract of this method is that the tuples will differ always between minField and maxField. If they are equal then
 	 * an Exception is thrown.
 	 * @return
 	 */
-	private int indexMismatch(ITuple tuple1, ITuple tuple2, int minFieldIndex, int maxFieldIndex) {
+	private int indexMismatch(ITuple tuple1, ITuple tuple2, int minFieldIndex, int maxFieldIndex) {		
 		int sourceId1 = grouperConfig.getSourceIdByName(tuple1.getSchema().getName());
 		int sourceId2 = grouperConfig.getSourceIdByName(tuple2.getSchema().getName());
 		int[] translationTuple1 = serInfo.getGroupSchemaIndexTranslation(sourceId1);
 		int[] translationTuple2 = serInfo.getGroupSchemaIndexTranslation(sourceId2);
 		
-		//TODO this is completely inconsistent with Custom comparators!!! FIXX
 		for(int i = minFieldIndex; i <= maxFieldIndex; i++) {
 			Object obj1 = tuple1.get(translationTuple1[i]);
 			Object obj2 = tuple2.get(translationTuple2[i]);
-			if(obj1 instanceof byte[]) {
-				if(!Arrays.equals((byte[])obj1, (byte[])obj2)) { //TODO this not correct
+			@SuppressWarnings("unchecked")
+      RawComparator<Object> customComparator = (RawComparator<Object>) customComparators[i];
+						
+			if (customComparator != null) {
+				if (customComparator.compare(obj1, obj2)!=0) {
 					return i;
 				}
 			} else {
