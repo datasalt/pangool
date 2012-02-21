@@ -10,6 +10,7 @@ import com.datasalt.pangool.benchmark.secondarysort.CascadingSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.CrunchSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.HadoopSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.PangoolSecondarySort;
+import com.datasalt.pangool.benchmark.utf8sorting.Utf8EncodedRepeatedField;
 import com.datasalt.pangool.benchmark.wordcount.CrunchWordCount;
 import com.datasalt.pangool.benchmark.wordcount.HadoopWordCount;
 import com.datasalt.pangool.benchmark.wordcount.PangoolWordCount;
@@ -33,6 +34,10 @@ public class Driver extends ProgramDriver {
 		addClass("hadoop-urlresolution", HadoopUrlResolution.class, "URL Resolution CoGroup (Hadoop Map/Red API)");
 		addClass("crunch-urlresolution", CrunchUrlResolution.class, "URL Resolution CoGroup (Crunch / Avro)");
 		addClass("cascading-urlresolution", CascadingUrlResolution.class, "URL Resolution CoGroup (Cascading)");
+		
+		addClass("accent-sorting-repeated",Utf8EncodedRepeatedField.class,"Utf8 accent sorting using repeated field with removed accents");
+		//addClass("accent-sorting-repeated",Utf8EncodedRepeatedField.class,"Utf8 accent sorting using repeated field with removed accents");
+
 	}
 	
 	public static void main(String[] args) throws Throwable {
