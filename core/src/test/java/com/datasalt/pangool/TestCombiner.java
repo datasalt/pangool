@@ -24,7 +24,6 @@ import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 
@@ -100,7 +99,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws InvalidFieldException, CoGrouperException,
+	public Job getJob(Configuration conf, String input, String output) throws CoGrouperException,
 	    IOException {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);

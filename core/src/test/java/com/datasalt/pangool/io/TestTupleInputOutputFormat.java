@@ -18,7 +18,6 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
-import com.datasalt.pangool.BaseTest;
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Criteria.Order;
@@ -32,7 +31,6 @@ import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.commons.CommonUtils;
 import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
@@ -73,7 +71,7 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 	}
 
 	@Test
-	public void test() throws InvalidFieldException, CoGrouperException, IOException, InterruptedException,
+	public void test() throws CoGrouperException, IOException, InterruptedException,
 	    ClassNotFoundException {
 
 		CommonUtils.writeTXT("foo1 bar1\nbar2 foo2", new File(IN));

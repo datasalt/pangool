@@ -1,3 +1,18 @@
+/**
+ * Copyright [2012] [Datasalt Systems S.L.]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.datasalt.pangool;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -8,12 +23,17 @@ import java.util.List;
 
 import org.apache.hadoop.io.RawComparator;
 import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
-
+/**
+ * 
+ * Criteria specifies a sorting criteria defined by a list of {@link SortElement} instances that 
+ * contain a field name and its corresponding order defined by {@link Criteria.Order}.
+ * In addition, the criteria allows to specify,for every field,a custom comparator implementing {@link RawComparator}  
+ *
+ */
 public class Criteria {
 
 	public static enum Order {
@@ -30,7 +50,7 @@ public class Criteria {
 		}
 	}
 	
-		private List<SortElement> elements = new ArrayList<SortElement>();
+		private List<SortElement> elements;
 	
 		public Criteria(List<SortElement> elements){
 			this.elements = Collections.unmodifiableList(elements);

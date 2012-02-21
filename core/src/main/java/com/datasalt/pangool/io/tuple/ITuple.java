@@ -1,5 +1,5 @@
 /**
- * Copyright [2011] [Datasalt Systems S.L.]
+ * Copyright [2012] [Datasalt Systems S.L.]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  */
 package com.datasalt.pangool.io.tuple;
 
-import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
 
 /**
- * This is the common interface implemented by {@link Tuple} and {@link DoubleBufferPangolinTuple}.
- * A Tuple is basically a map that can be used in Pangool for carrying data. 
+ * This is the common interface implemented by tuples.
+ * A Tuple is basically an ordered list of objects whose types are defined by a {@link Schema}.
+ * @see http://en.wikipedia.org/wiki/Tuple 
  */
-public interface ITuple /*,Comparable<ITuple>*/{
+public interface ITuple{
 
 	public Schema getSchema();
 	
@@ -33,30 +33,5 @@ public interface ITuple /*,Comparable<ITuple>*/{
 	
 	public void set(String field, Object object);
 	public Object get(String field);
-	
-	
-	
-	/**
-	 * Thrown when a field is not present in schema
-	 * 
-	 *
-	 */
-	public static class InvalidFieldException extends CoGrouperException {
-    private static final long serialVersionUID = 1L;
-
-		public InvalidFieldException(String s,Throwable e) {
-			super(s,e);
-		}
-		
-		public InvalidFieldException(String s) {
-			super(s);
-		}
-		
-		public InvalidFieldException(Throwable e) {
-			super(e);
-		}
-	}
-	
-	
 	
 }

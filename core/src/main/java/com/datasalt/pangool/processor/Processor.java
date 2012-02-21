@@ -19,8 +19,6 @@ import com.datasalt.pangool.mapreduce.lib.input.PangoolMultipleInputs;
  * The Processor is a simple Pangool primitive that executes map-only Jobs. You can implement {@link ProcessorHandler} for using it.
  * See {@link Grep} for an example. You can instantiate your handler with Serializable state.
  * 
- * @author pere
- *
  */
 public class Processor {
 

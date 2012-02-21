@@ -1,5 +1,5 @@
 /**
- * Copyright [2011] [Datasalt Systems S.L.]
+ * Copyright [2012] [Datasalt Systems S.L.]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,6 @@ import org.apache.hadoop.mapreduce.TaskInputOutputContext;
  * <p>
  * Put here usefull methods for manipulating things in the HDFS, etc.
  * </p>
- * 
- * @author pere
  * 
  */
 public class HadoopUtils {

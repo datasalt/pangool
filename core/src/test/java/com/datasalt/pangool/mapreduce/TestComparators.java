@@ -15,8 +15,6 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,7 +31,6 @@ import com.datasalt.pangool.SortBy;
 import com.datasalt.pangool.io.HadoopSerialization;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
@@ -49,7 +46,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	static Random random = new Random(1);
 	
 	@Test
-	public void testObjectComparison() throws CoGrouperException, JsonGenerationException, JsonMappingException, IOException, InvalidFieldException  {
+	public void testObjectComparison() throws CoGrouperException, IOException {
 		SortComparator c = new SortComparator();
 		setConf(c);
 		

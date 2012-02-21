@@ -27,8 +27,6 @@ import org.slf4j.LoggerFactory;
  * {@link #serializeToDC(Serializable, String, String, Configuration)} and
  * {@link #loadSerializedObjectInDC(Configuration, Class, String)} for this purpose.
  * 
- * @author pere
- * 
  */
 public class DCUtils {
 

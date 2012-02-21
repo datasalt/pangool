@@ -97,19 +97,7 @@ public class CrossProduct {
 			}
 			//String cannonicalUrl = null;
 			List<ITuple> cachedTuples = new ArrayList<ITuple>();
-			
-			
-			
-			
-			
-//			for(ITuple tuple : tuples) {
-//				if("urlMap".equals(tuple.getSchema().getName())) {
-//					cannonicalUrl = tuple.get("canonicalUrl").toString();
-//				} else {
-//					result.set(cannonicalUrl + "\t" + tuple.get("timestamp") + "\t" + tuple.get("ip"));
-//					collector.write(result, NullWritable.get());
-//				}
-//			}
+
 		}
 	}
 

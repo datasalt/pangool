@@ -18,7 +18,6 @@ import com.datasalt.pangool.Fields;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.SortBy;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 public abstract class ComparatorsBaseTest extends BaseTest{
@@ -33,7 +32,7 @@ public abstract class ComparatorsBaseTest extends BaseTest{
 		
 	}
 	
-	protected void setConf(SortComparator comparator) throws InvalidFieldException, CoGrouperException, JsonGenerationException, JsonMappingException, IOException, InvalidFieldException {
+	protected void setConf(SortComparator comparator) throws CoGrouperException, JsonGenerationException, JsonMappingException, IOException {
 		
 		Configuration conf = new Configuration();
 		ConfigBuilder b = new ConfigBuilder();

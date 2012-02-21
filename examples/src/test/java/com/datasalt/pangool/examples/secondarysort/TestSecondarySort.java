@@ -15,7 +15,6 @@ import org.junit.Test;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.examples.simplesecondarysort.SecondarySort;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.google.common.io.Files;
 
 public class TestSecondarySort {
@@ -23,7 +22,7 @@ public class TestSecondarySort {
 	private final static String OUTPUT = "test-output-" + TestSecondarySort.class.getName();
 
 	@Test
-	public void test() throws IOException, InvalidFieldException, CoGrouperException, InterruptedException,
+	public void test() throws IOException, CoGrouperException, InterruptedException,
 	    ClassNotFoundException, URISyntaxException {
 
 		Configuration conf = new Configuration();

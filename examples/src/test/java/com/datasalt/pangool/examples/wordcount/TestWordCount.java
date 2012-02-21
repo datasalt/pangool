@@ -13,7 +13,6 @@ import org.junit.Test;
 
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.commons.HadoopUtils;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.google.common.io.Files;
 
 public class TestWordCount {
@@ -22,7 +21,7 @@ public class TestWordCount {
 	private final static String OUTPUT = "test-output-" + TestWordCount.class.getName();
 	
 	@Test
-	public void test() throws IOException, InvalidFieldException, CoGrouperException, InterruptedException, ClassNotFoundException {
+	public void test() throws IOException,CoGrouperException, InterruptedException, ClassNotFoundException {
 		Files.write("a b b c c c\nd d d d", new File(INPUT), Charset.forName("UTF-8"));
 		Configuration conf = new Configuration();
 		WordCount wordCount = new WordCount();

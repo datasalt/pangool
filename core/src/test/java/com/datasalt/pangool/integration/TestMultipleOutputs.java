@@ -26,7 +26,6 @@ import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.api.ProxyOutputFormat;
 import com.datasalt.pangool.commons.CommonUtils;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 
@@ -83,7 +82,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 	}
 
 	@Test
-	public void test() throws InvalidFieldException, CoGrouperException, IOException, InterruptedException,
+	public void test() throws CoGrouperException, IOException, InterruptedException,
 	    ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		initHadoop();

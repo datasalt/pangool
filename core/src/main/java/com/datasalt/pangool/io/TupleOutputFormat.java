@@ -15,15 +15,11 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 
 /**
  * An Avro-based output format for {@link ITuple}s
- * 
- * @author pere
  * 
  */
 public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {

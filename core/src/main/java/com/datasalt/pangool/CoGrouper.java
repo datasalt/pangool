@@ -1,9 +1,11 @@
 package com.datasalt.pangool;
 
+import static com.datasalt.pangool.CoGrouperException.failIfEmpty;
+import static com.datasalt.pangool.CoGrouperException.failIfNull;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +38,6 @@ import com.datasalt.pangool.mapreduce.SimpleCombiner;
 import com.datasalt.pangool.mapreduce.SimpleReducer;
 import com.datasalt.pangool.mapreduce.SortComparator;
 import com.datasalt.pangool.mapreduce.lib.input.PangoolMultipleInputs;
-import static com.datasalt.pangool.CoGrouperException.*;
 
 @SuppressWarnings("rawtypes")
 public class CoGrouper extends ConfigBuilder{

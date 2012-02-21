@@ -23,8 +23,6 @@ import org.apache.hadoop.util.ReflectionUtils;
  * <p> 
  * The wrapped (proxied) output format can be of any type. It is configured through {@link #PROXIED_OUTPUT_FORMAT_CONF}. 
  * 
- * @author pere
- *
  */
 public class ProxyOutputFormat extends FileOutputFormat implements Configurable {
 

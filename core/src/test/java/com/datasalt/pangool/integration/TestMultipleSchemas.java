@@ -31,7 +31,6 @@ import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.commons.CommonUtils;
 import com.datasalt.pangool.commons.HadoopUtils;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 
@@ -128,7 +127,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 	}
 
 	@Test
-	public void test() throws CoGrouperException, InvalidFieldException, IOException, InterruptedException,
+	public void test() throws CoGrouperException, IOException, InterruptedException,
 	    ClassNotFoundException {
 		CommonUtils.writeTXT("foo", new File("test-input"));
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
