@@ -45,7 +45,7 @@ import com.datasalt.pangool.io.tuple.Schema.Field;
 /**
  * 
  */
-public class LargestWordRepeatedField {
+public class LargestWordBytesRepeatedField {
 
 	@SuppressWarnings("serial")
 	public static class Split extends InputProcessor<LongWritable, Text> {
@@ -104,7 +104,7 @@ public class LargestWordRepeatedField {
 		cg.addSourceSchema(schema);
 		cg.setGroupByFields("word_length");
 		cg.setOrderBy(new SortBy().add("word_length",Order.DESC));
-		cg.setJarByClass(LargestWordRepeatedField.class);
+		cg.setJarByClass(LargestWordBytesRepeatedField.class);
 		cg.addInput(new Path(input), TextInputFormat.class, new Split());
 		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class,NullWritable.class);
 		cg.setGroupHandler(new Count());
@@ -122,6 +122,6 @@ public class LargestWordRepeatedField {
 		}
 
 		Configuration conf = new Configuration();
-		new LargestWordRepeatedField().getJob(conf, args[0], args[1]).waitForCompletion(true);
+		new LargestWordBytesRepeatedField().getJob(conf, args[0], args[1]).waitForCompletion(true);
 	}
 }

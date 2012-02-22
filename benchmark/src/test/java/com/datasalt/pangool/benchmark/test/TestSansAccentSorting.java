@@ -50,17 +50,17 @@ public class TestSansAccentSorting extends BaseBenchmarkTest {
 	private final static String OUT_CUSTOM_COMPARATOR = OUTPUT_FOLDER + "/out-sansaccent-custom";
 	
 
-//	@Before
-//	@After
-//	public void prepare() throws IOException {
-//		Logger root = Logger.getRootLogger();
-//		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
-//		Configuration conf = new Configuration();
-//		FileSystem fS = FileSystem.get(conf);
-//		HadoopUtils.deleteIfExists(fS, new Path(OUT_REPEATING));
-//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CUSTOM_COMPARATOR));
-//		
-//	}
+	@Before
+	@After
+	public void prepare() throws IOException {
+		Logger root = Logger.getRootLogger();
+		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
+		Configuration conf = new Configuration();
+		FileSystem fS = FileSystem.get(conf);
+		HadoopUtils.deleteIfExists(fS, new Path(OUT_REPEATING));
+		HadoopUtils.deleteIfExists(fS, new Path(OUT_CUSTOM_COMPARATOR));
+		
+	}
 
 	@Test
 	public void testRepeatingFields() throws Exception {

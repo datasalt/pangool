@@ -51,7 +51,7 @@ import com.datasalt.pangool.io.tuple.Schema.Field;
 /**
  * 
  */
-public class LargestWordCustomComparator {
+public class LargestWordBytesCustomComparator {
 
 	@SuppressWarnings("serial")
 	public static class Split extends InputProcessor<LongWritable, Text> {
@@ -128,7 +128,7 @@ public class LargestWordCustomComparator {
 		cg.addSourceSchema(schema);
 		cg.setGroupByFields("word");
 		cg.setOrderBy(new SortBy().add("word",Order.DESC,new MyUtf8Comparator()));
-		cg.setJarByClass(LargestWordCustomComparator.class);
+		cg.setJarByClass(LargestWordBytesCustomComparator.class);
 		cg.addInput(new Path(input), TextInputFormat.class, new Split());
 		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class,NullWritable.class);
 		cg.setGroupHandler(new Count());
@@ -148,6 +148,6 @@ public class LargestWordCustomComparator {
 		Logger root = Logger.getRootLogger();
 		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
 		Configuration conf = new Configuration();
-		new LargestWordCustomComparator().getJob(conf, args[0], args[1]).waitForCompletion(true);
+		new LargestWordBytesCustomComparator().getJob(conf, args[0], args[1]).waitForCompletion(true);
 	}
 }

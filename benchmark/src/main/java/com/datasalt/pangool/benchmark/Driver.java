@@ -51,7 +51,7 @@ public class Driver extends ProgramDriver {
 		addClass("cascading-urlresolution", CascadingUrlResolution.class, "URL Resolution CoGroup (Cascading)");
 		
 		addClass("accent-sorting-repeated",SansAccentRepeatedField.class,"Utf8 accent sorting using repeated field with removed accents");
-		//addClass("accent-sorting-repeated",LargestWordRepeatedField.class,"Utf8 accent sorting using repeated field with removed accents");
+		//addClass("accent-sorting-repeated",LargestWordBytesRepeatedField.class,"Utf8 accent sorting using repeated field with removed accents");
 
 	}
 	
