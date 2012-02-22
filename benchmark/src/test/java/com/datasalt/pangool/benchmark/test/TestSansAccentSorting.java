@@ -13,10 +13,11 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import com.datasalt.pangool.benchmark.utf8sorting.PangoolAccentsCustomComparator;
-import com.datasalt.pangool.benchmark.utf8sorting.Utf8EncodedRepeatedField;
+import com.datasalt.pangool.benchmark.sansaccentsorting.SansAccentsCustomComparator;
+import com.datasalt.pangool.benchmark.sansaccentsorting.SansAccentRepeatedField;
 import com.datasalt.pangool.commons.HadoopUtils;
 
 /**
@@ -28,9 +29,9 @@ public class TestSansAccentSorting extends BaseBenchmarkTest {
 	private final static String FOLDER = "src/test/resources/sans_accent_sorting";
 	private final static String TEST_FILE = FOLDER + "/spanish_words.txt";
 
-	private final static String EXPECTED_OUTPUT = FOLDER + "/expected.txt";
-	private final static String OUT_REPEATING = FOLDER + "/out-pangool-repeating";
-	private final static String OUT_CUSTOM_COMPARATOR = FOLDER + "/out-pangool-repeating";
+	private final static String EXPECTED_OUTPUT = FOLDER + "/spanish_alphabetic_order.txt";
+	private final static String OUT_REPEATING = FOLDER + "/out-sansaccent-repeating";
+	private final static String OUT_CUSTOM_COMPARATOR = FOLDER + "/out-sansaccent-custom";
 	
 
 	@Before
@@ -48,7 +49,7 @@ public class TestSansAccentSorting extends BaseBenchmarkTest {
 	@Test
 	public void testRepeatingFields() throws Exception {
 		Configuration conf = new Configuration();
-		Job job = new Utf8EncodedRepeatedField().getJob(conf,TEST_FILE,OUT_REPEATING);
+		Job job = new SansAccentRepeatedField().getJob(conf,TEST_FILE,OUT_REPEATING);
 		assertRun(job);
 		
 		String out = getReducerOutputAsText(OUT_REPEATING); //Very bad, consumes a lot of memory
@@ -56,10 +57,11 @@ public class TestSansAccentSorting extends BaseBenchmarkTest {
 		assertEquals(expectedOutput,out);
 	}
 	
+	@Ignore
 	@Test
 	public void testCustomComparator() throws Exception {
 		Configuration conf = new Configuration();
-		Job job = new PangoolAccentsCustomComparator().getJob(conf,TEST_FILE, OUT_CUSTOM_COMPARATOR);
+		Job job = new SansAccentsCustomComparator().getJob(conf,TEST_FILE, OUT_CUSTOM_COMPARATOR);
 		assertRun(job);
 		
 		String out = getReducerOutputAsText(OUT_CUSTOM_COMPARATOR);
