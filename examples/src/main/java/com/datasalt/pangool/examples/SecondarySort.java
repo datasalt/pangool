@@ -42,45 +42,37 @@ import com.datasalt.pangool.io.tuple.Schema.Field;
 /**
  * Like original Hadoop's SecondarySort example. Reads a tabulated text file with two numbers, groups by the first and
  * sorts by both.
- * 
  */
 public class SecondarySort {
 
-	public final static int FIRST = 0;
-	public final static int SECOND = 1;
+	@SuppressWarnings("serial")
+  private static class IProcessor extends InputProcessor<LongWritable, Text> {
 
-	private static class IProcessor extends InputProcessor<LongWritable, Text> {
-
-		private Schema schema;
+		private Tuple tuple ;
 		
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			this.schema = context.getCoGrouperConfig().getSourceSchema("my_schema");
+			tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema("my_schema"));
 		}
 		
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
-			Tuple tuple = new Tuple(schema);
 			String[] fields = value.toString().trim().split(" ");
-			tuple.set(FIRST, Integer.parseInt(fields[0]));
-			tuple.set(SECOND, Integer.parseInt(fields[1]));
+			tuple.set("first", Integer.parseInt(fields[0]));
+			tuple.set("second", Integer.parseInt(fields[1]));
 			collector.write(tuple);
 		}
 	}
 
-	public static class Handler extends GroupHandler<Text, NullWritable> {
-
-		/**
-     * 
-     */
-		private static final long serialVersionUID = 1L;
+	@SuppressWarnings("serial")
+  public static class Handler extends GroupHandler<Text, NullWritable> {
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
 
 			for(ITuple tuple : tuples) {
-				collector.write(new Text(tuple.get(FIRST) + "\t" + tuple.get(SECOND)), NullWritable.get());
+				collector.write(new Text(tuple.get("first") + "\t" + tuple.get("second")), NullWritable.get());
 			}
 		}
 	}

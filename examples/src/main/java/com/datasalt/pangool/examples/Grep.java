@@ -38,8 +38,6 @@ import com.datasalt.pangool.utils.HadoopUtils;
 /**
  * Example of performing a map-only Job with {@link Processor}. You give a regex to GrepProcessor and it will emit the
  * lines that match that regex.
- * 
- * 
  */
 public class Grep {
 
@@ -83,5 +81,4 @@ public class Grep {
 		Configuration conf = new Configuration();
 		new Grep().getJob(conf, args[0], args[1], args[2]).waitForCompletion(true);
 	}
-
 }

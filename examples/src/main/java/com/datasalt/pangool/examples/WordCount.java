@@ -40,8 +40,10 @@ import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
 
+/**
+ * Original Hadoop's WordCount implemented in Pangool.
+ */
 public class WordCount {
-
 
 	@SuppressWarnings("serial")
 	public static class Split extends InputProcessor<LongWritable, Text> {
@@ -49,8 +51,7 @@ public class WordCount {
 		private Tuple tuple;
 		
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			Schema schema = context.getCoGrouperConfig().getSourceSchema(0);
-			this.tuple = new Tuple(schema);
+			tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema(0));
 			tuple.set("count", 1);
 		}
 		
@@ -71,8 +72,7 @@ public class WordCount {
 		private Tuple tuple;
 		
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			Schema schema = context.getCoGrouperConfig().getSourceSchema("schema");
-			this.tuple = new Tuple(schema);
+			this.tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema("schema"));
 		}
 
 		@Override
@@ -91,12 +91,7 @@ public class WordCount {
 	@SuppressWarnings("serial")
 	public static class Count extends GroupHandler<Text, IntWritable> {
 
-		private IntWritable countToEmit;
-		
-		public void setup(CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
-		    CoGrouperException {
-			countToEmit = new IntWritable();
-		};
+		private IntWritable countToEmit = new IntWritable();
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)

@@ -46,8 +46,25 @@ import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.Pair;
 
 /**
- * In this example we are calculating moving averages by a configurable number of days over an schema like this: ["url", "date", "visits"].
- * We want to calculate, for each URL, the moving average for "n" days of unique visits for all the dates we have.
+ * We have a register of unique visits per day per URL. In this example we want to calculate, for each URL, the moving
+ * average for "n" days of unique visits for all the registers we have.
+ * <p>
+ * That is, if we have:
+ * <p>
+ * ["url1", "2011-10-28", 10] <br>
+ * ["url1", "2011-10-29", 20] <br>
+ * ["url1", "2011-10-30", 30] <br>
+ * ["url1", "2011-10-31", 40] <br>
+ * <p>
+ * For moving averages of 3 days we want to have, as output: 
+ * <p>
+ * ["url1", "2011-10-28", 10] <br>
+ * ["url1", "2011-10-29", (20 + 10) / 2 = 15.0] <br>
+ * ["url1", "2011-10-30", (30 + 20 + 10) / 3 = 20.0] <br>
+ * ["url1", "2011-10-31", (40 + 30 + 20) / 3 = 30.0] <br>
+ * <p>
+ * With Pangool we can define an intermediate schema like ["url", "date", "clicks"], group by "url" and sort by "url", "date".
+ * Then we can just keep a windowed stack of data points and compute the average per each date that we receive.  
  */
 public class MovingAverage {
 
@@ -63,7 +80,7 @@ public class MovingAverage {
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
-			
+
 			// Just parsing the text input and emitting a Tuple
 			Tuple tuple = new Tuple(schema);
 			String[] fields = value.toString().trim().split("\t");
@@ -89,7 +106,7 @@ public class MovingAverage {
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
 
-			dataPoints.clear(); 
+			dataPoints.clear();
 
 			for(ITuple tuple : tuples) {
 				String currentDate = tuple.get("date").toString();
@@ -105,10 +122,10 @@ public class MovingAverage {
 				}
 				// Calculate current average and emit
 				int average = 0;
-				for(Pair<Integer, DateTime> dataPoint: dataPoints) {
+				for(Pair<Integer, DateTime> dataPoint : dataPoints) {
 					average += dataPoint.getFirst();
 				}
-				double avg = average / (double)dataPoints.size();
+				double avg = average / (double) dataPoints.size();
 				collector.write(new Text(tuple.get("url") + "\t" + currentDate + "\t" + avg), NullWritable.get());
 			}
 		}

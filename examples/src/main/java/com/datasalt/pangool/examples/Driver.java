@@ -17,12 +17,9 @@ package com.datasalt.pangool.examples;
 
 import org.apache.hadoop.util.ProgramDriver;
 
-
-
 /**
- * <p>This is Hadoop's main entry point - here we'll add 
- * all the different programs that we want to execute with Hadoop.</p>
- * 
+ * This is Hadoop's main entry point - here we'll add 
+ * all the different programs that we want to execute with Hadoop.
  */
 public class Driver extends ProgramDriver {
 

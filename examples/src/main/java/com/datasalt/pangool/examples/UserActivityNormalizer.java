@@ -1,4 +1,19 @@
-package com.datasalt.pangool.examples.normalization;
+/**
+ * Copyright [2012] [Datasalt Systems S.L.]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.datasalt.pangool.examples;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,16 +41,32 @@ import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
- * In this example we are normalizing user activity on certain features. We have a register of ["user", "feature",
- * "clicks"] and we want to emit the normalized activity of the user towards each feature.
+ * In this advanced example we are normalizing user activity on certain features. We have a register of ["user",
+ * "feature", "clicks"] and we want to emit the normalized activity of the user towards each feature.
  * <p>
- * We may have more than one register per each "user", "feature", so we have to sum up all the clicks per feature. But
- * we also want to normalize them by the total number of clicks. For that purpose, we will create a intermediate Pangool
- * schema with a special field called "all" that we will sort (but not group) by. This way, we will receive the counts
- * for all features first for each user group so we will be able to keep them in memory.
+ * That is, if we have: <br>
+ * ["user1", "feature1", 10] <br>
+ * ["user1", "feature1", 5] <br>
+ * ["user1", "feature1", 20] <br>
+ * ["user1", "feature2", 25] <br>
+ * <br>
+ * We want to have as output: <br>
+ * <br>
+ * ["user1", "feature1", 35 / 60] <-- Because 35 is the total clicks of user1 for feature1 and 60 the total clicks for
+ * user1, overall <br>
+ * ["user1", "feature2", 25 / 25] <-- Because 25 is the total clicks of user1 for feature1 and the total clicks for
+ * user2, overall <br>
+ * <br>
  * <p>
- * We will group by "user", "all", "feature". However, we want to receive all features to the same Reducer. For this we
- * will use .setCustomPartitionFields("user");
+ * We have to sum up all the clicks per feature. But we need the total number of clicks before processing each feature.
+ * <p>
+ * For that purpose, we will create a intermediate Pangool schema ["user", "all", "feature", "clicks"] with a special
+ * field called "all" that we will sort by. If all = true, the associated clicks will mean global clicks. This way, for
+ * each user, we will have the global count of clicks first and the individual counts per feature afterwards.
+ * <p>
+ * We will group by ["user", "all", "feature"]. However, we want to process all features for the same user in the same
+ * Reducer. For that purpose we will use rollupFrom("user"). Rollup will notify us when each new "user" opens so we can
+ * reset the global clicks counter to 0.
  * <p>
  * This advanced use case includes a Combiner for reducing the intermediate input size that just sums up individual
  * feature counts.
@@ -110,8 +141,8 @@ public class UserActivityNormalizer {
 
 		public void onOpenGroup(int depth, String field, ITuple firstElement, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
-			
-			if(field.equals("user")) { // New user: reset count 
+
+			if(field.equals("user")) { // New user: reset count
 				totalClicks = 0;
 			}
 		};
