@@ -15,19 +15,21 @@ import com.datasalt.pangool.io.tuple.ser.SingleFieldDeserializer;
 public abstract class BaseComparator<T> implements RawComparator<T>, Serializable, Configurable {
 
 	private Configuration conf;
-	private SingleFieldDeserializer fieldDeser;
-	private final Class<T> objectClass;
+	private SingleFieldDeserializer fieldDeser1;
+	private SingleFieldDeserializer fieldDeser2;
+	private final Class<?> type;
   private T object1 = null;
   private T object2 = null;
   
-	public BaseComparator(Class<T> objectClass) {
-		this.objectClass = objectClass;
+	public BaseComparator(Class<?> type) {
+		this.type = type;
 	}
 	
 	@Override
 	public void setConf(Configuration conf) {
 		try {
-	    fieldDeser = new SingleFieldDeserializer(conf, CoGrouperConfig.get(conf));
+	    fieldDeser1 = new SingleFieldDeserializer(conf, CoGrouperConfig.get(conf), type);
+	    fieldDeser2 = new SingleFieldDeserializer(conf, CoGrouperConfig.get(conf), type);
 	    	    
     } catch(IOException e) {
     	throw new RuntimeException(e);
@@ -49,8 +51,8 @@ public abstract class BaseComparator<T> implements RawComparator<T>, Serializabl
   public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		try {
 
-	    object1 = (T) fieldDeser.deserialize(object1, b1, s1, objectClass);	    
-	    object2 = (T) fieldDeser.deserialize(object2, b2, s2, objectClass);
+	    object1 = (T) fieldDeser1.deserialize(b1, s1);	    
+	    object2 = (T) fieldDeser2.deserialize(b2, s2);
 
 		} catch(IOException e) {
 			throw new RuntimeException(e);

@@ -32,14 +32,14 @@ public abstract class BaseTest extends AbstractBaseTest {
 	
 	static{
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("int_field",Integer.class));
+		/**fields.add(new Field("int_field",Integer.class));
 		fields.add(new Field("string_field",String.class));
 		fields.add(new Field("vint_field",VIntWritable.class));
-		fields.add(new Field("vlong_field",VLongWritable.class));
-		fields.add(new Field("float_field",Float.class));
+  	fields.add(new Field("vlong_field",VLongWritable.class));
+  	fields.add(new Field("float_field",Float.class));
 		fields.add(new Field("double_field",Double.class));
-		fields.add(new Field("boolean_field",Boolean.class));
-		fields.add(new Field("enum_field",Order.class));
+		fields.add(new Field("boolean_field",Boolean.class));*/
+  	fields.add(new Field("enum_field",Order.class));
 		fields.add(new Field("thrift_field",A.class));
 		SCHEMA = new Schema("schema",fields);
 	}

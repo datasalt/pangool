@@ -62,7 +62,7 @@ public class DCUtils {
 			if(fS.exists(toHdfs)) { // Optionally, copy to DFS if
 				fS.delete(toHdfs, true);
 			}
-			log.info("Copying local file: " + file + " to " + toHdfs);
+			log.debug("Copying local file: " + file + " to " + toHdfs);
 			FileUtil.copy(FileSystem.getLocal(conf), new Path(file + ""), FileSystem.get(conf), toHdfs, true, conf);
 			DistributedCache.addCacheFile(toHdfs.toUri(), conf);
 		} else {
@@ -89,7 +89,7 @@ public class DCUtils {
 	public static <T> T loadSerializedObjectInDC(Configuration conf, Class<T> objClass, String fileName)
 	    throws IOException {
 		
-		log.info("[profile] Locate file in DC");
+		log.debug("[profile] Locate file in DC");
 		Path path = DCUtils.locateFileInDC(conf, fileName);
 		
 		/*
@@ -98,11 +98,11 @@ public class DCUtils {
 		 */
 		if (path == null) {
 			String tmpdir = System.getProperty("java.io.tmpdir");
-			log.info("[profile] Not found in DC. Looking in " + System.getProperty("java.io.tmpdir") + " folder");
+			log.debug("[profile] Not found in DC. Looking in " + System.getProperty("java.io.tmpdir") + " folder");
 			path = locateFileInFolder(tmpdir, fileName);
 		}
 		
-		log.info("[profile] Deserialize instance");
+		log.debug("[profile] Deserialize instance");
 		ObjectInput in = new ObjectInputStream(new FileInputStream(new File(path + "")));
 		T obj;
 		try {
@@ -111,7 +111,7 @@ public class DCUtils {
 			throw new RuntimeException(e);
 		}
 		in.close();
-		log.info("[profile] Done deserializing.");
+		log.debug("[profile] Done deserializing.");
 		return obj;
 	}
 	
