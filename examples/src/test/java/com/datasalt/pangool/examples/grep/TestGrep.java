@@ -13,7 +13,7 @@ import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
 import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.grep.Grep;
+import com.datasalt.pangool.examples.grep.Grep;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.google.common.io.Files;
 
