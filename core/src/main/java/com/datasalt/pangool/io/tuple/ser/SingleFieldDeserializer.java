@@ -18,23 +18,42 @@ import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.CoGrouperConfig;
+import com.datasalt.pangool.Schema.InternalType;
 import com.datasalt.pangool.io.HadoopSerialization;
 
 /**
  * A class for deserialize fields in Pangool format from a byte array.
+ * Thead unsafe. It could cache the instance internally and reuse it in 
+ * deserialize calls.
  */
 public class SingleFieldDeserializer {
 
 	private final Configuration conf;
-	private final CoGrouperConfig grouperConfig;
 	private final HadoopSerialization ser;
 	private final Map<Class<?>, Enum<?>[]> cachedEnums;
+	private final Class<?> type;
+	private Object instance;
 	
-	public SingleFieldDeserializer(Configuration conf, CoGrouperConfig grouperConfig) throws IOException {
+	public SingleFieldDeserializer(Configuration conf, CoGrouperConfig grouperConfig, Class<?> type) throws IOException {
 		this.conf = conf;
-		this.grouperConfig = grouperConfig;
 		this.ser = new HadoopSerialization(conf);
 		this.cachedEnums = PangoolSerialization.getEnums(grouperConfig);
+		this.type = type;
+		Class<?> instanceType = instanceType(type);
+		if (instanceType != null) {
+			this.instance = ReflectionUtils.newInstance(instanceType, conf);
+		}
+	} 
+	
+	static Class<?> instanceType(Class<?> originType) {
+		InternalType iType = InternalType.fromClass(originType);
+		if (iType == InternalType.STRING) {
+			return Text.class;
+		} else if (iType == InternalType.OBJECT) {
+			return originType;
+		} else {
+			return null;
+		}
 	} 
 	
 	/**
@@ -42,18 +61,10 @@ public class SingleFieldDeserializer {
 	 * {@link PangoolSerialization}.
 	 * <br>
 	 * If the type is String, then {@link Text} is returned.
-
-	 * @param instance An instance to be reused in the case of objects following standard 
-	 * 				Hadoop serialization or String. If null, always return a new object. Usually
-	 *        you should call this method first with a new instance, and then reuse this
-	 *        instance in sucessive calls.  
-	 * @param b1 The byte array.
-	 * @param offset1 The place to start reading.
-	 * @param type The type of the object to read.
-	 * @return A deserialized instance.
-
+	 * @param bytes The byte array.
+	 * @param offset The place to start reading.
 	 */
-	public Object deserialize(Object instance, byte[] bytes, int offset, Class<?> type) throws IOException {
+	public Object deserialize(byte[] bytes, int offset) throws IOException {
 		return deserialize(instance, bytes, offset, type, ser, conf, cachedEnums);
 	}
 	
@@ -61,14 +72,20 @@ public class SingleFieldDeserializer {
 	 * Deserialize an individual field from a byte array position that is encoded with the 
 	 * {@link PangoolSerialization}.
 	 * <br>
-	 * If the type is String, then {@link Text} is returned.
+	 * <ul>
+	 * <li>If the type is String, then {@link Text} is returned.</li>
+	 * <li>If the type is {@link VIntWritable}, then {@link Integer} is returned.</li>
+	 * <li>If the type is {@link VLongWritable}, then {@link Long} is returned.</li> 
 	 * <br> 
+	 * 
+	 * Other objects out of the basic types can return null.
+	 * 
 	 * @param instance An instance to be reused in the case of objects following standard 
 	 * 				Hadoop serialization or String. If null, always return a new object. Usually
 	 *        you should call this method first with a new instance, and then reuse this
 	 *        instance in sucessive calls.  
-	 * @param b1 The byte array.
-	 * @param offset1 The place to start reading.
+	 * @param bytes The byte array.
+	 * @param offset The place to start reading.
 	 * @param type The type of the object to read.
 	 * @param ser A Hadoop serialization service for the cases of objects serialized 
 	 *  			with this format
@@ -76,47 +93,46 @@ public class SingleFieldDeserializer {
 	 * @param cachedEnums A map with the cached enumerations, for fast lookup. 
 	 * @return A deserialized instance. 
 	 */
-	public static Object deserialize(Object instance, byte[] b1, int offset1, Class<?> type, 
+	public static Object deserialize(Object instance, byte[] bytes, int offset, Class<?> type, 
   		HadoopSerialization ser, Configuration conf, Map<Class<?>, Enum<?>[]> cachedEnums) throws IOException {
   	if(type == Integer.class) {
   		// Integer
-  		return readInt(b1, offset1);
-  	} else if (type == String.class) {
-  		if (instance == null) {
-  			instance = ReflectionUtils.newInstance(Text.class, conf);				
-  		}
-  		int length = readVInt(b1, offset1);
-  		return ser.deser(instance, b1, offset1, length);
+  		return readInt(bytes, offset);
+  	} else if(type == String.class) {
+  		// String
+  		int length = readVInt(bytes, offset);
+  		offset += WritableUtils.decodeVIntSize(bytes[offset]);
+  		((Text) instance).set(Text.decode(bytes, offset, length));
+  		return instance; 			
   	} else if(type == Long.class) {
   		// Long
-  		return readLong(b1, offset1);			
+  		return readLong(bytes, offset);			
   	} else if(type == VIntWritable.class || type.isEnum()) {
   		// VInt || Enum
-  		int value1 = readVInt(b1, offset1);
+  		int value1 = readVInt(bytes, offset);
   		return (type.isEnum()) ? cachedEnums.get(type)[value1] : value1;			
   	} else if(type == VLongWritable.class) {
   		// VLong
-  		return readVLong(b1, offset1);
+  		return readVLong(bytes, offset);
   	} else if(type == Float.class) {
   		// Float
-  		return readFloat(b1, offset1);
+  		return readFloat(bytes, offset);
   	} else if(type == Double.class) {
   		// Double
-  		return readDouble(b1, offset1);
+  		return readDouble(bytes, offset);
   	} else if(type == Boolean.class) {
   		// Boolean
-  		return b1[offset1] > 0;
+  		return bytes[offset] > 0;
   	} else {
-  		if (instance == null) {
-  			instance = ReflectionUtils.newInstance(type, conf);				
-  		}
   		// Custom objects uses Hadoop Serialization, but has a header with the length.
-  		int length = readVInt(b1, offset1);
-  		offset1 += WritableUtils.decodeVIntSize(b1[offset1]);
+  		int length = readVInt(bytes, offset);
+  		// TODO: remove that if we disable nullable objects.
+  		if (length == 0) {
+  			return null;
+  		}
+  		offset += WritableUtils.decodeVIntSize(bytes[offset]);
   		
-  		return ser.deser(instance, b1, offset1, length);
+  		return ser.deser(instance, bytes, offset, length);
   	} 
-  }
-	
-	
+  }	
 }

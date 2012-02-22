@@ -26,7 +26,7 @@ public class GroupComparator extends SortComparator {
 		int sourceId2 = grouperConf.getSourceIdByName(w2.getSchema().getName());
 		int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(sourceId1);
 		int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(sourceId2);
-		return compare(groupSortBy, w1, indexes1, w2, indexes2);
+		return compare(w1.getSchema(), groupSortBy, w1, indexes1, w2, indexes2);
 	}
 
 	@Override
@@ -41,25 +41,15 @@ public class GroupComparator extends SortComparator {
 	
 	@Override
 	public void setConf(Configuration conf){
-		try{
+		super.setConf(conf);
 		if (conf != null){
-			setGrouperConf(CoGrouperConfig.get(conf));
+			List<SortElement> sortElements = grouperConf.getCommonCriteria().getElements();
+			int numGroupByFields = grouperConf.getGroupByFields().size();
+			List<SortElement> groupSortElements = new ArrayList<SortElement>();
+			groupSortElements.addAll(sortElements);
+			groupSortElements = groupSortElements.subList(0,numGroupByFields);
+			groupSortBy = new Criteria(groupSortElements);					
 			ConfigBuilder.initializeComparators(conf, grouperConf);
 		}
-		} catch(CoGrouperException e){
-			throw new RuntimeException(e);
-		}
-	}
-	
-	@Override
-	protected void setGrouperConf(CoGrouperConfig config){
-		super.setGrouperConf(config);
-		List<SortElement> sortElements = grouperConf.getCommonCriteria().getElements();
-		int numGroupByFields = grouperConf.getGroupByFields().size();
-		List<SortElement> groupSortElements = new ArrayList<SortElement>();
-		groupSortElements.addAll(sortElements);
-		groupSortElements = groupSortElements.subList(0,numGroupByFields);
-		groupSortBy = new Criteria(groupSortElements);		
-	}
-	
+	}	
 }

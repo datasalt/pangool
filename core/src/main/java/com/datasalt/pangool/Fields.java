@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.Schema.InternalType;
 
 public class Fields {
 
@@ -22,7 +23,7 @@ public class Fields {
 				}
 				String fieldName = nameType[0].trim();
 				String fieldType = nameType[1].trim();
-				fields.add(new Field(fieldName, Schema.strToClass(fieldType)));
+				fields.add(new Field(fieldName, strToClass(fieldType)));
 			}
 			return fields;
 		} catch(ClassNotFoundException e) {
@@ -30,5 +31,16 @@ public class Fields {
 		}
 	}
 	
-	
+	public static Class<?> strToClass(String str) throws ClassNotFoundException {
+		Class<?> clazz = null;
+		for (InternalType iType : InternalType.values()) {
+			if (iType.getParsingString() != null && str.equals(iType.getParsingString())) {
+				clazz = iType.getRepresentativeClass();
+			}
+		}
+		if(clazz == null) {
+			clazz = Class.forName(str);
+		}
+		return clazz;
+	}
 }

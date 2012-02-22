@@ -319,7 +319,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
   public static class ReverseComparator extends BaseComparator<Integer> {
 
 		public ReverseComparator() {
-	    super(Integer.class);
+	    super(VIntWritable.class);
     }
 
 		@Override
@@ -327,16 +327,13 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 			return - a.compareTo(b);
 		}
 		
-		public Integer reverse(Object o) {
-			return new Integer(new StringBuffer(o +"").reverse().toString());
-		}		
 	};
 	
 	/**
 	 * Testing rollup with a custom comparator. The age
 	 * is sorted by reversering the digits.
 	 */
-	/*@Test
+	@Test
 	public void testWithCustomComparator() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
 	    IllegalAccessException, CoGrouperException {
 
@@ -345,11 +342,11 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 
 		String[] inputElements = new String[] { 
 				"ES 20 listo 250", 
+		    "US 16 listo 160",
+		    "US 15 jauja 160",
 				"US 14 beber 202", 
 				"US 14 perro 180", 
-				"US 14 perro 170",
-		    "US 15 jauja 160", 
-		    "US 16 listo 160", 
+				"US 14 perro 170",  
 		    "XE 20 listo 230" 
 		    };
 
@@ -391,21 +388,21 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		assertOutput(reader, "OPEN 2", tuples[1]);
 		assertOutput(reader, "ELEMENT", tuples[1]);
 		assertOutput(reader, "CLOSE 2", tuples[1]);
+		assertOutput(reader, "CLOSE 1", tuples[1]);
 
+		assertOutput(reader, "OPEN 1", tuples[2]);
 		assertOutput(reader, "OPEN 2", tuples[2]);
 		assertOutput(reader, "ELEMENT", tuples[2]);
+		assertOutput(reader, "CLOSE 2", tuples[2]);
+		assertOutput(reader, "CLOSE 1", tuples[2]);
+
+		assertOutput(reader, "OPEN 1", tuples[3]);
+		assertOutput(reader, "OPEN 2", tuples[3]);
 		assertOutput(reader, "ELEMENT", tuples[3]);
 		assertOutput(reader, "CLOSE 2", tuples[3]);
-		assertOutput(reader, "CLOSE 1", tuples[3]);
 
-		assertOutput(reader, "OPEN 1", tuples[4]);
 		assertOutput(reader, "OPEN 2", tuples[4]);
 		assertOutput(reader, "ELEMENT", tuples[4]);
-		assertOutput(reader, "CLOSE 2", tuples[4]);
-		assertOutput(reader, "CLOSE 1", tuples[4]);
-
-		assertOutput(reader, "OPEN 1", tuples[5]);
-		assertOutput(reader, "OPEN 2", tuples[5]);
 		assertOutput(reader, "ELEMENT", tuples[5]);
 		assertOutput(reader, "CLOSE 2", tuples[5]);
 		assertOutput(reader, "CLOSE 1", tuples[5]);
@@ -418,9 +415,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 
 		cleanUp();
 		trash(TEST_OUT);
-	}*/
-	
-	
+	}
 
 	private enum State {
 		OPEN, CLOSE, ELEMENT

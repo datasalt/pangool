@@ -3,15 +3,11 @@ package com.datasalt.pangool.mapreduce;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
-import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
@@ -20,7 +16,6 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.CoGrouperConfig;
 import com.datasalt.pangool.CoGrouperException;
 import com.datasalt.pangool.ConfigBuilder;
@@ -29,7 +24,9 @@ import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.Criteria.SortElement;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.Schema.InternalType;
 import com.datasalt.pangool.SortBy;
+import com.datasalt.pangool.io.BaseComparator;
 import com.datasalt.pangool.io.HadoopSerialization;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -37,7 +34,7 @@ import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
- * This tests either {@link SortComparator} or {@link MyAvroGroupComparator}.It checks that the binary comparison is coherent
+ * This tests either {@link SortComparator} or {@link GroupComparator}.It checks that the binary comparison is coherent
  * with the objects comparison.It also checks that the custom comparators are correctly used.
  * 
  */
@@ -83,12 +80,9 @@ public class TestComparators extends ComparatorsBaseTest {
 
 		int maxIndex = SCHEMA.getFields().size() - 1;
 
-		Map<String, RawComparator<?>> customComparators = new HashMap<String, RawComparator<?>>();
-		customComparators.put("thrift_field", new AComparator());
-
 		for(int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
 			Schema schema = permuteSchema(SCHEMA);
-			SortBy sortCriteria = createRandomSortCriteria(schema, customComparators, maxIndex + 1);
+			SortBy sortCriteria = createRandomSortCriteria(schema, maxIndex + 1);
 			//TODO could we get empty group fields ??
 			String[] groupFields = getFirstFields(sortCriteria,1+ random.nextInt(sortCriteria.getElements().size()-1));
 			ITuple[] tuples = new ITuple[] { new Tuple(schema), new Tuple(schema) };
@@ -186,61 +180,6 @@ public class TestComparators extends ComparatorsBaseTest {
 	}
 
 	/**
-	 * Custom comparator
-	 * 
-	 */
-	private static class AComparator implements RawComparator<com.datasalt.pangolin.thrift.test.A>, Configurable, Serializable {
-
-		private Configuration conf;
-		private HadoopSerialization ser;
-
-		private A cachedInstance1 = new A();
-		private A cachedInstance2 = new A();
-
-		@Override
-		public int compare(A o1, A o2) {
-			if(o1 != null && o2 == null) {
-				return 1;
-			} else if(o1 == null && o2 != null) {
-				return -1;
-			} else if(o1 == null && o2 == null) {
-				return 0;
-			} else {
-				return o1.compareTo(o2);
-			}
-		}
-
-		@Override
-		public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-			A a1, a2;
-			try {
-				a1 = (l1 == 0) ? (A) null : (A) ser.deser(cachedInstance1, b1, s1, l1);
-				a2 = (l2 == 0) ? (A) null : (A) ser.deser(cachedInstance2, b2, s2, l2);
-				return compare(a1, a2);
-			} catch(IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		@Override
-		public void setConf(Configuration conf) {
-			if(conf != null) {
-				this.conf = conf;
-				try {
-					this.ser = new HadoopSerialization(conf);
-				} catch(IOException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}
-
-		@Override
-		public Configuration getConf() {
-			return conf;
-		}
-	}
-
-	/**
 	 * Creates a copy of the schema with the fields shuffled.
 	 */
 	protected static Schema permuteSchema(Schema schema) {
@@ -250,18 +189,51 @@ public class TestComparators extends ComparatorsBaseTest {
 		return new Schema("new_schema",permutedFields);
 	}
 
+	@SuppressWarnings("serial")
+  static class ReverseEqualsComparator extends BaseComparator<Object> {
+
+		public ReverseEqualsComparator(Class objectClass) {
+	    super(objectClass);
+    }
+		@Override
+		public int compare(Object o1, Object o2) {
+			int cmp = cmp(o1, o2);
+			return cmp;
+		}
+		
+		public int cmp(Object o1, Object o2) {
+			if (o1 == null) {
+				return (o2 == null) ? 0 : -1; 
+			} else if (o2 == null) {
+				return 1;
+			} else {				
+				return - ((Comparable) o1).compareTo(o2);
+			}
+    }
+		
+		@Override
+		public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
+		  return super.compare(b1, s1, l1, b2, s2, l2);
+		}
+	}
+	
 	/**
 	 * 
 	 * Creates a random sort criteria based in the specified schema.
 	 * @throws CoGrouperException 
 	 */
-	protected static SortBy createRandomSortCriteria(Schema schema, Map<String, RawComparator<?>> customComparators,
-	    int numFields) throws CoGrouperException {			
+	protected static SortBy createRandomSortCriteria(Schema schema, int numFields) throws CoGrouperException {			
 			List<SortElement> builder = new ArrayList<SortElement>();
 			for(int i = 0; i < numFields; i++) {
 				Field field = schema.getField(i);
-				builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC : Order.DESC,
-				    customComparators.get(field.getName())));
+				if (random.nextBoolean()) {
+					// With custom comparator
+					builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC : Order.DESC,
+				    new ReverseEqualsComparator(field.getType())));
+				} else {
+					// Without custom comparator
+					builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC : Order.DESC));					
+				}
 			}
 			return new SortBy(builder);
 	}
@@ -275,38 +247,31 @@ public class TestComparators extends ComparatorsBaseTest {
 		return result;
 	}
 	
-	@SuppressWarnings("unchecked")
-  RawComparator<Integer> revIntComp = new RawComparator() {
+  @SuppressWarnings("serial")
+  RawComparator<Integer> revIntComp = new BaseComparator<Integer>(Integer.class) {
 
 		@Override
-    public int compare(Object o1, Object o2) {
-			return - ((Integer) o1).compareTo((Integer) o2);
+    public int compare(Integer o1, Integer o2) {
+			return - o1.compareTo(o2);
     }
-
-		@Override
-    public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-			return 0;
-    }			
 	};
 	
 	@Test
 	public void testCompareObjects() {
-		
-		assertEquals(1, SortComparator.compareObjects(1, 2, revIntComp));
-		assertEquals(0, SortComparator.compareObjects(2, 2, revIntComp));		
-		assertEquals(-1, SortComparator.compareObjects(3, 2, revIntComp));	
+		InternalType iType = InternalType.INT;
 
-		assertEquals(-1, SortComparator.compareObjects(1, 2, null));
-		assertEquals(0, SortComparator.compareObjects(2, 2, null));		
-		assertEquals(1, SortComparator.compareObjects(3, 2, null));	
-
-		assertEquals(-1, SortComparator.compareObjects(null, 2, null));
-		assertEquals(0, SortComparator.compareObjects(null, null, null));
-		assertEquals(1, SortComparator.compareObjects(2, null, null));
+		// Testing behaviour of the method with non Object types. 
+		// Object behaviour not tested here. 
+		SortComparator sortComparator = new SortComparator();
 		
-		assertEquals(-1, SortComparator.compareObjects(null, 2, revIntComp));
-		assertEquals(0, SortComparator.compareObjects(null, null, revIntComp));
-		assertEquals(1, SortComparator.compareObjects(2, null, revIntComp));
+		assertEquals(1, sortComparator.compareObjects(1, 2, revIntComp, iType));
+		assertEquals(0, sortComparator.compareObjects(2, 2, revIntComp, iType));		
+		assertEquals(-1, sortComparator.compareObjects(3, 2, revIntComp, iType));	
+
+		assertEquals(-1, sortComparator.compareObjects(1, 2, null, iType));
+		assertEquals(0, sortComparator.compareObjects(2, 2, null, iType));		
+		assertEquals(1, sortComparator.compareObjects(3, 2, null, iType));	
+
 	}
 	
 	@Test
@@ -323,8 +288,10 @@ public class TestComparators extends ComparatorsBaseTest {
 		t1.set("int", 1);
 		t2.set("int", 2);
 		
-		assertPositive(SortComparator.compare(cWithCustom, t1, index, t2, index));
-		assertNegative(SortComparator.compare(c, t1, index, t2, index));
+		SortComparator sortComparator = new SortComparator();		
+		
+		assertPositive(sortComparator.compare(s, cWithCustom, t1, index, t2, index));
+		assertNegative(sortComparator.compare(s, c, t1, index, t2, index));
 	}
 
 }
