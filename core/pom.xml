@@ -142,7 +142,8 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <version>0.20.203.0</version>
+      <!--version>0.20.203.0</version-->
+      <version>0.20.2-cdh3u1</version>
      </dependency>   
      
     <dependency>
@@ -184,7 +185,7 @@
   </dependencies>
   
   <repositories>
-   <!--repository>
+   <repository>
       <id>cloudera</id>
       <name>Cloudera Releases</name>
       <url>https://repository.cloudera.com/content/repositories/releases</url>
@@ -195,7 +196,7 @@
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-    </repository-->
+    </repository>
     
     <!-- 
     <repository>
@@ -226,30 +227,7 @@
     </configuration>
    </plugin>
    
-   
-   <!-- In order to add aditional source folders -->
-   
-  <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.1</version>
-        <executions>
-          <execution>
-            <id>add-source</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>add-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/contrib/java</source>
-               <!-- <source>src/test/generated-thrift/java/gen-javabean</source> -->
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    <plugin>
+    <!--plugin>
       <artifactId>maven-assembly-plugin</artifactId>
       <version>2.2.1</version>
       <configuration>
@@ -271,7 +249,7 @@
           </goals>
         </execution>
       </executions>
-    </plugin>
+    </plugin-->
      <!-- In order to add aditional source folders -->
    <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -286,14 +264,13 @@
             </goals>
             <configuration>
               <sources>
-                <source>src/contrib/java</source>
                 <source>target/test/generated-thrift/java/gen-javabean</source>
               </sources>
             </configuration>
           </execution>
         </executions>
       </plugin>
-    
+ 
     
   </plugins>
  </build>

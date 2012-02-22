@@ -39,24 +39,25 @@ import com.datasalt.pangool.utils.HadoopUtils;
  */
 public class TestWordCounts extends BaseBenchmarkTest {
 
-	public final static String TEST_FILE = "src/test/resources/wordcount/words.txt";
+	private final static String TEST_FILE = "src/test/resources/wordcount/words.txt";
+	private final static String EXPECTED_OUTPUT = "src/test/resources/wordcount/expected-output.txt";
+	
+	private static final String OUTPUT_FOLDER = "/tmp/";
+	private final static String OUT_PANGOOL = OUTPUT_FOLDER + "/out-pangool-wc";
+	private final static String OUT_CASCADING = OUTPUT_FOLDER + "/out-cascading-wc";
+	private final static String OUT_CRUNCH = OUTPUT_FOLDER + "out-crunch-wc";
+	private final static String OUT_MAPRED = OUTPUT_FOLDER + "out-mapred-wc";
 
-	public final static String EXPECTED_OUTPUT = "src/test/resources/wordcount/expected-output.txt";
-	public final static String OUT_PANGOOL = "src/test/resources/out-pangool-wc";
-	public final static String OUT_CASCADING = "src/test/resources/out-cascading-wc";
-	public final static String OUT_CRUNCH = "src/test/resources/out-crunch-wc";
-	public final static String OUT_MAPRED = "src/test/resources/out-mapred-wc";
-
-	@Before
-	@After
-	public void prepare() throws IOException {
-		Configuration conf = new Configuration();
-		FileSystem fS = FileSystem.get(conf);
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_MAPRED));
-	}
+//	@Before
+//	@After
+//	public void prepare() throws IOException {
+//		Configuration conf = new Configuration();
+//		FileSystem fS = FileSystem.get(conf);
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_MAPRED));
+//	}
 
 	@Test
 	public void testHadoop() throws Exception {

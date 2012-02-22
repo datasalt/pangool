@@ -18,6 +18,7 @@
     <module>core</module>
     <module>examples</module>
     <module>benchmark</module>
+    <module>pangool-flow</module>
   </modules>
 
   <build>
@@ -30,6 +31,41 @@
           <downloadSources>true</downloadSources>
         </configuration>
       </plugin>
+	<plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.12</version>
+          <configuration>
+            <includes>
+              <!-- Pangool naming convention for JUnit tests -->
+              <include>**/Test**</include>
+            </includes>
+            <excludes>
+              <!-- A few innner classes are not to be tested -->
+              <exclude>**/*$*</exclude>
+              <!-- exclude the generated classes under apache.avro.test, some of
+                these match **/Test** and are not JUnit tests -->
+              <!--exclude>**/apache/avro/test/**</exclude-->
+            </excludes>
+            <enableAssertions>false</enableAssertions>
+            <!-- some IPC tests hang if not run in a separate JVM -->
+            <forkMode>always</forkMode>
+            <!-- TestSpecificCompiler instantiates a Java compiler to test output results,
+                 this does not work with a manifest-only-jar to set the classpath for the javac.
+                 This may cause problems on some platforms.
+                 See http://maven.apache.org/plugins/maven-surefire-plugin/examples/class-loading.html
+                 for more information. -->
+            <useManifestOnlyJar>false</useManifestOnlyJar>
+            <!-- configures unit test standard error and standard out to go to a file per test
+                 rather than the console. -->
+            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+            <failIfNoTests>false</failIfNoTests>
+            <!--systemPropertyVariables>
+              <test.dir>${project.basedir}/target/</test.dir>
+            </systemPropertyVariables-->
+          </configuration>
+        </plugin>
+
     </plugins>
   </build>
 

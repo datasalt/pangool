@@ -38,23 +38,25 @@ import com.datasalt.pangool.utils.HadoopUtils;
  */
 public class TestSecondarySorts extends BaseBenchmarkTest {
 
-	public final static String TEST_FILE = "src/test/resources/secondarysort/test-data.txt";
-	public final static String EXPECTED_OUTPUT = "src/test/resources/secondarysort/expected-output.txt";
-	public final static String OUT_PANGOOL = "src/test/resources/secondarysort/out-pangool-ss";
-	public final static String OUT_CASCADING = "src/test/resources/secondarysort/out-cascading-ss";
-	public final static String OUT_CRUNCH = "src/test/resources/secondarysort/out-crunch-ss";
-	public final static String OUT_HADOOP = "src/test/resources/secondarysort/out-mapred-ss";
+	private final static String TEST_FILE = "src/test/resources/secondarysort/test-data.txt";
+	private final static String EXPECTED_OUTPUT = "src/test/resources/secondarysort/expected-output.txt";
+	
+	private final static String OUTPUT_FOLDER = "/tmp";
+	private final static String OUT_PANGOOL = OUTPUT_FOLDER +"/out-pangool-ss";
+	private final static String OUT_CASCADING = OUTPUT_FOLDER +"/out-cascading-ss";
+	private final static String OUT_CRUNCH = OUTPUT_FOLDER +"/out-crunch-ss";
+	private final static String OUT_HADOOP = OUTPUT_FOLDER +"/out-mapred-ss";
 
-	@Before
-	@After
-	public void prepare() throws IOException {
-		Configuration conf = new Configuration();
-		FileSystem fS = FileSystem.get(conf);
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_HADOOP));
-	}
+//	@Before
+//	@After
+//	public void prepare() throws IOException {
+//		Configuration conf = new Configuration();
+//		FileSystem fS = FileSystem.get(conf);
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_HADOOP));
+//	}
 
 	
 	@Test
