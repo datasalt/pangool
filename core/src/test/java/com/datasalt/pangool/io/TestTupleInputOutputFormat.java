@@ -18,21 +18,21 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
-import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.Criteria.Order;
-import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.SortBy;
-import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.IdentityGroupHandler;
-import com.datasalt.pangool.api.IdentityInputProcessor;
-import com.datasalt.pangool.api.InputProcessor;
-import com.datasalt.pangool.commons.CommonUtils;
-import com.datasalt.pangool.commons.HadoopUtils;
+import com.datasalt.pangool.cogroup.CoGrouper;
+import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.processors.GroupHandler;
+import com.datasalt.pangool.cogroup.processors.IdentityGroupHandler;
+import com.datasalt.pangool.cogroup.processors.IdentityInputProcessor;
+import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangool.utils.CommonUtils;
+import com.datasalt.pangool.utils.HadoopUtils;
 import com.google.common.io.Files;
 
 public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {

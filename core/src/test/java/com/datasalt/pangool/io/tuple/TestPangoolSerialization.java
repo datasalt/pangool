@@ -8,18 +8,16 @@ import org.junit.Test;
 
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.BaseTest;
-import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.ConfigBuilder;
-import com.datasalt.pangool.Criteria.Order;
-import com.datasalt.pangool.io.tuple.ser.PangoolDeserializer;
-import com.datasalt.pangool.io.tuple.ser.PangoolSerialization;
-import com.datasalt.pangool.io.tuple.ser.PangoolSerializer;
-import com.datasalt.pangool.Fields;
-import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.SortBy;
-import com.datasalt.pangool.io.HadoopSerialization;
+import com.datasalt.pangool.cogroup.CoGrouperConfig;
+import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 import com.datasalt.pangool.serialization.thrift.ThriftSerialization;
+import com.datasalt.pangool.serialization.tuples.PangoolDeserializer;
+import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
+import com.datasalt.pangool.serialization.tuples.PangoolSerializer;
 
 
 public class TestPangoolSerialization extends BaseTest{

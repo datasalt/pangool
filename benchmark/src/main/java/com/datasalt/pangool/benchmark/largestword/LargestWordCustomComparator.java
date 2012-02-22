@@ -22,16 +22,16 @@ import org.apache.log4j.PatternLayout;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.Criteria.Order;
-import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.SortBy;
-import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.cogroup.CoGrouper;
+import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.processors.GroupHandler;
+import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.tuple.Schema.Field;
 
 /**
  * 

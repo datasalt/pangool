@@ -16,7 +16,7 @@ import com.datasalt.pangool.benchmark.wordcount.CascadingWordCount;
 import com.datasalt.pangool.benchmark.wordcount.CrunchWordCount;
 import com.datasalt.pangool.benchmark.wordcount.HadoopWordCount;
 import com.datasalt.pangool.benchmark.wordcount.PangoolWordCount;
-import com.datasalt.pangool.commons.HadoopUtils;
+import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * This unit test verifies that each of the word count implementations can be run and that they give the same output

@@ -9,6 +9,8 @@ import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.WritableComparator;
 
+import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
+
 /**
  * A simple {@link RawComparator} and {@link Serializable} that
  * compares byte by byte. It also implements Comparator<Object>{@link #compare(Object, Object)}

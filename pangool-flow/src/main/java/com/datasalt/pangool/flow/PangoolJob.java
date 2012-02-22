@@ -12,8 +12,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.Tool;
 
-import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.cogroup.CoGrouper;
+import com.datasalt.pangool.cogroup.CoGrouperException;
 
 /**
  * This is the base class that executable jobs must extend for being used with {@link LinearFlow}.

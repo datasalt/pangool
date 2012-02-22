@@ -19,6 +19,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
+import com.datasalt.pangool.utils.AvroUtils;
 
 public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> {
 

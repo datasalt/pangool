@@ -15,10 +15,10 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.commons.HadoopUtils;
+import com.datasalt.pangool.cogroup.CoGrouperException;
 import com.datasalt.pangool.processor.Processor;
 import com.datasalt.pangool.processor.ProcessorHandler;
+import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * Example of performing a map-only Job with {@link Processor}. You give a regex to GrepProcessor and it will emit the

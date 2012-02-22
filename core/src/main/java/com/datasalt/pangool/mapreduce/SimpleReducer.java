@@ -25,14 +25,14 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.SerializationInfo;
-import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.commons.DCUtils;
+import com.datasalt.pangool.cogroup.CoGrouperConfig;
+import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.SerializationInfo;
+import com.datasalt.pangool.cogroup.processors.GroupHandler;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ViewTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.utils.DCUtils;
 
 public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 

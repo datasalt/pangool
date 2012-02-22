@@ -27,8 +27,8 @@ import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datasalt.pangool.api.InputProcessor;
-import com.datasalt.pangool.commons.DCUtils;
+import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * An {@link Mapper} that delegates behavior of paths to multiple other mappers.

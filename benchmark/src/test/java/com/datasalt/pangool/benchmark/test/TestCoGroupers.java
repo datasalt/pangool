@@ -18,7 +18,7 @@ import com.datasalt.pangool.benchmark.cogroup.CascadingUrlResolution;
 import com.datasalt.pangool.benchmark.cogroup.CrunchUrlResolution;
 import com.datasalt.pangool.benchmark.cogroup.HadoopUrlResolution;
 import com.datasalt.pangool.benchmark.cogroup.PangoolUrlResolution;
-import com.datasalt.pangool.commons.HadoopUtils;
+import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * This unit test verifies that each of the URL Resolution cogroup implementations can be run and that they give the

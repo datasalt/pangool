@@ -15,7 +15,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
-import com.datasalt.pangool.commons.HadoopUtils;
+import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * Code for solving the simple PangoolWordCount problem in Hadoop Java Map/Red API.

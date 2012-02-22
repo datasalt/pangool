@@ -7,9 +7,9 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 
-import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.io.tuple.ser.SingleFieldDeserializer;
+import com.datasalt.pangool.cogroup.CoGrouperConfig;
+import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.serialization.tuples.SingleFieldDeserializer;
 
 @SuppressWarnings("serial")
 public abstract class BaseComparator<T> implements RawComparator<T>, Serializable, Configurable {

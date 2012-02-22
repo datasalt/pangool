@@ -13,7 +13,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.mortbay.log.Log;
 
-import com.datasalt.pangool.commons.HadoopUtils;
+import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * This class allows creating classes that define a Flow by defining resources and binding relationships between them. 

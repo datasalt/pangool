@@ -5,9 +5,9 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Before;
 
-import com.datasalt.pangool.io.tuple.ser.PangoolSerialization;
 import com.datasalt.pangool.serialization.protostuff.ProtoStuffSerialization;
 import com.datasalt.pangool.serialization.thrift.ThriftSerialization;
+import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
 
 public abstract class AbstractBaseTest {
 	

@@ -15,14 +15,14 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.InputProcessor;
+import com.datasalt.pangool.cogroup.CoGrouper;
+import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.processors.GroupHandler;
+import com.datasalt.pangool.cogroup.processors.InputProcessor;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.tuple.Schema.Field;
 
 /**
  * 

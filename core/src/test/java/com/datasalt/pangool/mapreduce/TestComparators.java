@@ -14,21 +14,21 @@ import org.apache.hadoop.io.RawComparator;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.ConfigBuilder;
-import com.datasalt.pangool.Criteria;
-import com.datasalt.pangool.Criteria.Order;
-import com.datasalt.pangool.Criteria.SortElement;
-import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.Schema.InternalType;
-import com.datasalt.pangool.SortBy;
+import com.datasalt.pangool.cogroup.CoGrouperConfig;
+import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.sorting.Criteria;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.BaseComparator;
-import com.datasalt.pangool.io.HadoopSerialization;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.InternalType;
+import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 
 /**
  * This tests either {@link SortComparator} or {@link GroupComparator}.It checks that the binary comparison is coherent

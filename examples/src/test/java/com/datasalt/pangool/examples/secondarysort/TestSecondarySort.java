@@ -12,9 +12,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.commons.HadoopUtils;
+import com.datasalt.pangool.cogroup.CoGrouperException;
 import com.datasalt.pangool.examples.simplesecondarysort.SecondarySort;
+import com.datasalt.pangool.utils.HadoopUtils;
 import com.google.common.io.Files;
 
 public class TestSecondarySort {

@@ -10,14 +10,14 @@ import org.junit.Assert;
 import org.junit.Before;
 
 import com.datasalt.pangool.BaseTest;
-import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.ConfigBuilder;
-import com.datasalt.pangool.Criteria.Order;
-import com.datasalt.pangool.Fields;
-import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.SortBy;
+import com.datasalt.pangool.cogroup.CoGrouperConfig;
+import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 public abstract class ComparatorsBaseTest extends BaseTest{

@@ -26,19 +26,19 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.mapreduce.Reducer;
 
-import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.ConfigBuilder;
-import com.datasalt.pangool.Criteria;
-import com.datasalt.pangool.Criteria.SortElement;
-import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.SerializationInfo;
-import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.GroupHandlerWithRollup;
-import com.datasalt.pangool.commons.DCUtils;
+import com.datasalt.pangool.cogroup.CoGrouperConfig;
+import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.SerializationInfo;
+import com.datasalt.pangool.cogroup.processors.GroupHandler;
+import com.datasalt.pangool.cogroup.processors.GroupHandlerWithRollup;
+import com.datasalt.pangool.cogroup.sorting.Criteria;
+import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.ViewTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * 

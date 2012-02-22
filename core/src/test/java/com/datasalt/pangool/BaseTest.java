@@ -15,14 +15,15 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.thrift.test.A;
-import com.datasalt.pangool.Criteria.Order;
-import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.io.HadoopSerialization;
+import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ser.PangoolDeserializer;
-import com.datasalt.pangool.io.tuple.ser.PangoolSerialization;
-import com.datasalt.pangool.io.tuple.ser.PangoolSerializer;
+import com.datasalt.pangool.io.tuple.Schema;
+import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
+import com.datasalt.pangool.serialization.tuples.PangoolDeserializer;
+import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
+import com.datasalt.pangool.serialization.tuples.PangoolSerializer;
 import com.datasalt.pangool.test.AbstractBaseTest;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })

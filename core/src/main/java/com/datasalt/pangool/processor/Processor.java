@@ -12,7 +12,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.datasalt.pangool.CoGrouperException;
+import com.datasalt.pangool.cogroup.CoGrouperException;
 import com.datasalt.pangool.mapreduce.lib.input.PangoolMultipleInputs;
 
 /**

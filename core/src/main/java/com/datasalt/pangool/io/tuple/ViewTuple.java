@@ -1,6 +1,5 @@
 package com.datasalt.pangool.io.tuple;
 
-import com.datasalt.pangool.Schema;
 
 /**
  * A {@link ITuple} with a contained one, but that creates a

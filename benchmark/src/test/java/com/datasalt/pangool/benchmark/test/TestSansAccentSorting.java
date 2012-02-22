@@ -18,7 +18,7 @@ import org.junit.Test;
 
 import com.datasalt.pangool.benchmark.sansaccentsorting.SansAccentsCustomComparator;
 import com.datasalt.pangool.benchmark.sansaccentsorting.SansAccentRepeatedField;
-import com.datasalt.pangool.commons.HadoopUtils;
+import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * This unit test verifies that each of the word count implementations can be run and that they give the same output

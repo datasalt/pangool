@@ -15,7 +15,6 @@
  */
 package com.datasalt.pangool.io.tuple;
 
-import com.datasalt.pangool.Schema;
 
 /**
  * This is the common interface implemented by tuples.

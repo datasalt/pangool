@@ -15,19 +15,19 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.CoGrouper;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.SortBy;
-import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.Criteria.Order;
-import com.datasalt.pangool.api.GroupHandler;
-import com.datasalt.pangool.api.InputProcessor;
-import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
-import com.datasalt.pangool.api.GroupHandler.Collector;
-import com.datasalt.pangool.commons.HadoopUtils;
+import com.datasalt.pangool.cogroup.CoGrouper;
+import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.processors.GroupHandler;
+import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.processors.GroupHandler.CoGrouperContext;
+import com.datasalt.pangool.cogroup.processors.GroupHandler.Collector;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * Code for solving a secondary sort problem with Pangool.

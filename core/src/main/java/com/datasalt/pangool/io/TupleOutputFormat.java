@@ -15,8 +15,10 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Schema;
+import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
+import com.datasalt.pangool.utils.AvroUtils;
 
 /**
  * An Avro-based output format for {@link ITuple}s

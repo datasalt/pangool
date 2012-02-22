@@ -37,7 +37,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskInputOutputContext;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.api.ProxyOutputFormat.ProxyOutputCommitter;
+import com.datasalt.pangool.cogroup.ProxyOutputFormat.ProxyOutputCommitter;
 
 /**
  * This class is inspired by the MultipleOutputs class of Hadoop.

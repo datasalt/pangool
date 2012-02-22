@@ -6,13 +6,13 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 
-import com.datasalt.pangool.CoGrouperConfig;
-import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.ConfigBuilder;
-import com.datasalt.pangool.Criteria;
-import com.datasalt.pangool.Criteria.SortElement;
-import com.datasalt.pangool.Schema;
+import com.datasalt.pangool.cogroup.CoGrouperConfig;
+import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.sorting.Criteria;
+import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.tuple.Schema;
 
 public class GroupComparator extends SortComparator {
 

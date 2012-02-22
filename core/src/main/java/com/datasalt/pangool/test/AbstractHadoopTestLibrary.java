@@ -29,12 +29,12 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 
-import com.datasalt.pangool.commons.HadoopUtils;
-import com.datasalt.pangool.io.AvroUtils;
-import com.datasalt.pangool.io.HadoopSerialization;
 import com.datasalt.pangool.io.TupleInputFormat.TupleInputReader;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
+import com.datasalt.pangool.utils.AvroUtils;
+import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * Niceties and utilities for making Hadoop unit tests less painfully.

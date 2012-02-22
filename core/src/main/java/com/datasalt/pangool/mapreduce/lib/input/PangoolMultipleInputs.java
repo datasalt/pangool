@@ -34,8 +34,8 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.api.InputProcessor;
-import com.datasalt.pangool.commons.DCUtils;
+import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * This class supports MapReduce jobs that have multiple input paths with a different {@link InputFormat} and

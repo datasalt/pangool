@@ -19,8 +19,7 @@ import java.io.Serializable;
 
 import org.apache.hadoop.io.Text;
 
-import com.datasalt.pangool.Schema;
-import com.datasalt.pangool.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field;
 
 /**
  * This is the basic implementation of {@link ITuple}.
