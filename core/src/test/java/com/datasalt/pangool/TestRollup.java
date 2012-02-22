@@ -17,7 +17,6 @@
 package com.datasalt.pangool;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Iterator;
 
 import junit.framework.Assert;
@@ -25,12 +24,9 @@ import junit.framework.Assert;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.WritableComparable;
-import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -41,8 +37,8 @@ import com.datasalt.pangool.cogroup.CoGrouperException;
 import com.datasalt.pangool.cogroup.processors.GroupHandler;
 import com.datasalt.pangool.cogroup.processors.GroupHandlerWithRollup;
 import com.datasalt.pangool.cogroup.processors.InputProcessor;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.BaseComparator;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.ITuple;

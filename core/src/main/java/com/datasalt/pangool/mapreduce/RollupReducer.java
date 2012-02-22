@@ -17,7 +17,6 @@
 package com.datasalt.pangool.mapreduce;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -32,12 +31,11 @@ import com.datasalt.pangool.cogroup.ConfigBuilder;
 import com.datasalt.pangool.cogroup.SerializationInfo;
 import com.datasalt.pangool.cogroup.processors.GroupHandler;
 import com.datasalt.pangool.cogroup.processors.GroupHandlerWithRollup;
-import com.datasalt.pangool.cogroup.sorting.Criteria;
 import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.ViewTuple;
-import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
@@ -59,7 +57,6 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	private Schema groupSchema;
 	private RawComparator<?>[] customComparators;
 
-	@SuppressWarnings("unchecked")
   @Override
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
