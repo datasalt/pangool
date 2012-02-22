@@ -360,6 +360,14 @@ public class CoGrouperConfig {
 			gen.writeString(field);
 		}
 		gen.writeEndArray();
+		
+		if (customPartitionFields != null && !customPartitionFields.isEmpty()){
+			gen.writeArrayFieldStart("customPartitionFields");
+			for(String field : customPartitionFields) {
+				gen.writeString(field);
+			}
+			gen.writeEndArray();
+		}
 
 		if(rollupFrom != null) {
 			gen.writeFieldName("rollupFrom");
@@ -430,11 +438,21 @@ public class CoGrouperConfig {
 		}
 		CoGrouperConfig that = (CoGrouperConfig) a;
 
-		return(this.getSourcesOrder() == that.getSourcesOrder()
+		boolean e = 
+		this.getSourcesOrder() == that.getSourcesOrder()
 		    && this.getCommonCriteria().equals(that.getCommonCriteria())
 		    && this.getGroupByFields().equals(that.getGroupByFields())
 		    && this.getSourceSchemas().equals(that.getSourceSchemas()) && this.getSecondarySortBys().equals(
-		    that.getSecondarySortBys()));
+		    that.getSecondarySortBys());
+		if (e){
+			if (this.getCustomPartitionFields() == null){
+				return that.getCustomPartitionFields() == null;
+			} else {
+				return this.getCustomPartitionFields().equals(that.getCustomPartitionFields());
+			}
+		} else {
+			return false;
+		}
 	}
 
 }
