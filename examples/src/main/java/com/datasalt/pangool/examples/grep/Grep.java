@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.grep;
+package com.datasalt.pangool.examples.grep;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

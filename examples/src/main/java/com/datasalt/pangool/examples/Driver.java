@@ -17,9 +17,9 @@ package com.datasalt.pangool.examples;
 
 import org.apache.hadoop.util.ProgramDriver;
 
+import com.datasalt.pangool.examples.grep.Grep;
 import com.datasalt.pangool.examples.simplesecondarysort.SecondarySort;
 import com.datasalt.pangool.examples.wordcount.WordCount;
-import com.datasalt.pangool.grep.Grep;
 
 
 /**
