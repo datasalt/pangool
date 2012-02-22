@@ -136,7 +136,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	
 	private void writeCustomObject(Object element, DataOutput output) throws IOException{
 		if(element == null) {
-			WritableUtils.writeVInt(output, 0);
+			WritableUtils.writeVInt(output, -1);
 		} else {
 			tmpOutputBuffer.reset();
 			ser.ser(element, tmpOutputBuffer);

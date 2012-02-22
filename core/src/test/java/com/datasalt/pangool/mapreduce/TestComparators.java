@@ -139,7 +139,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	 */
 	private void assertSameComparison(String alias, SortComparator comparator, ITuple tuple1, ITuple tuple2)
 	    throws IOException {
-
+		boolean DEBUG = true;
 		int compObjects = comparator.compare(tuple1, tuple2);
 		int compBinary = compareInBinary1(comparator, tuple1, tuple2);
 		if(compObjects > 0 && compBinary <= 0 || compObjects >= 0 && compBinary < 0 || compObjects <= 0 && compBinary > 0
@@ -148,7 +148,12 @@ public class TestComparators extends ComparatorsBaseTest {
 			String error = alias + ",Not same comparison : Comp objects:'" + compObjects + "' Comp binary:'" + compBinary
 			    + "' for tuples:" + "\nTUPLE1:" + tuple1 + "\nTUPLE2:" + tuple2 + 
 			    "\nCONFIG:"  + comparator.getConfig(); 
-			    
+			if (DEBUG){
+				System.err.println(error);
+				compObjects = comparator.compare(tuple1, tuple2);
+				compBinary = compareInBinary1(comparator, tuple1, tuple2);
+			}
+			
 			Assert.fail(error);
 		}
 	}

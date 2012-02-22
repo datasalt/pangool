@@ -4,9 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
 
-public abstract class BaseBenchmarkTest {
+public abstract class BaseBenchmarkTest extends AbstractHadoopTestLibrary{
 
 	public String getReducerOutputAsText(String outputDir) throws IOException {
 		return getOutputAsText(outputDir + "/part-r-00000");

@@ -185,7 +185,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	
 	protected void readCustomObject(DataInput input,ITuple tuple,Class<?> expectedType,int index) throws IOException{
 		int size = WritableUtils.readVInt(input);
-		if(size != 0) {
+		if(size >=0) {
 			tmpInputBuffer.setSize(size);
 			input.readFully(tmpInputBuffer.getBytes(), 0, size);
 			if(tuple.get(index) == null) {

@@ -17,16 +17,11 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.CoGrouper;
 import com.datasalt.pangool.CoGrouperException;
-import com.datasalt.pangool.Criteria.Order;
 import com.datasalt.pangool.Schema;
 import com.datasalt.pangool.Schema.Field;
-import com.datasalt.pangool.SortBy;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
-import com.datasalt.pangool.api.GroupHandler.CoGrouperContext;
-import com.datasalt.pangool.api.GroupHandler.Collector;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
@@ -85,7 +80,7 @@ public class Utf8EncodedRepeatedField {
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws InvalidFieldException, CoGrouperException,
+	public Job getJob(Configuration conf, String input, String output) throws CoGrouperException,
 	    IOException {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);

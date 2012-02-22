@@ -7,15 +7,16 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.datasalt.pangool.benchmark.wordcount.CascadingWordCount;
-import com.datasalt.pangool.benchmark.wordcount.CrunchWordCount;
-import com.datasalt.pangool.benchmark.wordcount.HadoopWordCount;
-import com.datasalt.pangool.benchmark.wordcount.PangoolWordCount;
+import com.datasalt.pangool.benchmark.utf8sorting.PangoolAccentsCustomComparator;
+import com.datasalt.pangool.benchmark.utf8sorting.Utf8EncodedRepeatedField;
 import com.datasalt.pangool.commons.HadoopUtils;
 
 /**
@@ -24,56 +25,48 @@ import com.datasalt.pangool.commons.HadoopUtils;
  */
 public class TestSansAccentSorting extends BaseBenchmarkTest {
 
-	public final static String TEST_FILE = "src/test/resources/wordcount/words.txt";
+	private final static String FOLDER = "src/test/resources/sans_accent_sorting";
+	private final static String TEST_FILE = FOLDER + "/spanish_words.txt";
 
-	public final static String EXPECTED_OUTPUT = "src/test/resources/wordcount/expected-output.txt";
-	public final static String OUT_PANGOOL = "src/test/resources/out-pangool-wc";
-	public final static String OUT_CASCADING = "src/test/resources/out-cascading-wc";
-	public final static String OUT_CRUNCH = "src/test/resources/out-crunch-wc";
-	public final static String OUT_MAPRED = "src/test/resources/out-mapred-wc";
+	private final static String EXPECTED_OUTPUT = FOLDER + "/expected.txt";
+	private final static String OUT_REPEATING = FOLDER + "/out-pangool-repeating";
+	private final static String OUT_CUSTOM_COMPARATOR = FOLDER + "/out-pangool-repeating";
+	
 
 	@Before
 	@After
 	public void prepare() throws IOException {
+		Logger root = Logger.getRootLogger();
+		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
 		Configuration conf = new Configuration();
 		FileSystem fS = FileSystem.get(conf);
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_MAPRED));
+		HadoopUtils.deleteIfExists(fS, new Path(OUT_REPEATING));
+		HadoopUtils.deleteIfExists(fS, new Path(OUT_CUSTOM_COMPARATOR));
+		
 	}
 
 	@Test
-	public void testHadoop() throws Exception {
-		HadoopWordCount.main(new String[] { TEST_FILE, OUT_MAPRED });
-		String outMapred = getReducerOutputAsText(OUT_MAPRED);
-		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
-		assertEquals(outMapred, expectedOutput);
+	public void testRepeatingFields() throws Exception {
+		Configuration conf = new Configuration();
+		Job job = new Utf8EncodedRepeatedField().getJob(conf,TEST_FILE,OUT_REPEATING);
+		assertRun(job);
+		
+		String out = getReducerOutputAsText(OUT_REPEATING); //Very bad, consumes a lot of memory
+		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);//Very bad, consumes a lot of memory
+		assertEquals(expectedOutput,out);
 	}
 	
 	@Test
-	public void testPangool() throws Exception {
-		PangoolWordCount.main(new String[] { TEST_FILE, OUT_PANGOOL });
-		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
+	public void testCustomComparator() throws Exception {
+		Configuration conf = new Configuration();
+		Job job = new PangoolAccentsCustomComparator().getJob(conf,TEST_FILE, OUT_CUSTOM_COMPARATOR);
+		assertRun(job);
+		
+		String out = getReducerOutputAsText(OUT_CUSTOM_COMPARATOR);
 		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
-		assertEquals(outPangool, expectedOutput);
+		assertEquals(expectedOutput,out);
 	}
 	
-	@Test
-	public void testCascading() throws Exception {
-		CascadingWordCount.main(new String[] { TEST_FILE, OUT_CASCADING });
-		String outCascading = getOutputAsText(OUT_CASCADING + "/part-00000");
-		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
-		assertEquals(expectedOutput, outCascading);
-	}
 	
-	@Ignore
-	@Test
-	public void testCrunch() throws Exception {
-		CrunchWordCount.main(new String[] { TEST_FILE, OUT_CRUNCH });
-		String outCrunch = getReducerOutputAsText(OUT_CRUNCH);
-		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
-		assertEquals(expectedOutput, outCrunch);
-	}
 	
 }

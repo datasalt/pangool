@@ -22,7 +22,7 @@ import com.datasalt.pangool.Schema.InternalType;
 import com.datasalt.pangool.io.HadoopSerialization;
 
 /**
- * A class for deserialize fields in Pangool format from a byte array.
+ * A class for deserializing fields in Pangool format from a byte array.
  * Thead unsafe. It could cache the instance internally and reuse it in 
  * deserialize calls.
  */
@@ -98,11 +98,11 @@ public class SingleFieldDeserializer {
   	if(type == Integer.class) {
   		// Integer
   		return readInt(bytes, offset);
-  	} else if(type == String.class) {
+  	} else if(type == String.class || type == Text.class) {
   		// String
   		int length = readVInt(bytes, offset);
   		offset += WritableUtils.decodeVIntSize(bytes[offset]);
-  		((Text) instance).set(Text.decode(bytes, offset, length));
+  		((Text) instance).set(bytes,offset,length);
   		return instance; 			
   	} else if(type == Long.class) {
   		// Long
@@ -126,12 +126,10 @@ public class SingleFieldDeserializer {
   	} else {
   		// Custom objects uses Hadoop Serialization, but has a header with the length.
   		int length = readVInt(bytes, offset);
-  		// TODO: remove that if we disable nullable objects.
-  		if (length == 0) {
+  		if (length < 0) {
   			return null;
   		}
   		offset += WritableUtils.decodeVIntSize(bytes[offset]);
-  		
   		return ser.deser(instance, bytes, offset, length);
   	} 
   }	

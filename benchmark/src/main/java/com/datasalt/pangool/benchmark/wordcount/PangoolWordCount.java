@@ -25,7 +25,6 @@ import com.datasalt.pangool.api.CombinerHandler;
 import com.datasalt.pangool.api.GroupHandler;
 import com.datasalt.pangool.api.InputProcessor;
 import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.ITuple.InvalidFieldException;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
@@ -93,7 +92,7 @@ public class PangoolWordCount {
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws InvalidFieldException, CoGrouperException,
+	public Job getJob(Configuration conf, String input, String output) throws CoGrouperException,
 	    IOException {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);

@@ -34,7 +34,7 @@ import com.datasalt.pangool.test.AbstractBaseTest;
 public class TestSingleFieldDeserializer extends AbstractBaseTest implements Serializable {
 
 	@Test
-	public void testThift() throws IOException, CoGrouperException {
+	public void testThrift() throws IOException, CoGrouperException {
 		Configuration conf = getConf();
 		
 		ArrayList<Field> fields = new ArrayList<Field> ();

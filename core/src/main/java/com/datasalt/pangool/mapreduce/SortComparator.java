@@ -209,14 +209,31 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					// header length and field length.
 					int[] lengths1 = getHeaderLengthAndFieldLength(b1, o.offset1, type);
 					int[] lengths2 = getHeaderLengthAndFieldLength(b2, o.offset2, type);
-					int totalField1Size = lengths1[0] + lengths1[1]; // Header size + data size
-					int totalField2Size = lengths2[0] + lengths2[1]; // Header size + data size
-					int comparison = comparator.compare(b1, o.offset1, totalField1Size, b2, o.offset2, totalField2Size);
+					int dataSize1 = lengths1[1];
+					int dataSize2 = lengths2[1];
+					int comparison;
+					if (dataSize1 < 0){
+						if (dataSize2 < 0){
+							o.offset1 += lengths1[0];
+							o.offset2 += lengths2[0];
+							comparison=0; //object1 and object2 nulls
+						} else {
+							comparison = -1;//object1 null and object2 not null
+						}
+					} else {
+						if (dataSize2 < 0){
+							comparison= 1;
+						} else {
+							int totalField1Size = lengths1[0] + lengths1[1]; // Header size + data size
+							int totalField2Size = lengths2[0] + lengths2[1]; // Header size + data size
+							comparison = comparator.compare(b1, o.offset1, totalField1Size, b2, o.offset2, totalField2Size);
+							o.offset1 += totalField1Size;
+							o.offset2 += totalField2Size;
+						}
+					}
 					if(comparison != 0) {
 						return (sort == Order.ASC) ? comparison : -comparison;
 					}
-					o.offset1 += totalField1Size;
-					o.offset2 += totalField2Size;					
 				} else if(type == Integer.class) {
 					// Integer
 					int value1 = readInt(b1, o.offset1);
@@ -300,12 +317,28 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					int length2 = readVInt(b2, o.offset2);
 					o.offset1 += WritableUtils.decodeVIntSize(b1[o.offset1]);
 					o.offset2 += WritableUtils.decodeVIntSize(b2[o.offset2]);
-					int comparison = compareBytes(b1, o.offset1, length1, b2, o.offset2, length2);
+					int comparison;
+					if (length1 < 0 ){ 
+						if (length2 < 0){ 
+							comparison = 0; //object1 null and object2 null
+						} else {
+							comparison = -1; //object1 null and object2 not null
+						}
+					} else {
+						if (length2 < 0){ //object1 not null and object2 null
+							comparison = 1;
+						} else {
+							comparison = compareBytes(b1, o.offset1, length1, b2, o.offset2, length2);
+							o.offset1 += length1;
+							o.offset2 += length2;
+						}
+					}
+					
+					//int 
 					if(comparison != 0) {
 						return (sort == Order.ASC) ? comparison : (-comparison);
 					}
-					o.offset1 += length1;
-					o.offset2 += length2;
+					
 				}
 			}
 			return 0; // equals
