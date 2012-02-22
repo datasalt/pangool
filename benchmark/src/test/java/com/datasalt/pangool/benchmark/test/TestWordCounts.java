@@ -48,16 +48,16 @@ public class TestWordCounts extends BaseBenchmarkTest {
 	private final static String OUT_CRUNCH = OUTPUT_FOLDER + "out-crunch-wc";
 	private final static String OUT_MAPRED = OUTPUT_FOLDER + "out-mapred-wc";
 
-//	@Before
-//	@After
-//	public void prepare() throws IOException {
-//		Configuration conf = new Configuration();
-//		FileSystem fS = FileSystem.get(conf);
-//		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
-//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
-//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
-//		HadoopUtils.deleteIfExists(fS, new Path(OUT_MAPRED));
-//	}
+	@Before
+	@After
+	public void prepare() throws IOException {
+		Configuration conf = new Configuration();
+		FileSystem fS = FileSystem.get(conf);
+		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
+		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
+		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
+		HadoopUtils.deleteIfExists(fS, new Path(OUT_MAPRED));
+	}
 
 	@Test
 	public void testHadoop() throws Exception {

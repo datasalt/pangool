@@ -31,15 +31,15 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.datasalt.pangool.benchmark.largestword.LargestWordCustomComparator;
-import com.datasalt.pangool.benchmark.largestword.LargestWordRepeatedField;
+import com.datasalt.pangool.benchmark.largestword.LargestWordBytesCustomComparator;
+import com.datasalt.pangool.benchmark.largestword.LargestWordBytesRepeatedField;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * This unit test verifies that each of the word count implementations can be run and that they give the same output
  * given a test input.
  */
-public class TestLargestWordSorting extends BaseBenchmarkTest {
+public class TestLargestWordBytesSorting extends BaseBenchmarkTest {
 
 	private final static String INPUT_FOLDER = "src/test/resources/sans_accent_sorting";
 	private final static String TEST_FILE = INPUT_FOLDER + "/spanish_words.txt";
@@ -50,22 +50,22 @@ public class TestLargestWordSorting extends BaseBenchmarkTest {
 	private final static String OUT_CUSTOM_COMPARATOR = OUTPUT_FOLDER + "/out-largest-custom";
 	
 
-//	@Before
-//	//@After
-//	public void prepare() throws IOException {
-//		Logger root = Logger.getRootLogger();
-//		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
-//		Configuration conf = new Configuration();
-//		FileSystem fS = FileSystem.get(conf);
-//		HadoopUtils.deleteIfExists(fS, new Path(OUT_REPEATING));
-//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CUSTOM_COMPARATOR));
-//		
-//	}
+	@Before
+	//@After
+	public void prepare() throws IOException {
+		Logger root = Logger.getRootLogger();
+		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
+		Configuration conf = new Configuration();
+		FileSystem fS = FileSystem.get(conf);
+		HadoopUtils.deleteIfExists(fS, new Path(OUT_REPEATING));
+		HadoopUtils.deleteIfExists(fS, new Path(OUT_CUSTOM_COMPARATOR));
+		
+	}
 
 	@Test
 	public void testRepeatingFields() throws Exception {
 		Configuration conf = new Configuration();
-		Job job = new LargestWordRepeatedField().getJob(conf,TEST_FILE,OUT_REPEATING);
+		Job job = new LargestWordBytesRepeatedField().getJob(conf,TEST_FILE,OUT_REPEATING);
 		assertRun(job);
 		
 		String out = getReducerOutputAsText(OUT_REPEATING); //Very bad, consumes a lot of memory
@@ -77,7 +77,7 @@ public class TestLargestWordSorting extends BaseBenchmarkTest {
 	@Test
 	public void testCustomComparator() throws Exception {
 		Configuration conf = new Configuration();
-		Job job = new LargestWordCustomComparator().getJob(conf,TEST_FILE, OUT_CUSTOM_COMPARATOR);
+		Job job = new LargestWordBytesCustomComparator().getJob(conf,TEST_FILE, OUT_CUSTOM_COMPARATOR);
 		assertRun(job);
 		
 		String out = getReducerOutputAsText(OUT_CUSTOM_COMPARATOR);
