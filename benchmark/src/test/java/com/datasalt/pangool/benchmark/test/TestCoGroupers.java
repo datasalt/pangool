@@ -1,3 +1,18 @@
+/**
+ * Copyright [2012] [Datasalt Systems S.L.]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.datasalt.pangool.benchmark.test;
 
 import static org.junit.Assert.assertEquals;
@@ -26,25 +41,27 @@ import com.datasalt.pangool.utils.HadoopUtils;
  */
 public class TestCoGroupers extends BaseBenchmarkTest {
 
-	public final static String TEST_FILE_URL_MAP = "src/test/resources/cogroup/url-map.txt";
-	public final static String TEST_FILE_URL_REG = "src/test/resources/cogroup/url-reg.txt";
+	private final static String TEST_FILE_URL_MAP = "src/test/resources/cogroup/url-map.txt";
+	private final static String TEST_FILE_URL_REG = "src/test/resources/cogroup/url-reg.txt";
 
-	public final static String EXPECTED_OUTPUT = "src/test/resources/cogroup/expected-output.txt";
-	public final static String OUT_PANGOOL = "src/test/resources/cogroup/out-pangool-co";
-	public final static String OUT_CASCADING = "src/test/resources/cogroup/out-cascading-co";
-	public final static String OUT_CRUNCH = "src/test/resources/cogroup/out-crunch-co";
-	public final static String OUT_MAPRED = "src/test/resources/cogroup/out-mapred-co";
+	private final static String EXPECTED_OUTPUT = "src/test/resources/cogroup/expected-output.txt";
+	
+	private final static String OUTPUT_FOLDER = "/tmp";
+	private final static String OUT_PANGOOL = OUTPUT_FOLDER + "/out-cogroup-pangool-co";
+	private final static String OUT_CASCADING = OUTPUT_FOLDER + "/out-cogroup-cascading-co";
+	private final static String OUT_CRUNCH = OUTPUT_FOLDER + "/out-cogroup-crunch-co";
+	private final static String OUT_MAPRED = OUTPUT_FOLDER + "/out-cogroup-hadoop-co";
 
-	@Before
-	@After
-	public void prepare() throws IOException {
-		Configuration conf = new Configuration();
-		FileSystem fS = FileSystem.get(conf);
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_MAPRED));
-	}
+//	@Before
+//	@After
+//	public void prepare() throws IOException {
+//		Configuration conf = new Configuration();
+//		FileSystem fS = FileSystem.get(conf);
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_MAPRED));
+//	}
 
 	@Test
 	public void testHadoop() throws Exception {

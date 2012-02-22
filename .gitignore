@@ -15,3 +15,7 @@ pangool-flow/.classpath
 pangool-flow/.project
 pangool-flow/.settings
 pangool-flow/target
+benchmark/.classpath
+benchmark/.project
+benchmark/.settings
+benchmark/target

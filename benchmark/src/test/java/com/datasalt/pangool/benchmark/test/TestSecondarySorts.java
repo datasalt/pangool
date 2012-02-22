@@ -1,3 +1,18 @@
+/**
+ * Copyright [2012] [Datasalt Systems S.L.]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.datasalt.pangool.benchmark.test;
 
 import static org.junit.Assert.assertEquals;
@@ -23,23 +38,25 @@ import com.datasalt.pangool.utils.HadoopUtils;
  */
 public class TestSecondarySorts extends BaseBenchmarkTest {
 
-	public final static String TEST_FILE = "src/test/resources/secondarysort/test-data.txt";
-	public final static String EXPECTED_OUTPUT = "src/test/resources/secondarysort/expected-output.txt";
-	public final static String OUT_PANGOOL = "src/test/resources/secondarysort/out-pangool-ss";
-	public final static String OUT_CASCADING = "src/test/resources/secondarysort/out-cascading-ss";
-	public final static String OUT_CRUNCH = "src/test/resources/secondarysort/out-crunch-ss";
-	public final static String OUT_HADOOP = "src/test/resources/secondarysort/out-mapred-ss";
+	private final static String TEST_FILE = "src/test/resources/secondarysort/test-data.txt";
+	private final static String EXPECTED_OUTPUT = "src/test/resources/secondarysort/expected-output.txt";
+	
+	private final static String OUTPUT_FOLDER = "/tmp";
+	private final static String OUT_PANGOOL = OUTPUT_FOLDER +"/out-pangool-ss";
+	private final static String OUT_CASCADING = OUTPUT_FOLDER +"/out-cascading-ss";
+	private final static String OUT_CRUNCH = OUTPUT_FOLDER +"/out-crunch-ss";
+	private final static String OUT_HADOOP = OUTPUT_FOLDER +"/out-mapred-ss";
 
-	@Before
-	@After
-	public void prepare() throws IOException {
-		Configuration conf = new Configuration();
-		FileSystem fS = FileSystem.get(conf);
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
-		HadoopUtils.deleteIfExists(fS, new Path(OUT_HADOOP));
-	}
+//	@Before
+//	@After
+//	public void prepare() throws IOException {
+//		Configuration conf = new Configuration();
+//		FileSystem fS = FileSystem.get(conf);
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_PANGOOL));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CASCADING));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_CRUNCH));
+//		HadoopUtils.deleteIfExists(fS, new Path(OUT_HADOOP));
+//	}
 
 	
 	@Test

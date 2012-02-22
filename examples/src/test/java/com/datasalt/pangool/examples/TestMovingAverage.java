@@ -1,4 +1,4 @@
-package com.datasalt.pangool.examples.movingaverage;
+package com.datasalt.pangool.examples;
 
 import static org.junit.Assert.assertEquals;
 
@@ -11,15 +11,18 @@ import java.text.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.Job;
 import org.junit.Test;
 
 import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.google.common.io.Files;
 
-public class TestMovingAverage {
-	private final static String INPUT = "test-input-" + TestMovingAverage.class.getName();
-	private final static String OUTPUT = "test-output-" + TestMovingAverage.class.getName();
+public class TestMovingAverage extends AbstractHadoopTestLibrary{
+	private final static String FOLDER = "/tmp";
+	private final static String INPUT = FOLDER +"/test-input-" + TestMovingAverage.class.getName();
+	private final static String OUTPUT = FOLDER + "/test-output-" + TestMovingAverage.class.getName();
 	
 	@Test
 	public void test() throws IOException, CoGrouperException, InterruptedException,
@@ -28,6 +31,7 @@ public class TestMovingAverage {
 		Configuration conf = new Configuration();
 		FileSystem fS = FileSystem.get(conf);
 		HadoopUtils.deleteIfExists(fS, new Path(OUTPUT));
+		//File file = new File(INPUT).createTempFile(INPUT,"");
 		Files.write(
 				"url1" + "\t" + "2011-02-28" + "\t" + "100" + "\n" +
 				"url1" + "\t" + "2011-02-27" + "\t" + "50" + "\n" +
@@ -38,7 +42,8 @@ public class TestMovingAverage {
 		, new File(INPUT), Charset.forName("UTF-8"));
 
 		MovingAverage mAverage = new MovingAverage();
-		mAverage.getJob(conf, INPUT, OUTPUT, 3).waitForCompletion(true);
+		Job job = mAverage.getJob(conf, INPUT, OUTPUT, 3);
+		assertRun(job);
 
 		int validatedOutputLines = 0;
 		for(String line : Files.readLines(new File(OUTPUT + "/part-r-00000"), Charset.forName("UTF-8"))) {
