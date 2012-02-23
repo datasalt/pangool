@@ -22,6 +22,7 @@ import static org.apache.hadoop.io.WritableComparator.readInt;
 import static org.apache.hadoop.io.WritableComparator.readLong;
 import static org.apache.hadoop.io.WritableComparator.readVInt;
 import static org.apache.hadoop.io.WritableComparator.readVLong;
+import static com.datasalt.pangool.serialization.tuples.PangoolSerialization.NULL_LENGTH;
 
 import java.io.IOException;
 
@@ -43,6 +44,7 @@ import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.io.tuple.Schema.InternalType;
+import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
 
 @SuppressWarnings("rawtypes")
 public class SortComparator implements RawComparator<ITuple>, Configurable {
@@ -216,26 +218,16 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					int[] lengths2 = getHeaderLengthAndFieldLength(b2, o.offset2, type);
 					int dataSize1 = lengths1[1];
 					int dataSize2 = lengths2[1];
-					int comparison;
-					if (dataSize1 < 0){
-						if (dataSize2 < 0){
-							o.offset1 += lengths1[0]; //header 
-							o.offset2 += lengths2[0]; // header
-							comparison=0; //object1 and object2 nulls
-						} else {
-							comparison = -1;//object1 null and object2 not null
-						}
-					} else {
-						if (dataSize2 < 0){
-							comparison= 1;
-						} else {
-							int totalField1Size = lengths1[0] + lengths1[1]; // Header size + data size
-							int totalField2Size = lengths2[0] + lengths2[1]; // Header size + data size
-							comparison = comparator.compare(b1, o.offset1, totalField1Size, b2, o.offset2, totalField2Size);
-							o.offset1 += totalField1Size;
-							o.offset2 += totalField2Size;
-						}
-					}
+					boolean isNull1 = (dataSize1 == NULL_LENGTH);
+					boolean isNull2 = (dataSize2 == NULL_LENGTH);
+					int nullAdjustedDataSize1 = isNull1 ? 0 : dataSize1;
+					int nullAdjustedDataSize2 = isNull2 ? 0 : dataSize2;
+					int totalField1Size = lengths1[0] + nullAdjustedDataSize1; // Header size + data size
+					int totalField2Size = lengths2[0] + nullAdjustedDataSize2; // Header size + data size
+					int comparison = comparator.compare(b1, o.offset1, (isNull1) ? NULL_LENGTH : totalField1Size, 
+							b2, o.offset2, (isNull2) ? NULL_LENGTH : totalField2Size);
+					o.offset1 += totalField1Size;
+					o.offset2 += totalField2Size;
 					if(comparison != 0) {
 						return (sort == Order.ASC) ? comparison : -comparison;
 					}
@@ -352,13 +344,15 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	/**
 	 * Return the header length and the field length for a field
-	 * of the given type in the given position at the buffer
+	 * of the given type in the given position at the buffer. 
+	 * Length can be {@link PangoolSerialization#NULL_LENGTH} in 
+	 * the case of null objects.
 	 */
 	public static int[] getHeaderLengthAndFieldLength(byte[] b1, int offset1, Class<?> type) throws IOException {
 		if(type == Integer.class ) {
 			return new int[]{0, Integer.SIZE / 8};
 		} else if(type == String.class ) {
-			return new int[]{0, readVInt(b1, offset1)};
+			return new int[]{0, readVInt(b1, offset1) + WritableUtils.decodeVIntSize(b1[offset1])};
 		} else if(type == Long.class ) {
 			return new int[]{0, Long.SIZE / 8};
 		} else if(type == VIntWritable.class || type.isEnum()) {
@@ -373,6 +367,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			return new int[]{0, 1};
 		} else {
 			// The rest of types has a VInt with length as header
+			// In the case of null objects, length is negative.
 			return new int[]{WritableUtils.decodeVIntSize(b1[offset1]), readVInt(b1, offset1)};
 		}		
 	}
@@ -381,7 +376,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	public Configuration getConf() {
 		return conf;
 	}
-
+	
 	@Override
 	public void setConf(Configuration conf) {
 		try {

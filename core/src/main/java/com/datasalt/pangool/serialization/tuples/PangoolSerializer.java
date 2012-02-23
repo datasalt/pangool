@@ -33,6 +33,7 @@ import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.InternalType;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 
 public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
@@ -133,33 +134,37 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 					output.writeDouble((Double) element);
 				} else if (fieldType == Float.class) {
 					output.writeFloat((Float) element);
-				} else if (fieldType == String.class) {
-					if (element == null) {
-						EMPTY_TEXT.write(output);
-					} else if (element instanceof Text) {
-						((Text) element).write(output);
-					} else if (element instanceof String) {
-						HELPER_TEXT.set((String) element);
+				} else if(fieldType == String.class) {
+					if (element instanceof Text){
+						((Text)element).write(output);
+					} else if (element instanceof String){
+						HELPER_TEXT.set((String)element);
 						HELPER_TEXT.write(output);
+					} else {
+						raiseClassCastException(null,fieldName,element,fieldType);
 					}
 				} else if (fieldType == Boolean.class) {
 					output.write((Boolean) element ? 1 : 0);
 				} else if (fieldType.isEnum()) {
 					writeEnum((Enum<?>) element, fieldType, fieldName, output);
 				} else {
-					writeCustomObject(element, output);
+					// Non of the other types. Then it is a custom object
+					writeCustomObject(element,output);
 				}
-			} catch (ClassCastException e) {
-				raiseClassCastException(fieldName, element, fieldType);
-			} // end for
-		}
+				
+			} catch(ClassCastException e) {
+				raiseClassCastException(e, fieldName, element, fieldType);
+			} catch(NullPointerException e) {
+				raiseNullInstanceException(e, field, element);
+			}
+			
 
+		} // end for		
 	}
-
-	private void writeCustomObject(Object element, DataOutput output)
-			throws IOException {
-		if (element == null) {
-			WritableUtils.writeVInt(output, -1);
+	
+	private void writeCustomObject(Object element, DataOutput output) throws IOException{
+		if(element == null) {
+			WritableUtils.writeVInt(output, PangoolSerialization.NULL_LENGTH);
 		} else {
 			tmpOutputBuffer.reset();
 			ser.ser(element, tmpOutputBuffer);
@@ -179,12 +184,25 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 		}
 		WritableUtils.writeVInt(output, e.ordinal());
 	}
-
-	private void raiseClassCastException(String fieldName, Object element,
-			Class<?> expectedType) throws IOException {
-		throw new IOException("Field '" + fieldName + "' contains '" + element
-				+ "' which is " + element.getClass().getName()
-				+ ".The expected type is " + expectedType.getName());
+	
+	private void raiseClassCastException(ClassCastException cause, String fieldName,Object element,Class<?> expectedType) throws IOException {
+		if (element.getClass() == expectedType) {
+			// We don't know what is happening
+			throw cause;
+		} else {
+			// We now types does not match.
+			throw new IOException("Field '" + fieldName + "' contains '" + element + "' which is "
+		    + element.getClass().getName() + ".The expected type is " + expectedType.getName());
+		}
 	}
-
+	
+	private void raiseNullInstanceException(NullPointerException cause, Field field,Object element) throws IOException {
+		if (element == null && field.getInternalType() != InternalType.OBJECT) {
+			// Element can only be null for objects (InternalType.OBJECT
+			throw new IOException("Field '" + field.getName() + "' of type " + field.getType() +" cannot contain null value. Basic types does not support null values. Only fields of internalType == InternalType.OBJECT can");
+		} else {
+			// We don't know the cause.
+			throw cause;
+		}
+	}	
 }

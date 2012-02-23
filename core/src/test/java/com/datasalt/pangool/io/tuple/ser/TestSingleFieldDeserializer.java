@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.io.VIntWritable;
 import org.junit.Test;
 
 import cern.colt.Arrays;
@@ -104,5 +105,59 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		sortComparator.compare(buffer1.getData(), 0, buffer1.size(), buffer2.getData(), 0, buffer2.size());
 			
 	}
+	
+	@Test
+	public void testVInt() throws IOException, TupleMRException {
+		Configuration conf = getConf();
+		
+		ArrayList<Field> fields = new ArrayList<Field> ();
+		fields.add(new Field("vint", VIntWritable.class));
+		Schema schema = new Schema("schema", fields);
+
+		Tuple tuple1 = new Tuple(schema);
+		tuple1.set("vint", 200);
+
+		Tuple tuple2 = new Tuple(schema);
+		tuple2.set("vint", -123);
+		
+		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("vint");
+		builder.setOrderBy(new SortBy().add("vint", Order.ASC, new BaseComparator<Integer>(VIntWritable.class) {
+
+			@Override
+      public int compare(Integer o1, Integer o2) {
+				assertEquals(200, (int) o1);
+				assertEquals(-123,(int) o2);
+				
+				return 1;
+      }
+			
+		}));		
+		
+		TupleMRConfig grouperConf = builder.buildConf();
+		TupleMRConfig.set(grouperConf, conf);
+		
+		HadoopSerialization ser = new HadoopSerialization(conf);
+	
+		DataOutputBuffer buffer1 = new DataOutputBuffer();
+		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
+
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf, VIntWritable.class);
+		Integer iDeser = (Integer) fieldDeser.deserialize(buffer1.getData(), 0);
+		assertEquals(200, (int) iDeser);
+
+		DataOutputBuffer buffer2 = new DataOutputBuffer();
+		ser.ser(new DatumWrapper<ITuple>(tuple2), buffer2);
+		
+		SortComparator sortComparator = new SortComparator();
+		sortComparator.setConf(conf);
+
+		System.out.println("buff1: " + Arrays.toString(buffer1.getData()));
+		System.out.println("buff2: " + Arrays.toString(buffer2.getData()));
+		
+		sortComparator.compare(buffer1.getData(), 0, buffer1.size(), buffer2.getData(), 0, buffer2.size());
+			
+	}	
 
 }

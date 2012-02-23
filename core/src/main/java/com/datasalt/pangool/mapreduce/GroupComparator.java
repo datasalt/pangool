@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 
+import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.sorting.Criteria;
 import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
@@ -51,18 +52,17 @@ public class GroupComparator extends SortComparator {
 			throw new RuntimeException(e);
 		}
 	}
-	
+		
 	@Override
-	public void setConf(Configuration conf){
-		super.setConf(conf);
-		if (conf != null){
-			List<SortElement> sortElements = grouperConf.getCommonCriteria().getElements();
-			int numGroupByFields = grouperConf.getGroupByFields().size();
-			List<SortElement> groupSortElements = new ArrayList<SortElement>();
-			groupSortElements.addAll(sortElements);
-			groupSortElements = groupSortElements.subList(0,numGroupByFields);
-			groupSortBy = new Criteria(groupSortElements);					
-			TupleMRConfigBuilder.initializeComparators(conf, grouperConf);
-		}
-	}	
+	public void setConf(Configuration conf) {
+	  super.setConf(conf);
+		List<SortElement> sortElements = grouperConf.getCommonCriteria().getElements();
+		int numGroupByFields = grouperConf.getGroupByFields().size();
+		List<SortElement> groupSortElements = new ArrayList<SortElement>();
+		groupSortElements.addAll(sortElements);
+		groupSortElements = groupSortElements.subList(0,numGroupByFields);
+		groupSortBy = new Criteria(groupSortElements);					
+		TupleMRConfigBuilder.initializeComparators(conf, grouperConf);	  
+	}
+	
 }

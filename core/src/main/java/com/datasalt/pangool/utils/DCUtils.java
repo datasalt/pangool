@@ -47,6 +47,16 @@ public class DCUtils {
 
 	private static Logger log = LoggerFactory.getLogger(DCUtils.class);
 
+	static final String TMP_FOLDER = "Pangool_instances_cache";
+	
+	private static File ensureTmpFolder() {
+		File tmpFolder = new File(System.getProperty("java.io.tmpdir"), TMP_FOLDER);
+		if (!tmpFolder.exists()) {
+			tmpFolder.mkdir();
+		}
+		return tmpFolder;
+	}
+	
 	/**
 	 * Utility method for serializing an object and saving it in the Distributed Cache.
 	 * <p>
@@ -65,7 +75,8 @@ public class DCUtils {
 	 */
 	public static void serializeToDC(Object obj, String serializeToLocalFile, Configuration conf) throws FileNotFoundException, IOException,
 	    URISyntaxException {
-		File file = new File(System.getProperty("java.io.tmpdir"), serializeToLocalFile);
+		File file = new File(ensureTmpFolder(), serializeToLocalFile); 
+		file.deleteOnExit();
 		ObjectOutput out = new ObjectOutputStream(new FileOutputStream(file));
 		out.writeObject(obj);
 		out.close();
@@ -112,8 +123,8 @@ public class DCUtils {
 		 * working on testing environments. We know files are 
 		 */
 		if (path == null) {
-			String tmpdir = System.getProperty("java.io.tmpdir");
-			log.debug("[profile] Not found in DC. Looking in " + System.getProperty("java.io.tmpdir") + " folder");
+			String tmpdir = ensureTmpFolder().toString();
+			log.debug("[profile] Not found in DC. Looking in " + tmpdir + " folder");
 			path = locateFileInFolder(tmpdir, fileName);
 		}
 		
@@ -166,4 +177,15 @@ public class DCUtils {
 		return locatedFile;
 	}
 	
+	/**
+	 * The methods of this class creates some temporary files
+	 * for serializing instances. This method removes them. 
+	 */
+	public static void cleanupTemporaryInstanceCache() {
+		File cacheFolder = ensureTmpFolder();
+		File[] files = cacheFolder.listFiles();
+		for (File f: files) {
+			f.delete();
+		}
+	}
 }

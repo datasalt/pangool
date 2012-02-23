@@ -44,6 +44,7 @@ import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.io.tuple.Schema.InternalType;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
+import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * This tests either {@link SortComparator} or {@link GroupComparator}.It checks that the binary comparison is coherent
@@ -53,7 +54,7 @@ import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class TestComparators extends ComparatorsBaseTest {
 
-	private int MAX_RANDOM_SCHEMAS = 50;
+	private int MAX_RANDOM_SCHEMAS = 25;
 	private HadoopSerialization ser;
 	static Random random = new Random(1);
 	
@@ -91,6 +92,7 @@ public class TestComparators extends ComparatorsBaseTest {
 		Configuration conf = getConf();
 
 		int maxIndex = SCHEMA.getFields().size() - 1;
+		boolean firstTime = true;
 
 		for(int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
 			Schema schema = permuteSchema(SCHEMA);
@@ -103,6 +105,7 @@ public class TestComparators extends ComparatorsBaseTest {
 			}
 			
 			for(int minIndex = maxIndex; minIndex >= 0; minIndex--) {
+				DCUtils.cleanupTemporaryInstanceCache(); // Trick for speedup the tests. 
 				TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 				builder.addIntermediateSchema(schema);
 				builder.setGroupByFields(groupFields);
@@ -115,10 +118,10 @@ public class TestComparators extends ComparatorsBaseTest {
 				ser = new HadoopSerialization(conf);
 				
 				SortComparator sortComparator = new SortComparator();
-				GroupComparator groupComparator = new GroupComparator();
-
+				GroupComparator groupComparator = new GroupComparator();							
+				
 				sortComparator.setConf(conf);
-				groupComparator.setConf(conf);
+				groupComparator.setConf(conf);														
 
 				for(ITuple tuple : tuples) {
 					fillTuple(true, tuple, minIndex, maxIndex);
@@ -154,7 +157,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	 */
 	private void assertSameComparison(String alias, SortComparator comparator, ITuple tuple1, ITuple tuple2)
 	    throws IOException {
-		boolean DEBUG = true;
+		boolean DEBUG = false;
 		int compObjects = comparator.compare(tuple1, tuple2);
 		int compBinary = compareInBinary1(comparator, tuple1, tuple2);
 		if(compObjects > 0 && compBinary <= 0 || compObjects >= 0 && compBinary < 0 || compObjects <= 0 && compBinary > 0
@@ -310,5 +313,5 @@ public class TestComparators extends ComparatorsBaseTest {
 		assertPositive(sortComparator.compare(s, cWithCustom, t1, index, t2, index));
 		assertNegative(sortComparator.compare(s, c, t1, index, t2, index));
 	}
-
+	
 }

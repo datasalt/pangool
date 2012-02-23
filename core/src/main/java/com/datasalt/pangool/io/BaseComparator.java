@@ -15,6 +15,8 @@
  */
 package com.datasalt.pangool.io;
 
+import static com.datasalt.pangool.serialization.tuples.PangoolSerialization.NULL_LENGTH;
+
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -24,6 +26,7 @@ import org.apache.hadoop.io.RawComparator;
 
 import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
 import com.datasalt.pangool.serialization.tuples.SingleFieldDeserializer;
 
 @SuppressWarnings("serial")
@@ -58,16 +61,27 @@ public abstract class BaseComparator<T> implements RawComparator<T>, Serializabl
 		return conf;
   }
 
+	/**
+	 * Objects can be null. 
+	 */
 	@Override
-  public abstract int compare(T o1, T o2);
+  public abstract int compare(T object1, T object2);
 	
 	@SuppressWarnings("unchecked")
   @Override
   public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		try {
 
-	    object1 = (T) fieldDeser1.deserialize(b1, s1);	    
-	    object2 = (T) fieldDeser2.deserialize(b2, s2);
+			if (l1 == NULL_LENGTH) {
+				object1 = null;
+			} else {
+				object1 = (T) fieldDeser1.deserialize(b1, s1);
+			}
+			if (l2 == NULL_LENGTH) {
+				object2 = null;
+			} else {
+				object2 = (T) fieldDeser2.deserialize(b2, s2);
+			}
 
 		} catch(IOException e) {
 			throw new RuntimeException(e);
