@@ -82,7 +82,7 @@ public class TestUserActivityNormalizer {
 			}
 		}
 		
-		assertEquals(6, validatedOutputLines);
+		assertEquals(5, validatedOutputLines);
 
 		HadoopUtils.deleteIfExists(fS, new Path(INPUT));
 		HadoopUtils.deleteIfExists(fS, new Path(OUTPUT));
