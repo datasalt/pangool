@@ -49,12 +49,12 @@ public class WordCount {
 	public static class Split extends InputProcessor<LongWritable, Text> {
 
 		private Tuple tuple;
-		
+
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
 			tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema(0));
 			tuple.set("count", 1);
 		}
-		
+
 		@Override
 		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException {
@@ -70,7 +70,7 @@ public class WordCount {
 	public static class CountCombiner extends CombinerHandler {
 
 		private Tuple tuple;
-		
+
 		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
 			this.tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema("schema"));
 		}
@@ -91,7 +91,12 @@ public class WordCount {
 	@SuppressWarnings("serial")
 	public static class Count extends GroupHandler<Text, IntWritable> {
 
-		private IntWritable countToEmit = new IntWritable();
+		private IntWritable countToEmit;
+
+		public void setup(CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
+		    CoGrouperException {
+			countToEmit = new IntWritable();
+		};
 
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
@@ -101,22 +106,21 @@ public class WordCount {
 				count += (Integer) tuple.get(1);
 			}
 			countToEmit.set(count);
-			Text text = (Text)group.get("word");
+			Text text = (Text) group.get("word");
 			collector.write(text, countToEmit);
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws  CoGrouperException,
-	    IOException {
+	public Job getJob(Configuration conf, String input, String output) throws CoGrouperException, IOException {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("word",String.class));
-		fields.add(new Field("count",Integer.class));
-		
+		fields.add(new Field("word", String.class));
+		fields.add(new Field("count", Integer.class));
+
 		CoGrouper cg = new CoGrouper(conf);
-		cg.addSourceSchema(new Schema("schema",fields));
+		cg.addSourceSchema(new Schema("schema", fields));
 		cg.setJarByClass(WordCount.class);
 		cg.addInput(new Path(input), TextInputFormat.class, new Split());
 		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class, Text.class);
