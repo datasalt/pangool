@@ -28,7 +28,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.examples.SecondarySort;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangool.utils.HadoopUtils;
@@ -40,7 +40,7 @@ public class TestSecondarySort extends AbstractHadoopTestLibrary{
 	private final static String OUTPUT = FOLDER +"/test-output-" + TestSecondarySort.class.getName();
 
 	@Test
-	public void test() throws IOException, CoGrouperException, InterruptedException,
+	public void test() throws IOException, TupleMRException, InterruptedException,
 	    ClassNotFoundException, URISyntaxException {
 
 		Configuration conf = new Configuration();

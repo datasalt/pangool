@@ -30,11 +30,11 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.ProxyOutputFormat;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.Fields;
@@ -54,15 +54,15 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 	public final static String TUPLEOUTPUT_1 = "tuple1";
 
 	@SuppressWarnings("serial")
-  public static class MyInputProcessor extends InputProcessor<LongWritable, Text> {
+  public static class MyInputProcessor extends TupleMapper<LongWritable, Text> {
 
 		private Tuple tuple;
-		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema(0));
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
 		}
 		
 		@Override
-		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
 			tuple.set(0, "Pere");
 			tuple.set(1, 100);
@@ -78,12 +78,12 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 	}
 
 	@SuppressWarnings("serial")
-  public static class MyGroupHandler extends GroupHandler<DoubleWritable, NullWritable> {
+  public static class MyGroupHandler extends TupleReducer<DoubleWritable, NullWritable> {
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples,
-		    CoGrouperContext pangoolContext, Collector collector)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples,
+		    TupleMRContext pangoolContext, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 
 			for(ITuple tuple : tuples) {
 				// We also use the multiple outputs here -
@@ -97,7 +97,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 	}
 
 	@Test
-	public void test() throws CoGrouperException, IOException, InterruptedException,
+	public void test() throws TupleMRException, IOException, InterruptedException,
 	    ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		initHadoop();
@@ -107,13 +107,13 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		// Business logic in {@link MyInputProcessor}
 		CommonUtils.writeTXT("ignore-me", new File(INPUT));
 
-		CoGrouper coGrouper = new CoGrouper(getConf());
+		TupleMRBuilder coGrouper = new TupleMRBuilder(getConf());
 		Schema baseSchema = new Schema("schema",Fields.parse("name:string, money:int, country:string"));
-		coGrouper.addSourceSchema(baseSchema);
+		coGrouper.addIntermediateSchema(baseSchema);
 		coGrouper.setGroupByFields("country");
 		coGrouper.setOrderBy(new SortBy().add("country",Order.ASC).add("money",Order.DESC).add("name",Order.ASC));
 		coGrouper.addInput(new Path(INPUT), TextInputFormat.class, new MyInputProcessor());
-		coGrouper.setGroupHandler(new MyGroupHandler());
+		coGrouper.setTupleReducer(new MyGroupHandler());
 		coGrouper.setOutput(new Path(OUTPUT), SequenceFileOutputFormat.class, DoubleWritable.class, NullWritable.class);
 		// Configure extra outputs
 		coGrouper.addNamedOutput(OUTPUT_1, SequenceFileOutputFormat.class, Text.class, Text.class);

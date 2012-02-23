@@ -21,33 +21,33 @@ import java.io.Serializable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.processors.GroupHandler.StaticCoGrouperContext;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.processors.TupleReducer.StaticTupleMRContext;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 
 @SuppressWarnings("serial")
-public class CombinerHandler implements Serializable {
+public class TupleCombiner implements Serializable {
 
-	public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException, CoGrouperException {
+	public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException, TupleMRException {
 
 	}
 
-	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector) throws IOException,
-  InterruptedException, CoGrouperException {
+	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector) throws IOException,
+  InterruptedException, TupleMRException {
 
 	}
 	
-	public void cleanup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException,
-	    CoGrouperException {
+	public void cleanup(TupleMRContext context, Collector collector) throws IOException, InterruptedException,
+	    TupleMRException {
 
 	}
 
 	/* ------------ INNER CLASSES ------------ */	
 	
 	/**
-	 * A class for collecting data inside a {@link CombinerHandler}.
+	 * A class for collecting data inside a {@link TupleCombiner}.
 	 * Warning: Not thread safe by default... If you want thread safe, TODO
 	 */
 	public static final class Collector {
@@ -63,7 +63,7 @@ public class CombinerHandler implements Serializable {
     
     private NullWritable nullWritable = NullWritable.get();
     
-		public Collector(CoGrouperConfig pangoolConfig, ReduceContext<DatumWrapper<ITuple>, NullWritable, DatumWrapper<ITuple>, NullWritable> context){
+		public Collector(TupleMRConfig pangoolConfig, ReduceContext<DatumWrapper<ITuple>, NullWritable, DatumWrapper<ITuple>, NullWritable> context){
 			this.context = context;
 		}
 		
@@ -74,14 +74,14 @@ public class CombinerHandler implements Serializable {
 		}
 	}
   
-  public class CoGrouperContext extends StaticCoGrouperContext<DatumWrapper<ITuple>, NullWritable> {
+  public class TupleMRContext extends StaticTupleMRContext<DatumWrapper<ITuple>, NullWritable> {
 		/*
 		 * This non static inner class is created to eliminate the need in
 		 * of the extended GroupHandler methods to specify the generic types
 		 * for the CoGrouperContext meanwhile keeping generics. 
 		 */
-		public CoGrouperContext(ReduceContext<DatumWrapper<ITuple>, NullWritable, DatumWrapper<ITuple>, NullWritable> hadoopContext,
-        CoGrouperConfig pangoolConfig) {
+		public TupleMRContext(ReduceContext<DatumWrapper<ITuple>, NullWritable, DatumWrapper<ITuple>, NullWritable> hadoopContext,
+        TupleMRConfig pangoolConfig) {
       super(hadoopContext, pangoolConfig);
     }    	
   }

@@ -21,10 +21,10 @@ import org.apache.hadoop.io.NullWritable;
 
 import com.datasalt.pangool.io.tuple.ITuple;
 
-public class IdentityInputProcessor extends InputProcessor<ITuple, NullWritable> {
+public class IdentityInputProcessor extends TupleMapper<ITuple, NullWritable> {
 
 	@Override
-	public void process(ITuple key, NullWritable value, CoGrouperContext context, Collector collector)
+	public void map(ITuple key, NullWritable value, TupleMRContext context, Collector collector)
 	    throws IOException, InterruptedException {
 		collector.write(key);
 	}

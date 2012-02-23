@@ -25,10 +25,10 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.SerializationInfo;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ViewTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -41,22 +41,22 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	private final static Logger log = LoggerFactory.getLogger(SimpleReducer.class);
 	
 	// Following variables protected to be shared by Combiners
-	private CoGrouperConfig grouperConfig;
+	private TupleMRConfig grouperConfig;
 	private SerializationInfo serInfo;
 	private boolean isMultipleSources;
-	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
+	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	private ViewTuple groupTuple; // Tuple view over the group
-	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.CoGrouperContext context;
-	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> handler;
+	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE>.TupleMRContext context;
+	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
 	@SuppressWarnings("unchecked")
   public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
 			log.info("Getting CoGrouper grouperConf.");
-			this.grouperConfig = CoGrouperConfig.get(context.getConfiguration());
-			this.isMultipleSources = grouperConfig.getNumSources() >= 2;
+			this.grouperConfig = TupleMRConfig.get(context.getConfiguration());
+			this.isMultipleSources = grouperConfig.getNumSchemas() >= 2;
 			this.serInfo = grouperConfig.getSerializationInfo();
 			log.info("Getting CoGrouper grouperConf done.");
 			if (!isMultipleSources){
@@ -69,16 +69,16 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			
 			// setting handler
 			String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
-			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandler.class, fileName);
+			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleReducer.class, fileName);
 			if(handler instanceof Configurable) {
 				((Configurable) handler).setConf(context.getConfiguration());
 			}
 			
 			this.collector = handler.new Collector(context);
-			this.context = handler.new CoGrouperContext(context, grouperConfig);
+			this.context = handler.new TupleMRContext(context, grouperConfig);
 			handler.setup(this.context, collector);		
 			
-		} catch(CoGrouperException e) {
+		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -90,7 +90,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			collector.close();
 			super.cleanup(context);
 			
-		} catch(CoGrouperException e) {
+		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -108,14 +108,14 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			// A view is created over the first tuple to give the user the group fields
 			//TODO this should be done just in multipleSources
 			if (isMultipleSources){
-				int sourceId = grouperConfig.getSourceIdByName(firstTupleGroup.getSchema().getName());
+				int sourceId = grouperConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
 				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(sourceId);
 				groupTuple.setContained(firstTupleGroup,indexTranslation);
 			} else {
 				groupTuple.setContained(firstTupleGroup);
 			}
-			handler.onGroupElements(groupTuple, grouperIterator, this.context, collector);
-		} catch(CoGrouperException e) {
+			handler.reduce(groupTuple, grouperIterator, this.context, collector);
+		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}

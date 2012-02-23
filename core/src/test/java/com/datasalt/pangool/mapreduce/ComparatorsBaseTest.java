@@ -25,9 +25,9 @@ import org.junit.Assert;
 import org.junit.Before;
 
 import com.datasalt.pangool.BaseTest;
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.Fields;
@@ -41,24 +41,24 @@ public abstract class ComparatorsBaseTest extends BaseTest{
 	private Schema schema2;
 	
 	@Before
-	public void initSchemas() throws CoGrouperException{
+	public void initSchemas() throws TupleMRException{
 		this.schema1 =  new Schema("schema1",Fields.parse("intField:int, strField:string,booleanField:boolean"));
 		this.schema2 = new Schema("schema2",Fields.parse("longField:long,booleanField:boolean, intField:int"));
 		
 	}
 	
-	protected void setConf(SortComparator comparator) throws CoGrouperException, JsonGenerationException, JsonMappingException, IOException {
+	protected void setConf(SortComparator comparator) throws TupleMRException, JsonGenerationException, JsonMappingException, IOException {
 		
 		Configuration conf = new Configuration();
-		ConfigBuilder b = new ConfigBuilder();
-		b.addSourceSchema(schema1);
-		b.addSourceSchema(schema2);
+		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
+		b.addIntermediateSchema(schema1);
+		b.addIntermediateSchema(schema2);
 		b.setGroupByFields("booleanField", "intField");
 		b.setOrderBy(new SortBy().add("booleanField",Order.ASC).add("intField",Order.DESC).addSourceOrder(Order.DESC));
 		b.setSecondaryOrderBy("schema1",new SortBy().add("strField",Order.DESC));
 		b.setSecondaryOrderBy("schema2",new SortBy().add("longField",Order.DESC));
-		CoGrouperConfig config = b.buildConf();
-		CoGrouperConfig.set(config, conf);
+		TupleMRConfig config = b.buildConf();
+		TupleMRConfig.set(config, conf);
 		comparator.setConf(conf);
 	}
 	

@@ -27,7 +27,7 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Serializer;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.SerializationInfo;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -40,7 +40,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	private final HadoopSerialization ser;
 	
 	private DataOutputStream out;
-	private final CoGrouperConfig coGrouperConfig;
+	private final TupleMRConfig coGrouperConfig;
 	private final Text HELPER_TEXT = new Text();
 	private static final Text EMPTY_TEXT = new Text("");
 	private boolean isMultipleSources=false;
@@ -48,12 +48,12 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	private final SerializationInfo serInfo;
 	private final Schema commonSchema;
 	
-	public PangoolSerializer(HadoopSerialization ser,CoGrouperConfig grouperConfig) {
+	public PangoolSerializer(HadoopSerialization ser,TupleMRConfig grouperConfig) {
 		this.ser = ser;
 		this.coGrouperConfig = grouperConfig;
 		this.serInfo = grouperConfig.getSerializationInfo();
 		this.commonSchema = this.serInfo.getCommonSchema();
-		this.isMultipleSources = (coGrouperConfig.getNumSources() >= 2);
+		this.isMultipleSources = (coGrouperConfig.getNumSchemas() >= 2);
 	}
 
 	public void open(OutputStream out) {
@@ -81,7 +81,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	
 	private void multipleSourcesSerialization(ITuple tuple) throws IOException {
 		String sourceName = tuple.getSchema().getName();
-		int sourceId = coGrouperConfig.getSourceIdByName(sourceName);
+		int sourceId = coGrouperConfig.getSchemaIdByName(sourceName);
 		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(sourceId); 
 		//serialize common 
 		write(commonSchema,tuple,commonTranslation,out);

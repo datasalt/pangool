@@ -28,7 +28,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.google.common.io.Files;
 
@@ -38,7 +38,7 @@ public class TestUserActivityNormalizer {
 	private final static String OUTPUT = "test-output-" + TestUserActivityNormalizer.class.getName();
 	
 	@Test
-	public void test() throws IOException, CoGrouperException, InterruptedException,
+	public void test() throws IOException, TupleMRException, InterruptedException,
 	    ClassNotFoundException, URISyntaxException, ParseException {
 
 		Configuration conf = new Configuration();

@@ -29,9 +29,9 @@ import org.apache.hadoop.io.RawComparator;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.sorting.Criteria;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
@@ -58,7 +58,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	static Random random = new Random(1);
 	
 	@Test
-	public void testObjectComparison() throws CoGrouperException, IOException {
+	public void testObjectComparison() throws TupleMRException, IOException {
 		SortComparator c = new SortComparator();
 		setConf(c);
 		
@@ -87,7 +87,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	
 
 	@Test
-	public void testCrossValidationOneSchema() throws CoGrouperException, IOException {
+	public void testCrossValidationOneSchema() throws TupleMRException, IOException {
 		Configuration conf = getConf();
 
 		int maxIndex = SCHEMA.getFields().size() - 1;
@@ -103,13 +103,13 @@ public class TestComparators extends ComparatorsBaseTest {
 			}
 			
 			for(int minIndex = maxIndex; minIndex >= 0; minIndex--) {
-				ConfigBuilder builder = new ConfigBuilder();
-				builder.addSourceSchema(schema);
+				TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
+				builder.addIntermediateSchema(schema);
 				builder.setGroupByFields(groupFields);
 				builder.setOrderBy(sortCriteria);
 				
-				CoGrouperConfig grouperConf = builder.buildConf();
-				CoGrouperConfig.set(grouperConf, conf);
+				TupleMRConfig grouperConf = builder.buildConf();
+				TupleMRConfig.set(grouperConf, conf);
 				
 				// grouperConf has changed -> we need a new Serialization object
 				ser = new HadoopSerialization(conf);
@@ -237,9 +237,9 @@ public class TestComparators extends ComparatorsBaseTest {
 	/**
 	 * 
 	 * Creates a random sort criteria based in the specified schema.
-	 * @throws CoGrouperException 
+	 * @throws TupleMRException 
 	 */
-	protected static SortBy createRandomSortCriteria(Schema schema, int numFields) throws CoGrouperException {			
+	protected static SortBy createRandomSortCriteria(Schema schema, int numFields) throws TupleMRException {			
 			List<SortElement> builder = new ArrayList<SortElement>();
 			for(int i = 0; i < numFields; i++) {
 				Field field = schema.getField(i);

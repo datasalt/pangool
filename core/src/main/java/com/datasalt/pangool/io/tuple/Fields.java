@@ -18,13 +18,13 @@ package com.datasalt.pangool.io.tuple;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.io.tuple.Schema.InternalType;
 
 public class Fields {
 
-	public static List<Field> parse(String serialized) throws CoGrouperException{
+	public static List<Field> parse(String serialized) throws TupleMRException{
 		
 		try {
 			if(serialized == null || serialized.isEmpty()) {
@@ -35,7 +35,7 @@ public class Fields {
 			for(String field : fieldsStr) {
 				String[] nameType = field.split(":");
 				if(nameType.length != 2) {
-					throw new CoGrouperException("Incorrect fields description " + serialized);
+					throw new TupleMRException("Incorrect fields description " + serialized);
 				}
 				String fieldName = nameType[0].trim();
 				String fieldType = nameType[1].trim();
@@ -43,7 +43,7 @@ public class Fields {
 			}
 			return fields;
 		} catch(ClassNotFoundException e) {
-			throw new CoGrouperException(e);
+			throw new TupleMRException(e);
 		}
 	}
 	

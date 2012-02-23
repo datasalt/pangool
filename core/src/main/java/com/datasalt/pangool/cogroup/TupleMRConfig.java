@@ -43,9 +43,9 @@ import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.utils.DCUtils;
 
-public class CoGrouperConfig {
+public class TupleMRConfig {
 
-	private final static String CONF_PANGOOL_CONF = CoGrouperConfig.class.getName() + ".pangool.conf";
+	private final static String CONF_PANGOOL_CONF = TupleMRConfig.class.getName() + ".pangool.conf";
 
 	static final JsonFactory FACTORY = new JsonFactory();
 	static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
@@ -55,39 +55,39 @@ public class CoGrouperConfig {
 		FACTORY.setCodec(MAPPER);
 	}
 
-	private List<String> sourceNames = new ArrayList<String>();
-	private Map<String, Integer> sourceNameToId = new HashMap<String, Integer>();
+	private List<String> schemasNames = new ArrayList<String>();
+	private Map<String, Integer> intermediateSchemaNameToId = new HashMap<String, Integer>();
 
 	private Criteria commonCriteria;
 	private List<Criteria> secondaryCriterias = new ArrayList<Criteria>();
 	private Order sourcesOrder;
 
-	private List<Schema> sourceSchemas = new ArrayList<Schema>();
+	private List<Schema> intermediateSchemas = new ArrayList<Schema>();
 	private List<String> groupByFields;
 	private List<String> customPartitionFields = new ArrayList<String>();
 	private String rollupFrom;
 
 	private SerializationInfo serInfo;
 
-	public Schema getSourceSchema(String source) {
-		Integer id = getSourceIdByName(source);
-		return (id == null) ? null : sourceSchemas.get(id);
+	public Schema getIntermediateSchema(String source) {
+		Integer id = getSchemaIdByName(source);
+		return (id == null) ? null : intermediateSchemas.get(id);
 	}
 
-	public Schema getSourceSchema(int sourceId) {
-		return sourceSchemas.get(sourceId);
+	public Schema getIntermediateSchema(int sourceId) {
+		return intermediateSchemas.get(sourceId);
 	}
 
-	public Integer getSourceIdByName(String name) {
-		return sourceNameToId.get(name);
+	public Integer getSchemaIdByName(String name) {
+		return intermediateSchemaNameToId.get(name);
 	}
 
 	public List<String> getSourceNames() {
-		return sourceNames;
+		return schemasNames;
 	}
 
-	public List<Schema> getSourceSchemas() {
-		return sourceSchemas;
+	public List<Schema> getIntermediateSchemas() {
+		return intermediateSchemas;
 	}
 
 	public Order getSourcesOrder() {
@@ -102,7 +102,7 @@ public class CoGrouperConfig {
 		return customPartitionFields;
 	}
 		
-	protected CoGrouperConfig() {
+	protected TupleMRConfig() {
 	}
 
 	public SerializationInfo getSerializationInfo() {
@@ -116,8 +116,8 @@ public class CoGrouperConfig {
 		return this.serInfo;
 	}
 
-	public int getNumSources() {
-		return sourceSchemas.size();
+	public int getNumSchemas() {
+		return intermediateSchemas.size();
 	}
 
 	public Criteria getCommonCriteria() {
@@ -147,18 +147,18 @@ public class CoGrouperConfig {
 		return rollupFrom;
 	}
 
-	private void addSource(Schema schema) throws CoGrouperException {
-		if (sourceNames.contains(schema.getName())){
-			throw new CoGrouperException("There's a schema with that name '" + schema.getName() + "'");
+	private void addIntermediateSchema(Schema schema) throws TupleMRException {
+		if (schemasNames.contains(schema.getName())){
+			throw new TupleMRException("There's a schema with that name '" + schema.getName() + "'");
 		}
-		sourceNameToId.put(schema.getName(), sourceNames.size());
-		sourceNames.add(schema.getName());
-		sourceSchemas.add(schema);
+		intermediateSchemaNameToId.put(schema.getName(), schemasNames.size());
+		schemasNames.add(schema.getName());
+		intermediateSchemas.add(schema);
 	}
 
-	void setSourceSchemas(Collection<Schema> schemas) throws CoGrouperException {
+	void setIntermediateSchemas(Collection<Schema> schemas) throws TupleMRException {
 		for (Schema s : schemas){
-			addSource(s);
+			addIntermediateSchema(s);
 		}
 	}
 
@@ -166,7 +166,7 @@ public class CoGrouperConfig {
 		this.groupByFields = groupByFields;
 	}
 
-	void setRollupFrom(String rollupFrom) throws CoGrouperException {
+	void setRollupFrom(String rollupFrom) throws TupleMRException {
 		this.rollupFrom = rollupFrom;
 	}
 
@@ -182,38 +182,38 @@ public class CoGrouperConfig {
 		this.customPartitionFields = customPartitionFields;
 	}
 	
-	void setSecondarySortBy(String sourceName,Criteria criteria) throws CoGrouperException {
+	void setSecondarySortBy(String sourceName,Criteria criteria) throws TupleMRException {
 		if (this.secondaryCriterias.isEmpty()){
 			initSecondaryCriteriasWithNull();
 		}
-		Integer pos = getSourceIdByName(sourceName);
+		Integer pos = getSchemaIdByName(sourceName);
 		secondaryCriterias.set(pos, criteria);
 	}
 
 	private void initSecondaryCriteriasWithNull() {
-		List<Criteria> r = new ArrayList<Criteria>(sourceSchemas.size());
-		for(int i = 0; i < sourceSchemas.size(); i++) {
+		List<Criteria> r = new ArrayList<Criteria>(intermediateSchemas.size());
+		for(int i = 0; i < intermediateSchemas.size(); i++) {
 			r.add(null);
 		}
 		this.secondaryCriterias = r;
 	}
 
-	public static CoGrouperConfig get(Configuration conf) throws CoGrouperException {
-		String serialized =conf.get(CoGrouperConfig.CONF_PANGOOL_CONF);
+	public static TupleMRConfig get(Configuration conf) throws TupleMRException {
+		String serialized =conf.get(TupleMRConfig.CONF_PANGOOL_CONF);
 		if (serialized == null || serialized.isEmpty()) {
 			return null;
 		}		
 		try{
-			CoGrouperConfig coConf = CoGrouperConfig.parse(serialized);
+			TupleMRConfig coConf = TupleMRConfig.parse(serialized);
 			deserializeComparators(conf, coConf);
 			return coConf;
 			
 		} catch(IOException e){
-			throw new CoGrouperException(e);
+			throw new TupleMRException(e);
 		}
 	}
 
-	public static void set(CoGrouperConfig grouperConfig, Configuration conf) throws CoGrouperException {
+	public static void set(TupleMRConfig grouperConfig, Configuration conf) throws TupleMRException {
 		conf.set(CONF_PANGOOL_CONF, grouperConfig.toString());
 		serializeComparators(grouperConfig, conf);
 	}
@@ -233,7 +233,7 @@ public class CoGrouperConfig {
 	 * other config property stores the instance file paths where the instances
 	 * are stored in the distributed cache.
 	 */
-	static void serializeComparators(CoGrouperConfig grouperConfig, Configuration conf) throws CoGrouperException {
+	static void serializeComparators(TupleMRConfig grouperConfig, Configuration conf) throws TupleMRException {
 		ArrayList<String> comparatorRefs = new ArrayList<String>();
 		ArrayList<String> comparatorInstanceFiles = new ArrayList<String>();
 
@@ -253,7 +253,7 @@ public class CoGrouperConfig {
 	}
 
 	static void serializeComparators(Criteria criteria, Configuration conf, ArrayList<String> comparatorRefs,
-	    ArrayList<String> comparatorInstanceFiles, String prefix) throws CoGrouperException {
+	    ArrayList<String> comparatorInstanceFiles, String prefix) throws TupleMRException {
 
 		if(criteria == null) {
 			return;
@@ -264,7 +264,7 @@ public class CoGrouperConfig {
 				RawComparator<?> comparator = element.getCustomComparator();
 
 				if(!(comparator instanceof Serializable)) {
-					throw new CoGrouperException("The class " + comparator.getClass() + " is not Serializable."
+					throw new TupleMRException("The class " + comparator.getClass() + " is not Serializable."
 					    + " The customs comparators must implement Serializable.");
 				}
 
@@ -273,7 +273,7 @@ public class CoGrouperConfig {
 				try {
 					DCUtils.serializeToDC(comparator, uniqueName, conf);
 				} catch(Exception e) {
-					throw new CoGrouperException(e);
+					throw new TupleMRException(e);
 				}
 
 				comparatorRefs.add(ref);
@@ -282,7 +282,7 @@ public class CoGrouperConfig {
 		}
 	}
 
-	static void deserializeComparators(Configuration conf, CoGrouperConfig grouperConfig) throws CoGrouperException {
+	static void deserializeComparators(Configuration conf, TupleMRConfig grouperConfig) throws TupleMRException {
 		String[] comparatorRefs = conf.getStrings(CONF_COMPARATOR_REFERENCES);
 		String[] comparatorInstanceFiles = conf.getStrings(CONF_COMPARATOR_INSTANCES);
 
@@ -303,7 +303,7 @@ public class CoGrouperConfig {
 				}
 			}
 		} catch(IOException e) {
-			throw new CoGrouperException(e);
+			throw new TupleMRException(e);
 		}
 	}
 
@@ -315,13 +315,13 @@ public class CoGrouperConfig {
 		}
 	}
 
-	static CoGrouperConfig parse(JsonNode node) throws IOException {
+	static TupleMRConfig parse(JsonNode node) throws IOException {
 		try {
-			CoGrouperConfig result = new CoGrouperConfig();
+			TupleMRConfig result = new TupleMRConfig();
 			Iterator<JsonNode> sources = node.get("sourceSchemas").getElements();
 			while(sources.hasNext()) {
 				JsonNode sourceNode = sources.next();
-				result.addSource(Schema.parse(sourceNode));
+				result.addIntermediateSchema(Schema.parse(sourceNode));
 			}
 
 			Iterator<JsonNode> groupFieldsNode = node.get("groupByFields").getElements();
@@ -356,7 +356,7 @@ public class CoGrouperConfig {
 			}
 
 			return result;
-		} catch(CoGrouperException e) {
+		} catch(TupleMRException e) {
 			throw new IOException(e);
 		}
 	}
@@ -364,7 +364,7 @@ public class CoGrouperConfig {
 	void toJson(JsonGenerator gen) throws IOException {
 		gen.writeStartObject();
 		gen.writeArrayFieldStart("sourceSchemas");
-		for(Schema schema : sourceSchemas) {
+		for(Schema schema : intermediateSchemas) {
 			schema.toJson(gen);
 		}
 		gen.writeEndArray();
@@ -434,11 +434,11 @@ public class CoGrouperConfig {
 	 * Parse a schema from the provided string. If named, the schema is added to
 	 * the names known to this parser.
 	 */
-	public static CoGrouperConfig parse(String s) throws IOException {
+	public static TupleMRConfig parse(String s) throws IOException {
 		return parse(FACTORY.createJsonParser(new StringReader(s)));
 	}
 
-	private static CoGrouperConfig parse(JsonParser parser) throws IOException {
+	private static TupleMRConfig parse(JsonParser parser) throws IOException {
 		try {
 			return parse(MAPPER.readTree(parser));
 		} catch(JsonParseException e) {
@@ -447,16 +447,16 @@ public class CoGrouperConfig {
 	}
 
 	public boolean equals(Object a) {
-		if(!(a instanceof CoGrouperConfig)) {
+		if(!(a instanceof TupleMRConfig)) {
 			return false;
 		}
-		CoGrouperConfig that = (CoGrouperConfig) a;
+		TupleMRConfig that = (TupleMRConfig) a;
 
 		boolean e = 
 		this.getSourcesOrder() == that.getSourcesOrder()
 		    && this.getCommonCriteria().equals(that.getCommonCriteria())
 		    && this.getGroupByFields().equals(that.getGroupByFields())
-		    && this.getSourceSchemas().equals(that.getSourceSchemas()) && this.getSecondarySortBys().equals(
+		    && this.getIntermediateSchemas().equals(that.getIntermediateSchemas()) && this.getSecondarySortBys().equals(
 		    that.getSecondarySortBys());
 		if (e){
 			if (this.getCustomPartitionFields() == null){

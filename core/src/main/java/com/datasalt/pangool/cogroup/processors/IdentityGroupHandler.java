@@ -19,14 +19,14 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
 
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.io.tuple.ITuple;
 
-public class IdentityGroupHandler extends GroupHandler<ITuple, NullWritable> {
+public class IdentityGroupHandler extends TupleReducer<ITuple, NullWritable> {
 
 	@Override
-	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context,
-	    Collector collector) throws IOException, InterruptedException, CoGrouperException {
+	public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
+	    Collector collector) throws IOException, InterruptedException, TupleMRException {
 
 		for(ITuple tuple : tuples) {
 			collector.write(tuple, NullWritable.get());

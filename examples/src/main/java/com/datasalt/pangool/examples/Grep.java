@@ -30,7 +30,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.processor.Processor;
 import com.datasalt.pangool.processor.ProcessorHandler;
 import com.datasalt.pangool.utils.HadoopUtils;
@@ -59,7 +59,7 @@ public class Grep {
 	}
 
 	public Job getJob(Configuration conf, String regex, String input, String output) throws IOException,
-	    CoGrouperException, URISyntaxException {
+	    TupleMRException, URISyntaxException {
 		HadoopUtils.deleteIfExists(FileSystem.get(conf), new Path(output));
 		Processor processor = new Processor(conf);
 		processor.setHandler(new GrepProcessor(regex));
@@ -70,7 +70,7 @@ public class Grep {
 
 	private static final String HELP = "Usage: grep [regexp] [input_path] [output_path]";
 
-	public static void main(String args[]) throws CoGrouperException, IOException, InterruptedException,
+	public static void main(String args[]) throws TupleMRException, IOException, InterruptedException,
 	    ClassNotFoundException, URISyntaxException {
 		if(args.length != 3) {
 			System.err.println("Wrong number of arguments");

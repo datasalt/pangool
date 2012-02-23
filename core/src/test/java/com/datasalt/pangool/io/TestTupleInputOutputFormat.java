@@ -33,12 +33,12 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.IdentityGroupHandler;
 import com.datasalt.pangool.cogroup.processors.IdentityInputProcessor;
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -56,15 +56,15 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 	public static String OUT_TEXT = TestTupleInputOutputFormat.class.getName() + "-out-text";
 	public static String IN = TestTupleInputOutputFormat.class.getName() + "-in";
 
-	public static class MyInputProcessor extends InputProcessor<LongWritable, Text> {
+	public static class MyInputProcessor extends TupleMapper<LongWritable, Text> {
 
     private static final long serialVersionUID = 1L;
 		private Tuple tuple;
 
 		@Override
-		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException, InterruptedException {
 			if (tuple == null){
-				tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema(0));
+				tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
 			}
 			tuple.set(0, "title");
 			tuple.set(1, value);
@@ -72,13 +72,13 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 		}
 	}
 
-	public static class MyGroupHandler extends GroupHandler<Text, Text> {
+	public static class MyGroupHandler extends TupleReducer<Text, Text> {
 
     private static final long serialVersionUID = 1L;
 
     @Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context,
-		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
+		    Collector collector) throws IOException, InterruptedException, TupleMRException {
 			for(ITuple tuple : tuples) {
 				collector.write((Text)tuple.get(0),(Text)tuple.get(1));
 			}
@@ -86,7 +86,7 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 	}
 
 	@Test
-	public void test() throws CoGrouperException, IOException, InterruptedException,
+	public void test() throws TupleMRException, IOException, InterruptedException,
 	    ClassNotFoundException {
 
 		CommonUtils.writeTXT("foo1 bar1\nbar2 foo2", new File(IN));
@@ -103,12 +103,12 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 		fields.add(new Field("content",String.class));
 		Schema schema = new Schema("schema",fields);
 		
-		CoGrouper coGrouper = new CoGrouper(conf);
-		coGrouper.addSourceSchema(schema);
+		TupleMRBuilder coGrouper = new TupleMRBuilder(conf);
+		coGrouper.addIntermediateSchema(schema);
 		coGrouper.setGroupByFields("title");
 		coGrouper.setOrderBy(new SortBy().add("title",Order.ASC).add("content",Order.ASC));
 
-		coGrouper.setGroupHandler(new IdentityGroupHandler());
+		coGrouper.setTupleReducer(new IdentityGroupHandler());
 		coGrouper.setTupleOutput(outPath, schema); // setTupleOutput method
 		coGrouper.addInput(inPath, TextInputFormat.class, new MyInputProcessor());
 
@@ -116,11 +116,11 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 
 		// Use output as input of new CoGrouper
 
-		coGrouper = new CoGrouper(conf);
-		coGrouper.addSourceSchema(schema);
+		coGrouper = new TupleMRBuilder(conf);
+		coGrouper.addIntermediateSchema(schema);
 		coGrouper.setGroupByFields("title");
 		coGrouper.setOrderBy(new SortBy().add("title",Order.ASC).add("content",Order.ASC));
-		coGrouper.setGroupHandler(new MyGroupHandler());
+		coGrouper.setTupleReducer(new MyGroupHandler());
 		coGrouper.setOutput(outPathText, TextOutputFormat.class, Text.class, Text.class);
 		coGrouper.addTupleInput(outPath, new IdentityInputProcessor()); // addTupleInput method
 		Job job = coGrouper.createJob();

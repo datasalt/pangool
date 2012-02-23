@@ -28,11 +28,11 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.processors.CombinerHandler;
-import com.datasalt.pangool.cogroup.processors.GroupHandlerWithRollup;
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.processors.TupleCombiner;
+import com.datasalt.pangool.cogroup.processors.TupleRollupReducer;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -74,16 +74,16 @@ import com.datasalt.pangool.io.tuple.Tuple;
 public class UserActivityNormalizer {
 
 	@SuppressWarnings("serial")
-	private static class UserActivityProcessor extends InputProcessor<LongWritable, Text> {
+	private static class UserActivityProcessor extends TupleMapper<LongWritable, Text> {
 
 		private Tuple tuple;
 
-		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			this.tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema("my_schema"));
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+			this.tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("my_schema"));
 		}
 
 		@Override
-		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
 
 			String[] fields = value.toString().trim().split("\t");
@@ -104,17 +104,17 @@ public class UserActivityNormalizer {
 	 * idea than that of the WordCount Combiner.
 	 */
 	@SuppressWarnings("serial")
-	public static class CountCombinerHandler extends CombinerHandler {
+	public static class CountCombinerHandler extends TupleCombiner {
 
 		private Tuple tuple;
 
-		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema("my_schema"));
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+			tuple = new Tuple(context.getCoGrouperConfig().getIntermediateSchema("my_schema"));
 		}
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 
 			int featureClicks = 0;
 			// Sum total clicks for this feature
@@ -135,20 +135,20 @@ public class UserActivityNormalizer {
 	 * each individual feature.
 	 */
 	@SuppressWarnings("serial")
-	public static class NormalizingHandler extends GroupHandlerWithRollup<Text, NullWritable> {
+	public static class NormalizingHandler extends TupleRollupReducer<Text, NullWritable> {
 
 		int totalClicks;
 
-		public void onOpenGroup(int depth, String field, ITuple firstElement, CoGrouperContext context, Collector collector)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void onOpenGroup(int depth, String field, ITuple firstElement, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 
 			if(field.equals("user")) { // New user: reset count
 				totalClicks = 0;
 			}
 		};
 
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext coGrouperContext,
-		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext coGrouperContext,
+		    Collector collector) throws IOException, InterruptedException, TupleMRException {
 
 			int featureClicks = 0;
 			// Sum total clicks for this feature
@@ -171,7 +171,7 @@ public class UserActivityNormalizer {
 		};
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws CoGrouperException, IOException {
+	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(new Field("user", String.class));
@@ -181,15 +181,15 @@ public class UserActivityNormalizer {
 
 		Schema schema = new Schema("my_schema", fields);
 
-		CoGrouper grouper = new CoGrouper(conf);
-		grouper.addSourceSchema(schema);
+		TupleMRBuilder grouper = new TupleMRBuilder(conf);
+		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("user", "all", "feature");
 		grouper.setOrderBy(new SortBy().add("user", Order.ASC).add("all", Order.DESC).add("feature", Order.ASC));
 		// By partitioning by "user" field we assure that all features go to the same Reducer
 		grouper.setRollupFrom("user");
 		// Input / output and such
-		grouper.setCombinerHandler(new CountCombinerHandler());
-		grouper.setGroupHandler(new NormalizingHandler());
+		grouper.setTupleCombiner(new CountCombinerHandler());
+		grouper.setTupleReducer(new NormalizingHandler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
 		grouper.addInput(new Path(input), TextInputFormat.class, new UserActivityProcessor());
 		return grouper.createJob();

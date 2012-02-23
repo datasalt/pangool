@@ -15,9 +15,9 @@
  */
 package com.datasalt.pangool.cogroup;
 
-import static com.datasalt.pangool.cogroup.CoGrouperException.failIfEmpty;
-import static com.datasalt.pangool.cogroup.CoGrouperException.failIfNotNull;
-import static com.datasalt.pangool.cogroup.CoGrouperException.failIfNull;
+import static com.datasalt.pangool.cogroup.TupleMRException.failIfEmpty;
+import static com.datasalt.pangool.cogroup.TupleMRException.failIfNotNull;
+import static com.datasalt.pangool.cogroup.TupleMRException.failIfNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,24 +38,24 @@ import com.datasalt.pangool.io.tuple.Schema.Field;
 
 /**
  * 
- * ConfigBuilder is the responsible to create {@link CoGrouperConfig} inmutable instances. 
+ * ConfigBuilder is the responsible to create {@link TupleMRConfig} inmutable instances. 
  *
  */
-public class ConfigBuilder {
+public class TupleMRConfigBuilder {
 
-	private List<Schema> sourceSchemas= new ArrayList<Schema>();
+	private List<Schema> intermediateSchemas= new ArrayList<Schema>();
 	private SortBy commonSortBy;
 	private Map<String,SortBy> secondarysOrderBy=new HashMap<String,SortBy>();
 	private List<String> groupByFields;
 	private String rollupFrom;
 	private String[] fieldsToPartition;
 	
-	public ConfigBuilder(){
+	public TupleMRConfigBuilder(){
 		
 	}
 	
 	private boolean sourceAlreadyExists(String source){
-		for (Schema sourceSchema : sourceSchemas){
+		for (Schema sourceSchema : intermediateSchemas){
 			if (sourceSchema.getName().equals(source)){
 				return true;
 			}
@@ -63,16 +63,16 @@ public class ConfigBuilder {
 		return false;
 	}
 	
-	public void addSourceSchema(Schema schema) throws CoGrouperException {
+	public void addIntermediateSchema(Schema schema) throws TupleMRException {
 		if (sourceAlreadyExists(schema.getName())){
-			throw new CoGrouperException("There's a schema with that name '" + schema.getName() + "'");
+			throw new TupleMRException("There's a schema with that name '" + schema.getName() + "'");
 		}
-		sourceSchemas.add(schema);
+		intermediateSchemas.add(schema);
 	}
 	
 	private boolean fieldSameTypeInAllSources(String field){
 		Class<?> type = null;
-		for (Schema source : sourceSchemas){
+		for (Schema source : intermediateSchemas){
 			Field f = source.getField(field);
 			if (type == null){
 				type = f.getType();
@@ -84,7 +84,7 @@ public class ConfigBuilder {
 	}
 	
 	private boolean fieldPresentInAllSources(String field){
-		for (Schema source : sourceSchemas){
+		for (Schema source : intermediateSchemas){
 			if (!source.containsField(field)){
 				return false;
 			}
@@ -92,45 +92,45 @@ public class ConfigBuilder {
 		return true;
 	}
 	
-	public void setGroupByFields(String... groupByFields) throws CoGrouperException {
+	public void setGroupByFields(String... groupByFields) throws TupleMRException {
 		failIfEmpty(groupByFields,"GroupBy fields can't be null or empty");
-		failIfEmpty(sourceSchemas,"No eschemas defined");
+		failIfEmpty(intermediateSchemas,"No eschemas defined");
 		failIfNotNull(this.groupByFields,"GroupBy fields already set : " + groupByFields);
 		for (String field : groupByFields){
 			if (!fieldPresentInAllSources(field)){
-				throw new CoGrouperException("Can't group by field '" + field + "' . Not present in all sources");
+				throw new TupleMRException("Can't group by field '" + field + "' . Not present in all sources");
 			}
 			if (!fieldSameTypeInAllSources(field)){
-				throw new CoGrouperException("Can't group by field '" +field + "' since its type differs among sources");
+				throw new TupleMRException("Can't group by field '" +field + "' since its type differs among sources");
 			}
 		}
 		this.groupByFields = Arrays.asList(groupByFields);
 	}
 	
-	public void setRollupFrom(String rollupFrom) throws CoGrouperException {
+	public void setRollupFrom(String rollupFrom) throws TupleMRException {
 		failIfNull(rollupFrom,"Rollup can't be null");
 		failIfNotNull(this.rollupFrom,"Rollup was already set");
 		failIfEmpty(this.groupByFields,"GroupBy fields not set");
 		if (!this.groupByFields.contains(rollupFrom)){
-			throw new CoGrouperException("Rollup field must be present fields to group by '" + groupByFields + "'");
+			throw new TupleMRException("Rollup field must be present fields to group by '" + groupByFields + "'");
 		}
 		if (this.commonSortBy == null){
 			//rollup needs explicit common orderby
-			throw new CoGrouperException("Rollup needs explicit order by. No common order previously set");
+			throw new TupleMRException("Rollup needs explicit order by. No common order previously set");
 		}
 		
 		this.rollupFrom = rollupFrom;
 	}
 	
-	public void setCustomPartitionFields(String ... fields) throws CoGrouperException {
+	public void setCustomPartitionFields(String ... fields) throws TupleMRException {
 		failIfEmpty(fields,"Need to specify at leas tone field to partition by");
 		//check if all fields are present in all sources and with the same type
 		for (String field : fields){
 			if (!fieldPresentInAllSources(field)){
-				throw new CoGrouperException("Can't group by field '" + field + "' . Not present in all sources");
+				throw new TupleMRException("Can't group by field '" + field + "' . Not present in all sources");
 			}
 			if (!fieldSameTypeInAllSources(field)){
-				throw new CoGrouperException("Can't group by field '" +field + "' since its type differs among sources");
+				throw new TupleMRException("Can't group by field '" +field + "' since its type differs among sources");
 			}
 		}
 		this.fieldsToPartition = fields;
@@ -138,36 +138,36 @@ public class ConfigBuilder {
 	
 //------------------------------------------------------------------------- //
 
-	public void setOrderBy(SortBy ordering) throws CoGrouperException {
+	public void setOrderBy(SortBy ordering) throws TupleMRException {
 		failIfNull(ordering,"OrderBy can't be null");
 		failIfEmpty(ordering.getElements(),"OrderBy can't be empty");
-		failIfEmpty(sourceSchemas,"Need to specify source schemas");
+		failIfEmpty(intermediateSchemas,"Need to specify source schemas");
 		failIfEmpty(groupByFields,"Need to specify group by fields");
-		if (sourceSchemas.size() == 1){
+		if (intermediateSchemas.size() == 1){
 			if (ordering.getSourceOrderIndex() != null){
-				throw new CoGrouperException("Not able to use source order when just one source specified");
+				throw new TupleMRException("Not able to use source order when just one source specified");
 			}
 		}
 		for (SortElement sortElement : ordering.getElements()){
 			if (!fieldPresentInAllSources(sortElement.getName())){
-				throw new CoGrouperException("Can't sort by field '" + sortElement.getName() + "' . Not present in all sources");
+				throw new TupleMRException("Can't sort by field '" + sortElement.getName() + "' . Not present in all sources");
 			}
 			if (!fieldSameTypeInAllSources(sortElement.getName())){
-				throw new CoGrouperException("Can't sort by field '" +sortElement.getName() + "' since its type differs among sources");
+				throw new TupleMRException("Can't sort by field '" +sortElement.getName() + "' since its type differs among sources");
 			}
 		}
 		//group by fields need to be a prefix of sort by fields
 		for (String groupField : groupByFields){
 			if (!ordering.containsBeforeSourceOrder(groupField)){
-				throw new CoGrouperException("Group by field '" + groupField + "' is not present in common order by before source order");
+				throw new TupleMRException("Group by field '" + groupField + "' is not present in common order by before source order");
 			}
 		}
 		
 		this.commonSortBy = ordering;
 	}
 		
-	private Schema getSourceSchemaByName(String name){
-		for (Schema s : sourceSchemas){
+	private Schema getIntermediateSchemaByName(String name){
+		for (Schema s : intermediateSchemas){
 			if (s.getName().equals(name)){
 				return s;
 			}
@@ -175,42 +175,42 @@ public class ConfigBuilder {
 		return null;
 	}
 	
-	public void setSecondaryOrderBy(String sourceName,SortBy ordering) throws CoGrouperException {
+	public void setSecondaryOrderBy(String sourceName,SortBy ordering) throws TupleMRException {
 		failIfNull(sourceName,"Not able to set secondary sort for null source");
 		if (!sourceAlreadyExists(sourceName)){
-			throw new CoGrouperException("Unknown source '" + sourceName +"' in secondary SortBy");
+			throw new TupleMRException("Unknown source '" + sourceName +"' in secondary SortBy");
 		}
 		failIfNull(ordering,"Not able to set null criteria for source '" + sourceName + "'");
 		failIfEmpty(ordering.getElements(),"Can't set empty ordering");
 		failIfNull(commonSortBy,"Not able to set secondary order with no previous common OrderBy");
 		if (commonSortBy.getSourceOrderIndex() == null){
-			throw new CoGrouperException("Need to specify source order in common SortBy when using secondary SortBy");
+			throw new TupleMRException("Need to specify source order in common SortBy when using secondary SortBy");
 		}
 		if (ordering.getSourceOrderIndex() != null){
-			throw new CoGrouperException("Not allowed to set source order in secondary order");
+			throw new TupleMRException("Not allowed to set source order in secondary order");
 		}
-		Schema sourceSchema = getSourceSchemaByName(sourceName);
+		Schema sourceSchema = getIntermediateSchemaByName(sourceName);
 		for (SortElement e : ordering.getElements()){
 			if (!sourceSchema.containsField(e.getName())){
-				throw new CoGrouperException("Source '" + sourceName +"' doesn't contain field '" + e.getName());
+				throw new TupleMRException("Source '" + sourceName +"' doesn't contain field '" + e.getName());
 			}
 		}
 		
 		for (SortElement e : ordering.getElements()){
 			if (commonSortBy.containsFieldName(e.getName())){
-				throw new CoGrouperException("Common sort by already contains sorting for field '" + e.getName());
+				throw new TupleMRException("Common sort by already contains sorting for field '" + e.getName());
 			}
 		}
 		this.secondarysOrderBy.put(sourceName, ordering);
 	}
 	
 
-	public CoGrouperConfig buildConf() throws CoGrouperException {
-		failIfEmpty(sourceSchemas," Need to declare at least one source schema");
+	public TupleMRConfig buildConf() throws TupleMRException {
+		failIfEmpty(intermediateSchemas," Need to declare at least one intermediate schema");
 		failIfEmpty(groupByFields," Need to declare group by fields");
 		
-		CoGrouperConfig conf =  new CoGrouperConfig();
-		conf.setSourceSchemas(sourceSchemas);
+		TupleMRConfig conf =  new TupleMRConfig();
+		conf.setIntermediateSchemas(intermediateSchemas);
 		
 		
 		conf.setGroupByFields(groupByFields);
@@ -230,7 +230,7 @@ public class ConfigBuilder {
 		
 		
 		if (commonSortBy != null){
-			Map<String,Criteria> convertedParticularOrderings = getSecondarySortBys(commonSortBy,sourceSchemas,secondarysOrderBy);
+			Map<String,Criteria> convertedParticularOrderings = getSecondarySortBys(commonSortBy,intermediateSchemas,secondarysOrderBy);
 			for (Map.Entry<String,Criteria> entry : convertedParticularOrderings.entrySet()){
 				conf.setSecondarySortBy(entry.getKey(), entry.getValue());
 			}
@@ -286,11 +286,11 @@ public class ConfigBuilder {
    * Initializes the custom comparator instances inside the given config criterias, 
    * calling the {@link Configurable#setConf(Configuration)} method. 
    */
-  public static void initializeComparators(Configuration conf, CoGrouperConfig groupConfig) {
-  	ConfigBuilder.initializeComparators(conf, groupConfig.getCommonCriteria());
+  public static void initializeComparators(Configuration conf, TupleMRConfig groupConfig) {
+  	TupleMRConfigBuilder.initializeComparators(conf, groupConfig.getCommonCriteria());
   	for(Criteria criteria : groupConfig.getSecondarySortBys()) {
   		if (criteria != null) {
-  			ConfigBuilder.initializeComparators(conf, criteria);
+  			TupleMRConfigBuilder.initializeComparators(conf, criteria);
   		}
   	}
   }

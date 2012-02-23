@@ -29,9 +29,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.datasalt.pangolin.thrift.test.A;
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.tuple.Fields;
@@ -45,7 +45,7 @@ public class TestConfigParsing {
 	private Schema schema3;
 	
 	@Before
-	public void init() throws CoGrouperException {
+	public void init() throws TupleMRException {
 		this.schema1 = new Schema("schema1", Fields.parse("int_field:int, string_field:string,boolean_field:boolean"));
 		this.schema2 = new Schema("schema2", Fields.parse("long_field:long,boolean_field:boolean, int_field:int"));
 
@@ -82,42 +82,42 @@ public class TestConfigParsing {
 	}
 	
 	@Test
-	public void testSimple() throws CoGrouperException, IOException {
-		ConfigBuilder b = new ConfigBuilder();
-		b.addSourceSchema(schema1);
+	public void testSimple() throws TupleMRException, IOException {
+		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
+		b.addIntermediateSchema(schema1);
 		b.setGroupByFields("int_field");
-		CoGrouperConfig conf =b.buildConf();
-		CoGrouperConfig deserConf = CoGrouperConfig.parse(conf.toString());
+		TupleMRConfig conf =b.buildConf();
+		TupleMRConfig deserConf = TupleMRConfig.parse(conf.toString());
 		Assert.assertEquals(conf,deserConf);
-		CoGrouperConfig deserConf2 = CoGrouperConfig.parse(deserConf.toString());
+		TupleMRConfig deserConf2 = TupleMRConfig.parse(deserConf.toString());
 		Assert.assertEquals(conf,deserConf2);
 	}
 	
 	
 	@Test
-	public void testExtended() throws CoGrouperException, IOException {
-		ConfigBuilder b = new ConfigBuilder();
-		b.addSourceSchema(schema1);
-		b.addSourceSchema(schema2);
-		b.addSourceSchema(schema3);
+	public void testExtended() throws TupleMRException, IOException {
+		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
+		b.addIntermediateSchema(schema1);
+		b.addIntermediateSchema(schema2);
+		b.addIntermediateSchema(schema3);
 		b.setGroupByFields("int_field");
 		b.setOrderBy(new SortBy().add("int_field",Order.DESC).addSourceOrder(Order.DESC).add("boolean_field",Order.DESC, new DummyComparator()));
 		b.setRollupFrom("int_field");
 		b.setSecondaryOrderBy(schema3.getName(),new SortBy().add("enum_field", Order.ASC, new DummyComparator()));
 		
-		CoGrouperConfig conf =b.buildConf();
+		TupleMRConfig conf =b.buildConf();
 		Configuration hconf = new Configuration();
 		
-		CoGrouperConfig.set(conf, hconf);
-		CoGrouperConfig deserConf = CoGrouperConfig.get(hconf);
+		TupleMRConfig.set(conf, hconf);
+		TupleMRConfig deserConf = TupleMRConfig.get(hconf);
 		System.out.println(conf);
 		System.out.println("------------");
 		System.out.println(deserConf);
 
 		Assert.assertEquals(conf,deserConf);
 		hconf = new Configuration();
-		CoGrouperConfig.set(deserConf, hconf);
-		CoGrouperConfig deserConf2 = CoGrouperConfig.get(hconf);
+		TupleMRConfig.set(deserConf, hconf);
+		TupleMRConfig deserConf2 = TupleMRConfig.get(hconf);
 		Assert.assertEquals(conf,deserConf2);
 	}
 	
@@ -125,21 +125,21 @@ public class TestConfigParsing {
 	
 	
 	@Test
-	public void testWithCustomPartitionFields() throws CoGrouperException, IOException {
-		ConfigBuilder b = new ConfigBuilder();
-		b.addSourceSchema(schema1);
-		b.addSourceSchema(schema2);
-		b.addSourceSchema(schema3);
+	public void testWithCustomPartitionFields() throws TupleMRException, IOException {
+		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
+		b.addIntermediateSchema(schema1);
+		b.addIntermediateSchema(schema2);
+		b.addIntermediateSchema(schema3);
 		b.setGroupByFields("int_field");
 		b.setOrderBy(new SortBy().add("int_field",Order.DESC).addSourceOrder(Order.DESC).add("boolean_field",Order.DESC));
 		b.setRollupFrom("int_field");
 		b.setSecondaryOrderBy(schema3.getName(),new SortBy().add("enum_field", Order.ASC,new DummyComparator()));
 		b.setCustomPartitionFields("int_field","boolean_field");
 		
-		CoGrouperConfig conf =b.buildConf();
-		CoGrouperConfig deserConf = CoGrouperConfig.parse(conf.toString());
+		TupleMRConfig conf =b.buildConf();
+		TupleMRConfig deserConf = TupleMRConfig.parse(conf.toString());
 		Assert.assertEquals(conf,deserConf);
-		CoGrouperConfig deserConf2 = CoGrouperConfig.parse(deserConf.toString());
+		TupleMRConfig deserConf2 = TupleMRConfig.parse(deserConf.toString());
 		Assert.assertEquals(conf,deserConf2);
 		System.out.println(conf);
 		System.out.println(deserConf2);

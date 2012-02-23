@@ -33,10 +33,10 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -69,16 +69,16 @@ import com.datasalt.pangool.test.Pair;
 public class MovingAverage {
 
 	@SuppressWarnings("serial")
-	private static class URLVisitsProcessor extends InputProcessor<LongWritable, Text> {
+	private static class URLVisitsProcessor extends TupleMapper<LongWritable, Text> {
 
 		private Schema schema;
 
-		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			this.schema = context.getCoGrouperConfig().getSourceSchema("my_schema");
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+			this.schema = context.getTupleMRConfig().getIntermediateSchema("my_schema");
 		}
 
 		@Override
-		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
 
 			// Just parsing the text input and emitting a Tuple
@@ -92,7 +92,7 @@ public class MovingAverage {
 	}
 
 	@SuppressWarnings("serial")
-	public static class MovingAverageHandler extends GroupHandler<Text, NullWritable> {
+	public static class MovingAverageHandler extends TupleReducer<Text, NullWritable> {
 
 		int nDaysAverage;
 		Queue<Pair<Integer, DateTime>> dataPoints = new LinkedList<Pair<Integer, DateTime>>();
@@ -103,8 +103,8 @@ public class MovingAverage {
 		}
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 
 			dataPoints.clear();
 
@@ -131,7 +131,7 @@ public class MovingAverage {
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output, int nDaysAverage) throws CoGrouperException,
+	public Job getJob(Configuration conf, String input, String output, int nDaysAverage) throws TupleMRException,
 	    IOException {
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
@@ -141,12 +141,12 @@ public class MovingAverage {
 
 		Schema schema = new Schema("my_schema", fields);
 
-		CoGrouper grouper = new CoGrouper(conf);
-		grouper.addSourceSchema(schema);
+		TupleMRBuilder grouper = new TupleMRBuilder(conf);
+		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("url");
 		grouper.setOrderBy(new SortBy().add("url", Order.ASC).add("date", Order.ASC));
 		// Input / output and such
-		grouper.setGroupHandler(new MovingAverageHandler(nDaysAverage));
+		grouper.setTupleReducer(new MovingAverageHandler(nDaysAverage));
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
 		grouper.addInput(new Path(input), TextInputFormat.class, new URLVisitsProcessor());
 		return grouper.createJob();

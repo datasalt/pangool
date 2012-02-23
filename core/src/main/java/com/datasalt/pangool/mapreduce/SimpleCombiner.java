@@ -24,12 +24,12 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.SerializationInfo;
-import com.datasalt.pangool.cogroup.processors.CombinerHandler;
-import com.datasalt.pangool.cogroup.processors.CombinerHandler.CoGrouperContext;
-import com.datasalt.pangool.cogroup.processors.CombinerHandler.Collector;
+import com.datasalt.pangool.cogroup.processors.TupleCombiner;
+import com.datasalt.pangool.cogroup.processors.TupleCombiner.TupleMRContext;
+import com.datasalt.pangool.cogroup.processors.TupleCombiner.Collector;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ViewTuple;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -41,12 +41,12 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 	private final static Logger log = LoggerFactory.getLogger(SimpleCombiner.class);
 	
 	// Following variables protected to be shared by Combiners
-	private CoGrouperConfig grouperConfig;
+	private TupleMRConfig grouperConfig;
 	private SerializationInfo serInfo;
 	private TupleIterator<DatumWrapper<ITuple>, NullWritable> grouperIterator;
 	private ViewTuple groupTuple; // Tuple view over the group
-	private CoGrouperContext context;
-	private CombinerHandler handler;
+	private TupleMRContext context;
+	private TupleCombiner handler;
 	private Collector collector;
 	private boolean isMultipleSources;
 
@@ -54,9 +54,9 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 		super.setup(context);
 		try {
 			log.info("Getting CoGrouper grouperConf.");
-			this.grouperConfig = CoGrouperConfig.get(context.getConfiguration());
+			this.grouperConfig = TupleMRConfig.get(context.getConfiguration());
 			this.serInfo = this.grouperConfig.getSerializationInfo();
-			this.isMultipleSources = this.grouperConfig.getNumSources() >= 2;
+			this.isMultipleSources = this.grouperConfig.getNumSchemas() >= 2;
 			log.info("Getting CoGrouper grouperConf done.");
 			if (isMultipleSources){
 				this.groupTuple = new ViewTuple(serInfo.getGroupSchema());
@@ -66,14 +66,14 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			this.grouperIterator = new TupleIterator<DatumWrapper<ITuple>, NullWritable>(context);
 
 			String fileName = context.getConfiguration().get(SimpleCombiner.CONF_COMBINER_HANDLER);
-			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), CombinerHandler.class, fileName);
+			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleCombiner.class, fileName);
 			if(handler instanceof Configurable) {
 				((Configurable) handler).setConf(context.getConfiguration());
 			}
 			collector = new Collector(grouperConfig, context);
-			this.context = handler.new CoGrouperContext(context, grouperConfig);
+			this.context = handler.new TupleMRContext(context, grouperConfig);
 			handler.setup(this.context, collector);
-		} catch(CoGrouperException e) {
+		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -84,7 +84,7 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 
 			handler.cleanup(this.context, collector);
 			super.cleanup(context);
-		} catch(CoGrouperException e) {
+		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -101,7 +101,7 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 
 			// A view is created over the first tuple to give the user the group fields
 			if (isMultipleSources){ //TODO consider not using translation here
-				int sourceId = grouperConfig.getSourceIdByName(firstTupleGroup.getSchema().getName());
+				int sourceId = grouperConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
 				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(sourceId);
 				groupTuple.setContained(firstTupleGroup,indexTranslation);
 			} else {
@@ -109,7 +109,7 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			}
 			handler.onGroupElements(groupTuple, grouperIterator, this.context, collector);
 
-		} catch(CoGrouperException e) {
+		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}

@@ -32,8 +32,8 @@ import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.SerializationInfo;
 import com.datasalt.pangool.cogroup.sorting.Criteria;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
@@ -48,7 +48,7 @@ import com.datasalt.pangool.io.tuple.Schema.InternalType;
 public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	protected Configuration conf;
-	protected CoGrouperConfig grouperConf;
+	protected TupleMRConfig grouperConf;
 	protected SerializationInfo serInfo;
 	
 	protected final BinaryComparator binaryComparator = new BinaryComparator();
@@ -61,7 +61,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	protected boolean isMultipleSources;
 	
 
-	protected CoGrouperConfig getConfig() {
+	protected TupleMRConfig getConfig() {
 		return grouperConf;
 	}
 
@@ -73,8 +73,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	@Override
 	public int compare(ITuple w1, ITuple w2) {
 		if (isMultipleSources){
-			int sourceId1 = grouperConf.getSourceIdByName(w1.getSchema().getName());
-			int sourceId2 = grouperConf.getSourceIdByName(w2.getSchema().getName());
+			int sourceId1 = grouperConf.getSchemaIdByName(w1.getSchema().getName());
+			int sourceId2 = grouperConf.getSchemaIdByName(w2.getSchema().getName());
 			int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(sourceId1);
 			int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(sourceId2);
 			Criteria c = grouperConf.getCommonCriteria();
@@ -387,8 +387,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		try {
 			if(conf != null) {
 				this.conf = conf;
-				setGrouperConf(CoGrouperConfig.get(conf));
-				ConfigBuilder.initializeComparators(conf, this.grouperConf);
+				setGrouperConf(TupleMRConfig.get(conf));
+				TupleMRConfigBuilder.initializeComparators(conf, this.grouperConf);
 				binaryComparator.setConf(conf);
 			}
 		} catch(Exception e) {
@@ -396,13 +396,13 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		}
 	}
 	
-	private void setGrouperConf(CoGrouperConfig config){
+	private void setGrouperConf(TupleMRConfig config){
 		if (this.grouperConf != null){
 			throw new RuntimeException("Grouper config is already set");
 		}
 		this.grouperConf = config;
 		this.serInfo = grouperConf.getSerializationInfo();
-		this.isMultipleSources = grouperConf.getNumSources() >= 2;
+		this.isMultipleSources = grouperConf.getNumSchemas() >= 2;
 	}
 	
 }

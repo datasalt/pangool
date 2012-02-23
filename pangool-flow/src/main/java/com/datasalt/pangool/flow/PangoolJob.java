@@ -27,8 +27,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.Tool;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
 
 /**
  * This is the base class that executable jobs must extend for being used with {@link LinearFlow}.
@@ -179,7 +179,7 @@ public abstract class PangoolJob implements Configurable, Tool {
 	/**
 	 * Convenience method that can be used by Jobs for executing Pangool's {@link CoGrouper} instances.
 	 */
-	public int executeCoGrouper(CoGrouper coGrouper) throws IOException, CoGrouperException, InterruptedException,
+	public int executeCoGrouper(TupleMRBuilder coGrouper) throws IOException, TupleMRException, InterruptedException,
 	    ClassNotFoundException {
 
 		Job job = coGrouper.createJob();

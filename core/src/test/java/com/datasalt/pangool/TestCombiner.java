@@ -33,11 +33,11 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.processors.CombinerHandler;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.processors.TupleCombiner;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -50,18 +50,18 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 
 
 	@SuppressWarnings("serial")
-	public static class Split extends InputProcessor<Text, NullWritable> {
+	public static class Split extends TupleMapper<Text, NullWritable> {
 
 		private Tuple tuple;
 		
-		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			Schema schema = context.getCoGrouperConfig().getSourceSchema(0);
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+			Schema schema = context.getTupleMRConfig().getIntermediateSchema(0);
 			this.tuple = new Tuple(schema);
 			tuple.set("count", 1);
 		}
 		
 		@Override
-		public void process(Text key, NullWritable value, CoGrouperContext context, Collector collector)
+		public void map(Text key, NullWritable value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
 			StringTokenizer itr = new StringTokenizer(key.toString());
 			while(itr.hasMoreTokens()) {
@@ -72,18 +72,18 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 	}
 
 	@SuppressWarnings("serial")
-	public static class CountCombiner extends CombinerHandler {
+	public static class CountCombiner extends TupleCombiner {
 
 		private Tuple tuple;
 		
-		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			Schema schema = context.getCoGrouperConfig().getSourceSchema("schema");
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+			Schema schema = context.getCoGrouperConfig().getIntermediateSchema("schema");
 			this.tuple = new Tuple(schema);
 		}
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 			int count = 0;
 			tuple.set("word", group.get("word"));
 			for(ITuple tuple : tuples) {
@@ -95,18 +95,18 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 	}
 
 	@SuppressWarnings("serial")
-	public static class Count extends GroupHandler<Text, IntWritable> {
+	public static class Count extends TupleReducer<Text, IntWritable> {
 
 		private IntWritable countToEmit;
 		
-		public void setup(CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
-		    CoGrouperException {
+		public void setup(TupleMRContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
+		    TupleMRException {
 			countToEmit = new IntWritable();
 		};
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 			Iterator<ITuple> iterator = tuples.iterator();
 			while(iterator.hasNext()){
 				ITuple tuple = iterator.next();
@@ -118,7 +118,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws CoGrouperException,
+	public Job getJob(Configuration conf, String input, String output) throws TupleMRException,
 	    IOException {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);
@@ -127,21 +127,21 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		fields.add(new Field("word",String.class));
 		fields.add(new Field("count",Integer.class));
 		
-		CoGrouper cg = new CoGrouper(conf);
-		cg.addSourceSchema(new Schema("schema",fields));
+		TupleMRBuilder cg = new TupleMRBuilder(conf);
+		cg.addIntermediateSchema(new Schema("schema",fields));
 		cg.setJarByClass(TestCombiner.class);
 		cg.addInput(new Path(input), SequenceFileInputFormat.class, new Split());
 		cg.setOutput(new Path(output), SequenceFileOutputFormat.class, Text.class, IntWritable.class);
 		cg.setGroupByFields("word");
 		cg.setOrderBy(new SortBy().add("word",Order.ASC));
-		cg.setGroupHandler(new Count());
-		cg.setCombinerHandler(new CountCombiner());
+		cg.setTupleReducer(new Count());
+		cg.setTupleCombiner(new CountCombiner());
 
 		return cg.createJob();
 	}
 	
 	@Test
-	public void test() throws CoGrouperException, IOException, InterruptedException,
+	public void test() throws TupleMRException, IOException, InterruptedException,
 	    ClassNotFoundException {
 		
 		

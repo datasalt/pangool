@@ -21,15 +21,15 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.SerializationInfo;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWrapper<ITuple>, NullWritable> implements Configurable {
 
-	private CoGrouperConfig grouperConfig;
+	private TupleMRConfig grouperConfig;
 	private SerializationInfo serInfo;
 	
 	private Configuration conf;
@@ -43,7 +43,7 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 		} else {
 			ITuple tuple = key.datum();
 			String sourceName = tuple.getSchema().getName();
-			Integer sourceId = grouperConfig.getSourceIdByName(sourceName);
+			Integer sourceId = grouperConfig.getSchemaIdByName(sourceName);
 			if(sourceId == null) {
 				throw new RuntimeException("Schema name '" + sourceName + "' is unknown. Known schemas are : "
 				    + grouperConfig.getSourceNames());
@@ -63,9 +63,9 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 		if(conf != null) {
 			this.conf = conf;
 			try {
-				this.grouperConfig = CoGrouperConfig.get(conf);
+				this.grouperConfig = TupleMRConfig.get(conf);
 				this.serInfo = grouperConfig.getSerializationInfo();
-			} catch (CoGrouperException e) {
+			} catch (TupleMRException e) {
 				throw new RuntimeException(e);
 			}
 		}

@@ -27,7 +27,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.examples.WordCount;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangool.utils.HadoopUtils;
@@ -40,7 +40,7 @@ public class TestWordCount extends AbstractHadoopTestLibrary{
 	private final static String OUTPUT = FOLDER + "/test-output-" + TestWordCount.class.getName();
 	
 	@Test
-	public void test() throws IOException,CoGrouperException, InterruptedException, ClassNotFoundException {
+	public void test() throws IOException,TupleMRException, InterruptedException, ClassNotFoundException {
 		Files.write("a b b c c c\nd d d d", new File(INPUT), Charset.forName("UTF-8"));
 		Configuration conf = new Configuration();
 		WordCount wordCount = new WordCount();
