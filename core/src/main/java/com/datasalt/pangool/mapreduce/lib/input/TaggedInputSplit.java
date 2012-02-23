@@ -30,7 +30,6 @@ import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.ReflectionUtils;
 
 /**
@@ -39,14 +38,16 @@ import org.apache.hadoop.util.ReflectionUtils;
  * <p>
  * PATCH: Changed visibility (package to public)
  */
+@SuppressWarnings("rawtypes")
 public class TaggedInputSplit extends InputSplit implements Configurable, Writable {
 
   private Class<? extends InputSplit> inputSplitClass;
 
   private InputSplit inputSplit;
 
-  @SuppressWarnings("unchecked")
-  private Class<? extends InputFormat> inputFormatClass;
+ 
+  
+	private Class<? extends InputFormat> inputFormatClass;
 
   private String inputProcessorFile;
 
@@ -64,7 +65,6 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
    * @param inputFormatClass The InputFormat class to use for this job
    * @param mapperClass The Mapper class to use for this job
    */
-  @SuppressWarnings("unchecked")
   public TaggedInputSplit(InputSplit inputSplit, Configuration conf,
       Class<? extends InputFormat> inputFormatClass,
       String inputProcessorFile) {
@@ -89,7 +89,6 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
    * 
    * @return The InputFormat class to use
    */
-  @SuppressWarnings("unchecked")
   public Class<? extends InputFormat> getInputFormatClass() {
     return inputFormatClass;
   }

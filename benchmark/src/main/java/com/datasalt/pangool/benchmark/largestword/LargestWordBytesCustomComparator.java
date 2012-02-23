@@ -97,6 +97,7 @@ public class LargestWordBytesCustomComparator {
 		}
 	}
 	
+	@SuppressWarnings("serial")
 	private static class MyUtf8Comparator implements RawComparator<Text>,Serializable {
 		@Override
     public int compare(Text arg0, Text arg1) {

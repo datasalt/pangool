@@ -18,13 +18,11 @@ package com.datasalt.pangool.mapreduce.lib.input;
 import java.io.IOException;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.util.ReflectionUtils;
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
@@ -32,11 +30,13 @@ import com.datasalt.pangool.utils.DCUtils;
  * 
  * @see PangoolMultipleInputs#addInputPath(Job, Path, Class, Class)
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class DelegatingMapper extends Mapper {
 
-	Mapper delegate; // The delegate
+	
+	protected Mapper delegate; // The delegate
 
-	static Logger log = LoggerFactory.getLogger(DelegatingMapper.class);
+	private static Logger log = LoggerFactory.getLogger(DelegatingMapper.class);
 	
 	@Override
 	public void run(Context context) throws IOException, InterruptedException {

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.datasalt.pangool;
+@SuppressWarnings("serial")
 public class PangoolRuntimeException extends RuntimeException {
   public PangoolRuntimeException(Throwable cause) { super(cause); }
   public PangoolRuntimeException(String message) { super(message); }

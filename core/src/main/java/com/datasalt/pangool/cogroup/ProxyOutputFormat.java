@@ -39,11 +39,13 @@ import org.apache.hadoop.util.ReflectionUtils;
  * The wrapped (proxied) output format can be of any type. It is configured through {@link #PROXIED_OUTPUT_FORMAT_CONF}. 
  * 
  */
+@SuppressWarnings("rawtypes")
 public class ProxyOutputFormat extends FileOutputFormat implements Configurable {
 
 	public final static String PROXIED_OUTPUT_FORMAT_CONF = ProxyOutputFormat.class.getName() + ".proxied.output.format";
 
 	Configuration conf;
+	
 	OutputFormat outputFormat;
 
 	// The original mapred.output.dir

@@ -423,6 +423,7 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	 * <code>super.close()</code> at the end of their <code>close()</code>
 	 * 
 	 */
+	@SuppressWarnings("deprecation")
 	public void close() throws IOException, InterruptedException {
 		for(OutputContext outputContext: this.outputContexts.values()) {
 			outputContext.recordWriter.close(outputContext.taskAttemptContext);

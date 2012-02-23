@@ -93,6 +93,7 @@ public class SansAccentsCustomComparator {
 		}
 	}
 	
+	@SuppressWarnings("serial")
 	private static class MyUtf8Comparator extends BaseComparator<Text> {
 
 		public MyUtf8Comparator() {

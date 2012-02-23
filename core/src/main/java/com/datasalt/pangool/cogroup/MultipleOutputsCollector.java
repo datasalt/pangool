@@ -18,10 +18,8 @@ package com.datasalt.pangool.cogroup;
 import java.io.IOException;
 
 import org.apache.hadoop.mapreduce.MapContext;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.ReduceContext;
-import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.io.PangoolMultipleOutputs;
 

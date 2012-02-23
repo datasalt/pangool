@@ -48,7 +48,6 @@ import org.apache.hadoop.util.GenericOptionsParser;
  * canonical URL mapping: {url cannonicalUrl}. We want to obtain the URL Registers file with the url substituted with
  * the canonical one according to the mapping file: {canonicalUrl timestamp ip}.
  */
-@SuppressWarnings("deprecation")
 public class HadoopUrlResolution {
 
 	public final static int SOURCE_URL_MAP = 0;
