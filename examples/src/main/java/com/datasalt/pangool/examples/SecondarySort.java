@@ -28,10 +28,10 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -46,16 +46,16 @@ import com.datasalt.pangool.io.tuple.Schema.Field;
 public class SecondarySort {
 
 	@SuppressWarnings("serial")
-  private static class IProcessor extends InputProcessor<LongWritable, Text> {
+  private static class IProcessor extends TupleMapper<LongWritable, Text> {
 
 		private Tuple tuple ;
 		
-		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema("my_schema"));
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("my_schema"));
 		}
 		
 		@Override
-		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
 			String[] fields = value.toString().trim().split(" ");
 			tuple.set("first", Integer.parseInt(fields[0]));
@@ -65,11 +65,11 @@ public class SecondarySort {
 	}
 
 	@SuppressWarnings("serial")
-  public static class Handler extends GroupHandler<Text, NullWritable> {
+  public static class Handler extends TupleReducer<Text, NullWritable> {
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 
 			for(ITuple tuple : tuples) {
 				collector.write(new Text(tuple.get("first") + "\t" + tuple.get("second")), NullWritable.get());
@@ -77,19 +77,19 @@ public class SecondarySort {
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws CoGrouperException, IOException {
+	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(new Field("first",Integer.class));
 		fields.add(new Field("second",Integer.class));
 		
 		Schema schema = new Schema("my_schema",fields);
-		CoGrouper grouper = new CoGrouper(conf);
-		grouper.addSourceSchema(schema);
+		TupleMRBuilder grouper = new TupleMRBuilder(conf);
+		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("first");
 		grouper.setOrderBy(new SortBy().add("first",Order.ASC).add("second",Order.ASC));
 		// Input / output and such
-		grouper.setGroupHandler(new Handler());
+		grouper.setTupleReducer(new Handler());
 		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
 		grouper.addInput(new Path(input), TextInputFormat.class, new IProcessor());
 		return grouper.createJob();

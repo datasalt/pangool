@@ -32,11 +32,11 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
-import com.datasalt.pangool.cogroup.processors.GroupHandlerWithRollup;
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
+import com.datasalt.pangool.cogroup.processors.TupleRollupReducer;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.BaseComparator;
@@ -50,15 +50,15 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 
 	public static final String TEST_OUT = "TEST-OUTPUT";
 
-	private static class Map extends InputProcessor<Text, NullWritable> {
+	private static class Map extends TupleMapper<Text, NullWritable> {
 
 		private Schema schema;
 		
 		/**
 		 * Called once at the start of the task. Override it to implement your custom logic.
 		 */
-		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			this.schema = context.getCoGrouperConfig().getSourceSchema(0);
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+			this.schema = context.getTupleMRConfig().getIntermediateSchema(0);
 		}
 		
 		/**
@@ -67,14 +67,14 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		public void process(Text key, NullWritable value, CoGrouperContext context, Collector collector)
+		public void map(Text key, NullWritable value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
 			Tuple outputKey = createTuple(key.toString(),schema);
 			collector.write(outputKey);
 		}
 	}
 
-	private static class IdentityRed extends GroupHandlerWithRollup<Text, Text> {
+	private static class IdentityRed extends TupleRollupReducer<Text, Text> {
 		/**
      * 
      */
@@ -84,19 +84,19 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		private Text outputValue;
 
 		@Override
-		public void setup(CoGrouperContext context, Collector collector) throws IOException,
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
 		    InterruptedException {
 			outputKey = new Text();
 			outputValue = new Text();
 		}
 
 		@Override
-		public void cleanup(CoGrouperContext context, Collector collector) throws IOException,
+		public void cleanup(TupleMRContext context, Collector collector) throws IOException,
 		    InterruptedException {
 		}
 
 		@Override
-		public void onOpenGroup(int depth, String field, ITuple firstElement, CoGrouperContext context,
+		public void onOpenGroup(int depth, String field, ITuple firstElement, TupleMRContext context,
 		    Collector collector) throws IOException, InterruptedException {
 			outputKey.set("OPEN " + depth);
 			outputValue.set(firstElement.toString());
@@ -105,7 +105,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		}
 
 		@Override
-		public void onCloseGroup(int depth, String field, ITuple lastElement, CoGrouperContext context,
+		public void onCloseGroup(int depth, String field, ITuple lastElement, TupleMRContext context,
 		    Collector collector) throws IOException, InterruptedException {
 			outputKey.set("CLOSE " + depth);
 			outputValue.set(lastElement.toString());
@@ -114,7 +114,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		}
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context,
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
 		    Collector collector) throws IOException, InterruptedException {
 			Iterator<ITuple> iterator = tuples.iterator();
 			outputKey.set("ELEMENT");
@@ -144,7 +144,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 
 	@Test
 	public void test1() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
-	    IllegalAccessException, CoGrouperException {
+	    IllegalAccessException, TupleMRException {
 
 		String input = TEST_OUT + "/input";
 		String output = TEST_OUT + "/output";
@@ -168,12 +168,12 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		}
 		Path outputPath = new Path(output);
 
-		CoGrouper grouper = new CoGrouper(getConf());
-		grouper.addSourceSchema(schema);
+		TupleMRBuilder grouper = new TupleMRBuilder(getConf());
+		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("country","age","name");
 		grouper.setOrderBy(new SortBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
 		grouper.setRollupFrom("country");
-		grouper.setGroupHandler(new IdentityRed());
+		grouper.setTupleReducer(new IdentityRed());
 		grouper.setOutput(outputPath, SequenceFileOutputFormat.class, Text.class, Text.class);
 		grouper.addInput(new Path(input), SequenceFileInputFormat.class, new Map());
 
@@ -234,7 +234,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 	
 	@Test
 	public void test2() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
-	    IllegalAccessException, CoGrouperException {
+	    IllegalAccessException, TupleMRException {
 
 		String input = TEST_OUT + "/input";
 		String output = TEST_OUT + "/output";
@@ -258,12 +258,12 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		}
 		Path outputPath = new Path(output);
 
-		CoGrouper grouper = new CoGrouper(getConf());
-		grouper.addSourceSchema(schema);
+		TupleMRBuilder grouper = new TupleMRBuilder(getConf());
+		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("country","age","name");
 		grouper.setOrderBy(new SortBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
 		grouper.setRollupFrom("age");
-		grouper.setGroupHandler(new IdentityRed());
+		grouper.setTupleReducer(new IdentityRed());
 		grouper.setOutput(outputPath, SequenceFileOutputFormat.class, Text.class, Text.class);
 		grouper.addInput(new Path(input), SequenceFileInputFormat.class, new Map());
 
@@ -336,7 +336,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 	 */
 	@Test
 	public void testWithCustomComparator() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
-	    IllegalAccessException, CoGrouperException {
+	    IllegalAccessException, TupleMRException {
 
 		String input = TEST_OUT + "/input";
 		String output = TEST_OUT + "/output";
@@ -360,12 +360,12 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		}
 		Path outputPath = new Path(output);
 		
-		CoGrouper grouper = new CoGrouper(getConf());
-		grouper.addSourceSchema(schema);
+		TupleMRBuilder grouper = new TupleMRBuilder(getConf());
+		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("country","age","name");
 		grouper.setOrderBy(new SortBy().add("country",Order.ASC).add("age",Order.ASC, new ReverseComparator()).add("name",Order.ASC));
 		grouper.setRollupFrom("age");
-		grouper.setGroupHandler(new IdentityRed());
+		grouper.setTupleReducer(new IdentityRed());
 		grouper.setOutput(outputPath, SequenceFileOutputFormat.class, Text.class, Text.class);
 		grouper.addInput(new Path(input), SequenceFileInputFormat.class, new Map());
 
@@ -424,9 +424,9 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 
 	/**
 	 * 
-	 * Checks that {@link Grouper} calls properly {@link GroupHandler#onOpenGroup}, {@link GroupHandler#onCloseGroup} and
-	 * {@link GroupHandler#onGroupElements} and checks that the elements (tuples) passed are coherent. This method assumes
-	 * an specific output from the {@link GroupHandler}. The output needs to be a Text,Text for key and value This will be
+	 * Checks that {@link Grouper} calls properly {@link TupleReducer#onOpenGroup}, {@link TupleReducer#onCloseGroup} and
+	 * {@link TupleReducer#onGroupElements} and checks that the elements (tuples) passed are coherent. This method assumes
+	 * an specific output from the {@link TupleReducer}. The output needs to be a Text,Text for key and value This will be
 	 * the format used : key("OPEN depth"), value("serialized value") key("CLOSE depth"), value("serialized value")
 	 * key("ELEMENT"),value("serialized element") (for every element received in onElements needs to contain a record like
 	 * this)

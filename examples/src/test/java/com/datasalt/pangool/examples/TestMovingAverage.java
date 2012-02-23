@@ -29,7 +29,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.google.common.io.Files;
@@ -40,7 +40,7 @@ public class TestMovingAverage extends AbstractHadoopTestLibrary{
 	private final static String OUTPUT = FOLDER + "/test-output-" + TestMovingAverage.class.getName();
 	
 	@Test
-	public void test() throws IOException, CoGrouperException, InterruptedException,
+	public void test() throws IOException, TupleMRException, InterruptedException,
 	    ClassNotFoundException, URISyntaxException, ParseException {
 
 		Configuration conf = new Configuration();

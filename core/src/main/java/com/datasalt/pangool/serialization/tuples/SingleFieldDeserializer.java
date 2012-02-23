@@ -32,7 +32,7 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.io.tuple.Schema.InternalType;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 
@@ -49,7 +49,7 @@ public class SingleFieldDeserializer {
 	private final Class<?> type;
 	private Object instance;
 	
-	public SingleFieldDeserializer(Configuration conf, CoGrouperConfig grouperConfig, Class<?> type) throws IOException {
+	public SingleFieldDeserializer(Configuration conf, TupleMRConfig grouperConfig, Class<?> type) throws IOException {
 		this.conf = conf;
 		this.ser = new HadoopSerialization(conf);
 		this.cachedEnums = PangoolSerialization.getEnums(grouperConfig);

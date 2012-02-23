@@ -28,9 +28,9 @@ import org.junit.Test;
 import cern.colt.Arrays;
 
 import com.datasalt.pangolin.thrift.test.A;
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.BaseComparator;
@@ -50,7 +50,7 @@ import com.datasalt.pangool.test.AbstractBaseTest;
 public class TestSingleFieldDeserializer extends AbstractBaseTest implements Serializable {
 
 	@Test
-	public void testThrift() throws IOException, CoGrouperException {
+	public void testThrift() throws IOException, TupleMRException {
 		Configuration conf = getConf();
 		
 		ArrayList<Field> fields = new ArrayList<Field> ();
@@ -64,8 +64,8 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		Tuple tuple2 = new Tuple(schema);
 		tuple2.set("a", null);
 		
-		ConfigBuilder builder = new ConfigBuilder();
-		builder.addSourceSchema(schema);
+		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
+		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("a");
 		builder.setOrderBy(new SortBy().add("a", Order.ASC, new BaseComparator<A>(A.class) {
 
@@ -79,8 +79,8 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 			
 		}));		
 		
-		CoGrouperConfig grouperConf = builder.buildConf();
-		CoGrouperConfig.set(grouperConf, conf);
+		TupleMRConfig grouperConf = builder.buildConf();
+		TupleMRConfig.set(grouperConf, conf);
 		
 		HadoopSerialization ser = new HadoopSerialization(conf);
 	

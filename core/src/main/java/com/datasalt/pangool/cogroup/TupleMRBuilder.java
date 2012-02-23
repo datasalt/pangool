@@ -15,8 +15,8 @@
  */
 package com.datasalt.pangool.cogroup;
 
-import static com.datasalt.pangool.cogroup.CoGrouperException.failIfEmpty;
-import static com.datasalt.pangool.cogroup.CoGrouperException.failIfNull;
+import static com.datasalt.pangool.cogroup.TupleMRException.failIfEmpty;
+import static com.datasalt.pangool.cogroup.TupleMRException.failIfNull;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -34,9 +34,9 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.datasalt.pangool.cogroup.processors.CombinerHandler;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.processors.TupleCombiner;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.io.PangoolMultipleOutputs;
 import com.datasalt.pangool.io.TupleInputFormat;
 import com.datasalt.pangool.io.TupleOutputFormat;
@@ -55,7 +55,7 @@ import com.datasalt.pangool.utils.AvroUtils;
 import com.datasalt.pangool.utils.DCUtils;
 
 @SuppressWarnings("rawtypes")
-public class CoGrouper extends ConfigBuilder{
+public class TupleMRBuilder extends TupleMRConfigBuilder{
 
 	private static final class Output {
 
@@ -82,9 +82,9 @@ public class CoGrouper extends ConfigBuilder{
 
 		private Path path;
 		private Class<? extends InputFormat> inputFormat;
-		private InputProcessor inputProcessor;
+		private TupleMapper inputProcessor;
 
-		Input(Path path, Class<? extends InputFormat> inputFormat, InputProcessor inputProcessor) {
+		Input(Path path, Class<? extends InputFormat> inputFormat, TupleMapper inputProcessor) {
 			this.path = path;
 			this.inputFormat = inputFormat;
 			this.inputProcessor = inputProcessor;
@@ -94,8 +94,8 @@ public class CoGrouper extends ConfigBuilder{
 	private Configuration conf;
 	
 
-	private GroupHandler grouperHandler;
-	private CombinerHandler combinerHandler;
+	private TupleReducer tupleReducer;
+	private TupleCombiner tupleCombiner;
 	private Class<? extends OutputFormat> outputFormat;
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass;
@@ -107,11 +107,11 @@ public class CoGrouper extends ConfigBuilder{
 	private List<Input> multiInputs = new ArrayList<Input>();
 	private List<Output> namedOutputs = new ArrayList<Output>();
 
-	public CoGrouper(Configuration conf) {
+	public TupleMRBuilder(Configuration conf) {
 		this.conf = conf;
 	}
 	
-	public CoGrouper(Configuration conf,String name){
+	public TupleMRBuilder(Configuration conf,String name){
 		this.conf = conf;
 		this.jobName = name;
 	}
@@ -120,18 +120,18 @@ public class CoGrouper extends ConfigBuilder{
 		this.jarByClass = jarByClass;
 	}
 
-	public void addTupleInput(Path path, InputProcessor<ITuple, NullWritable> inputProcessor) {
+	public void addTupleInput(Path path, TupleMapper<ITuple, NullWritable> inputProcessor) {
 		this.multiInputs.add(new Input(path, TupleInputFormat.class, inputProcessor));
 		AvroUtils.addAvroSerialization(conf);
 		
 	}
 	
-	public void addInput(Path path, Class<? extends InputFormat> inputFormat, InputProcessor inputProcessor) {
+	public void addInput(Path path, Class<? extends InputFormat> inputFormat, TupleMapper inputProcessor) {
 		this.multiInputs.add(new Input(path, inputFormat, inputProcessor));
 	}
 
-	public void setCombinerHandler(CombinerHandler combinerHandler) {
-		this.combinerHandler = combinerHandler;
+	public void setTupleCombiner(TupleCombiner tupleCombiner) {
+		this.tupleCombiner = tupleCombiner;
 	}
 
 	public void setOutput(Path outputPath, Class<? extends OutputFormat> outputFormat, Class<?> outputKeyClass,
@@ -151,24 +151,24 @@ public class CoGrouper extends ConfigBuilder{
 		AvroUtils.addAvroSerialization(conf);
 	}
 
-	public void setGroupHandler(GroupHandler groupHandler) {
-		this.grouperHandler = groupHandler;
+	public void setTupleReducer(TupleReducer tupleReducer) {
+		this.tupleReducer = tupleReducer;
 	}
 	
 
 
 	public void addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
-	    Class valueClass) throws CoGrouperException {
+	    Class valueClass) throws TupleMRException {
 		 addNamedOutput(namedOutput, outputFormatClass, keyClass, valueClass, null);
 	}
 
 	public void addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
-	    Class valueClass, Map<String, String> specificContext) throws CoGrouperException {
+	    Class valueClass, Map<String, String> specificContext) throws TupleMRException {
 		validateNamedOutput(namedOutput);
 		namedOutputs.add(new Output(namedOutput, outputFormatClass, keyClass, valueClass, specificContext));
 	}
 
-	public void addNamedTupleOutput(String namedOutput, Schema outputSchema) throws CoGrouperException {
+	public void addNamedTupleOutput(String namedOutput, Schema outputSchema) throws TupleMRException {
 		validateNamedOutput(namedOutput);
 		Map<String, String> specificContext = new HashMap<String, String>();
 		specificContext.put(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, outputSchema.toString());
@@ -177,27 +177,27 @@ public class CoGrouper extends ConfigBuilder{
 		namedOutputs.add(output);
 	}
 
-	private void validateNamedOutput(String namedOutput) throws CoGrouperException {
+	private void validateNamedOutput(String namedOutput) throws TupleMRException {
 		PangoolMultipleOutputs.validateOutputName(namedOutput);
 		for(Output existentNamedOutput : namedOutputs) {
 			if(existentNamedOutput.name.equals(namedOutput)) {
-				throw new CoGrouperException("Duplicate named output: " + namedOutput);
+				throw new TupleMRException("Duplicate named output: " + namedOutput);
 			}
 		}
 	}	
 	
-	public Job createJob() throws IOException, CoGrouperException {
+	public Job createJob() throws IOException, TupleMRException {
 
-		failIfNull(grouperHandler, "Need to set a group handler");
+		failIfNull(tupleReducer, "Need to set a group handler");
 		failIfEmpty(multiInputs, "Need to add at least one input");
 		failIfNull(outputFormat, "Need to set output format");
 		failIfNull(outputKeyClass, "Need to set outputKeyClass");
 		failIfNull(outputValueClass, "Need to set outputValueClass");
 		failIfNull(outputPath, "Need to set outputPath");
 
-		CoGrouperConfig grouperConf = buildConf();
+		TupleMRConfig grouperConf = buildConf();
 		// Serialize PangoolConf in Hadoop Configuration
-		CoGrouperConfig.set(grouperConf, conf);
+		TupleMRConfig.set(grouperConf, conf);
 		Job job = (jobName == null) ? new Job(conf) : new Job(conf,jobName);
 		if(grouperConf.getRollupFrom() != null) {
 				job.setReducerClass(RollupReducer.class);
@@ -205,31 +205,31 @@ public class CoGrouper extends ConfigBuilder{
 			job.setReducerClass(SimpleReducer.class);
 		}
 		
-		if(combinerHandler != null) {
+		if(tupleCombiner != null) {
 			job.setCombinerClass(SimpleCombiner.class); // not rollup by now
 			// Set Combiner Handler
 			String uniqueName = UUID.randomUUID().toString() + '.' + "combiner-handler.dat";
 			try {
-				DCUtils.serializeToDC(combinerHandler, uniqueName, job.getConfiguration());
+				DCUtils.serializeToDC(tupleCombiner, uniqueName, job.getConfiguration());
 				job.getConfiguration().set(SimpleCombiner.CONF_COMBINER_HANDLER, uniqueName);
 			} catch(URISyntaxException e1) {
-				throw new CoGrouperException(e1);
+				throw new TupleMRException(e1);
 			}
 		}
 
 		// Set Group Handler
 		try {
 			String uniqueName = UUID.randomUUID().toString() + '.' + "group-handler.dat";
-			DCUtils.serializeToDC(grouperHandler, uniqueName,job.getConfiguration());
+			DCUtils.serializeToDC(tupleReducer, uniqueName,job.getConfiguration());
 			job.getConfiguration().set( SimpleReducer.CONF_REDUCER_HANDLER, uniqueName);
 		} catch(URISyntaxException e1) {
-			throw new CoGrouperException(e1);
+			throw new TupleMRException(e1);
 		}
 
 		// Enabling serialization
 		PangoolSerialization.enableSerialization(job.getConfiguration());
 
-		job.setJarByClass((jarByClass != null) ? jarByClass : grouperHandler.getClass());
+		job.setJarByClass((jarByClass != null) ? jarByClass : tupleReducer.getClass());
 		job.setOutputFormatClass(outputFormat);
 		job.setMapOutputKeyClass(DatumWrapper.class);
 		job.setMapOutputValueClass(NullWritable.class);

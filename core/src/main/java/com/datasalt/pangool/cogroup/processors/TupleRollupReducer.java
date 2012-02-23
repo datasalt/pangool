@@ -19,11 +19,11 @@ import java.io.IOException;
 
 import org.apache.hadoop.mapreduce.Reducer;
 
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 @SuppressWarnings("serial")
-public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> {
+public class TupleRollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> {
 
 	/**
 	 * 
@@ -40,8 +40,8 @@ public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandl
 	 *          The reducer context as in {@link Reducer}
 	 * 
 	 */
-	public void onOpenGroup(int depth, String field, ITuple firstElement, CoGrouperContext context, Collector collector)
-	    throws IOException, InterruptedException, CoGrouperException {
+	public void onOpenGroup(int depth, String field, ITuple firstElement, TupleMRContext context, Collector collector)
+	    throws IOException, InterruptedException, TupleMRException {
 	}
 
 	/**
@@ -60,7 +60,7 @@ public class GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> extends GroupHandl
 	 * 
 	 */
 	public void onCloseGroup(int depth, String field, ITuple lastElement,
-	    CoGrouperContext context, Collector collector) throws IOException, InterruptedException, CoGrouperException {
+	    TupleMRContext context, Collector collector) throws IOException, InterruptedException, TupleMRException {
 
 	}
 }

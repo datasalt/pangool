@@ -31,7 +31,7 @@ import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.SerializationInfo;
 import com.datasalt.pangool.io.Buffer;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
@@ -50,7 +50,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	}
 	
 	
-	private final CoGrouperConfig coGrouperConf;
+	private final TupleMRConfig coGrouperConf;
 	private final Configuration conf;
 	private final SerializationInfo serInfo;
 	private  DataInputStream in;
@@ -62,26 +62,26 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private final Buffer tmpInputBuffer = new Buffer();
 	private DatumWrapper<CachedTuples> cachedTuples = new DatumWrapper<CachedTuples>();
 
-	public PangoolDeserializer(HadoopSerialization ser, CoGrouperConfig grouperConfig, Configuration conf) {
+	public PangoolDeserializer(HadoopSerialization ser, TupleMRConfig grouperConfig, Configuration conf) {
 		this.coGrouperConf = grouperConfig;
 		this.conf = conf;
 		this.serInfo = coGrouperConf.getSerializationInfo();
 		this.ser = ser;
 		this.cachedEnums = PangoolSerialization.getEnums(grouperConfig);
 		this.isRollup = coGrouperConf.getRollupFrom() != null && !coGrouperConf.getRollupFrom().isEmpty();
-		this.multipleSources = coGrouperConf.getNumSources() >= 2;
+		this.multipleSources = coGrouperConf.getNumSchemas() >= 2;
 		this.cachedTuples.datum(createCachedTuples(coGrouperConf));
 		this.cachedTuples.swapInstances(); //do rollup
 		this.cachedTuples.datum(createCachedTuples(coGrouperConf));
 		
 	}
 	
-	private static CachedTuples createCachedTuples(CoGrouperConfig config){
+	private static CachedTuples createCachedTuples(TupleMRConfig config){
 		SerializationInfo serInfo = config.getSerializationInfo();
-		boolean multipleSources = config.getNumSources() >= 2;
+		boolean multipleSources = config.getNumSchemas() >= 2;
 		CachedTuples r = new CachedTuples();
 		r.commonTuple = new Tuple(serInfo.getCommonSchema()); 
-		for (Schema sourceSchema : config.getSourceSchemas()){
+		for (Schema sourceSchema : config.getIntermediateSchemas()){
 			r.resultTuples.add(new Tuple(sourceSchema));
 		}
 		

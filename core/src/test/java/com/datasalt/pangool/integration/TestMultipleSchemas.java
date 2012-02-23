@@ -35,10 +35,10 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.Fields;
@@ -52,20 +52,20 @@ import com.datasalt.pangool.utils.HadoopUtils;
 public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
 	@SuppressWarnings("serial")
-  public static class FirstInputProcessor extends InputProcessor<LongWritable, Text> {
+  public static class FirstInputProcessor extends TupleMapper<LongWritable, Text> {
 
 		private Tuple user,country;
 		
-		public void setup(CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
-			Schema peopleSchema = context.getCoGrouperConfig().getSourceSchema("user");
-			Schema countrySchema = context.getCoGrouperConfig().getSourceSchema("country");
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+			Schema peopleSchema = context.getTupleMRConfig().getIntermediateSchema("user");
+			Schema countrySchema = context.getTupleMRConfig().getIntermediateSchema("country");
 			user = new Tuple(peopleSchema);
 			country = new Tuple(countrySchema);
 		}
 		
 		
 		@Override
-		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector) throws IOException, InterruptedException {
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException, InterruptedException {
 			user.set("name", "Pere");
 			user.set("money", 100);
 			user.set("country", "ES");
@@ -92,15 +92,15 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 	}
 
 	@SuppressWarnings("serial")
-  public static class MyGroupHandler extends GroupHandler<Object, Object> {
+  public static class MyGroupHandler extends TupleReducer<Object, Object> {
 
 		private boolean FR_PRESENT = false;
 		private boolean ES_PRESENT = false;
 		private Map<String, List<String>> records = new HashMap<String, List<String>>();
 		
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, 
-		    Collector collector) throws IOException, InterruptedException, CoGrouperException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, 
+		    Collector collector) throws IOException, InterruptedException, TupleMRException {
 			
 			String groupString = group.get(0).toString();
 			if(groupString.equals("FR")) {
@@ -121,7 +121,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 			}
 		}
 		
-		public void cleanup(CoGrouperContext coGrouperContext, Collector collector) throws IOException ,InterruptedException ,CoGrouperException {
+		public void cleanup(TupleMRContext coGrouperContext, Collector collector) throws IOException ,InterruptedException ,TupleMRException {
 			/*
 			 * Validate test conditions
 			 */
@@ -142,21 +142,21 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 	}
 
 	@Test
-	public void test() throws CoGrouperException, IOException, InterruptedException,
+	public void test() throws TupleMRException, IOException, InterruptedException,
 	    ClassNotFoundException {
 		CommonUtils.writeTXT("foo", new File("test-input"));
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 
-		CoGrouper grouper = new CoGrouper(new Configuration());
-		grouper.addSourceSchema(new Schema("country",Fields.parse("country:string, averageSalary:int")));
-		grouper.addSourceSchema(new Schema("user",Fields.parse("name:string, money:int, country:string")));
+		TupleMRBuilder grouper = new TupleMRBuilder(new Configuration());
+		grouper.addIntermediateSchema(new Schema("country",Fields.parse("country:string, averageSalary:int")));
+		grouper.addIntermediateSchema(new Schema("user",Fields.parse("name:string, money:int, country:string")));
 		
 		grouper.setGroupByFields("country");
 		grouper.setOrderBy(new SortBy().add("country",Order.ASC).addSourceOrder(Order.DESC));
 		grouper.setSecondaryOrderBy("user", new SortBy().add("money",Order.ASC));
 		
 		grouper.addInput(new Path("test-input"), TextInputFormat.class, new FirstInputProcessor());
-		grouper.setGroupHandler(new MyGroupHandler());
+		grouper.setTupleReducer(new MyGroupHandler());
 		grouper.setOutput(new Path("test-output"), TextOutputFormat.class, NullWritable.class, NullWritable.class);
 		
 		Job job = grouper.createJob();

@@ -18,43 +18,43 @@ package com.datasalt.pangool.cogroup;
 import java.util.Collection;
 
 
-public class CoGrouperException extends Exception {
+public class TupleMRException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 
-	public CoGrouperException(Throwable e) {
+	public TupleMRException(Throwable e) {
 		super(e);
 	}
 
-	public CoGrouperException(String message, Throwable e) {
+	public TupleMRException(String message, Throwable e) {
 		super(message, e);
 	}
 
-	public CoGrouperException(String message) {
+	public TupleMRException(String message) {
 		super(message);
 	}
 	
-	public static void failIfNull(Object ob, String message) throws CoGrouperException {
+	public static void failIfNull(Object ob, String message) throws TupleMRException {
 		if(ob == null) {
-			throw new CoGrouperException(message);
+			throw new TupleMRException(message);
 		}
 	}
 
-	public static void failIfEmpty(Collection ob, String message) throws CoGrouperException {
+	public static void failIfEmpty(Collection ob, String message) throws TupleMRException {
 		if(ob == null || ob.isEmpty()) {
-			throw new CoGrouperException(message);
+			throw new TupleMRException(message);
 		}
 	}
 	
-	public static void failIfEmpty(Object[] ob, String message) throws CoGrouperException {
+	public static void failIfEmpty(Object[] ob, String message) throws TupleMRException {
 		if(ob == null || ob.length == 0) {
-			throw new CoGrouperException(message);
+			throw new TupleMRException(message);
 		}
 	}
 
-	public static void failIfNotNull(Object ob, String message) throws CoGrouperException {
+	public static void failIfNotNull(Object ob, String message) throws TupleMRException {
 		if(ob != null) {
-			throw new CoGrouperException(message);
+			throw new TupleMRException(message);
 		}
 	}
 	

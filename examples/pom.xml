@@ -35,7 +35,7 @@
           <optimize>true</optimize>
         </configuration>
       </plugin>
-      <plugin>
+      <!--plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
@@ -46,27 +46,23 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <!-- configure the plugin here -->
+             
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin-->
 
       <!-- create examples pangool job jar -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>job</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
+        <version>2.3</version>
             <configuration>
-              <skipAssembly>${pangool.skip.example}</skipAssembly>
+	  <!--descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs-->
               <descriptors>
-                <descriptor>src/main/assembly/job.xml</descriptor>
+                 <descriptor>src/main/assembly/job2.xml</descriptor>
               </descriptors>
 	      <archive>
                 <manifest>
@@ -74,8 +70,16 @@
                 </manifest>
               </archive>
            </configuration>
+	<!--executions>
+          <execution>
+            <id>make-job</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+
           </execution>
-        </executions>
+        </executions-->
       </plugin>
     </plugins>
   </build>
@@ -88,7 +92,11 @@
       <version>${project.version}</version>
       <artifactId>pangool-core</artifactId> 
     </dependency>
-
+    <!--dependency>
+      <groupid>org.apache.hadoop</groupid>
+     <artifactId>hadoop-core</artifactId>
+      
+	</dependency-->
     <!-- Test dependencies -->
     <dependency>
       <groupId>junit</groupId>

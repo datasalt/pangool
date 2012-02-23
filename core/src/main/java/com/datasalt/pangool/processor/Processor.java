@@ -27,7 +27,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.mapreduce.lib.input.PangoolMultipleInputs;
 
 /**
@@ -87,7 +87,7 @@ public class Processor {
 		this.conf = conf;
 	}
 
-	public Job createJob() throws IOException, CoGrouperException, URISyntaxException {
+	public Job createJob() throws IOException, TupleMRException, URISyntaxException {
 
 		// TODO Checks
 		

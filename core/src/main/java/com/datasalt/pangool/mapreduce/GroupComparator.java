@@ -21,9 +21,9 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.sorting.Criteria;
 import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -37,8 +37,8 @@ public class GroupComparator extends SortComparator {
 	
 	@Override
 	public int compare(ITuple w1, ITuple w2) {
-		int sourceId1 = grouperConf.getSourceIdByName(w1.getSchema().getName());
-		int sourceId2 = grouperConf.getSourceIdByName(w2.getSchema().getName());
+		int sourceId1 = grouperConf.getSchemaIdByName(w1.getSchema().getName());
+		int sourceId2 = grouperConf.getSchemaIdByName(w2.getSchema().getName());
 		int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(sourceId1);
 		int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(sourceId2);
 		return compare(w1.getSchema(), groupSortBy, w1, indexes1, w2, indexes2);
@@ -64,7 +64,7 @@ public class GroupComparator extends SortComparator {
 			groupSortElements.addAll(sortElements);
 			groupSortElements = groupSortElements.subList(0,numGroupByFields);
 			groupSortBy = new Criteria(groupSortElements);					
-			ConfigBuilder.initializeComparators(conf, grouperConf);
+			TupleMRConfigBuilder.initializeComparators(conf, grouperConf);
 		}
 	}	
 }

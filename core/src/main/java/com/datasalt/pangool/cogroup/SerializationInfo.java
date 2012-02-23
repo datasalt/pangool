@@ -33,7 +33,7 @@ import com.datasalt.pangool.mapreduce.Partitioner;
  */
 public class SerializationInfo {
 
-	private final CoGrouperConfig grouperConfig;
+	private final TupleMRConfig grouperConfig;
 	/* Fields that will be ser/deserialized before finding sourceId */
 	private Schema commonSchema; 
 	
@@ -42,7 +42,7 @@ public class SerializationInfo {
 	
 	/** 
 	 * Fields that define a group. It matches the fields defined in 
-	 * {@link CoGrouperConfig#getGroupByFields()} ordered accordingly {@link CoGrouperConfig#getCommonCriteria()} 
+	 * {@link TupleMRConfig#getGroupByFields()} ordered accordingly {@link TupleMRConfig#getCommonCriteria()} 
 	 */ 
 	private Schema groupSchema;
 	
@@ -54,23 +54,23 @@ public class SerializationInfo {
 	
 	
 	
-	public SerializationInfo(CoGrouperConfig grouperConfig) throws CoGrouperException{
+	public SerializationInfo(TupleMRConfig grouperConfig) throws TupleMRException{
 		this.grouperConfig = grouperConfig;
-		if (grouperConfig.getNumSources() >= 2){
+		if (grouperConfig.getNumSchemas() >= 2){
 			initializeMultipleSources();
 		} else {
 			initializeOneSource();
 		}
 	}
 	
-	private void initializeOneSource() throws CoGrouperException {
+	private void initializeOneSource() throws TupleMRException {
 		calculateOneSourceCommonSchema();
 		calculatePartitionFields();
 		calculateGroupSchema();
 		calculateIndexTranslations();
 	}
 	
-	private void initializeMultipleSources() throws CoGrouperException{
+	private void initializeMultipleSources() throws TupleMRException{
 		calculateMultipleSourcesIntermediateSchemas();
 		calculatePartitionFields();
 		calculateGroupSchema();
@@ -112,7 +112,7 @@ public class SerializationInfo {
 			partitionFields = grouperConfig.calculateRollupBaseFields();
 		}
 		int numFields = partitionFields.size();
-		for (Schema schema : grouperConfig.getSourceSchemas()){
+		for (Schema schema : grouperConfig.getIntermediateSchemas()){
 			int[] posFields = new int[numFields];
 			for (int i = 0 ; i < partitionFields.size(); i++){
 				int pos = schema.getFieldPos(partitionFields.get(i));
@@ -122,8 +122,8 @@ public class SerializationInfo {
 		}
 	}
 	
-	private void calculateOneSourceCommonSchema() throws CoGrouperException {
-		Schema sourceSchema =grouperConfig.getSourceSchemas().get(0); 
+	private void calculateOneSourceCommonSchema() throws TupleMRException {
+		Schema sourceSchema =grouperConfig.getIntermediateSchemas().get(0); 
 		
 		Criteria commonSortCriteria = grouperConfig.getCommonCriteria();
 		List<Field> commonFields = new ArrayList<Field>();
@@ -143,7 +143,7 @@ public class SerializationInfo {
 	}
 	
 	
-	private void calculateMultipleSourcesIntermediateSchemas() throws CoGrouperException {
+	private void calculateMultipleSourcesIntermediateSchemas() throws TupleMRException {
 		Criteria commonSortCriteria = grouperConfig.getCommonCriteria();
 		List<Field> commonFields = new ArrayList<Field>();
 		for (SortElement sortElement : commonSortCriteria.getElements()){
@@ -156,7 +156,7 @@ public class SerializationInfo {
 		this.specificSchemas = new ArrayList<Schema>();
 		List<List<Field>> specificFieldsBySource = new ArrayList<List<Field>>();
 		
-		for (int sourceId=0 ; sourceId < grouperConfig.getNumSources(); sourceId++){
+		for (int sourceId=0 ; sourceId < grouperConfig.getNumSchemas(); sourceId++){
 			Criteria specificCriteria = grouperConfig.getSecondarySortBys().get(sourceId);
 			List<Field> specificFields = new ArrayList<Field>();
 			if (specificCriteria != null){
@@ -169,8 +169,8 @@ public class SerializationInfo {
 			specificFieldsBySource.add(specificFields);
 		}
 		
-		for (int i= 0 ; i < grouperConfig.getNumSources(); i++){
-			Schema sourceSchema = grouperConfig.getSourceSchema(i);
+		for (int i= 0 ; i < grouperConfig.getNumSchemas(); i++){
+			Schema sourceSchema = grouperConfig.getIntermediateSchema(i);
 			List<Field> specificFields = specificFieldsBySource.get(i);
 //			if (specificFields == null){
 //				specificFields = new ArrayList<Field>();
@@ -197,24 +197,24 @@ public class SerializationInfo {
 		return false;
 	}
 	
-	private Class<?> checkFieldInAllSources(String name) throws CoGrouperException{
+	private Class<?> checkFieldInAllSources(String name) throws TupleMRException{
 		Class<?> type = null;
-		for (int i=0 ; i < grouperConfig.getSourceSchemas().size() ; i++){
+		for (int i=0 ; i < grouperConfig.getIntermediateSchemas().size() ; i++){
 			Class<?> typeInSource = checkFieldInSource(name,i);
 			if (type == null){
 				type = typeInSource;
 			} else if (type != typeInSource){
-				throw new CoGrouperException("The type for field '"+ name + "' is not the same in all the sources");
+				throw new TupleMRException("The type for field '"+ name + "' is not the same in all the sources");
 			}
 		}
 		return type;
 	}
 	
-	private Class<?> checkFieldInSource(String fieldName,int sourceId ) throws CoGrouperException{
-		Schema schema = grouperConfig.getSourceSchema(sourceId);
+	private Class<?> checkFieldInSource(String fieldName,int sourceId ) throws TupleMRException{
+		Schema schema = grouperConfig.getIntermediateSchema(sourceId);
 		Field field =schema.getField(fieldName); 
 		if (field == null){
-			throw new CoGrouperException("Field '" + fieldName + "' not present in source '" +  schema.getName() + "' " + schema);
+			throw new TupleMRException("Field '" + fieldName + "' not present in source '" +  schema.getName() + "' " + schema);
 		} 
 		return field.getType();
 	}
@@ -236,8 +236,8 @@ public class SerializationInfo {
 	}
 	
 	private void calculateIndexTranslations(){ 
-		for (int sourceId = 0 ; sourceId < grouperConfig.getSourceSchemas().size() ; sourceId++){
-			Schema sourceSchema = grouperConfig.getSourceSchema(sourceId);
+		for (int sourceId = 0 ; sourceId < grouperConfig.getIntermediateSchemas().size() ; sourceId++){
+			Schema sourceSchema = grouperConfig.getIntermediateSchema(sourceId);
 			commonToSourcesIndexes.add(getIndexTranslation(commonSchema,sourceSchema));
 			groupToSourcesIndexes.add(getIndexTranslation(groupSchema,sourceSchema));
 			if (specificSchemas != null && !specificSchemas.isEmpty()){

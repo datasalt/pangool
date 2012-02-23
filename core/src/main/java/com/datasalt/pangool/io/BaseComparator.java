@@ -22,8 +22,8 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.serialization.tuples.SingleFieldDeserializer;
 
 @SuppressWarnings("serial")
@@ -43,12 +43,12 @@ public abstract class BaseComparator<T> implements RawComparator<T>, Serializabl
 	@Override
 	public void setConf(Configuration conf) {
 		try {
-	    fieldDeser1 = new SingleFieldDeserializer(conf, CoGrouperConfig.get(conf), type);
-	    fieldDeser2 = new SingleFieldDeserializer(conf, CoGrouperConfig.get(conf), type);
+	    fieldDeser1 = new SingleFieldDeserializer(conf, TupleMRConfig.get(conf), type);
+	    fieldDeser2 = new SingleFieldDeserializer(conf, TupleMRConfig.get(conf), type);
 	    	    
     } catch(IOException e) {
     	throw new RuntimeException(e);
-    } catch(CoGrouperException e) {
+    } catch(TupleMRException e) {
     	throw new RuntimeException(e);
     }
 	}

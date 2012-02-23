@@ -27,7 +27,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.examples.Grep;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.google.common.io.Files;
@@ -38,7 +38,7 @@ public class TestGrep {
 	private final static String OUTPUT = FOLDER + "/tests-files/test-output-" + TestGrep.class.getName();
 
 	@Test
-	public void test() throws IOException, CoGrouperException, InterruptedException,
+	public void test() throws IOException, TupleMRException, InterruptedException,
 	    ClassNotFoundException, URISyntaxException {
 		
 		Files.write("foo\nbar", new File(INPUT), Charset.forName("UTF-8"));

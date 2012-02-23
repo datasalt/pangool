@@ -144,7 +144,8 @@
       <artifactId>hadoop-core</artifactId>
       <!--version>0.20.203.0</version-->
       <version>0.20.2-cdh3u1</version>
-     </dependency>   
+     <!--scope>provided</scope-->
+	</dependency>   
      
     <dependency>
       <groupId>org.apache.commons</groupId>

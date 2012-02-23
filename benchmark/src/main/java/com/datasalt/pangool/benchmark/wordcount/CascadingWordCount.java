@@ -17,7 +17,6 @@ package com.datasalt.pangool.benchmark.wordcount;
 
 import java.util.Properties;
 
-import sun.font.TextLineComponent;
 
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;

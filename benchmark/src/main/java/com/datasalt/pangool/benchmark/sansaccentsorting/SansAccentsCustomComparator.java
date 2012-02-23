@@ -33,10 +33,10 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.BaseComparator;
@@ -51,15 +51,15 @@ import com.datasalt.pangool.io.tuple.Schema.Field;
 public class SansAccentsCustomComparator {
 
 	@SuppressWarnings("serial")
-	public static class Split extends InputProcessor<LongWritable, Text> {
+	public static class Split extends TupleMapper<LongWritable, Text> {
 
 		private Tuple tuple;
 		
 		@Override
-		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
 			if (tuple == null){
-				tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema(0));
+				tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
 			}
 			
 			StringTokenizer itr = new StringTokenizer(value.toString());
@@ -74,17 +74,17 @@ public class SansAccentsCustomComparator {
 	}
 
 	@SuppressWarnings("serial")
-	public static class Count extends GroupHandler<Text, NullWritable> {
+	public static class Count extends TupleReducer<Text, NullWritable> {
 		private NullWritable n;
 		
-		public void setup(CoGrouperContext coGrouperContext, Collector collector)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void setup(TupleMRContext coGrouperContext, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 			n = NullWritable.get();
 		}
 		
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 			
 			for(ITuple tuple : tuples) {
 				Text t = (Text)tuple.get("word");
@@ -109,7 +109,7 @@ public class SansAccentsCustomComparator {
 	}
 	
 
-	public Job getJob(Configuration conf, String input, String output) throws CoGrouperException,
+	public Job getJob(Configuration conf, String input, String output) throws TupleMRException,
 	    IOException {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);
@@ -118,20 +118,20 @@ public class SansAccentsCustomComparator {
 		fields.add(new Field("word",String.class));
 		Schema schema = new Schema("schema",fields);
 
-		CoGrouper cg = new CoGrouper(conf,"Utf8 Alternate order using custom comparator");
-		cg.addSourceSchema(schema);
+		TupleMRBuilder cg = new TupleMRBuilder(conf,"Utf8 Alternate order using custom comparator");
+		cg.addIntermediateSchema(schema);
 		cg.setGroupByFields("word");
 		cg.setOrderBy(new SortBy().add("word",Order.ASC,new MyUtf8Comparator()));
 		cg.setJarByClass(SansAccentsCustomComparator.class);
 		cg.addInput(new Path(input), TextInputFormat.class, new Split());
 		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class,NullWritable.class);
-		cg.setGroupHandler(new Count());
+		cg.setTupleReducer(new Count());
 		return cg.createJob();
 	}
 
 	private static final String HELP = "Usage: [input_path] [output_path]";
 
-	public static void main(String args[]) throws CoGrouperException, IOException, InterruptedException,
+	public static void main(String args[]) throws TupleMRException, IOException, InterruptedException,
 	    ClassNotFoundException {
 		if(args.length != 2) {
 			System.err.println("Wrong number of arguments");

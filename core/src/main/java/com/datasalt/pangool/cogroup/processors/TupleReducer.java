@@ -22,9 +22,9 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.MultipleOutputsCollector;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
@@ -33,14 +33,14 @@ import com.datasalt.pangool.mapreduce.SimpleReducer;
 
 /**
  * 
- * This is the common interface that any {@link CoGrouper} job needs to implement. This handler is called in the reducer
+ * This is the common interface that any {@link TupleMRBuilder} job needs to implement. This handler is called in the reducer
  * step by {@link SimpleReducer} or {@link RollupReducer} depending if Roll-up feature is used.
  */
 @SuppressWarnings("serial")
-public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
+public class TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
 	
-	public void setup(CoGrouperContext coGrouperContext, Collector collector)
-	    throws IOException, InterruptedException, CoGrouperException {
+	public void setup(TupleMRContext coGrouperContext, Collector collector)
+	    throws IOException, InterruptedException, TupleMRException {
 
 	}
 
@@ -54,19 +54,19 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
 	 * @param context
 	 *          The reducer context as in {@link Reducer}
 	 */
-	public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
-	    CoGrouperException {
+	public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
+	    TupleMRException {
 
 	}
 	
-	public void cleanup(CoGrouperContext coGrouperContext, Collector collector)
-	    throws IOException, InterruptedException, CoGrouperException {
+	public void cleanup(TupleMRContext coGrouperContext, Collector collector)
+	    throws IOException, InterruptedException, TupleMRException {
 	}
 	
 	/* ------------ INNER CLASSES ------------ */
 	
 	/**
-	 * 	A base class for the {@link GroupHandler.Collector}
+	 * 	A base class for the {@link TupleReducer.Collector}
 	 */
 	public static class StaticCollector<OUTPUT_KEY, OUTPUT_VALUE> extends MultipleOutputsCollector {
 
@@ -93,17 +93,17 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
     }		
 	}
 	
-  public static class StaticCoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> {
+  public static class StaticTupleMRContext<OUTPUT_KEY, OUTPUT_VALUE> {
   	
-  	private CoGrouperConfig pangoolConfig;
+  	private TupleMRConfig pangoolConfig;
   	private ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext;
   	
-  	public StaticCoGrouperContext(ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext, CoGrouperConfig pangoolConfig) {
+  	public StaticTupleMRContext(ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext, TupleMRConfig pangoolConfig) {
   		this.pangoolConfig = pangoolConfig;
   		this.hadoopContext = hadoopContext;
   	}
 
-  	public CoGrouperConfig getCoGrouperConfig() {
+  	public TupleMRConfig getCoGrouperConfig() {
   		return pangoolConfig;
   	}
   	  	
@@ -115,14 +115,14 @@ public class GroupHandler<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
   	}
   }
   
-  public class CoGrouperContext extends StaticCoGrouperContext<OUTPUT_KEY, OUTPUT_VALUE> {
+  public class TupleMRContext extends StaticTupleMRContext<OUTPUT_KEY, OUTPUT_VALUE> {
 		/*
 		 * This non static inner class is created to eliminate the need in
 		 * of the extended GroupHandler methods to specify the generic types
 		 * for the CoGrouperContext meanwhile keeping generics. 
 		 */
-		public CoGrouperContext(ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext,
-        CoGrouperConfig pangoolConfig) {
+		public TupleMRContext(ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext,
+        TupleMRConfig pangoolConfig) {
       super(hadoopContext, pangoolConfig);
     }    	
   }

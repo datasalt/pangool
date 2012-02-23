@@ -28,8 +28,8 @@ import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
@@ -46,12 +46,12 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 
 	private Configuration conf;
 	private com.datasalt.pangool.serialization.hadoop.HadoopSerialization ser;
-	private CoGrouperConfig grouperConfig;
+	private TupleMRConfig grouperConfig;
 
 	public PangoolSerialization() {
 	}
 	
-	public PangoolSerialization(HadoopSerialization ser,CoGrouperConfig grouperConf){
+	public PangoolSerialization(HadoopSerialization ser,TupleMRConfig grouperConf){
 		this.ser = ser;
 		this.grouperConfig = grouperConf;
 	}
@@ -75,10 +75,10 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 				// Mega tricky!!!!. This is to avoid recursive serialization instantiation!!
 				disableSerialization(this.conf);
 
-				this.grouperConfig = CoGrouperConfig.get(conf);
+				this.grouperConfig = TupleMRConfig.get(conf);
 				this.ser = new com.datasalt.pangool.serialization.hadoop.HadoopSerialization(this.conf);
 			}
-		} catch(CoGrouperException e) {
+		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		} catch(IOException e) {
 			throw new RuntimeException(e);
@@ -99,9 +99,9 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 	 * Caches the values from the enum fields. This is done just once for efficiency since it uses reflection.
 	 * 
 	 */
-	public static Map<Class<?>, Enum<?>[]> getEnums(CoGrouperConfig grouperConfig) {
+	public static Map<Class<?>, Enum<?>[]> getEnums(TupleMRConfig grouperConfig) {
 		Map<Class<?>, Enum<?>[]> result = new HashMap<Class<?>, Enum<?>[]>();
-		for(Schema s : grouperConfig.getSourceSchemas()) {
+		for(Schema s : grouperConfig.getIntermediateSchemas()) {
 			extractEnumsFromSchema(result, s);
 		}
 		return result;

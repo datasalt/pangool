@@ -32,7 +32,7 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
@@ -119,7 +119,7 @@ public class PangoolMultipleInputs {
 	}
 
 	/**
-	 * Retrieves a map of {@link Path}s to the serialized {@link InputProcessor} that should be used for them.
+	 * Retrieves a map of {@link Path}s to the serialized {@link TupleMapper} that should be used for them.
 	 * 
 	 * @param job
 	 *          The {@link JobContext}

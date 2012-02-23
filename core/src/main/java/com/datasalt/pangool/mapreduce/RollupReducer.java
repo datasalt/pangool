@@ -25,12 +25,12 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.mapreduce.Reducer;
 
-import com.datasalt.pangool.cogroup.CoGrouperConfig;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.ConfigBuilder;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.SerializationInfo;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
-import com.datasalt.pangool.cogroup.processors.GroupHandlerWithRollup;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
+import com.datasalt.pangool.cogroup.processors.TupleRollupReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -45,14 +45,14 @@ import com.datasalt.pangool.utils.DCUtils;
 public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	private boolean firstRun=true;
-	private CoGrouperConfig grouperConfig;
+	private TupleMRConfig grouperConfig;
 	private SerializationInfo serInfo;
-	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.CoGrouperContext context;
-	private GroupHandler<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
+	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE>.TupleMRContext context;
+	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	private int minDepth, maxDepth;
 	private ViewTuple groupTuple;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
-	private GroupHandlerWithRollup<OUTPUT_KEY, OUTPUT_VALUE> handler;
+	private TupleRollupReducer<OUTPUT_KEY, OUTPUT_VALUE> handler;
 	private boolean isMultipleSources;
 	private Schema groupSchema;
 	private RawComparator<?>[] customComparators;
@@ -60,8 +60,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
   @Override
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
-			this.grouperConfig = CoGrouperConfig.get(context.getConfiguration());
-			this.isMultipleSources = this.grouperConfig.getNumSources() >=2;
+			this.grouperConfig = TupleMRConfig.get(context.getConfiguration());
+			this.isMultipleSources = this.grouperConfig.getNumSchemas() >=2;
 			this.serInfo = grouperConfig.getSerializationInfo();
 			this.groupSchema = this.serInfo.getGroupSchema();
 			if (!isMultipleSources){
@@ -78,7 +78,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			
 			initComparators();
 			
-		} catch(CoGrouperException e) {
+		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -89,7 +89,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	 */
 	private void initComparators () {
 		// Initializing the custom comparators 
-		ConfigBuilder.initializeComparators(context.getHadoopContext().getConfiguration(), grouperConfig);
+		TupleMRConfigBuilder.initializeComparators(context.getHadoopContext().getConfiguration(), grouperConfig);
 		
 		customComparators = new RawComparator<?>[maxDepth+1];
 		for (int i=minDepth; i<=maxDepth; i++) {
@@ -102,14 +102,14 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	
 	@SuppressWarnings("unchecked")
   private void initHandlerContextAndCollector(Context context) throws IOException, InterruptedException,
-      CoGrouperException {
+      TupleMRException {
 	  String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
-	  handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), GroupHandlerWithRollup.class, fileName);
+	  handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleRollupReducer.class, fileName);
 	  if(handler instanceof Configurable) {
 	  	((Configurable) handler).setConf(context.getConfiguration());
 	  }
 	  collector = handler.new Collector(context);
-	  this.context = handler.new CoGrouperContext(context, grouperConfig);
+	  this.context = handler.new TupleMRContext(context, grouperConfig);
 	  handler.setup(this.context, collector);
   }
 
@@ -118,7 +118,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			handler.cleanup(this.context, collector);
 			collector.close();
 			super.cleanup(context);
-		} catch(CoGrouperException e) {
+		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -138,7 +138,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 				handler.onCloseGroup(i, groupSchema.getField(i).getName(), context.getCurrentKey().datum(), this.context, collector);
 			}
 			cleanup(context);
-		} catch(CoGrouperException e) {
+		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -172,21 +172,21 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 
 			// We set a view over the group fields to the method.
 			if (isMultipleSources){ //TODO consider not using index translation for multiple sources  
-				int sourceId = grouperConfig.getSourceIdByName(currentTuple.getSchema().getName());
+				int sourceId = grouperConfig.getSchemaIdByName(currentTuple.getSchema().getName());
 				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(sourceId);
 				groupTuple.setContained(currentTuple,indexTranslation);
 			} else {
 				groupTuple.setContained(currentTuple);
 			}
 
-			handler.onGroupElements(groupTuple, grouperIterator, this.context, collector);
+			handler.reduce(groupTuple, grouperIterator, this.context, collector);
 
 			// This loop consumes the remaining elements that reduce didn't consume
 			// The goal of this is to correctly set the last element in the next onCloseGroup() call
 			while(iterator.hasNext()) {
 				iterator.next();
 			}
-		} catch(CoGrouperException e) {
+		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -200,8 +200,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	 * @return
 	 */
 	private int indexMismatch(ITuple tuple1, ITuple tuple2, int minFieldIndex, int maxFieldIndex) {		
-		int sourceId1 = grouperConfig.getSourceIdByName(tuple1.getSchema().getName());
-		int sourceId2 = grouperConfig.getSourceIdByName(tuple2.getSchema().getName());
+		int sourceId1 = grouperConfig.getSchemaIdByName(tuple1.getSchema().getName());
+		int sourceId2 = grouperConfig.getSchemaIdByName(tuple2.getSchema().getName());
 		int[] translationTuple1 = serInfo.getGroupSchemaIndexTranslation(sourceId1);
 		int[] translationTuple2 = serInfo.getGroupSchemaIndexTranslation(sourceId2);
 		

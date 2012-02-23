@@ -32,11 +32,11 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.cogroup.CoGrouper;
-import com.datasalt.pangool.cogroup.CoGrouperException;
-import com.datasalt.pangool.cogroup.processors.CombinerHandler;
-import com.datasalt.pangool.cogroup.processors.GroupHandler;
-import com.datasalt.pangool.cogroup.processors.InputProcessor;
+import com.datasalt.pangool.cogroup.TupleMRBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.processors.TupleCombiner;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
@@ -50,15 +50,15 @@ public class PangoolWordCount {
 	public final static Charset UTF8 = Charset.forName("UTF-8");
 	
 	@SuppressWarnings("serial")
-	public static class Split extends InputProcessor<LongWritable, Text> {
+	public static class Split extends TupleMapper<LongWritable, Text> {
 
 		private Tuple tuple;
 		
 		@Override
-		public void process(LongWritable key, Text value, CoGrouperContext context, Collector collector)
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
 			if (tuple == null){
-				tuple = new Tuple(context.getCoGrouperConfig().getSourceSchema(0));
+				tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
 			}
 			
 			StringTokenizer itr = new StringTokenizer(value.toString());
@@ -71,11 +71,11 @@ public class PangoolWordCount {
 	}
 
 	@SuppressWarnings("serial")
-	public static class CountCombiner extends CombinerHandler {
+	public static class CountCombiner extends TupleCombiner {
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 			int count = 0;
 			ITuple outputTuple=null;
 			for(ITuple tuple : tuples) {
@@ -88,12 +88,12 @@ public class PangoolWordCount {
 	}
 
 	@SuppressWarnings("serial")
-	public static class Count extends GroupHandler<Text, IntWritable> {
+	public static class Count extends TupleReducer<Text, IntWritable> {
 		private IntWritable outputCount;
 		
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
-		    throws IOException, InterruptedException, CoGrouperException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 			
 			if(outputCount == null) {
 				outputCount = new IntWritable();
@@ -107,7 +107,7 @@ public class PangoolWordCount {
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws CoGrouperException,
+	public Job getJob(Configuration conf, String input, String output) throws TupleMRException,
 	    IOException {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);
@@ -118,21 +118,21 @@ public class PangoolWordCount {
 		fields.add(new Field("count",VIntWritable.class));
 		Schema schema = new Schema("schema",fields);
 
-		CoGrouper cg = new CoGrouper(conf,"Pangool WordCount");
-		cg.addSourceSchema(schema);
+		TupleMRBuilder cg = new TupleMRBuilder(conf,"Pangool WordCount");
+		cg.addIntermediateSchema(schema);
 		cg.setGroupByFields("word");
 		cg.setJarByClass(PangoolWordCount.class);
 		cg.addInput(new Path(input), TextInputFormat.class, new Split());
 		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class, Text.class);
-		cg.setGroupHandler(new Count());
-		cg.setCombinerHandler(new CountCombiner());
+		cg.setTupleReducer(new Count());
+		cg.setTupleCombiner(new CountCombiner());
 
 		return cg.createJob();
 	}
 
 	private static final String HELP = "Usage: PangoolWordCount [input_path] [output_path]";
 
-	public static void main(String args[]) throws CoGrouperException, IOException, InterruptedException,
+	public static void main(String args[]) throws TupleMRException, IOException, InterruptedException,
 	    ClassNotFoundException {
 		if(args.length != 2) {
 			System.err.println("Wrong number of arguments");
