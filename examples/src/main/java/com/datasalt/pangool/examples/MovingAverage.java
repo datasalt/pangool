@@ -151,4 +151,18 @@ public class MovingAverage {
 		grouper.addInput(new Path(input), TextInputFormat.class, new URLVisitsProcessor());
 		return grouper.createJob();
 	}
+	
+	private static final String HELP = "Usage: [input_path] [output_path] [num_days_average]";
+
+	public static void main(String args[]) throws TupleMRException, IOException, InterruptedException,
+	    ClassNotFoundException {
+		if(args.length != 3) {
+			System.err.println("Wrong number of arguments");
+			System.err.println(HELP);
+			System.exit(-1);
+		}
+
+		Configuration conf = new Configuration();
+		new MovingAverage().getJob(conf, args[0], args[1],Integer.parseInt(args[2])).waitForCompletion(true);
+	}
 }
