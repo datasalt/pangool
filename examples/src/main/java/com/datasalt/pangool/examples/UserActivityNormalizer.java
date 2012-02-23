@@ -194,4 +194,18 @@ public class UserActivityNormalizer {
 		grouper.addInput(new Path(input), TextInputFormat.class, new UserActivityProcessor());
 		return grouper.createJob();
 	}
+	
+	private static final String HELP = "Usage: [input_path] [output_path]";
+
+	public static void main(String args[]) throws TupleMRException, IOException, InterruptedException,
+	    ClassNotFoundException {
+		if(args.length != 2) {
+			System.err.println("Wrong number of arguments");
+			System.err.println(HELP);
+			System.exit(-1);
+		}
+
+		Configuration conf = new Configuration();
+		new UserActivityNormalizer().getJob(conf, args[0], args[1]).waitForCompletion(true);
+	}
 }

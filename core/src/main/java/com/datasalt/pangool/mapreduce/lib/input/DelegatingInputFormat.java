@@ -29,7 +29,6 @@ import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -42,6 +41,7 @@ import org.apache.hadoop.util.ReflectionUtils;
  * 
  * @see PangoolMultipleInputs#addInputPath(Job, Path, Class, Class)
  */
+@SuppressWarnings("rawtypes")
 public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
 
   @SuppressWarnings("unchecked")
@@ -50,7 +50,8 @@ public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
     Configuration conf = job.getConfiguration();
     Job jobCopy =new Job(conf);
     List<InputSplit> splits = new ArrayList<InputSplit>();
-    Map<Path, InputFormat> formatMap = 
+    
+		Map<Path, InputFormat> formatMap = 
       PangoolMultipleInputs.getInputFormatMap(job);
     Map<Path, String> mapperMap = PangoolMultipleInputs
        .getInputProcessorFileMap(job);

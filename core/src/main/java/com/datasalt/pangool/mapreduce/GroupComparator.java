@@ -21,8 +21,6 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 
-import com.datasalt.pangool.cogroup.TupleMRConfig;
-import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.sorting.Criteria;
 import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;

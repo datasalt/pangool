@@ -35,6 +35,7 @@ import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.BaseComparator;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
@@ -85,14 +86,14 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		HadoopSerialization ser = new HadoopSerialization(conf);
 	
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
-		ser.ser(new DatumWrapper(tuple1), buffer1);
+		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
 
 		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf, A.class);
 		A otherA = (A) fieldDeser.deserialize(buffer1.getData(), 0);
 		assertEquals(a, otherA);
 
 		DataOutputBuffer buffer2 = new DataOutputBuffer();
-		ser.ser(new DatumWrapper(tuple2), buffer2);
+		ser.ser(new DatumWrapper<ITuple>(tuple2), buffer2);
 		
 		SortComparator sortComparator = new SortComparator();
 		sortComparator.setConf(conf);

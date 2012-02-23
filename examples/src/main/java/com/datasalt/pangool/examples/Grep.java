@@ -68,7 +68,7 @@ public class Grep {
 		return processor.createJob();
 	}
 
-	private static final String HELP = "Usage: grep [regexp] [input_path] [output_path]";
+	private static final String HELP = "Usage: [regexp] [input_path] [output_path]";
 
 	public static void main(String args[]) throws TupleMRException, IOException, InterruptedException,
 	    ClassNotFoundException, URISyntaxException {

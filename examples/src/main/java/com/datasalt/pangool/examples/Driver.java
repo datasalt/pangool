@@ -28,6 +28,8 @@ public class Driver extends ProgramDriver {
 		addClass("wordcount", WordCount.class, "Typical word count in Pangool");
 		addClass("secondarysort", SecondarySort.class, "Typical secondary sort (two ints) in Pangool");
 		addClass("grep", Grep.class, "Map-only job that performs Grep");
+		addClass("moving_average",MovingAverage.class,"Moving average ");
+		addClass("user_activity_normalizer",UserActivityNormalizer.class,"User activity normalizer");
 	}
 	
 	public static void main(String[] args) throws Throwable {

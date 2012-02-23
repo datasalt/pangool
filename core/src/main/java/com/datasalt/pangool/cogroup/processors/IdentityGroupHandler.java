@@ -22,6 +22,7 @@ import org.apache.hadoop.io.NullWritable;
 import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.io.tuple.ITuple;
 
+@SuppressWarnings("serial")
 public class IdentityGroupHandler extends TupleReducer<ITuple, NullWritable> {
 
 	@Override

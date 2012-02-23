@@ -348,7 +348,8 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a", Order.ASC));
-		b.setCustomPartitionFields(null);		
+		String [] array = null;
+		b.setCustomPartitionFields(array);		
 		b.buildConf();
 	}
 	
@@ -393,6 +394,7 @@ public class TestConfigBuilder extends BaseTest{
 	
 	
 	
+	@SuppressWarnings("unused")
 	@Ignore
 	@Test(expected=UnsupportedOperationException.class)
 	public void testNotMutableConfig() throws TupleMRException {

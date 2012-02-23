@@ -35,6 +35,7 @@ import com.datasalt.pangool.mapreduce.lib.input.PangoolMultipleInputs;
  * See {@link Grep} for an example. You can instantiate your handler with Serializable state.
  * 
  */
+@SuppressWarnings("rawtypes")
 public class Processor {
 
 	private Configuration conf;
@@ -48,6 +49,7 @@ public class Processor {
 	private static final class Input {
 
 		Path path;
+		
 		Class<? extends InputFormat> inputFormat;
 
 		Input(Path path, Class<? extends InputFormat> inputFormat) {

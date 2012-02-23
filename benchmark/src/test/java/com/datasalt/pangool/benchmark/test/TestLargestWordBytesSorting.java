@@ -28,7 +28,6 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datasalt.pangool.benchmark.largestword.LargestWordBytesCustomComparator;
@@ -51,7 +50,7 @@ public class TestLargestWordBytesSorting extends BaseBenchmarkTest {
 	
 
 	@Before
-	//@After
+	@After
 	public void prepare() throws IOException {
 		Logger root = Logger.getRootLogger();
 		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));

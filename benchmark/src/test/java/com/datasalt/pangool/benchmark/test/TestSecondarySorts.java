@@ -17,20 +17,12 @@ package com.datasalt.pangool.benchmark.test;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.datasalt.pangool.benchmark.secondarysort.CascadingSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.CrunchSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.HadoopSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.PangoolSecondarySort;
-import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * This unit test verifies that each of the secondary sort example implementations can be run and that they give the

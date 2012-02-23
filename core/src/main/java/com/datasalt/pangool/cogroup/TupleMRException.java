@@ -40,7 +40,7 @@ public class TupleMRException extends Exception {
 		}
 	}
 
-	public static void failIfEmpty(Collection ob, String message) throws TupleMRException {
+	public static void failIfEmpty(Collection<?> ob, String message) throws TupleMRException {
 		if(ob == null || ob.isEmpty()) {
 			throw new TupleMRException(message);
 		}

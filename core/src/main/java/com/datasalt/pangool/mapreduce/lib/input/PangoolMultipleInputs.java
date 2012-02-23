@@ -41,6 +41,7 @@ import com.datasalt.pangool.utils.DCUtils;
  * <p>
  * This class is inspired by the {@link org.apache.hadoop.lib.input.MultipleInputs} 
  */
+@SuppressWarnings("rawtypes")
 public class PangoolMultipleInputs {
 
 	public final static String PANGOOL_INPUT_DIR_FORMATS_CONF = "pangool.input.dir.formats";
@@ -62,7 +63,7 @@ public class PangoolMultipleInputs {
 	 * @throws FileNotFoundException 
 	 */
 	public static void addInputPath(Job job, Path path, Class<? extends InputFormat> inputFormatClass,
-	    Mapper mapperInstance) throws FileNotFoundException, IOException {
+	     Mapper mapperInstance) throws FileNotFoundException, IOException {
 
 		// Serialize the Mapper instance
 		String uniqueName = UUID.randomUUID().toString() + '.' + "mapper.dat";
@@ -100,7 +101,6 @@ public class PangoolMultipleInputs {
 	 * @see #addInputPath(JobConf, Path, Class)
 	 * @return A map of paths to inputformats for the job
 	 */
-	@SuppressWarnings("unchecked")
 	static Map<Path, InputFormat> getInputFormatMap(JobContext job) {
 		Map<Path, InputFormat> m = new HashMap<Path, InputFormat>();
 		Configuration conf = job.getConfiguration();

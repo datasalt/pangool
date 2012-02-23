@@ -38,6 +38,7 @@ import java.io.IOException;
  * <code>io.serializations</code> includes the fully-qualified classname of this
  * class: <code>com.datasalt.pangool.serialization.thrift.ThriftSerialization</code>.
  */
+@SuppressWarnings("rawtypes")
 public class ThriftSerialization implements org.apache.hadoop.io.serializer.Serialization<TBase> {
   public boolean accept(Class<?> c) {
     return TBase.class.isAssignableFrom(c);

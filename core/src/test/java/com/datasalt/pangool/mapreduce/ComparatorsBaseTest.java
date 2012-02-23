@@ -78,11 +78,11 @@ public abstract class ComparatorsBaseTest extends BaseTest{
 		return tuple;
 	}
 	
-	protected static void assertPositive(RawComparator comp,ITuple t1,ITuple t2){
+	protected static void assertPositive(RawComparator<ITuple> comp,ITuple t1,ITuple t2){
 		assertPositive(comp.compare(t1,t2));
 	}
 	
-	protected static void assertNegative(RawComparator comp,ITuple t1,ITuple t2){
+	protected static void assertNegative(RawComparator<ITuple> comp,ITuple t1,ITuple t2){
 		assertNegative(comp.compare(t1,t2));
 	}
 	
