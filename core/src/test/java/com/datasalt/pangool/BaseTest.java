@@ -87,10 +87,17 @@ public abstract class BaseTest extends AbstractBaseTest {
 				} else if(fieldType == Float.class) {
 					tuple.set(i, isRandom ? random.nextFloat() : 0f);
 				} else if(fieldType == String.class) {
-					if(!isRandom || random.nextBoolean()) {
-						tuple.set(i, "");
+					if (isRandom) {
+						switch (random.nextInt(2)) {
+						case 0:
+							tuple.set(i, "");
+							break;
+						case 1:
+							tuple.set(i, random.nextLong() + "");
+							break;
+						}
 					} else {
-						tuple.set(i, random.nextLong() + "");
+						tuple.set(i, "");
 					}
 				} else if(fieldType.isEnum()) {
           Method method = fieldType.getMethod("values", (Class[])null);

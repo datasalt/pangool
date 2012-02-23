@@ -47,6 +47,9 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 	private Configuration conf;
 	private com.datasalt.pangool.serialization.hadoop.HadoopSerialization ser;
 	private TupleMRConfig grouperConfig;
+	
+	// Length that represents a null object
+	public static final int NULL_LENGTH = -1;
 
 	public PangoolSerialization() {
 	}
