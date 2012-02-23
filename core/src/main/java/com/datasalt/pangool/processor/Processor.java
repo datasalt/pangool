@@ -90,9 +90,6 @@ public class Processor {
 	}
 
 	public Job createJob() throws IOException, TupleMRException, URISyntaxException {
-
-		// TODO Checks
-		
 		Job job = new Job(conf);
 		job.setNumReduceTasks(0);
 

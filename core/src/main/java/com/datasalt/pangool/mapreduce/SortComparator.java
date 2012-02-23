@@ -219,8 +219,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					int comparison;
 					if (dataSize1 < 0){
 						if (dataSize2 < 0){
-							o.offset1 += lengths1[0];
-							o.offset2 += lengths2[0];
+							o.offset1 += lengths1[0]; //header 
+							o.offset2 += lengths2[0]; // header
 							comparison=0; //object1 and object2 nulls
 						} else {
 							comparison = -1;//object1 null and object2 not null
