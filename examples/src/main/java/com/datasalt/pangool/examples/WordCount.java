@@ -91,8 +91,6 @@ public class WordCount {
 	@SuppressWarnings("serial")
 	public static class Count extends GroupHandler<Text, IntWritable> {
 
-		private IntWritable countToEmit = new IntWritable();
-
 		@Override
 		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, CoGrouperContext context, Collector collector)
 		    throws IOException, InterruptedException, CoGrouperException {
@@ -100,9 +98,8 @@ public class WordCount {
 			for(ITuple tuple : tuples) {
 				count += (Integer) tuple.get(1);
 			}
-			countToEmit.set(count);
 			Text text = (Text)group.get("word");
-			collector.write(text, countToEmit);
+			collector.write(text, new IntWritable(count));
 		}
 	}
 

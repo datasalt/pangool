@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -35,7 +36,7 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 
 import com.datasalt.pangool.cogroup.CoGrouper;
 import com.datasalt.pangool.cogroup.CoGrouperException;
