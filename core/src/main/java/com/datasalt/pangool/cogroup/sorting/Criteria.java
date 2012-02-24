@@ -121,7 +121,6 @@ public class Criteria {
 			
 			@Override
 			public String toString(){
-				//TODO maybe refactor this
 				try{
 				StringWriter w = new StringWriter();
 				JsonGenerator gen =new JsonFactory().createJsonGenerator(w); 

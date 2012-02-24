@@ -31,12 +31,12 @@ import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.mapreduce.lib.input.PangoolMultipleInputs;
 
 /**
- * The Processor is a simple Pangool primitive that executes map-only Jobs. You can implement {@link ProcessorHandler} for using it.
+ * The MapOnlyJobBuilder is a simple Pangool primitive that executes map-only Jobs. You can implement {@link MapOnlyHandler} for using it.
  * See {@link Grep} for an example. You can instantiate your handler with Serializable state.
  * 
  */
 @SuppressWarnings("rawtypes")
-public class Processor {
+public class MapOnlyJobBuilder {
 
 	private Configuration conf;
 
@@ -44,7 +44,7 @@ public class Processor {
 	private Class<?> outputKeyClass;
 	private Class<?> outputValueClass;
 	private Class<? extends OutputFormat> outputFormat;
-	private ProcessorHandler processorHandler;
+	private MapOnlyHandler mapOnlyHandler;
 	
 	private static final class Input {
 
@@ -61,17 +61,17 @@ public class Processor {
 	private Path outputPath;
 	private List<Input> multiInputs = new ArrayList<Input>();
 
-	public Processor setJarByClass(Class<?> jarByClass) {
+	public MapOnlyJobBuilder setJarByClass(Class<?> jarByClass) {
 		this.jarByClass = jarByClass;
 		return this;
 	}
 
-	public Processor addInput(Path path, Class<? extends InputFormat> inputFormat) {
+	public MapOnlyJobBuilder addInput(Path path, Class<? extends InputFormat> inputFormat) {
 		this.multiInputs.add(new Input(path, inputFormat));
 		return this;
 	}
 
-	public Processor setOutput(Path outputPath, Class<? extends OutputFormat> outputFormat, Class<?> outputKeyClass,
+	public MapOnlyJobBuilder setOutput(Path outputPath, Class<? extends OutputFormat> outputFormat, Class<?> outputKeyClass,
 	    Class<?> outputValueClass) {
 		this.outputFormat = outputFormat;
 		this.outputKeyClass = outputKeyClass;
@@ -80,12 +80,12 @@ public class Processor {
 		return this;
 	}
 	
-	public Processor setHandler(ProcessorHandler processorHandler) {
-		this.processorHandler = processorHandler;
+	public MapOnlyJobBuilder setHandler(MapOnlyHandler mapOnlyHandler) {
+		this.mapOnlyHandler = mapOnlyHandler;
 		return this;
 	}
 
-	public Processor(Configuration conf) {
+	public MapOnlyJobBuilder(Configuration conf) {
 		this.conf = conf;
 	}
 
@@ -93,14 +93,14 @@ public class Processor {
 		Job job = new Job(conf);
 		job.setNumReduceTasks(0);
 
-		job.setJarByClass((jarByClass != null) ? jarByClass : processorHandler.getClass());
+		job.setJarByClass((jarByClass != null) ? jarByClass : mapOnlyHandler.getClass());
 		job.setOutputFormatClass(outputFormat);
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);
 		
 		for(Input input : multiInputs) {
-			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat, processorHandler);
+			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat, mapOnlyHandler);
 		}
 		return job;
 	}

@@ -96,7 +96,7 @@ public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
        String mapperClass = mapEntry.getKey();
 
        if (mapperClass == null) {
-         throw new IOException("Input Processor not found for:" + mapEntry.getValue());
+         throw new IOException("Input MapOnlyJobBuilder not found for:" + mapEntry.getValue());
        }
 
        FileInputFormat.setInputPaths(jobCopy, paths.toArray(new Path[paths

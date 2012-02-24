@@ -25,7 +25,7 @@ public class Driver extends ProgramDriver {
 
 	public Driver() throws Throwable {
 		super();
-		addClass("wordcount", WordCount.class, "Typical word count in Pangool");
+		addClass("wordcount", PangoolWordCount.class, "Typical word count in Pangool");
 		addClass("secondarysort", SecondarySort.class, "Typical secondary sort (two ints) in Pangool");
 		addClass("grep", Grep.class, "Map-only job that performs Grep");
 		addClass("moving_average",MovingAverage.class,"Moving average ");

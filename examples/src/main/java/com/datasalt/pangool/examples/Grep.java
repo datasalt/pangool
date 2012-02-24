@@ -31,22 +31,22 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.processor.Processor;
-import com.datasalt.pangool.processor.ProcessorHandler;
+import com.datasalt.pangool.processor.MapOnlyJobBuilder;
+import com.datasalt.pangool.processor.MapOnlyHandler;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
- * Example of performing a map-only Job with {@link Processor}. You give a regex to GrepProcessor and it will emit the
+ * Example of performing a map-only Job with {@link MapOnlyJobBuilder}. You give a regex to GrepHandler and it will emit the
  * lines that match that regex.
  */
 public class Grep {
 
-	public static class GrepProcessor extends ProcessorHandler<LongWritable, Text, Text, NullWritable> {
+	public static class GrepHandler extends MapOnlyHandler<LongWritable, Text, Text, NullWritable> {
 
 		private static final long serialVersionUID = 1L;
 		private Pattern regex;
 
-		public GrepProcessor(String regex) {
+		public GrepHandler(String regex) {
 			this.regex = Pattern.compile(Pattern.quote(regex));
 		}
 
@@ -61,11 +61,11 @@ public class Grep {
 	public Job getJob(Configuration conf, String regex, String input, String output) throws IOException,
 	    TupleMRException, URISyntaxException {
 		HadoopUtils.deleteIfExists(FileSystem.get(conf), new Path(output));
-		Processor processor = new Processor(conf);
-		processor.setHandler(new GrepProcessor(regex));
-		processor.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
-		processor.addInput(new Path(input), TextInputFormat.class);
-		return processor.createJob();
+		MapOnlyJobBuilder b = new MapOnlyJobBuilder(conf);
+		b.setHandler(new GrepHandler(regex));
+		b.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
+		b.addInput(new Path(input), TextInputFormat.class);
+		return b.createJob();
 	}
 
 	private static final String HELP = "Usage: [regexp] [input_path] [output_path]";
