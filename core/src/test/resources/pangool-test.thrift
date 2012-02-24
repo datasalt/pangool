@@ -1,4 +1,4 @@
-namespace java com.datasalt.pangolin.thrift.test
+namespace java com.datasalt.pangool.thrift.test
 	
 	struct A {
 	

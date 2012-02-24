@@ -21,18 +21,18 @@ import org.apache.hadoop.conf.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.BaseTest;
 import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 import com.datasalt.pangool.serialization.thrift.ThriftSerialization;
 import com.datasalt.pangool.serialization.tuples.PangoolDeserializer;
 import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
 import com.datasalt.pangool.serialization.tuples.PangoolSerializer;
+import com.datasalt.pangool.thrift.test.A;
 
 
 public class TestPangoolSerialization extends BaseTest{

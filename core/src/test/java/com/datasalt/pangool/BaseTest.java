@@ -26,11 +26,8 @@ import java.util.Random;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
@@ -42,6 +39,7 @@ import com.datasalt.pangool.serialization.tuples.PangoolDeserializer;
 import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
 import com.datasalt.pangool.serialization.tuples.PangoolSerializer;
 import com.datasalt.pangool.test.AbstractBaseTest;
+import com.datasalt.pangool.thrift.test.A;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public abstract class BaseTest extends AbstractBaseTest {

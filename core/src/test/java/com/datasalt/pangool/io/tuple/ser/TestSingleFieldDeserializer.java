@@ -15,7 +15,8 @@
  */
 package com.datasalt.pangool.io.tuple.ser;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -23,28 +24,27 @@ import java.util.ArrayList;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
-import org.apache.hadoop.io.VIntWritable;
 import org.junit.Test;
 
 import cern.colt.Arrays;
 
-import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.BaseComparator;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.mapreduce.SortComparator;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 import com.datasalt.pangool.serialization.tuples.SingleFieldDeserializer;
 import com.datasalt.pangool.test.AbstractBaseTest;
+import com.datasalt.pangool.thrift.test.A;
 
 /**
  * TODO: Build a proper test. 

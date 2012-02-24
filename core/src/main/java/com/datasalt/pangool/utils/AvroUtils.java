@@ -57,7 +57,7 @@ public class AvroUtils {
 		for(org.apache.avro.Schema.Field field : avroSchema.getFields()) {
 			Type type = field.schema().getType();
 			if(type.equals(Type.STRING)) {
-				fields.add(new Field(field.name(), String.class));
+				fields.add(new Field(field.name(), Utf8.class));
 			} else if(type.equals(Type.INT)) {
 				fields.add(new Field(field.name(), Integer.class));
 			} else if(type.equals(Type.LONG)) {
