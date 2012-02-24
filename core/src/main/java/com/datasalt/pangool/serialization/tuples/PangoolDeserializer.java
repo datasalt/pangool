@@ -69,7 +69,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		this.ser = ser;
 		this.cachedEnums = PangoolSerialization.getEnums(grouperConfig);
 		this.isRollup = coGrouperConf.getRollupFrom() != null && !coGrouperConf.getRollupFrom().isEmpty();
-		this.multipleSources = coGrouperConf.getNumSchemas() >= 2;
+		this.multipleSources = coGrouperConf.getNumIntermediateSchemas() >= 2;
 		this.cachedTuples.datum(createCachedTuples(coGrouperConf));
 		this.cachedTuples.swapInstances(); //do rollup
 		this.cachedTuples.datum(createCachedTuples(coGrouperConf));
@@ -78,7 +78,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	
 	private static CachedTuples createCachedTuples(TupleMRConfig config){
 		SerializationInfo serInfo = config.getSerializationInfo();
-		boolean multipleSources = config.getNumSchemas() >= 2;
+		boolean multipleSources = config.getNumIntermediateSchemas() >= 2;
 		CachedTuples r = new CachedTuples();
 		r.commonTuple = new Tuple(serInfo.getCommonSchema()); 
 		for (Schema sourceSchema : config.getIntermediateSchemas()){

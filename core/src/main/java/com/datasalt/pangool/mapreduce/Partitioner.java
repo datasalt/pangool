@@ -46,7 +46,7 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 			Integer sourceId = grouperConfig.getSchemaIdByName(sourceName);
 			if(sourceId == null) {
 				throw new RuntimeException("Schema name '" + sourceName + "' is unknown. Known schemas are : "
-				    + grouperConfig.getSourceNames());
+				    + grouperConfig.getIntermediateSchemaNames());
 			}
 			int[] fieldsToPartition = serInfo.getPartitionFieldsIndexes().get(sourceId);
 			return (partialHashCode(tuple, fieldsToPartition) & Integer.MAX_VALUE) % numPartitions;

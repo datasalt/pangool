@@ -135,7 +135,7 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
     SerializationFactory factory = new SerializationFactory(conf);
     Serializer serializer = 
           factory.getSerializer(inputSplitClass);
-    serializer.open((DataOutputStream)out); //TODO is this working ??
+    serializer.open((DataOutputStream)out); 
     serializer.serialize(inputSplit);
   }
 

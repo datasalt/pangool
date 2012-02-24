@@ -48,7 +48,6 @@ public class TupleCombiner implements Serializable {
 	
 	/**
 	 * A class for collecting data inside a {@link TupleCombiner}.
-	 * Warning: Not thread safe by default... If you want thread safe, TODO
 	 */
 	public static final class Collector {
 		

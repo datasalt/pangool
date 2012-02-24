@@ -56,7 +56,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 		try {
 			log.info("Getting CoGrouper grouperConf.");
 			this.grouperConfig = TupleMRConfig.get(context.getConfiguration());
-			this.isMultipleSources = grouperConfig.getNumSchemas() >= 2;
+			this.isMultipleSources = grouperConfig.getNumIntermediateSchemas() >= 2;
 			this.serInfo = grouperConfig.getSerializationInfo();
 			log.info("Getting CoGrouper grouperConf done.");
 			if (!isMultipleSources){
@@ -106,7 +106,6 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			ITuple firstTupleGroup = key.datum();
 	
 			// A view is created over the first tuple to give the user the group fields
-			//TODO this should be done just in multipleSources
 			if (isMultipleSources){
 				int sourceId = grouperConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
 				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(sourceId);

@@ -147,9 +147,8 @@ public abstract class BaseTest extends AbstractBaseTest {
 //	}
 	
 	protected static void assertSerializable(PangoolSerialization serialization,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
-		
-		PangoolSerializer ser = (PangoolSerializer)serialization.getSerializer(null); //TODO why not able to set tuple.getClass() ?
-		PangoolDeserializer deser = (PangoolDeserializer)serialization.getDeserializer(null); //TODO why not able to set tuple.getClass() ?
+		PangoolSerializer ser = (PangoolSerializer)serialization.getSerializer(null); 
+		PangoolDeserializer deser = (PangoolDeserializer)serialization.getDeserializer(null); 
 		assertSerializable(ser,deser,tuple,debug);
 	}
 	

@@ -54,7 +54,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 		this.coGrouperConfig = grouperConfig;
 		this.serInfo = grouperConfig.getSerializationInfo();
 		this.commonSchema = this.serInfo.getCommonSchema();
-		this.isMultipleSources = (coGrouperConfig.getNumSchemas() >= 2);
+		this.isMultipleSources = (coGrouperConfig.getNumIntermediateSchemas() >= 2);
 	}
 
 	public void open(OutputStream out) {

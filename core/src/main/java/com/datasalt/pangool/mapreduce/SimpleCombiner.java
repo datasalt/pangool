@@ -56,7 +56,7 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			log.info("Getting CoGrouper grouperConf.");
 			this.grouperConfig = TupleMRConfig.get(context.getConfiguration());
 			this.serInfo = this.grouperConfig.getSerializationInfo();
-			this.isMultipleSources = this.grouperConfig.getNumSchemas() >= 2;
+			this.isMultipleSources = this.grouperConfig.getNumIntermediateSchemas() >= 2;
 			log.info("Getting CoGrouper grouperConf done.");
 			if (isMultipleSources){
 				this.groupTuple = new ViewTuple(serInfo.getGroupSchema());
@@ -100,7 +100,7 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			ITuple firstTupleGroup = key.datum();
 
 			// A view is created over the first tuple to give the user the group fields
-			if (isMultipleSources){ //TODO consider not using translation here
+			if (isMultipleSources){ 
 				int sourceId = grouperConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
 				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(sourceId);
 				groupTuple.setContained(firstTupleGroup,indexTranslation);

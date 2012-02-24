@@ -37,12 +37,20 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.Criteria;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.Schema;
+import com.datasalt.pangool.mapreduce.GroupComparator;
+import com.datasalt.pangool.mapreduce.SortComparator;
 import com.datasalt.pangool.utils.DCUtils;
 
+/**
+ * 
+ * TODO doc
+ *
+ */
 public class TupleMRConfig {
 
 	private final static String CONF_PANGOOL_CONF = TupleMRConfig.class.getName() + ".pangool.conf";
@@ -56,48 +64,96 @@ public class TupleMRConfig {
 	}
 
 	private List<String> schemasNames = new ArrayList<String>();
-	private Map<String, Integer> intermediateSchemaNameToId = new HashMap<String, Integer>();
+	private Map<String, Integer> schemaNameToId = new HashMap<String, Integer>();
 
+	/**
+	 * Common criteria specifies the order of the fields that are common among schemas
+	 * and will be sorted before reaching the sourceOrder
+	 */
 	private Criteria commonCriteria;
+	
+	/**
+	 * These criterias are used in {@link SortComparator} to sort specific fields from two
+	 * tuples with the same schema, after the commonCriteria and schemaOrder
+	 */
 	private List<Criteria> secondaryCriterias = new ArrayList<Criteria>();
-	private Order sourcesOrder;
+	
+	/** 
+	 * Defines the order in which the different intermediate schemas 
+	 * will be sorted in {@link SortComparator}
+	 * 
+	 */
+	private Order schemasOrder; 
 
-	private List<Schema> intermediateSchemas = new ArrayList<Schema>();
+	/**
+	 * Intermediate schemas
+	 */
+	private List<Schema> schemas = new ArrayList<Schema>();
 	private List<String> groupByFields;
 	private List<String> customPartitionFields = new ArrayList<String>();
 	private String rollupFrom;
 
 	private SerializationInfo serInfo;
 
-	public Schema getIntermediateSchema(String source) {
-		Integer id = getSchemaIdByName(source);
-		return (id == null) ? null : intermediateSchemas.get(id);
+	/**
+	 * Returns a defined intermediate schema with the specified name
+	 */
+	public Schema getIntermediateSchema(String schemaName) {
+		Integer id = getSchemaIdByName(schemaName);
+		return (id == null) ? null : schemas.get(id);
 	}
 
+	/**
+	 * Returns a defined intermediate schema with the specified schemaId. 
+	 * The schemaId follows the order of schema definition in {@link TupleMRConfig#addIntermediateSchema(Schema)}
+	 */
 	public Schema getIntermediateSchema(int sourceId) {
-		return intermediateSchemas.get(sourceId);
+		return schemas.get(sourceId);
 	}
 
+	/**
+	 * Returns the schemaId from the schema's name. 
+	 */
 	public Integer getSchemaIdByName(String name) {
-		return intermediateSchemaNameToId.get(name);
+		return schemaNameToId.get(name);
 	}
 
-	public List<String> getSourceNames() {
+	/**
+	 * Returns a list with the names of all the intermediate schemas 
+	 */
+	public List<String> getIntermediateSchemaNames() {
 		return schemasNames;
 	}
 
+	/**
+	 * Returns all the intermediate schemas defined
+	 */
 	public List<Schema> getIntermediateSchemas() {
-		return intermediateSchemas;
+		return schemas;
 	}
 
-	public Order getSourcesOrder() {
-		return sourcesOrder;
+	/**
+	 * Returns the order that will be used to sort tuples with different schemas after 
+	 * being compared by commonOrder 
+	 */
+	public Order getSchemasOrder() {
+		return schemasOrder;
 	}
 
+	/**
+	 * Returns the order that will be used to sort tuples with different schemas after 
+	 * being compared by commonOrder and schemaOrder
+	 * 
+	 */
 	public List<Criteria> getSecondarySortBys() {
 		return secondaryCriterias;
 	}
 
+	/**
+	 * Returns the custom fields used to partition tuples. By default if this list is null then 
+	 * the partition criteria used will match the groupByFields. In case of rollup then the fields 
+	 * used will be a subset of the groupByFields up to the rollupFrom field. 
+	 */
 	public List<String> getCustomPartitionFields(){
 		return customPartitionFields;
 	}
@@ -105,6 +161,9 @@ public class TupleMRConfig {
 	protected TupleMRConfig() {
 	}
 
+	/**
+	 * Returns the {@link SerializationInfo} instance related to this configuration. 
+	 */
 	public SerializationInfo getSerializationInfo() {
 		if(serInfo == null) {
 			try {
@@ -116,18 +175,33 @@ public class TupleMRConfig {
 		return this.serInfo;
 	}
 
-	public int getNumSchemas() {
-		return intermediateSchemas.size();
+	/**
+	 * Returns the number of intermediate schemas defined
+	 */
+	public int getNumIntermediateSchemas() {
+		return schemas.size();
 	}
 
+	/**
+	 * Returns the criteria used to sort fields that are common among the intermediate schemas.
+	 * This criteria is the first used in {@link SortComparator} and in {@link GroupComparator} 
+	 */
 	public Criteria getCommonCriteria() {
 		return commonCriteria;
 	}
 
+	/**
+	 * Returns the fields that are common among all the intermediate schemas that will be used to group by 
+	 * the tuples emitted from the {@link TupleMapper}
+	 */
 	public List<String> getGroupByFields() {
 		return groupByFields;
 	}
 
+	/**
+	 * Returns the fields that are a subset from the groupBy fields and will be used when rollup is needed.
+	 * @see {@link RollupReducer}  
+	 */
 	public List<String> calculateRollupBaseFields() {
 		if(rollupFrom == null) {
 			return getGroupByFields();
@@ -143,6 +217,9 @@ public class TupleMRConfig {
 		return result;
 	}
 
+	/**
+	 * Returns the field from which the rollup will be performed
+	 */
 	public String getRollupFrom() {
 		return rollupFrom;
 	}
@@ -151,9 +228,9 @@ public class TupleMRConfig {
 		if (schemasNames.contains(schema.getName())){
 			throw new TupleMRException("There's a schema with that name '" + schema.getName() + "'");
 		}
-		intermediateSchemaNameToId.put(schema.getName(), schemasNames.size());
+		schemaNameToId.put(schema.getName(), schemasNames.size());
 		schemasNames.add(schema.getName());
-		intermediateSchemas.add(schema);
+		schemas.add(schema);
 	}
 
 	void setIntermediateSchemas(Collection<Schema> schemas) throws TupleMRException {
@@ -175,7 +252,7 @@ public class TupleMRConfig {
 	}
 
 	void setSourceOrder(Order order) {
-		this.sourcesOrder = order;
+		this.schemasOrder = order;
 	}
 	
 	void setCustomPartitionFields(List<String> customPartitionFields ){
@@ -191,8 +268,8 @@ public class TupleMRConfig {
 	}
 
 	private void initSecondaryCriteriasWithNull() {
-		List<Criteria> r = new ArrayList<Criteria>(intermediateSchemas.size());
-		for(int i = 0; i < intermediateSchemas.size(); i++) {
+		List<Criteria> r = new ArrayList<Criteria>(schemas.size());
+		for(int i = 0; i < schemas.size(); i++) {
 			r.add(null);
 		}
 		this.secondaryCriterias = r;
@@ -346,7 +423,7 @@ public class TupleMRConfig {
 			
 			JsonNode commonSortByNode = node.get("commonSortBy");
 			result.commonCriteria = Criteria.parse(commonSortByNode);
-			result.sourcesOrder = Order.valueOf(node.get("sourcesOrder").getTextValue());
+			result.schemasOrder = Order.valueOf(node.get("schemasOrder").getTextValue());
 
 			Iterator<JsonNode> secondaryNode = node.get("secondarySortBys").getElements();
 			result.secondaryCriterias = new ArrayList<Criteria>();
@@ -364,7 +441,7 @@ public class TupleMRConfig {
 	void toJson(JsonGenerator gen) throws IOException {
 		gen.writeStartObject();
 		gen.writeArrayFieldStart("sourceSchemas");
-		for(Schema schema : intermediateSchemas) {
+		for(Schema schema : schemas) {
 			schema.toJson(gen);
 		}
 		gen.writeEndArray();
@@ -391,7 +468,7 @@ public class TupleMRConfig {
 		gen.writeFieldName("commonSortBy");
 		commonCriteria.toJson(gen);
 
-		gen.writeStringField("sourcesOrder", sourcesOrder.toString());
+		gen.writeStringField("schemasOrder", schemasOrder.toString());
 
 		// TODO this code should write a map with sourceName
 		if(secondaryCriterias == null || secondaryCriterias.isEmpty()) {
@@ -453,7 +530,7 @@ public class TupleMRConfig {
 		TupleMRConfig that = (TupleMRConfig) a;
 
 		boolean e = 
-		this.getSourcesOrder() == that.getSourcesOrder()
+		this.getSchemasOrder() == that.getSchemasOrder()
 		    && this.getCommonCriteria().equals(that.getCommonCriteria())
 		    && this.getGroupByFields().equals(that.getGroupByFields())
 		    && this.getIntermediateSchemas().equals(that.getIntermediateSchemas()) && this.getSecondarySortBys().equals(

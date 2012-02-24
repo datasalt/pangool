@@ -61,7 +61,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
 			this.grouperConfig = TupleMRConfig.get(context.getConfiguration());
-			this.isMultipleSources = this.grouperConfig.getNumSchemas() >=2;
+			this.isMultipleSources = this.grouperConfig.getNumIntermediateSchemas() >=2;
 			this.serInfo = grouperConfig.getSerializationInfo();
 			this.groupSchema = this.serInfo.getGroupSchema();
 			if (!isMultipleSources){
@@ -171,7 +171,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			}
 
 			// We set a view over the group fields to the method.
-			if (isMultipleSources){ //TODO consider not using index translation for multiple sources  
+			if (isMultipleSources){ 
 				int sourceId = grouperConfig.getSchemaIdByName(currentTuple.getSchema().getName());
 				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(sourceId);
 				groupTuple.setContained(currentTuple,indexTranslation);

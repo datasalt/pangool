@@ -85,7 +85,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				return comparison;
 			} else if (sourceId1 != sourceId2){
 				int r = sourceId1 - sourceId2; 
-				return (grouperConf.getSourcesOrder() == Order.ASC) ? r : -r;
+				return (grouperConf.getSchemasOrder() == Order.ASC) ? r : -r;
 			}
 			int source = sourceId1;
 			c = grouperConf.getSecondarySortBys().get(source);
@@ -177,7 +177,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		int sourceId2 = readVInt(b2, offsets.offset2);
 		if (sourceId1 != sourceId2){
 			int r = sourceId1 - sourceId2;
-			return (grouperConf.getSourcesOrder() == Order.ASC) ? r : -r;
+			return (grouperConf.getSchemasOrder() == Order.ASC) ? r : -r;
 		}
 		
 		int vintSize = WritableUtils.decodeVIntSize(b1[offsets.offset1]);
@@ -397,7 +397,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		}
 		this.grouperConf = config;
 		this.serInfo = grouperConf.getSerializationInfo();
-		this.isMultipleSources = grouperConf.getNumSchemas() >= 2;
+		this.isMultipleSources = grouperConf.getNumIntermediateSchemas() >= 2;
 	}
 	
 }

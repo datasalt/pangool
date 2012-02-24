@@ -29,6 +29,7 @@ import java.util.UUID;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapred.lib.MultipleInputs;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
@@ -110,26 +111,43 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 	public TupleMRBuilder(Configuration conf) {
 		this.conf = conf;
 	}
-	
+	/**
+	 * @param conf Configuration instance
+	 * @param name Job's name as in {@link Job}
+	 */
 	public TupleMRBuilder(Configuration conf,String name){
 		this.conf = conf;
 		this.jobName = name;
 	}
 
+	/**
+	 * Sets the jar by class , as in {@link Job#setJarByClass(Class)}
+	 */
 	public void setJarByClass(Class<?> jarByClass) {
 		this.jarByClass = jarByClass;
 	}
 
-	public void addTupleInput(Path path, TupleMapper<ITuple, NullWritable> inputProcessor) {
-		this.multiInputs.add(new Input(path, TupleInputFormat.class, inputProcessor));
+	/**
+	 * Defines an input as in {@link PangoolMultipleInputs} using {@link TupleInputFormat}
+	 * @see {@link PangoolMultipleInputs}
+	 */
+	public void addTupleInput(Path path, TupleMapper<ITuple, NullWritable> tupleMapper) {
+		this.multiInputs.add(new Input(path, TupleInputFormat.class, tupleMapper));
 		AvroUtils.addAvroSerialization(conf);
 		
 	}
 	
+	/**
+	 * Defines an input as in {@link PangoolMultipleInputs}
+	 * @see {@link PangoolMultipleInputs}
+	 */
 	public void addInput(Path path, Class<? extends InputFormat> inputFormat, TupleMapper inputProcessor) {
 		this.multiInputs.add(new Input(path, inputFormat, inputProcessor));
 	}
 
+	/**
+	 * 
+	 */
 	public void setTupleCombiner(TupleCombiner tupleCombiner) {
 		this.tupleCombiner = tupleCombiner;
 	}

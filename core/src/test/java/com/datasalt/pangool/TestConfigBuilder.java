@@ -404,9 +404,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a", Order.ASC));
 		b.setCustomPartitionFields("b");		
-		TupleMRConfig config = b.buildConf();
-		//TODO 
-		
+		TupleMRConfig config = b.buildConf(); //TODO
 	}
 	
 }

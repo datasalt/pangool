@@ -99,7 +99,6 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 	
 	/**
 	 * Class for collecting data inside a {@link TupleMapper}.
-	 * Warning: Default Collector is no thread safe. If you want thread, safe... TODO
 	 */
 	public static class Collector extends MultipleOutputsCollector {
 

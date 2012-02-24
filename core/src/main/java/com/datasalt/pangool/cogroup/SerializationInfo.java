@@ -56,7 +56,7 @@ public class SerializationInfo {
 	
 	public SerializationInfo(TupleMRConfig grouperConfig) throws TupleMRException{
 		this.grouperConfig = grouperConfig;
-		if (grouperConfig.getNumSchemas() >= 2){
+		if (grouperConfig.getNumIntermediateSchemas() >= 2){
 			initializeMultipleSources();
 		} else {
 			initializeOneSource();
@@ -156,7 +156,7 @@ public class SerializationInfo {
 		this.specificSchemas = new ArrayList<Schema>();
 		List<List<Field>> specificFieldsBySource = new ArrayList<List<Field>>();
 		
-		for (int sourceId=0 ; sourceId < grouperConfig.getNumSchemas(); sourceId++){
+		for (int sourceId=0 ; sourceId < grouperConfig.getNumIntermediateSchemas(); sourceId++){
 			Criteria specificCriteria = grouperConfig.getSecondarySortBys().get(sourceId);
 			List<Field> specificFields = new ArrayList<Field>();
 			if (specificCriteria != null){
@@ -169,7 +169,7 @@ public class SerializationInfo {
 			specificFieldsBySource.add(specificFields);
 		}
 		
-		for (int i= 0 ; i < grouperConfig.getNumSchemas(); i++){
+		for (int i= 0 ; i < grouperConfig.getNumIntermediateSchemas(); i++){
 			Schema sourceSchema = grouperConfig.getIntermediateSchema(i);
 			List<Field> specificFields = specificFieldsBySource.get(i);
 //			if (specificFields == null){
