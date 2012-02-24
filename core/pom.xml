@@ -237,7 +237,7 @@
         </descriptors>
         <archive>
           <manifest>
-            <mainClass>com.datasalt.pangolin.grouper.Test</mainClass>
+            <mainClass>com.datasalt.pangool.grouper.Test</mainClass>
           </manifest>
         </archive>
       </configuration>
@@ -302,7 +302,7 @@
                       <arg value="java:beans"/>
                       <arg value="-o"/>
                       <arg value="target/test/generated-thrift/java/"/>
-                      <arg value="src/test/resources/pangolin-test.thrift"/>
+                      <arg value="src/test/resources/pangool-test.thrift"/>
                     </exec>
                     
                     
