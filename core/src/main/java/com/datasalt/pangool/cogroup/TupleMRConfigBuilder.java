@@ -35,6 +35,7 @@ import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 
 /**
  * 
@@ -71,7 +72,7 @@ public class TupleMRConfigBuilder {
 	}
 	
 	private boolean fieldSameTypeInAllSources(String field){
-		Class<?> type = null;
+		Type type = null;
 		for (Schema source : intermediateSchemas){
 			Field f = source.getField(field);
 			if (type == null){

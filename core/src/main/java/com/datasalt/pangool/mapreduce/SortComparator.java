@@ -40,7 +40,7 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.InternalType;
+import com.datasalt.pangool.io.tuple.Schema.Type;
 import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
 
 @SuppressWarnings("rawtypes")
@@ -123,17 +123,17 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	
 	/**
 	 * Compares two objects. Uses the given custom comparator
-	 * if present. If internalType is {@link InternalType#OBJECT}
+	 * if present. If internalType is {@link Type#OBJECT}
 	 * and no raw comparator is present, then a binary comparator is used.
 	 */
 	@SuppressWarnings({ "unchecked" })
-	protected synchronized int compareObjects(Object elem1, Object elem2, RawComparator comparator, InternalType internalType) {
+	protected synchronized int compareObjects(Object elem1, Object elem2, RawComparator comparator, Type type) {
 		// If custom, just use custom.
 		if (comparator != null) {
 			return comparator.compare(elem1, elem2);
 		}
 		
-		if (internalType == InternalType.OBJECT) {
+		if (type == Type.OBJECT) {
 			return binaryComparator.compare(elem1, elem2);
 		}
 		
@@ -289,7 +289,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 						return (sort == Order.ASC) ? -1 : 1;
 					}
 				} else {
-					// Utf8 and InternalType.OBJECT compareBytes
+					// Utf8 and Type.OBJECT compareBytes
 					int length1 = readVInt(b1, o.offset1);
 					int length2 = readVInt(b2, o.offset2);
 					o.offset1 += WritableUtils.decodeVIntSize(b1[o.offset1]);

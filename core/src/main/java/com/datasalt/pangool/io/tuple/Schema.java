@@ -25,8 +25,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.VLongWritable;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
@@ -34,7 +32,6 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.PangoolRuntimeException;
-import com.datasalt.pangool.io.Utf8;
 
 /**
  * Encapsulates one Pangool schame composed of {@link Field} instances.
@@ -49,90 +46,58 @@ public class Schema {
 		FACTORY.setCodec(MAPPER);
 	}
 
-	public static enum InternalType {
-		INT("int", Integer.class),  
-		LONG("long", Long.class),  
-		FLOAT("float", Float.class), 
-		DOUBLE("double", Double.class), 
-		UTF8("utf8", Utf8.class), 
-		BOOLEAN("boolean", Boolean.class), 
-		ENUM(null, null), 
-		OBJECT(null, null);
-
-		private String parsingString;
-		private Class<?> representativeClass;
-		
-		private static HashMap<Class<?>, InternalType> fromClass; 
-		static {
-			fromClass = new HashMap<Class<?>, InternalType>();
-			for (InternalType iType : InternalType.values()) {
-				if (iType.getRepresentativeClass() != null) {
-					fromClass.put(iType.getRepresentativeClass(), iType);
-				}
-			}
-		}
-
-		InternalType(String parsingString, Class<?> representativeClass) {
-			this.parsingString = parsingString;
-			this.representativeClass = representativeClass;
-		}
-
-		/**
-		 * Returns the string that represents this type. For example "int" 
-		 * for Integer, etc. Used at {@link Fields#parse(String)} method.
-		 * Not present for all {@link InternalType}
-		 */
-		public String getParsingString() {
-			return parsingString;
-		}
-		
-		/**
-		 * Returns the representative class for this InternalType. 
-		 * For example {@link #INT} is represented by {@link Integer}
-		 */
-		public Class<?> getRepresentativeClass() {
-			return representativeClass;
-		}
-		
-		/**
-		 * Maps from class to InternalType
-		 */
-		public static InternalType fromClass(Class<?> clazz) {
-			InternalType iType = fromClass.get(clazz);
-			if (iType != null) {
-				return iType;
-			} else if (clazz.isEnum()) {
-				return ENUM;
-			} else {
-				return OBJECT;
-			}
-		}
-	}
-
 	public static class Field {
+		public static enum Type {
+			INT,  
+			LONG,  
+			FLOAT, 
+			DOUBLE, 
+			STRING, 
+			BOOLEAN, 
+			ENUM, 
+			OBJECT
+		}
+		
+		private final String name;
+		private final Type type;
+		private final Class objectClass;
 
-		private String name;
-		private Class<?> type;
-		private InternalType iType;
-
-		public Field(String name, Class<?> clazz) {
+		public static Field create(String name,Type type){
+			return new Field(name,type);
+		}
+		public static Field createObject(String name,Class clazz){
+			return new Field(name,clazz);
+		}
+		
+		private Field(String name, Type type) {
 			if(name == null) {
 				throw new IllegalArgumentException("Field name can't be null");
 			}
 
-			if(clazz == null) {
+			if(type == null) {
 				throw new IllegalArgumentException("Field type can't be null");
+			} else if (type == Type.OBJECT){
+				throw new IllegalArgumentException("Field with type " + Type.OBJECT + " needs to specify class");
 			}
 			this.name = name;
-			setType(clazz);
+			this.type = type;
+			this.objectClass = null;
 		}
 		
-		private void setType(Class<?> type) {
-			this.type = type;
-			this.iType = InternalType.fromClass(type);			
-		}
+		private Field(String name, Class objectClass) {
+			if(name == null) {
+				throw new IllegalArgumentException("Field name can't be null");
+			}
 
-		public Class<?> getType() {
+			if(objectClass == null) {
+				throw new IllegalArgumentException("Field objectClass can't be null");
+			} 
+			this.name = name;
+			this.type = Type.OBJECT;
+			this.objectClass = objectClass;
+		}
+		
+		public Type getType() {
 			return type;
 		}
 
@@ -140,16 +105,22 @@ public class Schema {
 			return name;
 		}
 		
-		public InternalType getInternalType() {
-			return iType;
+		public Class getObjectClass(){
+			return objectClass;
 		}
-
+		
 		public boolean equals(Object a) {
 			if(!(a instanceof Field)) {
 				return false;
 			}
 			Field that = (Field) a;
-			return name.equals(that.getName()) && type.equals(that.getType());
+
+			boolean t = name.equals(that.getName()) && type.equals(that.getType());
+			if (type == Type.OBJECT){
+				return t && objectClass.equals(that.getObjectClass()); 
+			} else {
+				return t;
+			}
 		}
 
 		public String toString() {
@@ -165,10 +136,15 @@ public class Schema {
 		}
 
 		static Field parse(JsonNode node) throws IOException {
-			String name = node.get("name").getTextValue();
-			String clazz = node.get("type").getTextValue();
 			try {
-				return new Field(name, Class.forName(clazz));
+				String name = node.get("name").getTextValue();
+				String type = node.get("type").getTextValue();
+				if(node.get("object_class") != null) {
+					String clazz = node.get("object_class").getTextValue();
+					return Field.createObject(name, Class.forName(clazz));
+				} else {
+					return Field.create(name, Type.valueOf(type));
+				}
 			} catch(ClassNotFoundException e) {
 				throw new IOException(e);
 			}
@@ -177,7 +153,10 @@ public class Schema {
 		void toJson(JsonGenerator gen) throws IOException {
 			gen.writeStartObject();
 			gen.writeStringField("name", getName());
-			gen.writeStringField("type", getType().getName());
+			gen.writeStringField("type", getType().toString());
+			if (getType() == Type.OBJECT){
+				gen.writeStringField("object_class",getObjectClass().getName());
+			}
 			gen.writeEndObject();
 		}
 	}

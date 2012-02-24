@@ -39,6 +39,7 @@ import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.mapreduce.SortComparator;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
@@ -57,7 +58,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		Configuration conf = getConf();
 		
 		ArrayList<Field> fields = new ArrayList<Field> ();
-		fields.add(new Field("a", A.class));
+		fields.add(Field.createObject("a", A.class));
 		Schema schema = new Schema("schema", fields);
 
 		Tuple tuple1 = new Tuple(schema);
@@ -112,7 +113,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		Configuration conf = getConf();
 		
 		ArrayList<Field> fields = new ArrayList<Field> ();
-		fields.add(new Field("int", Integer.class));
+		fields.add(Field.create("int",Type.INT));
 		Schema schema = new Schema("schema", fields);
 
 		Tuple tuple1 = new Tuple(schema);
@@ -166,7 +167,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		Configuration conf = getConf();
 		
 		ArrayList<Field> fields = new ArrayList<Field> ();
-		fields.add(new Field("utf8", Utf8.class));
+		fields.add(Field.create("utf8",Type.STRING));
 		Schema schema = new Schema("schema", fields);
 
 		Tuple tuple1 = new Tuple(schema);

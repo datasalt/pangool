@@ -43,7 +43,7 @@ import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.InternalType;
+import com.datasalt.pangool.io.tuple.Schema.Type;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 import com.datasalt.pangool.utils.DCUtils;
 
@@ -286,7 +286,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	
 	@Test
 	public void testCompareObjects() {
-		InternalType iType = InternalType.INT;
+		Type iType = Type.INT;
 
 		// Testing behaviour of the method with non Object types. 
 		// Object behaviour not tested here. 

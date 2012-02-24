@@ -34,7 +34,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.Schema.InternalType;
+import com.datasalt.pangool.io.tuple.Schema.Type;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 
 /**
@@ -62,10 +62,10 @@ public class SingleFieldDeserializer {
 	} 
 	
 	static Class<?> instanceType(Class<?> originType) {
-		InternalType iType = InternalType.fromClass(originType);
-		if (iType == InternalType.UTF8) {
+		Type iType = Type.fromClass(originType);
+		if (iType == Type.UTF8) {
 			return Utf8.class;
-		} else if (iType == InternalType.OBJECT) {
+		} else if (iType == Type.OBJECT) {
 			return originType;
 		} else {
 			return null;
@@ -87,7 +87,7 @@ public class SingleFieldDeserializer {
 	 * Deserialize an individual field from a byte array position that is encoded with the 
 	 * {@link PangoolSerialization}.
 	 * <br>
-	 * Objects of {@link InternalType#OBJECT} can return null.
+	 * Objects of {@link Type#OBJECT} can return null.
 	 * 
 	 * @param instance An instance to be reused in the case of objects following standard 
 	 * 				Hadoop serialization or Utf8. If null, always return a new object. Usually
@@ -101,7 +101,7 @@ public class SingleFieldDeserializer {
 	 * @param conf A Hadoop configuration
 	 * @param cachedEnums A map with the cached enumerations, for fast lookup. 
 	 * @return A deserialized instance. Null possible if the type is
-	 *         {@link InternalType#OBJECT} 
+	 *         {@link Type#OBJECT} 
 	 * 				    
 	 */
 	public static Object deserialize(Object instance, byte[] bytes, int offset, Class<?> type, 

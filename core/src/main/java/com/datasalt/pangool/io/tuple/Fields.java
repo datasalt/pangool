@@ -20,7 +20,7 @@ import java.util.List;
 
 import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.InternalType;
+import com.datasalt.pangool.io.tuple.Schema.Type;
 
 public class Fields {
 
@@ -49,7 +49,7 @@ public class Fields {
 	
 	public static Class<?> strToClass(String str) throws ClassNotFoundException {
 		Class<?> clazz = null;
-		for (InternalType iType : InternalType.values()) {
+		for (Type iType : Type.values()) {
 			if (iType.getParsingString() != null && str.equals(iType.getParsingString())) {
 				clazz = iType.getRepresentativeClass();
 			}

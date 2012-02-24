@@ -32,7 +32,7 @@ import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.InternalType;
+import com.datasalt.pangool.io.tuple.Schema.Type;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 
 public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
@@ -194,9 +194,9 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	}
 	
 	private void raiseNullInstanceException(NullPointerException cause, Field field,Object element) throws IOException {
-		if (element == null && field.getInternalType() != InternalType.OBJECT) {
-			// Element can only be null for objects (InternalType.OBJECT
-			throw new IOException("Field '" + field.getName() + "' of type " + field.getType() +" cannot contain null value. Basic types does not support null values. Only fields of internalType == InternalType.OBJECT can");
+		if (element == null && field.getInternalType() != Type.OBJECT) {
+			// Element can only be null for objects (Type.OBJECT
+			throw new IOException("Field '" + field.getName() + "' of type " + field.getType() +" cannot contain null value. Basic types does not support null values. Only fields of internalType == Type.OBJECT can");
 		} else {
 			// We don't know the cause.
 			throw cause;

@@ -35,6 +35,7 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.thrift.test.A;
 
 public class TestConfigParsing {
@@ -49,12 +50,12 @@ public class TestConfigParsing {
 		this.schema2 = new Schema("schema2", Fields.parse("long_field:long,boolean_field:boolean, int_field:int"));
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("int_field", Integer.class));
-		fields.add(new Field("string_field", Utf8.class));
-		fields.add(new Field("long_field", Long.class));
-		fields.add(new Field("float_field", Float.class));
-		fields.add(new Field("double_field", Double.class));
-		fields.add(new Field("boolean_field", Boolean.class));
+		fields.add(Field.create("int_field",Type.INT));
+		fields.add(Field.create("string_field",Type.STRING));
+		fields.add(Field.create("long_field",Type.LONG));
+		fields.add(Field.create("float_field",Type.FLOAT));
+		fields.add(Field.create("double_field",Type.DOUBLE));
+		fields.add(Field.create("boolean_field",Type.BOOLEAN));
 		fields.add(new Field("enum_field", Order.class));
 		fields.add(new Field("thrift_field", A.class));
 		this.schema3 = new Schema("schema3", fields);
