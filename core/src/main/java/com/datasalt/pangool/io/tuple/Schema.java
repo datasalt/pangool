@@ -63,40 +63,37 @@ public class Schema {
 		private final Class objectClass;
 
 		public static Field create(String name,Type type){
-			return new Field(name,type);
+			return new Field(name,type,null);
 		}
 		public static Field createObject(String name,Class clazz){
-			return new Field(name,clazz);
+			return new Field(name,Type.OBJECT,clazz);
+		}
+		public static Field createEnum(String name,Class clazz){
+			return new Field(name,Type.ENUM,clazz);
 		}
 		
-		private Field(String name, Type type) {
+		private Field(String name, Type type,Class clazz) {
 			if(name == null) {
 				throw new IllegalArgumentException("Field name can't be null");
 			}
 
 			if(type == null) {
 				throw new IllegalArgumentException("Field type can't be null");
-			} else if (type == Type.OBJECT){
-				throw new IllegalArgumentException("Field with type " + Type.OBJECT + " needs to specify class");
-			}
+			} else if (type == Type.OBJECT || type == Type.ENUM){
+				if (clazz == null){
+					throw new IllegalArgumentException("Field with type " + type + " must specify object class");
+				}
+				
+				if (type == Type.ENUM && !clazz.isEnum()){
+					throw new IllegalArgumentException("Field with type " + type + " must specify an enum class.Use createEnum.");
+				}
+			} 
 			this.name = name;
 			this.type = type;
 			this.objectClass = null;
 		}
 		
-		private Field(String name, Class objectClass) {
-			if(name == null) {
-				throw new IllegalArgumentException("Field name can't be null");
-			}
-
-			if(objectClass == null) {
-				throw new IllegalArgumentException("Field objectClass can't be null");
-			} 
-			this.name = name;
-			this.type = Type.OBJECT;
-			this.objectClass = objectClass;
-		}
-		
+				
 		public Type getType() {
 			return type;
 		}

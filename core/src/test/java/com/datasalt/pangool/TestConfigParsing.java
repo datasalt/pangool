@@ -31,7 +31,6 @@ import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
@@ -56,8 +55,8 @@ public class TestConfigParsing {
 		fields.add(Field.create("float_field",Type.FLOAT));
 		fields.add(Field.create("double_field",Type.DOUBLE));
 		fields.add(Field.create("boolean_field",Type.BOOLEAN));
-		fields.add(new Field("enum_field", Order.class));
-		fields.add(new Field("thrift_field", A.class));
+		fields.add(Field.createEnum("enum_field",Order.class));
+		fields.add(Field.createObject("thrift_field", A.class));
 		this.schema3 = new Schema("schema3", fields);
 
 	}
