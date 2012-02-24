@@ -24,15 +24,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.SerializationInfo;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.io.Buffer;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
@@ -164,14 +161,10 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		Schema schema = tuple.getSchema();
 		for(int index = 0; index < schema.getFields().size(); index++) {
 			Class<?> fieldType = schema.getField(index).getType();
-			if(fieldType == VIntWritable.class) {
+			if(fieldType == Integer.class) {
 				tuple.set(index,WritableUtils.readVInt(input));
-			} else if(fieldType == VLongWritable.class) {
-				tuple.set(index,WritableUtils.readVLong(input));
-			} else if(fieldType == Integer.class) {
-				tuple.set(index,input.readInt());
 			} else if(fieldType == Long.class) {
-				tuple.set(index,input.readLong());
+				tuple.set(index,WritableUtils.readVLong(input));
 			} else if(fieldType == Double.class) {
 				tuple.set(index,input.readDouble());
 			} else if(fieldType == Float.class) {

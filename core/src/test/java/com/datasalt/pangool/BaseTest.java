@@ -52,8 +52,7 @@ public abstract class BaseTest extends AbstractBaseTest {
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(new Field("int_field",Integer.class));
 		fields.add(new Field("string_field",Utf8.class));
-		fields.add(new Field("vint_field",VIntWritable.class));
-  	fields.add(new Field("vlong_field",VLongWritable.class));
+		fields.add(new Field("long_field",Long.class));
   	fields.add(new Field("float_field",Float.class));
 		fields.add(new Field("double_field",Double.class));
 		fields.add(new Field("boolean_field",Boolean.class));
@@ -78,9 +77,9 @@ public abstract class BaseTest extends AbstractBaseTest {
 			for(int i = minIndex; i <= maxIndex; i++) {
 				Field field = tuple.getSchema().getField(i);
 				Class fieldType = field.getType();
-				if(fieldType == Integer.class || fieldType == VIntWritable.class) {
+				if(fieldType == Integer.class) {
 					tuple.set(i, isRandom ? random.nextInt() : 0);
-				} else if(fieldType == Long.class || fieldType == VLongWritable.class) {
+				} else if(fieldType == Long.class) {
 					tuple.set(i, isRandom ? random.nextLong() : 0);
 				} else if(fieldType == Boolean.class) {
 					tuple.set(i, isRandom ? random.nextBoolean() : false);

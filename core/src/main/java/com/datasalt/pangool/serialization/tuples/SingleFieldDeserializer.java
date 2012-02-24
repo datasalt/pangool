@@ -76,7 +76,6 @@ public class SingleFieldDeserializer {
 	 * Deserialize an individual field from a byte array position that is encoded with the 
 	 * {@link PangoolSerialization}.
 	 * <br>
-	 * If the type is String, then {@link Text} is returned.
 	 * @param bytes The byte array.
 	 * @param offset The place to start reading.
 	 */
@@ -88,16 +87,10 @@ public class SingleFieldDeserializer {
 	 * Deserialize an individual field from a byte array position that is encoded with the 
 	 * {@link PangoolSerialization}.
 	 * <br>
-	 * <ul>
-	 * <li>If the type is String, then {@link Text} is returned.</li>
-	 * <li>If the type is {@link VIntWritable}, then {@link Integer} is returned.</li>
-	 * <li>If the type is {@link VLongWritable}, then {@link Long} is returned.</li> 
-	 * <br> 
-	 * 
-	 * Other objects out of the basic types can return null.
+	 * Objects of {@link InternalType#OBJECT} can return null.
 	 * 
 	 * @param instance An instance to be reused in the case of objects following standard 
-	 * 				Hadoop serialization or String. If null, always return a new object. Usually
+	 * 				Hadoop serialization or Utf8. If null, always return a new object. Usually
 	 *        you should call this method first with a new instance, and then reuse this
 	 *        instance in sucessive calls.  
 	 * @param bytes The byte array.
@@ -107,13 +100,15 @@ public class SingleFieldDeserializer {
 	 *  			with this format
 	 * @param conf A Hadoop configuration
 	 * @param cachedEnums A map with the cached enumerations, for fast lookup. 
-	 * @return A deserialized instance. 
+	 * @return A deserialized instance. Null possible if the type is
+	 *         {@link InternalType#OBJECT} 
+	 * 				    
 	 */
 	public static Object deserialize(Object instance, byte[] bytes, int offset, Class<?> type, 
   		HadoopSerialization ser, Configuration conf, Map<Class<?>, Enum<?>[]> cachedEnums) throws IOException {
   	if(type == Integer.class) {
   		// Integer
-  		return readInt(bytes, offset);
+  		return readVInt(bytes, offset);
   	} else if(type == Utf8.class) {  		
   		// String
   		int length = readVInt(bytes, offset);
@@ -122,14 +117,11 @@ public class SingleFieldDeserializer {
   		return instance;
   	} else if(type == Long.class) {
   		// Long
-  		return readLong(bytes, offset);			
-  	} else if(type == VIntWritable.class || type.isEnum()) {
-  		// VInt || Enum
+  		return readVLong(bytes, offset);			
+  	} else if(type.isEnum()) {
+  		// Integer
   		int value1 = readVInt(bytes, offset);
-  		return (type.isEnum()) ? cachedEnums.get(type)[value1] : value1;			
-  	} else if(type == VLongWritable.class) {
-  		// VLong
-  		return readVLong(bytes, offset);
+  		return cachedEnums.get(type)[value1];			
   	} else if(type == Float.class) {
   		// Float
   		return readFloat(bytes, offset);

@@ -48,9 +48,9 @@ public class TestPangoolSerialization extends BaseTest{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("booleanField:boolean, intField:int, strField:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("booleanField:boolean, intField:int, longField:long")));
-		b.addIntermediateSchema(new Schema("schema3",Fields.parse("booleanField:boolean, intField:int, longField:long, vlongField:vlong,vintField:vint,strField:utf8")));
-		b.addIntermediateSchema(new Schema("schema4",Fields.parse("booleanField:boolean, intField:int, longField:long, vlongField:vlong,vintField:vint,strField:utf8")));
-		b.addIntermediateSchema(new Schema("schema5",Fields.parse("booleanField:boolean, intField:int, longField:long, vlongField:vlong,vintField:vint,strField:utf8, enumField:"+TestEnum.class.getName() + ",thriftField:" + A.class.getName())));
+		b.addIntermediateSchema(new Schema("schema3",Fields.parse("booleanField:boolean, intField:int, longField:long,strField:utf8")));
+		b.addIntermediateSchema(new Schema("schema4",Fields.parse("booleanField:boolean, intField:int, longField:long,strField:utf8")));
+		b.addIntermediateSchema(new Schema("schema5",Fields.parse("booleanField:boolean, intField:int, longField:long,strField:utf8, enumField:"+TestEnum.class.getName() + ",thriftField:" + A.class.getName())));
 		
 		b.setGroupByFields("booleanField","intField");
 		b.setOrderBy(new SortBy().add("booleanField",Order.ASC).add("intField",Order.DESC).addSourceOrder(Order.DESC));

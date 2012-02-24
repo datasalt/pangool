@@ -108,23 +108,23 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 	}
 	
 	@Test
-	public void testVInt() throws IOException, TupleMRException {
+	public void testInteger() throws IOException, TupleMRException {
 		Configuration conf = getConf();
 		
 		ArrayList<Field> fields = new ArrayList<Field> ();
-		fields.add(new Field("vint", VIntWritable.class));
+		fields.add(new Field("int", Integer.class));
 		Schema schema = new Schema("schema", fields);
 
 		Tuple tuple1 = new Tuple(schema);
-		tuple1.set("vint", 200);
+		tuple1.set("int", 200);
 
 		Tuple tuple2 = new Tuple(schema);
-		tuple2.set("vint", -123);
+		tuple2.set("int", -123);
 		
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
-		builder.setGroupByFields("vint");
-		builder.setOrderBy(new SortBy().add("vint", Order.ASC, new BaseComparator<Integer>(VIntWritable.class) {
+		builder.setGroupByFields("int");
+		builder.setOrderBy(new SortBy().add("int", Order.ASC, new BaseComparator<Integer>(Integer.class) {
 
 			@Override
       public int compare(Integer o1, Integer o2) {
@@ -144,7 +144,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
 
-		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf, VIntWritable.class);
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf, Integer.class);
 		Integer iDeser = (Integer) fieldDeser.deserialize(buffer1.getData(), 0);
 		assertEquals(200, (int) iDeser);
 

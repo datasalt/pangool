@@ -22,8 +22,6 @@ import java.io.OutputStream;
 
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Serializer;
 
@@ -122,14 +120,10 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 			Class<?> fieldType = field.getType();
 			Object element = tuple.get(translationTable[i]);
 			try {
-				if (fieldType == VIntWritable.class) {
+				if (fieldType == Integer.class) {
 					WritableUtils.writeVInt(output, (Integer) element);
-				} else if (fieldType == VLongWritable.class) {
-					WritableUtils.writeVLong(output, (Long) element);
-				} else if (fieldType == Integer.class) {
-					output.writeInt((Integer) element);
 				} else if (fieldType == Long.class) {
-					output.writeLong((Long) element);
+					WritableUtils.writeVLong(output, (Long) element);
 				} else if (fieldType == Double.class) {
 					output.writeDouble((Double) element);
 				} else if (fieldType == Float.class) {

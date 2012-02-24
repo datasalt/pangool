@@ -89,11 +89,7 @@ public class AvroUtils {
 				fieldsSchema = org.apache.avro.Schema.create(Type.STRING);
 			} else if(field.getType().equals(Integer.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.INT);
-			} else if(field.getType().equals(VIntWritable.class)) {
-				fieldsSchema = org.apache.avro.Schema.create(Type.INT);
 			} else if(field.getType().equals(Long.class)) {
-				fieldsSchema = org.apache.avro.Schema.create(Type.LONG);
-			} else if(field.getType().equals(VLongWritable.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.LONG);
 			} else if(field.getType().equals(Float.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.FLOAT);

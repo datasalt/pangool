@@ -237,29 +237,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					if(comparison != 0) {
 						return (sort == Order.ASC) ? comparison : -comparison;
 					}
-				} else if(type == Integer.class) {
-					// Integer
-					int value1 = readInt(b1, o.offset1);
-					int value2 = readInt(b2, o.offset2);
-					if(value1 > value2) {
-						return (sort == Order.ASC) ? 1 : -1;
-					} else if(value1 < value2) {
-						return (sort == Order.ASC) ? -1 : 1;
-					}
-					o.offset1 += Integer.SIZE / 8;
-					o.offset2 += Integer.SIZE / 8;
-				} else if(type == Long.class) {
-					// Long
-					long value1 = readLong(b1, o.offset1);
-					long value2 = readLong(b2, o.offset2);
-					if(value1 > value2) {
-						return (sort == Order.ASC) ? 1 : -1;
-					} else if(value1 < value2) {
-						return (sort == Order.ASC) ? -1 : 1;
-					}
-					o.offset1 += Long.SIZE / 8;
-					o.offset2 += Long.SIZE / 8;
-				} else if(type == VIntWritable.class || type.isEnum()) {
+				} else if(type == Integer.class || type.isEnum()) {
 					// VInt || Enum
 					int value1 = readVInt(b1, o.offset1);
 					int value2 = readVInt(b2, o.offset2);
@@ -271,7 +249,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					int vintSize = WritableUtils.decodeVIntSize(b1[o.offset1]);
 					o.offset1 += vintSize;
 					o.offset2 += vintSize;
-				} else if(type == VLongWritable.class) {
+				} else if(type == Long.class) {
 					// VLong
 					long value1 = readVLong(b1, o.offset1);
 					long value2 = readVLong(b2, o.offset2);					
@@ -355,15 +333,11 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * the case of null objects.
 	 */
 	public static int[] getHeaderLengthAndFieldLength(byte[] b1, int offset1, Class<?> type) throws IOException {
-		if(type == Integer.class ) {
-			return new int[]{0, Integer.SIZE / 8};
-		} else if(type == Utf8.class ) {
+		if(type == Utf8.class ) {
 			return new int[]{0, readVInt(b1, offset1) + WritableUtils.decodeVIntSize(b1[offset1])};
-		} else if(type == Long.class ) {
-			return new int[]{0, Long.SIZE / 8};
-		} else if(type == VIntWritable.class || type.isEnum()) {
+		} else if(type == Integer.class || type.isEnum()) {
 			return new int[]{0, WritableUtils.decodeVIntSize(b1[offset1])};
-		} else if(type == VLongWritable.class) {
+		} else if(type == Long.class) {
 			return new int[]{0, WritableUtils.decodeVIntSize(b1[offset1])};
 		} else if(type == Float.class ) {
 			return new int[]{0, Float.SIZE / 8};

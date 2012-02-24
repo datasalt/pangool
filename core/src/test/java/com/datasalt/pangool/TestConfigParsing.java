@@ -22,16 +22,14 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
-import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.VLongWritable;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.cogroup.TupleMRConfig;
-import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.Utf8;
@@ -53,8 +51,7 @@ public class TestConfigParsing {
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(new Field("int_field", Integer.class));
 		fields.add(new Field("string_field", Utf8.class));
-		fields.add(new Field("vint_field", VIntWritable.class));
-		fields.add(new Field("vlong_field", VLongWritable.class));
+		fields.add(new Field("long_field", Long.class));
 		fields.add(new Field("float_field", Float.class));
 		fields.add(new Field("double_field", Double.class));
 		fields.add(new Field("boolean_field", Boolean.class));

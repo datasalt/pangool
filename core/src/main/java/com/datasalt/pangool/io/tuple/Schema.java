@@ -50,10 +50,8 @@ public class Schema {
 	}
 
 	public static enum InternalType {
-		INT("int", Integer.class), 
-		VINT("vint", VIntWritable.class), 
-		LONG("long", Long.class), 
-		VLONG("vlong", VLongWritable.class), 
+		INT("int", Integer.class),  
+		LONG("long", Long.class),  
 		FLOAT("float", Float.class), 
 		DOUBLE("double", Double.class), 
 		UTF8("utf8", Utf8.class), 
@@ -91,7 +89,6 @@ public class Schema {
 		/**
 		 * Returns the representative class for this InternalType. 
 		 * For example {@link #INT} is represented by {@link Integer}
-		 * and {@link #VINT} is represented by {@link VIntWritable}
 		 */
 		public Class<?> getRepresentativeClass() {
 			return representativeClass;

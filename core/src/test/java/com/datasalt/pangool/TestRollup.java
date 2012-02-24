@@ -26,7 +26,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -34,9 +33,9 @@ import org.junit.Test;
 
 import com.datasalt.pangool.cogroup.TupleMRBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleRollupReducer;
-import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.BaseComparator;
@@ -159,7 +158,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		    "XE 20 listo 230" 
 		    };
 
-		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:vint, name:utf8, height:int"));
+		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:int, name:utf8, height:int"));
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {
@@ -249,7 +248,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		    "XE 16 listo 230" 
 		    };
 
-		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:vint, name:utf8, height:int"));
+		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:int, name:utf8, height:int"));
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {
@@ -320,7 +319,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
   public static class ReverseComparator extends BaseComparator<Integer> {
 
 		public ReverseComparator() {
-	    super(VIntWritable.class);
+	    super(Integer.class);
     }
 
 		@Override
@@ -351,7 +350,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		    "XE 20 listo 230" 
 		    };
 
-		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:vint, name:utf8, height:int"));
+		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:int, name:utf8, height:int"));
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {
