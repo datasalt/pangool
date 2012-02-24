@@ -21,9 +21,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 
+import com.datasalt.pangool.cogroup.SerializationInfo;
 import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.SerializationInfo;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 
@@ -33,7 +34,7 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 	private SerializationInfo serInfo;
 	
 	private Configuration conf;
-	private final Text HELPER_TEXT = new Text(); //to perform hashCode of strings
+	private final Utf8 HELPER_UTF8 = new Utf8(); //to perform hashCode of strings
 	
 	@Override
 	public int getPartition(DatumWrapper<ITuple> key, NullWritable value, int numPartitions) {
@@ -80,9 +81,12 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 		for(int field : fields) {
 			Object o = tuple.get(field);
 			int hashCode;
-			if (o instanceof String){ //since String.hashCode() != Text.hashCode()
-				HELPER_TEXT.set((String)o); 
-				hashCode = HELPER_TEXT.hashCode();
+			if (o instanceof Utf8){ //since String.hashCode() != Utf8.hashCode()
+				HELPER_UTF8.set((String)o); 
+				hashCode = HELPER_UTF8.hashCode();
+			} else if (o instanceof Text){
+				HELPER_UTF8.set((Text) o);
+				hashCode = HELPER_UTF8.hashCode();
 			} else {
 				hashCode = o.hashCode();
 			}

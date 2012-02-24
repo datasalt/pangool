@@ -34,6 +34,7 @@ import com.datasalt.pangool.cogroup.TupleMRBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
@@ -71,13 +72,10 @@ public class SansAccentRepeatedField {
 	@SuppressWarnings("serial")
 	public static class Count extends TupleReducer<Text, NullWritable> {
 		private NullWritable n;
-		//private Text separator;
 		
 		public void setup(TupleMRContext coGrouperContext, Collector collector)
 		    throws IOException, InterruptedException, TupleMRException {
-			n = NullWritable.get();
-			//separator = new Text("\t");
-			
+			n = NullWritable.get();			
 		}
 		
 		@Override
@@ -85,11 +83,7 @@ public class SansAccentRepeatedField {
 		    throws IOException, InterruptedException, TupleMRException {
 			
 			for(ITuple tuple : tuples) {
-				//text.set((Text)tuple.get("word"))
 				Text t = (Text)tuple.get("word");
-//				Text encoded = (Text)tuple.get("encoded_word");
-//				t.append(separator.getBytes(),0,separator.getLength());
-//				t.append(encoded.getBytes(),0,encoded.getLength());
 				collector.write(t,n);
 			}
 		}
@@ -101,8 +95,8 @@ public class SansAccentRepeatedField {
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("word",String.class));
-		fields.add(new Field("encoded_word",String.class));
+		fields.add(new Field("word",Utf8.class));
+		fields.add(new Field("encoded_word",Utf8.class));
 		Schema schema = new Schema("schema",fields);
 
 		TupleMRBuilder cg = new TupleMRBuilder(conf,"Utf8 Alternate order repeating fields");

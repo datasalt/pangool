@@ -37,6 +37,7 @@ import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
@@ -66,10 +67,10 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		    throws IOException, InterruptedException {
 			tuple.set(0, "Pere");
 			tuple.set(1, 100);
-			tuple.set(2, "ES");
+			tuple.set(2, new Text("ES"));
 
 			// We use the multiple outputs here -
-			collector.write(OUTPUT_1, new Text((String)tuple.get(0)), new Text((String)tuple.get(2)));
+			collector.write(OUTPUT_1, new Utf8((String)tuple.get(0)), new Utf8((Text)tuple.get(2)));
 			collector.write(OUTPUT_2, new IntWritable((Integer)tuple.get(1)), NullWritable.get());
 			collector.write(TUPLEOUTPUT_1, tuple, NullWritable.get());
 
@@ -108,7 +109,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		CommonUtils.writeTXT("ignore-me", new File(INPUT));
 
 		TupleMRBuilder coGrouper = new TupleMRBuilder(getConf());
-		Schema baseSchema = new Schema("schema",Fields.parse("name:string, money:int, country:string"));
+		Schema baseSchema = new Schema("schema",Fields.parse("name:utf8, money:int, country:utf8"));
 		coGrouper.addIntermediateSchema(baseSchema);
 		coGrouper.setGroupByFields("country");
 		coGrouper.setOrderBy(new SortBy().add("country",Order.ASC).add("money",Order.DESC).add("name",Order.ASC));
@@ -116,7 +117,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		coGrouper.setTupleReducer(new MyGroupHandler());
 		coGrouper.setOutput(new Path(OUTPUT), SequenceFileOutputFormat.class, DoubleWritable.class, NullWritable.class);
 		// Configure extra outputs
-		coGrouper.addNamedOutput(OUTPUT_1, SequenceFileOutputFormat.class, Text.class, Text.class);
+		coGrouper.addNamedOutput(OUTPUT_1, SequenceFileOutputFormat.class, Utf8.class, Utf8.class);
 		coGrouper.addNamedOutput(OUTPUT_2, SequenceFileOutputFormat.class, IntWritable.class, NullWritable.class);
 		coGrouper.addNamedTupleOutput(TUPLEOUTPUT_1, baseSchema);
 

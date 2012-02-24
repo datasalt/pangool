@@ -44,7 +44,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test
 	public void testCorrectMinimal() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
 		TupleMRConfig conf = b.buildConf();
 		conf.getSerializationInfo();
@@ -53,8 +53,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test
 	public void testCorrect2() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a",Order.ASC).addSourceOrder(Order.DESC).add("b",Order.DESC));
 		TupleMRConfig conf = b.buildConf();
@@ -64,8 +64,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test
 	public void testCommonSortByToCriteria() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string,c:string,blabla:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,c:string,b:string,bloblo:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8,c:utf8,blabla:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,c:utf8,b:utf8,bloblo:utf8")));
 		b.setGroupByFields("c","b");
 		b.setOrderBy(new SortBy().add("b",Order.ASC).add("c",Order.DESC).addSourceOrder(Order.DESC).add("a",Order.DESC));
 		b.setSecondaryOrderBy("schema1",new SortBy().add("blabla", Order.DESC));
@@ -94,7 +94,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test
 	public void testCommonOrderGeneratedImplicitlyFromGroupFields() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string,c:string,blabla:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8,c:utf8,blabla:utf8")));
 		b.setGroupByFields("c","b");
 		TupleMRConfig config = b.buildConf();
 		config.getSerializationInfo();
@@ -109,7 +109,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testSortFieldWithDifferentTypes1() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:boolean")));
 		b.setGroupByFields("a");
 		//not allowed to sort in common order by a field that has different types even after source order
@@ -121,7 +121,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testSortFieldWithDifferentTypes2() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:boolean")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a",Order.ASC).add("b",Order.DESC));
@@ -131,7 +131,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testGroupByFieldWithDifferentTypes() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:boolean")));
 		b.setGroupByFields("b","a");
 		b.buildConf();
@@ -140,8 +140,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test (expected=TupleMRException.class)
 	public void testRepeatedSchemas() throws TupleMRException{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("c:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("c:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.buildConf();
 	}
@@ -149,7 +149,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test (expected=TupleMRException.class)
 	public void testGroupByInvalidField() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("c");
 		b.buildConf();
 	}
@@ -157,7 +157,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test (expected=TupleMRException.class)
 	public void testCommonOrderPrefixGroupBy() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("b",Order.ASC));
 		b.buildConf();
@@ -166,8 +166,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test (expected=TupleMRException.class)
 	public void testCommonOrderPrefixGroupBy2() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string,c:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:string,d:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8,c:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8,d:utf8")));
 		b.setGroupByFields("a","b");
 		b.setOrderBy(new SortBy().add("b",Order.ASC).addSourceOrder(Order.DESC).add("a",Order.DESC));
 		b.buildConf();
@@ -187,7 +187,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test (expected=TupleMRException.class)
 	public void testNotAllowedSourceOrderInOneSource() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a",Order.ASC).addSourceOrder(Order.DESC));
 		b.buildConf();
@@ -196,8 +196,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test (expected=TupleMRException.class)
 	public void testNotAllowedSourceOrderInSecondaryOrder() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
 		b.setSecondaryOrderBy("schema1", new SortBy().add("a",Order.DESC).addSourceOrder(Order.DESC)); //this is incorrect
@@ -207,8 +207,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testSecondaryOrderExistingSource() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
 		b.setSecondaryOrderBy("invented_schema", new SortBy().add("a",Order.DESC).addSourceOrder(Order.DESC));
@@ -218,8 +218,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testSecondaryOrderNotNull() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
 		b.setSecondaryOrderBy("schema1", null);
@@ -229,8 +229,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testSecondaryOrderNotEmpty() throws TupleMRException{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
 		b.setSecondaryOrderBy("schema1", new SortBy());
@@ -240,7 +240,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testCommonOrderNotNull() throws TupleMRException{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.setOrderBy(null);
 		b.buildConf();
@@ -249,7 +249,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testCommonOrderNotEmpty() throws TupleMRException{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.setOrderBy(new SortBy());
 		b.buildConf();
@@ -260,8 +260,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testFieldsRepeatedInCommonAndSecondaryOrder() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
 		b.setSecondaryOrderBy("schema1", new SortBy().add("b",Order.ASC));
@@ -273,8 +273,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testNeedToDeclareCommonOrderWhenSecondary() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.setSecondaryOrderBy("schema1", new SortBy().add("a",Order.ASC));
 		b.buildConf();
@@ -283,8 +283,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testSourceOrderPresentInCommonWhenSecondarySet() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.setOrderBy(new SortBy().add("b",Order.DESC));
 		b.setSecondaryOrderBy("schema1", new SortBy().add("a",Order.ASC));
@@ -295,8 +295,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testRollUpCantBeNull() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.setOrderBy(new SortBy().add("b",Order.DESC));
 		b.setRollupFrom(null);
@@ -306,7 +306,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testRollupPrefixGroupBy() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
 		b.setOrderBy(new SortBy().add("b",Order.DESC));
 		b.setRollupFrom(null);
@@ -316,7 +316,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testRollupNeedsExplicitSortBy() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b","a");
 		b.setRollupFrom("a");
 		b.buildConf();
@@ -325,7 +325,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testSpecificSortingNotAllowedWithOneSource() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a", Order.ASC));
 		b.setSecondaryOrderBy("schema1", new SortBy().add("b", Order.ASC));		
@@ -335,7 +335,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testCustomPartitionFieldsNotEmpty() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a", Order.ASC));
 		b.setCustomPartitionFields();		
@@ -345,7 +345,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testCustomPartitionFieldsNotNull() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a", Order.ASC));
 		String [] array = null;
@@ -356,8 +356,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testCustomPartitionFieldsPresentInAllSources() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:string,c:long")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8,c:long")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a", Order.ASC));
 		b.setCustomPartitionFields("c");		
@@ -367,7 +367,7 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=TupleMRException.class)
 	public void testCustomPartitionFieldsPresentWithSameType() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:long")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a", Order.ASC));
@@ -378,8 +378,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test
 	public void testCustomPartition() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("b:string,a:int")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("b:utf8,a:int")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a", Order.ASC));
 		b.setCustomPartitionFields("b");		
@@ -399,8 +399,8 @@ public class TestConfigBuilder extends BaseTest{
 	@Test(expected=UnsupportedOperationException.class)
 	public void testNotMutableConfig() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
-		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:string")));
-		b.addIntermediateSchema(new Schema("schema2",Fields.parse("b:string,a:int")));
+		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
+		b.addIntermediateSchema(new Schema("schema2",Fields.parse("b:utf8,a:int")));
 		b.setGroupByFields("a");
 		b.setOrderBy(new SortBy().add("a", Order.ASC));
 		b.setCustomPartitionFields("b");		

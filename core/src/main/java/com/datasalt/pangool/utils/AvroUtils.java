@@ -85,7 +85,7 @@ public class AvroUtils {
 		Map<String, String> complexTypesMetadata = new HashMap<String, String>();
 		for(Field field : pangoolSchema.getFields()) {
 			org.apache.avro.Schema fieldsSchema = null;
-			if(field.getType().equals(String.class)) {
+			if(field.getType().equals(com.datasalt.pangool.io.Utf8.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.STRING);
 			} else if(field.getType().equals(Integer.class)) {
 				fieldsSchema = org.apache.avro.Schema.create(Type.INT);
@@ -152,9 +152,9 @@ public class AvroUtils {
 			if(obj instanceof Utf8) {
 				Utf8 utf8 = (Utf8) obj;
 				if(tuple.get(index) == null) {
-					tuple.set(index, new Text());
+					tuple.set(index, new com.datasalt.pangool.io.Utf8());
 				}
-				((Text) tuple.get(index)).set(utf8.getBytes(), 0, utf8.getByteLength());
+				((com.datasalt.pangool.io.Utf8) tuple.get(index)).set(utf8.getBytes(), 0, utf8.getByteLength());
 			} else if(obj instanceof ByteBuffer) {
 				String clazz = avroSchema.getProp(field.name());
 				if(clazz != null) {

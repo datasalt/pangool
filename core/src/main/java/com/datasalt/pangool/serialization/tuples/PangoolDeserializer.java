@@ -34,6 +34,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.SerializationInfo;
 import com.datasalt.pangool.io.Buffer;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
@@ -118,7 +119,6 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		return t;
 	}
 	
-	
 	private ITuple deserializeMultipleSources() throws IOException {
 		CachedTuples tuples = cachedTuples.datum();
 		ITuple commonTuple =tuples.commonTuple; 
@@ -176,8 +176,8 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 				tuple.set(index,input.readDouble());
 			} else if(fieldType == Float.class) {
 				tuple.set(index,input.readFloat());
-			} else if(fieldType == String.class) {
-				readText(input,tuple,index);
+			} else if(fieldType == Utf8.class) {
+				readUtf8(input,tuple,index);
 			} else if(fieldType == Boolean.class) {
 				byte b = input.readByte();
 				tuple.set(index,(b != 0));
@@ -189,10 +189,10 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		}
 	}
 	
-	protected void readText(DataInput input,ITuple tuple,int index) throws IOException {
-		Text t = (Text)tuple.get(index);
+	protected void readUtf8(DataInput input,ITuple tuple,int index) throws IOException {
+		Utf8 t = (Utf8)tuple.get(index);
 		if (t == null){
-			t = new Text();
+			t = new Utf8();
 			tuple.set(index,t);
 		}
 		t.readFields(input);

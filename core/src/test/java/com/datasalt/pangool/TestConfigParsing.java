@@ -34,6 +34,7 @@ import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
@@ -46,12 +47,12 @@ public class TestConfigParsing {
 	
 	@Before
 	public void init() throws TupleMRException {
-		this.schema1 = new Schema("schema1", Fields.parse("int_field:int, string_field:string,boolean_field:boolean"));
+		this.schema1 = new Schema("schema1", Fields.parse("int_field:int, string_field:utf8,boolean_field:boolean"));
 		this.schema2 = new Schema("schema2", Fields.parse("long_field:long,boolean_field:boolean, int_field:int"));
 
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(new Field("int_field", Integer.class));
-		fields.add(new Field("string_field", String.class));
+		fields.add(new Field("string_field", Utf8.class));
 		fields.add(new Field("vint_field", VIntWritable.class));
 		fields.add(new Field("vlong_field", VLongWritable.class));
 		fields.add(new Field("float_field", Float.class));

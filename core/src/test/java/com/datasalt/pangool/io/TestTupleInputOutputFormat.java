@@ -99,8 +99,8 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 		HadoopUtils.deleteIfExists(fS, outPathText);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("title",String.class));
-		fields.add(new Field("content",String.class));
+		fields.add(new Field("title",Utf8.class));
+		fields.add(new Field("content",Utf8.class));
 		Schema schema = new Schema("schema",fields);
 		
 		TupleMRBuilder coGrouper = new TupleMRBuilder(conf);

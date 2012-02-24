@@ -40,6 +40,7 @@ import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
@@ -95,7 +96,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 	}
 
 	@SuppressWarnings("serial")
-	public static class Count extends TupleReducer<Text, IntWritable> {
+	public static class Count extends TupleReducer<Utf8, IntWritable> {
 
 		private IntWritable countToEmit;
 		
@@ -110,7 +111,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 			Iterator<ITuple> iterator = tuples.iterator();
 			while(iterator.hasNext()){
 				ITuple tuple = iterator.next();
-				Text text = (Text)tuple.get("word");
+				Utf8 text = (Utf8)tuple.get("word");
 				countToEmit.set((Integer)tuple.get("count"));
 				collector.write(text, countToEmit);
 				Assert.assertFalse(iterator.hasNext());
@@ -124,14 +125,14 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("word",String.class));
+		fields.add(new Field("word",Utf8.class));
 		fields.add(new Field("count",Integer.class));
 		
 		TupleMRBuilder cg = new TupleMRBuilder(conf);
 		cg.addIntermediateSchema(new Schema("schema",fields));
 		cg.setJarByClass(TestCombiner.class);
 		cg.addInput(new Path(input), SequenceFileInputFormat.class, new Split());
-		cg.setOutput(new Path(output), SequenceFileOutputFormat.class, Text.class, IntWritable.class);
+		cg.setOutput(new Path(output), SequenceFileOutputFormat.class, Utf8.class, IntWritable.class);
 		cg.setGroupByFields("word");
 		cg.setOrderBy(new SortBy().add("word",Order.ASC));
 		cg.setTupleReducer(new Count());

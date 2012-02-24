@@ -35,6 +35,7 @@ import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.BaseComparator;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
@@ -158,6 +159,60 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		
 		sortComparator.compare(buffer1.getData(), 0, buffer1.size(), buffer2.getData(), 0, buffer2.size());
 			
-	}	
+	}
+	
+	@Test
+	public void testUtf8() throws IOException, TupleMRException {
+		Configuration conf = getConf();
+		
+		ArrayList<Field> fields = new ArrayList<Field> ();
+		fields.add(new Field("utf8", Utf8.class));
+		Schema schema = new Schema("schema", fields);
 
+		Tuple tuple1 = new Tuple(schema);
+		tuple1.set("utf8", "lameculos");
+
+		Tuple tuple2 = new Tuple(schema);
+		tuple2.set("utf8", "mojigata");
+		
+		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("utf8");
+		builder.setOrderBy(new SortBy().add("utf8", Order.ASC, new BaseComparator<Utf8>(Utf8.class) {
+
+			@Override
+      public int compare(Utf8 o1, Utf8 o2) {
+				assertEquals("lameculos", o1 + "");
+				assertEquals("mojigata",o2 + "");
+				
+				return 1;
+      }
+			
+		}));		
+		
+		TupleMRConfig grouperConf = builder.buildConf();
+		TupleMRConfig.set(grouperConf, conf);
+		
+		HadoopSerialization ser = new HadoopSerialization(conf);
+		
+		DataOutputBuffer buffer1 = new DataOutputBuffer();
+		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
+
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf, Utf8.class);
+		Utf8 objDeser = (Utf8) fieldDeser.deserialize(buffer1.getData(), 0);		
+		assertEquals("lameculos", objDeser + "");
+
+		DataOutputBuffer buffer2 = new DataOutputBuffer();
+		ser.ser(new DatumWrapper<ITuple>(tuple2), buffer2);
+		
+		SortComparator sortComparator = new SortComparator();
+		sortComparator.setConf(conf);
+
+		System.out.println("buff1: " + Arrays.toString(buffer1.getData()));
+		System.out.println("buff2: " + Arrays.toString(buffer2.getData()));
+		
+		sortComparator.compare(buffer1.getData(), 0, buffer1.size(), buffer2.getData(), 0, buffer2.size());
+			
+	}
+	
 }

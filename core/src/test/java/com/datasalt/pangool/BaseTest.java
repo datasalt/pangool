@@ -25,12 +25,14 @@ import java.util.Random;
 
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
@@ -49,7 +51,7 @@ public abstract class BaseTest extends AbstractBaseTest {
 	static{
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(new Field("int_field",Integer.class));
-		fields.add(new Field("string_field",String.class));
+		fields.add(new Field("string_field",Utf8.class));
 		fields.add(new Field("vint_field",VIntWritable.class));
   	fields.add(new Field("vlong_field",VLongWritable.class));
   	fields.add(new Field("float_field",Float.class));
@@ -86,15 +88,21 @@ public abstract class BaseTest extends AbstractBaseTest {
 					tuple.set(i, isRandom ? random.nextDouble() : 0.0);
 				} else if(fieldType == Float.class) {
 					tuple.set(i, isRandom ? random.nextFloat() : 0f);
-				} else if(fieldType == String.class) {
+				} else if(fieldType == Utf8.class) {
 					if (isRandom) {
-						switch (random.nextInt(2)) {
+						switch (random.nextInt(4)) {
 						case 0:
 							tuple.set(i, "");
 							break;
 						case 1:
 							tuple.set(i, random.nextLong() + "");
 							break;
+						case 2:
+							tuple.set(i, new Utf8(random.nextLong() + ""));
+							break;
+						case 3:
+							tuple.set(i, new Text(random.nextLong() + ""));
+							break;														
 						}
 					} else {
 						tuple.set(i, "");

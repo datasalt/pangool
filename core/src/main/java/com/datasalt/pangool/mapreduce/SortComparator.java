@@ -40,6 +40,7 @@ import com.datasalt.pangool.cogroup.sorting.Criteria;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.BinaryComparator;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
@@ -54,6 +55,9 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	protected SerializationInfo serInfo;
 	
 	protected final BinaryComparator binaryComparator = new BinaryComparator();
+	
+	private static final Utf8 UTF8_TMP_1 = new Utf8();
+	private static final Utf8 UTF8_TMP_2 = new Utf8();
 	
 	private static final class Offsets {
 		protected int offset1=0;
@@ -127,7 +131,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * and no raw comparator is present, then a binary comparator is used.
 	 */
 	@SuppressWarnings({ "unchecked" })
-	protected int compareObjects(Object elem1, Object elem2, RawComparator comparator, InternalType internalType) {
+	protected synchronized int compareObjects(Object elem1, Object elem2, RawComparator comparator, InternalType internalType) {
 		// If custom, just use custom.
 		if (comparator != null) {
 			return comparator.compare(elem1, elem2);
@@ -144,6 +148,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		} else if(element2 == null) {
 			return 1;
 		} else {
+			element1 = Utf8.safeForUtf8(element1, UTF8_TMP_1);
+			element2 = Utf8.safeForUtf8(element2, UTF8_TMP_2);
 			if(element1 instanceof Comparable) {
 				return ((Comparable) element1).compareTo(element2);
 			} else if(element2 instanceof Comparable) {
@@ -309,7 +315,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 						return (sort == Order.ASC) ? -1 : 1;
 					}
 				} else {
-					// String(Text) and the rest of types using compareBytes
+					// Utf8 and InternalType.OBJECT compareBytes
 					int length1 = readVInt(b1, o.offset1);
 					int length2 = readVInt(b2, o.offset2);
 					o.offset1 += WritableUtils.decodeVIntSize(b1[o.offset1]);
@@ -351,7 +357,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	public static int[] getHeaderLengthAndFieldLength(byte[] b1, int offset1, Class<?> type) throws IOException {
 		if(type == Integer.class ) {
 			return new int[]{0, Integer.SIZE / 8};
-		} else if(type == String.class ) {
+		} else if(type == Utf8.class ) {
 			return new int[]{0, readVInt(b1, offset1) + WritableUtils.decodeVIntSize(b1[offset1])};
 		} else if(type == Long.class ) {
 			return new int[]{0, Long.SIZE / 8};

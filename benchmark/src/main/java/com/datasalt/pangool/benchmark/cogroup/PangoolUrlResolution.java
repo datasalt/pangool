@@ -35,6 +35,7 @@ import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
@@ -96,7 +97,7 @@ public class PangoolUrlResolution {
 		@Override
 		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException, TupleMRException {
-			if(result == null) {
+			if (result == null) {
 				result = new Text();
 			}
 			String cannonicalUrl = null;
@@ -114,13 +115,13 @@ public class PangoolUrlResolution {
 	public Job getJob(Configuration conf, String input1, String input2, String output) throws TupleMRException,
 	    IOException {
 		List<Field> urlRegisterFields = new ArrayList<Field>();
-		urlRegisterFields.add(new Field("url", String.class));
+		urlRegisterFields.add(new Field("url", Utf8.class));
 		urlRegisterFields.add(new Field("timestamp", Long.class));
-		urlRegisterFields.add(new Field("ip", String.class));
+		urlRegisterFields.add(new Field("ip", Utf8.class));
 
 		List<Field> urlMapFields = new ArrayList<Field>();
-		urlMapFields.add(new Field("url", String.class));
-		urlMapFields.add(new Field("canonicalUrl", String.class));
+		urlMapFields.add(new Field("url", Utf8.class));
+		urlMapFields.add(new Field("canonicalUrl", Utf8.class));
 
 		TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Url Resolution");
 		grouper.addIntermediateSchema(new Schema("urlMap", urlMapFields));

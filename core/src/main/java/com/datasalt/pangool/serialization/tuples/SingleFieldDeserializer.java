@@ -33,6 +33,7 @@ import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.Schema.InternalType;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 
@@ -62,8 +63,8 @@ public class SingleFieldDeserializer {
 	
 	static Class<?> instanceType(Class<?> originType) {
 		InternalType iType = InternalType.fromClass(originType);
-		if (iType == InternalType.STRING) {
-			return Text.class;
+		if (iType == InternalType.UTF8) {
+			return Utf8.class;
 		} else if (iType == InternalType.OBJECT) {
 			return originType;
 		} else {
@@ -113,12 +114,12 @@ public class SingleFieldDeserializer {
   	if(type == Integer.class) {
   		// Integer
   		return readInt(bytes, offset);
-  	} else if(type == String.class || type == Text.class) {
+  	} else if(type == Utf8.class) {  		
   		// String
   		int length = readVInt(bytes, offset);
   		offset += WritableUtils.decodeVIntSize(bytes[offset]);
-  		((Text) instance).set(bytes,offset,length);
-  		return instance; 			
+  		((Utf8) instance).set(bytes, offset, length);
+  		return instance;
   	} else if(type == Long.class) {
   		// Long
   		return readLong(bytes, offset);			

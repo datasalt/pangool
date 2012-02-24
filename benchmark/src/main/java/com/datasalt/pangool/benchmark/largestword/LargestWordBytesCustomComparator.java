@@ -44,6 +44,7 @@ import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
@@ -123,7 +124,7 @@ public class LargestWordBytesCustomComparator {
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("word",String.class));
+		fields.add(new Field("word",Utf8.class));
 		Schema schema = new Schema("schema",fields);
 
 		TupleMRBuilder cg = new TupleMRBuilder(conf,"Largest Word using custom comparator");

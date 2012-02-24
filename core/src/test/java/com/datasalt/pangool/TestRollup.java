@@ -159,7 +159,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		    "XE 20 listo 230" 
 		    };
 
-		Schema schema = new Schema("schema",Fields.parse("country:string, age:vint, name:string, height:int"));
+		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:vint, name:utf8, height:int"));
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {
@@ -249,7 +249,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		    "XE 16 listo 230" 
 		    };
 
-		Schema schema = new Schema("schema",Fields.parse("country:string, age:vint, name:string, height:int"));
+		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:vint, name:utf8, height:int"));
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {
@@ -351,7 +351,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		    "XE 20 listo 230" 
 		    };
 
-		Schema schema = new Schema("schema",Fields.parse("country:string, age:vint, name:string, height:int"));
+		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:vint, name:utf8, height:int"));
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {

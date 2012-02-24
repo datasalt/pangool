@@ -27,8 +27,9 @@ import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Serializer;
 
-import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.SerializationInfo;
+import com.datasalt.pangool.cogroup.TupleMRConfig;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
@@ -42,8 +43,7 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 
 	private DataOutputStream out;
 	private final TupleMRConfig coGrouperConfig;
-	private final Text HELPER_TEXT = new Text();
-	private static final Text EMPTY_TEXT = new Text("");
+	private final Utf8 HELPER_TEXT = new Utf8();
 	private boolean isMultipleSources = false;
 	private final DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 	private final SerializationInfo serInfo;
@@ -134,11 +134,14 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 					output.writeDouble((Double) element);
 				} else if (fieldType == Float.class) {
 					output.writeFloat((Float) element);
-				} else if(fieldType == String.class) {
-					if (element instanceof Text){
-						((Text)element).write(output);
+				} else if(fieldType == Utf8.class) {
+					if (element instanceof Utf8){
+						((Utf8)element).write(output);
 					} else if (element instanceof String){
 						HELPER_TEXT.set((String)element);
+						HELPER_TEXT.write(output);
+					} else if (element instanceof Text){
+						HELPER_TEXT.set((Text)element);
 						HELPER_TEXT.write(output);
 					} else {
 						raiseClassCastException(null,fieldName,element,fieldType);

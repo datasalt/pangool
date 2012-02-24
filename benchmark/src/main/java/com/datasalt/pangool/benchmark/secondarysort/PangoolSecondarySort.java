@@ -35,6 +35,7 @@ import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
@@ -101,7 +102,7 @@ public class PangoolSecondarySort {
 	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(new Field("intField", Integer.class));
-		fields.add(new Field("strField", String.class));
+		fields.add(new Field("strField", Utf8.class));
 		fields.add(new Field("longField", Long.class));
 		fields.add(new Field("doubleField", Double.class));
 		Schema schema = new Schema("schema", fields);

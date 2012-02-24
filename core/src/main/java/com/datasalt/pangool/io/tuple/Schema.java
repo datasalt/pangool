@@ -34,6 +34,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.PangoolRuntimeException;
+import com.datasalt.pangool.io.Utf8;
 
 /**
  * Encapsulates one Pangool schame composed of {@link Field} instances.
@@ -55,7 +56,7 @@ public class Schema {
 		VLONG("vlong", VLongWritable.class), 
 		FLOAT("float", Float.class), 
 		DOUBLE("double", Double.class), 
-		STRING("string", String.class), 
+		UTF8("utf8", Utf8.class), 
 		BOOLEAN("boolean", Boolean.class), 
 		ENUM(null, null), 
 		OBJECT(null, null);

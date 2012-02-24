@@ -35,6 +35,7 @@ import com.datasalt.pangool.cogroup.processors.TupleRollupReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
@@ -174,8 +175,8 @@ public class UserActivityNormalizer {
 	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("user", String.class));
-		fields.add(new Field("feature", String.class));
+		fields.add(new Field("user", Utf8.class));
+		fields.add(new Field("feature", Utf8.class));
 		fields.add(new Field("all", Boolean.class));
 		fields.add(new Field("clicks", Integer.class));
 
