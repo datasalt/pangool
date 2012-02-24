@@ -44,14 +44,13 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 
 	public final static String PROXIED_OUTPUT_FORMAT_CONF = ProxyOutputFormat.class.getName() + ".proxied.output.format";
 
-	Configuration conf;
-	
-	OutputFormat outputFormat;
+	protected Configuration conf;
+	protected OutputFormat outputFormat;
 
 	// The original mapred.output.dir
-	String originalDir = null;
+	protected String originalDir = null;
 	// The _temporary folder over the mapred.output.dir that will be seen by the proxied output format as the original
-	String baseDir = null;
+	protected String baseDir = null;
 	
 	@Override
 	public void setConf(Configuration conf) {

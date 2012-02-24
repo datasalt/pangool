@@ -80,7 +80,7 @@
               <id>checkstyle-check</id>
               <phase>test</phase>
               <goals>
-                <goal>check</goal>
+                <goal>checkstyle</goal>
               </goals>
             </execution>
           </executions>
