@@ -30,8 +30,8 @@ import cern.colt.Arrays;
 
 import com.datasalt.pangolin.thrift.test.A;
 import com.datasalt.pangool.cogroup.TupleMRConfig;
-import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
+import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.BaseComparator;

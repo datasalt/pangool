@@ -36,8 +36,8 @@ import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.datasalt.pangool.cogroup.processors.TupleCombiner;
-import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.io.PangoolMultipleOutputs;
 import com.datasalt.pangool.io.TupleInputFormat;
 import com.datasalt.pangool.io.TupleOutputFormat;
@@ -55,6 +55,42 @@ import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
 import com.datasalt.pangool.utils.AvroUtils;
 import com.datasalt.pangool.utils.DCUtils;
 
+/**
+*
+* TupleMRBuilder creates Tuple-based Map-Reduce jobs.
+*
+* One of the key concepts of Tuple-based Map-Reduce is that Hadoop Key-Value pairs are no longer
+* used.Instead,they are replaced by tuples.Tuples(see {link ITuple}) are just an
+* ordered list of elements whose types are defined in a {@link Schema}.TupleMRBuilder contains
+* several methods to define how grouping and sorting among tuples will be performed, avoiding the
+* complex task of defining custom binary {@link SortComparator} ,{@link GroupComparator} and {@link Partitioner}
+* implementations.
+*
+* A Tuple-based Map-Red job, in its simplest form, requires to define :
+* <ul>
+*  <li><b>Intermediate schemas:</b><br>
+*    An schema specifies the name and types of a Tuple's fields.
+*      Several schemas can be defined in order to perform joins among different input data.
+*    It's mandatory to specify ,at least,one schema using {@link #addIntermediateSchema(Schema)}
+*  </li>
+*  <li><b>Group-by fields:</b><br>
+*    Needed to specify how the tuples will be grouped. Several tuples with the same group-by fields will be
+*    groupped and reduced together in the Reduce phase.
+*  </li>
+*  <li><b>Tuple-based Mapper:</b><br>
+*      The job needs to specify a {@link TupleMapper} instance,the Tuple-based implementation
+*    of Hadoop's {@link Mapper}. Unlike Hadoop's Mappers, Tuple-based mappers are configured using stateful serializable instances
+*    and not static class definitions.
+*  </li>
+*  <li><b>Tuple-based Reducer:</b>
+*    Similar to mapper instances,the job needs to specify a {@link TupleReducer} instance,the Tuple-based implementation
+*    of Hadoop's {@link Reducer}.  <br>
+*  </li>
+* </ul>
+*
+* @see {@link ITuple}, {@link Schema}, {@link TupleMapper}, {@link TupleReducer}
+*
+*/
 @SuppressWarnings("rawtypes")
 public class TupleMRBuilder extends TupleMRConfigBuilder{
 

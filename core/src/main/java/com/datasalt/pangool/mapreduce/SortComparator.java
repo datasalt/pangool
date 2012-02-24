@@ -15,27 +15,23 @@
  */
 package com.datasalt.pangool.mapreduce;
 
+import static com.datasalt.pangool.serialization.tuples.PangoolSerialization.NULL_LENGTH;
 import static org.apache.hadoop.io.WritableComparator.compareBytes;
 import static org.apache.hadoop.io.WritableComparator.readDouble;
 import static org.apache.hadoop.io.WritableComparator.readFloat;
-import static org.apache.hadoop.io.WritableComparator.readInt;
-import static org.apache.hadoop.io.WritableComparator.readLong;
 import static org.apache.hadoop.io.WritableComparator.readVInt;
 import static org.apache.hadoop.io.WritableComparator.readVLong;
-import static com.datasalt.pangool.serialization.tuples.PangoolSerialization.NULL_LENGTH;
 
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
-import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 
+import com.datasalt.pangool.cogroup.SerializationInfo;
 import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
-import com.datasalt.pangool.cogroup.SerializationInfo;
 import com.datasalt.pangool.cogroup.sorting.Criteria;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
