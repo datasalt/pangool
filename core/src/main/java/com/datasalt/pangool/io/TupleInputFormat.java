@@ -16,6 +16,7 @@
 package com.datasalt.pangool.io;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.FileReader;
@@ -37,7 +38,8 @@ import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 import com.datasalt.pangool.utils.AvroUtils;
 
-public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> {
+@SuppressWarnings("serial")
+public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> implements Serializable {
 
 	public static class TupleInputReader extends RecordReader<ITuple, NullWritable> {
 

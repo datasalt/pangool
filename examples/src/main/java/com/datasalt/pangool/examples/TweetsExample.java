@@ -25,6 +25,7 @@ import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.examples.tweets.Beans.HashTag;
 import com.datasalt.pangool.examples.tweets.Beans.SimpleTweet;
+import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -110,7 +111,7 @@ public class TweetsExample {
 		// Input / output and such
 		grouper.setTupleReducer(new TweetsHandler());
 		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		grouper.addInput(new Path(input), TextInputFormat.class, new TweetsProcessor());
+		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new TweetsProcessor());
 		return grouper.createJob();
 	}
 

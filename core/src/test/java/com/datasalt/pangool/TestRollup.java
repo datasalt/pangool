@@ -39,6 +39,7 @@ import com.datasalt.pangool.cogroup.processors.TupleRollupReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.BaseComparator;
+import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -175,7 +176,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		grouper.setRollupFrom("country");
 		grouper.setTupleReducer(new IdentityRed());
 		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
-		grouper.addInput(new Path(input), SequenceFileInputFormat.class, new Map());
+		grouper.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
 
 		Job job = grouper.createJob();
 		job.setNumReduceTasks(1);
@@ -265,7 +266,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		grouper.setRollupFrom("age");
 		grouper.setTupleReducer(new IdentityRed());
 		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
-		grouper.addInput(new Path(input), SequenceFileInputFormat.class, new Map());
+		grouper.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
 
 		Job job = grouper.createJob();
 		job.setNumReduceTasks(1);
@@ -367,7 +368,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		grouper.setRollupFrom("age");
 		grouper.setTupleReducer(new IdentityRed());
 		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
-		grouper.addInput(new Path(input), SequenceFileInputFormat.class, new Map());
+		grouper.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
 
 		Job job = grouper.createJob();
 		job.setNumReduceTasks(1);

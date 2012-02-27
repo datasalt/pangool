@@ -35,6 +35,7 @@ import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -136,8 +137,8 @@ public class PangoolUrlResolution {
 
 		grouper.setTupleReducer(new Handler());
 		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		grouper.addInput(new Path(input1), TextInputFormat.class, new UrlMapProcessor());
-		grouper.addInput(new Path(input2), TextInputFormat.class, new UrlProcessor());
+		grouper.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
+		grouper.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
 		return grouper.createJob();
 	}
 

@@ -17,11 +17,8 @@ package com.datasalt.pangool.mapreduce.lib.input;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -32,92 +29,42 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.util.ReflectionUtils;
+
+import com.datasalt.pangool.utils.DCUtils;
 
 /**
- * An {@link InputFormat} that delegates behavior of paths to multiple other
- * InputFormats.
- * <p> 
+ * An {@link InputFormat} that delegates behavior of paths to multiple other InputFormats.
+ * <p>
  * 
  * @see PangoolMultipleInputs#addInputPath(Job, Path, Class, Class)
  */
 @SuppressWarnings("rawtypes")
 public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
 
-  @SuppressWarnings("unchecked")
-  public List<InputSplit> getSplits(JobContext job) 
-      throws IOException, InterruptedException {
-    Configuration conf = job.getConfiguration();
-    Job jobCopy =new Job(conf);
-    List<InputSplit> splits = new ArrayList<InputSplit>();
-    
-		Map<Path, InputFormat> formatMap = 
-      PangoolMultipleInputs.getInputFormatMap(job);
-    Map<Path, String> mapperMap = PangoolMultipleInputs
-       .getInputProcessorFileMap(job);
-    Map<Class<? extends InputFormat>, List<Path>> formatPaths
-        = new HashMap<Class<? extends InputFormat>, List<Path>>();
+	@SuppressWarnings("unchecked")
+	public List<InputSplit> getSplits(JobContext job) throws IOException, InterruptedException {
+		Configuration conf = job.getConfiguration();
+		Job jobCopy = new Job(conf);
+		List<InputSplit> splits = new ArrayList<InputSplit>();
 
-    // First, build a map of InputFormats to Paths
-    for (Entry<Path, InputFormat> entry : formatMap.entrySet()) {
-      if (!formatPaths.containsKey(entry.getValue().getClass())) {
-       formatPaths.put(entry.getValue().getClass(), new LinkedList<Path>());
-      }
+		Map<Path, String> formatMap = PangoolMultipleInputs.getInputFormatMap(job);
+		Map<Path, String> mapperMap = PangoolMultipleInputs.getInputProcessorFileMap(job);
 
-      formatPaths.get(entry.getValue().getClass()).add(entry.getKey());
-    }
+		for(Map.Entry<Path, String> entry : formatMap.entrySet()) {
+			FileInputFormat.setInputPaths(jobCopy, entry.getKey());
+			InputFormat inputFormat = DCUtils.loadSerializedObjectInDC(conf, InputFormat.class, entry.getValue(), true);
+			List<InputSplit> pathSplits = inputFormat.getSplits(jobCopy);
+			for(InputSplit pathSplit : pathSplits) {
+				splits.add(new TaggedInputSplit(pathSplit, conf, entry.getValue(), mapperMap.get(entry.getKey())));
+			}
+		}
 
-    for (Entry<Class<? extends InputFormat>, List<Path>> formatEntry : 
-        formatPaths.entrySet()) {
-      Class<? extends InputFormat> formatClass = formatEntry.getKey();
-      InputFormat format = (InputFormat) ReflectionUtils.newInstance(
-         formatClass, conf);
-      List<Path> paths = formatEntry.getValue();
+		return splits;
+	}
 
-      Map<String, List<Path>> mapperPaths
-          = new HashMap<String, List<Path>>();
-
-      // Now, for each set of paths that have a common InputFormat, build
-      // a map of Mappers to the paths they're used for
-      for (Path path : paths) {
-       String mapper = mapperMap.get(path);
-       if (!mapperPaths.containsKey(mapper)) {
-         mapperPaths.put(mapper, new LinkedList<Path>());
-       }
-
-       mapperPaths.get(mapper).add(path);
-      }
-
-      // Now each set of paths that has a common InputFormat and Mapper can
-      // be added to the same job, and split together.
-      for (Entry<String, List<Path>> mapEntry :
-          mapperPaths.entrySet()) {
-       paths = mapEntry.getValue();
-       String mapperClass = mapEntry.getKey();
-
-       if (mapperClass == null) {
-         throw new IOException("Input MapOnlyJobBuilder not found for:" + mapEntry.getValue());
-       }
-
-       FileInputFormat.setInputPaths(jobCopy, paths.toArray(new Path[paths
-           .size()]));
-
-       // Get splits for each input path and tag with InputFormat
-       // and Mapper types by wrapping in a TaggedInputSplit.
-       List<InputSplit> pathSplits = format.getSplits(jobCopy);
-       for (InputSplit pathSplit : pathSplits) {
-         splits.add(new TaggedInputSplit(pathSplit, conf, format.getClass(),
-             mapperClass));
-       }
-      }
-    }
-
-    return splits;
-  }
-
-  @Override
-  public RecordReader<K, V> createRecordReader(InputSplit split,
-      TaskAttemptContext context) throws IOException, InterruptedException {
-    return new DelegatingRecordReader<K, V>(split, context);
-  }
+	@Override
+	public RecordReader<K, V> createRecordReader(InputSplit split, TaskAttemptContext context) throws IOException,
+	    InterruptedException {
+		return new DelegatingRecordReader<K, V>(split, context);
+	}
 }

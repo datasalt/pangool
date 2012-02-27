@@ -35,17 +35,18 @@ import org.apache.log4j.PatternLayout;
 
 import com.datasalt.pangool.cogroup.TupleMRBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.BaseComparator;
+import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
  * 
@@ -126,7 +127,7 @@ public class SansAccentsCustomComparator {
 		cg.setGroupByFields("word");
 		cg.setOrderBy(new SortBy().add("word",Order.ASC,new MyUtf8Comparator()));
 		cg.setJarByClass(SansAccentsCustomComparator.class);
-		cg.addInput(new Path(input), TextInputFormat.class, new Split());
+		cg.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new Split());
 		cg.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,NullWritable.class);
 		cg.setTupleReducer(new Count());
 		return cg.createJob();

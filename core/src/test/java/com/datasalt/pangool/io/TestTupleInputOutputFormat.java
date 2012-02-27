@@ -110,7 +110,7 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 
 		coGrouper.setTupleReducer(new IdentityGroupHandler());
 		coGrouper.setTupleOutput(outPath, schema); // setTupleOutput method
-		coGrouper.addInput(inPath, TextInputFormat.class, new MyInputProcessor());
+		coGrouper.addInput(inPath, new HadoopInputFormat(TextInputFormat.class), new MyInputProcessor());
 
 		coGrouper.createJob().waitForCompletion(true);
 

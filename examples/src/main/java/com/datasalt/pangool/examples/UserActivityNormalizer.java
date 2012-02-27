@@ -31,10 +31,11 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import com.datasalt.pangool.cogroup.TupleMRBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.processors.TupleCombiner;
-import com.datasalt.pangool.cogroup.processors.TupleRollupReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
+import com.datasalt.pangool.cogroup.processors.TupleRollupReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -193,7 +194,7 @@ public class UserActivityNormalizer {
 		grouper.setTupleCombiner(new CountCombinerHandler());
 		grouper.setTupleReducer(new NormalizingHandler());
 		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		grouper.addInput(new Path(input), TextInputFormat.class, new UserActivityProcessor());
+		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new UserActivityProcessor());
 		return grouper.createJob();
 	}
 	

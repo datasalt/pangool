@@ -69,11 +69,8 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			
 			// setting handler
 			String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
-			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleReducer.class, fileName);
-			if(handler instanceof Configurable) {
-				((Configurable) handler).setConf(context.getConfiguration());
-			}
-			
+			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleReducer.class, fileName, true);
+
 			this.collector = handler.new Collector(context);
 			this.context = handler.new TupleMRContext(context, grouperConfig);
 			handler.setup(this.context, collector);		

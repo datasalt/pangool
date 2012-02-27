@@ -28,7 +28,6 @@ import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
-import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.util.ReflectionUtils;
 
@@ -44,10 +43,8 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
   private Class<? extends InputSplit> inputSplitClass;
 
   private InputSplit inputSplit;
-
- 
   
-	private Class<? extends InputFormat> inputFormatClass;
+	private String inputFormatFile;
 
   private String inputProcessorFile;
 
@@ -66,12 +63,12 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
    * @param mapperClass The Mapper class to use for this job
    */
   public TaggedInputSplit(InputSplit inputSplit, Configuration conf,
-      Class<? extends InputFormat> inputFormatClass,
+      String inputFormatFile,
       String inputProcessorFile) {
     this.inputSplitClass = inputSplit.getClass();
     this.inputSplit = inputSplit;
     this.conf = conf;
-    this.inputFormatClass = inputFormatClass;
+    this.inputFormatFile = inputFormatFile;
     this.inputProcessorFile = inputProcessorFile;
   }
 
@@ -84,13 +81,8 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
     return inputSplit;
   }
 
-  /**
-   * Retrieves the InputFormat class to use for this split.
-   * 
-   * @return The InputFormat class to use
-   */
-  public Class<? extends InputFormat> getInputFormatClass() {
-    return inputFormatClass;
+  public String getInputFormatFile() {
+    return inputFormatFile;
   }
 
   public String getInputProcessorFile() {
@@ -108,7 +100,7 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
   @SuppressWarnings("unchecked")
   public void readFields(DataInput in) throws IOException {
     inputSplitClass = (Class<? extends InputSplit>) readClass(in);
-    inputFormatClass = (Class<? extends InputFormat<?, ?>>) readClass(in);
+    inputFormatFile = Text.readString(in);
     inputProcessorFile = Text.readString(in);
     inputSplit = (InputSplit) ReflectionUtils
        .newInstance(inputSplitClass, conf);
@@ -130,7 +122,7 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
   @SuppressWarnings("unchecked")
   public void write(DataOutput out) throws IOException {
     Text.writeString(out, inputSplitClass.getName());
-    Text.writeString(out, inputFormatClass.getName());
+    Text.writeString(out, inputFormatFile);
     Text.writeString(out, inputProcessorFile);
     SerializationFactory factory = new SerializationFactory(conf);
     Serializer serializer = 

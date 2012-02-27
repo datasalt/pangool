@@ -104,10 +104,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
   private void initHandlerContextAndCollector(Context context) throws IOException, InterruptedException,
       TupleMRException {
 	  String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
-	  handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleRollupReducer.class, fileName);
-	  if(handler instanceof Configurable) {
-	  	((Configurable) handler).setConf(context.getConfiguration());
-	  }
+	  handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleRollupReducer.class, fileName, true);
+
 	  collector = handler.new Collector(context);
 	  this.context = handler.new TupleMRContext(context, grouperConfig);
 	  handler.setup(this.context, collector);

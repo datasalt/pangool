@@ -25,12 +25,10 @@ import java.util.UUID;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.utils.DCUtils;
@@ -62,29 +60,36 @@ public class PangoolMultipleInputs {
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
 	 */
-	public static void addInputPath(Job job, Path path, Class<? extends InputFormat> inputFormatClass,
+	public static void addInputPath(Job job, Path path, InputFormat inputFormat,
 	     Mapper mapperInstance) throws FileNotFoundException, IOException {
 
 		// Serialize the Mapper instance
-		String uniqueName = UUID.randomUUID().toString() + '.' + "mapper.dat";
+		String uniqueNameMapper = UUID.randomUUID().toString() + '.' + "mapper.dat";
 		try {
-			DCUtils.serializeToDC(mapperInstance, uniqueName, job.getConfiguration());
+			DCUtils.serializeToDC(mapperInstance, uniqueNameMapper, job.getConfiguration());
 		} catch(URISyntaxException e) {
 			throw new IOException(e);
 		}
-		addInputPath(job, path, inputFormatClass);
+		// Serialize the Input Format
+		String uniqueNameInputFormat = UUID.randomUUID().toString() + '.' + "inputFormat.dat";
+		try {
+			DCUtils.serializeToDC(inputFormat, uniqueNameInputFormat, job.getConfiguration());
+		} catch(URISyntaxException e) {
+			throw new IOException(e);
+		}
+		addInputPath(job, path, uniqueNameInputFormat);
 		Configuration conf = job.getConfiguration();
-		String mapperMapping = path.toString() + ";" + uniqueName;
+		String mapperMapping = path.toString() + ";" + uniqueNameMapper;
 		String mappers = conf.get(PANGOOL_INPUT_DIR_MAPPERS_CONF);
 		conf.set(PANGOOL_INPUT_DIR_MAPPERS_CONF, mappers == null ? mapperMapping : mappers + "," + mapperMapping);
 		job.setMapperClass(DelegatingMapper.class);
 	}
 
-	private static void addInputPath(Job job, Path path, Class<? extends InputFormat> inputFormatClass) {
+	private static void addInputPath(Job job, Path path, String inputFormatInstance) {
 		/*
 		 * Only internal -> not allowed to add inputs without associated InputProcessor files
 		 */
-		String inputFormatMapping = path.toString() + ";" + inputFormatClass.getName();
+		String inputFormatMapping = path.toString() + ";" + inputFormatInstance;
 		Configuration conf = job.getConfiguration();
 		String inputFormats = conf.get(PANGOOL_INPUT_DIR_FORMATS_CONF);
 		conf.set(PANGOOL_INPUT_DIR_FORMATS_CONF, inputFormats == null ? inputFormatMapping : inputFormats + ","
@@ -93,27 +98,13 @@ public class PangoolMultipleInputs {
 		job.setInputFormatClass(DelegatingInputFormat.class);
 	}
 
-	/**
-	 * Retrieves a map of {@link Path}s to the {@link InputFormat} class that should be used for them.
-	 * 
-	 * @param job
-	 *          The {@link JobContext}
-	 * @see #addInputPath(JobConf, Path, Class)
-	 * @return A map of paths to inputformats for the job
-	 */
-	static Map<Path, InputFormat> getInputFormatMap(JobContext job) {
-		Map<Path, InputFormat> m = new HashMap<Path, InputFormat>();
+	static Map<Path, String> getInputFormatMap(JobContext job) {
+		Map<Path, String> m = new HashMap<Path, String>();
 		Configuration conf = job.getConfiguration();
 		String[] pathMappings = conf.get(PANGOOL_INPUT_DIR_FORMATS_CONF).split(",");
 		for(String pathMapping : pathMappings) {
 			String[] split = pathMapping.split(";");
-			InputFormat inputFormat;
-			try {
-				inputFormat = (InputFormat) ReflectionUtils.newInstance(conf.getClassByName(split[1]), conf);
-			} catch(ClassNotFoundException e) {
-				throw new RuntimeException(e);
-			}
-			m.put(new Path(split[0]), inputFormat);
+			m.put(new Path(split[0]), split[1]);
 		}
 		return m;
 	}

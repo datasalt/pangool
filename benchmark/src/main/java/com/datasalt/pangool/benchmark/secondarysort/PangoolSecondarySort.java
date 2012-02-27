@@ -35,6 +35,7 @@ import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -115,7 +116,7 @@ public class PangoolSecondarySort {
 		    .add("longField", Order.ASC));
 		grouper.setTupleReducer(new Handler());
 		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, DoubleWritable.class);
-		grouper.addInput(new Path(input), TextInputFormat.class, new IProcessor());
+		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new IProcessor());
 		return grouper.createJob();
 	}
 

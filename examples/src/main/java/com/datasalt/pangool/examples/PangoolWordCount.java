@@ -36,6 +36,7 @@ import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.processors.TupleCombiner;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
+import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -123,7 +124,7 @@ public class PangoolWordCount {
 		cg.addIntermediateSchema(schema);
 		cg.setGroupByFields("word");
 		cg.setJarByClass(PangoolWordCount.class);
-		cg.addInput(new Path(input), TextInputFormat.class, new Split());
+		cg.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new Split());
 		cg.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, Text.class);
 		cg.setTupleReducer(new Count());
 		cg.setTupleCombiner(new CountCombiner());

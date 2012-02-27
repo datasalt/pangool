@@ -15,7 +15,9 @@
  */
 package com.datasalt.pangool.io;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
@@ -161,13 +164,18 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 
 	/**
 	 * Adds a named output for the job.
+	 * @throws URISyntaxException 
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
 	 */
-	public static void addNamedOutput(Job job, String namedOutput, String outputFormatInstanceFile, Class<?> keyClass,
-	    Class<?> valueClass) {
+	public static void addNamedOutput(Job job, String namedOutput, OutputFormat outputFormat, Class<?> keyClass,
+	    Class<?> valueClass) throws FileNotFoundException, IOException, URISyntaxException {
 		checkNamedOutputName(job, namedOutput, true);
 		Configuration conf = job.getConfiguration();
+		String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
+		DCUtils.serializeToDC(outputFormat, uniqueName, conf);
 		conf.set(MULTIPLE_OUTPUTS, conf.get(MULTIPLE_OUTPUTS, "") + " " + namedOutput);
-		conf.set(MO_PREFIX + namedOutput + FORMAT_INSTANCE_FILE, outputFormatInstanceFile);
+		conf.set(MO_PREFIX + namedOutput + FORMAT_INSTANCE_FILE, uniqueName);
 		conf.setClass(MO_PREFIX + namedOutput + KEY, keyClass, Object.class);
 		conf.setClass(MO_PREFIX + namedOutput + VALUE, valueClass, Object.class);
 	}
@@ -369,7 +377,7 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			context.taskAttemptContext = taskContext;
 
 			// Load the OutputFormat instance
-			OutputFormat outputFormat = DCUtils.loadSerializedObjectInDC(context.taskAttemptContext.getConfiguration(), OutputFormat.class, getNamedOutputFormatInstanceFile(this.context, baseFileName));
+			OutputFormat outputFormat = DCUtils.loadSerializedObjectInDC(context.taskAttemptContext.getConfiguration(), OutputFormat.class, getNamedOutputFormatInstanceFile(this.context, baseFileName), true);
 			// We have to create a JobContext for meeting the contract of the OutputFormat
 			JobContext jobContext = new JobContext(taskContext.getConfiguration(), taskContext.getJobID());
 			context.jobContext = jobContext;

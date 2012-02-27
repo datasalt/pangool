@@ -40,9 +40,9 @@ import com.datasalt.pangool.utils.AvroUtils;
  * An Avro-based output format for {@link ITuple}s
  * 
  */
+@SuppressWarnings("serial")
 public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> implements Serializable {
 
-	public final static String CONF_TUPLE_OUTPUT_SCHEMA = TupleOutputFormat.class.getName() + ".output.schema";
 	public final static String FILE_PREFIX = "tuple";
 
 	public static final String DEFLATE_CODEC = "deflate";
@@ -51,6 +51,12 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 	private static final int SYNC_SIZE = 16;
 	private static final int DEFAULT_SYNC_INTERVAL = 1000 * SYNC_SIZE;
 
+	String pangoolOutputSchema;
+
+	public TupleOutputFormat(String pangoolOutputSchema) {
+		this.pangoolOutputSchema = pangoolOutputSchema;
+	}
+	
 	public static class TupleRecordWriter extends RecordWriter<ITuple, NullWritable> {
 
 		Record record;
@@ -82,12 +88,9 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 
 	@Override
 	public RecordWriter<ITuple, NullWritable> getRecordWriter(TaskAttemptContext context) throws IOException,
-	    InterruptedException {
+	    InterruptedException {		
 
-		Schema pangoolOutputSchema;
-		pangoolOutputSchema = Schema.parse(context.getConfiguration().get(CONF_TUPLE_OUTPUT_SCHEMA));
-		
-
+		Schema pangoolOutputSchema = Schema.parse(this.pangoolOutputSchema);
 		org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(pangoolOutputSchema);
 		DataFileWriter<Record> writer = new DataFileWriter<Record>(new ReflectDatumWriter<Record>());
 

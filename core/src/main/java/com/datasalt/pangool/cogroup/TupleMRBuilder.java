@@ -114,10 +114,10 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	private static final class Input {
 
 		private Path path;
-		private Class<? extends InputFormat> inputFormat;
+		private InputFormat inputFormat;
 		private TupleMapper inputProcessor;
 
-		Input(Path path, Class<? extends InputFormat> inputFormat, TupleMapper inputProcessor) {
+		Input(Path path, InputFormat inputFormat, TupleMapper inputProcessor) {
 			this.path = path;
 			this.inputFormat = inputFormat;
 			this.inputProcessor = inputProcessor;
@@ -167,7 +167,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	 * @see {@link PangoolMultipleInputs}
 	 */
 	public void addTupleInput(Path path, TupleMapper<ITuple, NullWritable> tupleMapper) {
-		this.multiInputs.add(new Input(path, TupleInputFormat.class, tupleMapper));
+		this.multiInputs.add(new Input(path, new TupleInputFormat(), tupleMapper));
 		AvroUtils.addAvroSerialization(conf);
 
 	}
@@ -177,7 +177,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	 * 
 	 * @see {@link PangoolMultipleInputs}
 	 */
-	public void addInput(Path path, Class<? extends InputFormat> inputFormat, TupleMapper inputProcessor) {
+	public void addInput(Path path, InputFormat inputFormat, TupleMapper inputProcessor) {
 		this.multiInputs.add(new Input(path, inputFormat, inputProcessor));
 	}
 
@@ -197,10 +197,9 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 
 	public void setTupleOutput(Path outputPath, Schema schema) {
 		this.outputPath = outputPath;
-		this.outputFormat = new TupleOutputFormat();
+		this.outputFormat = new TupleOutputFormat(schema.toString());
 		this.outputKeyClass = ITuple.class;
 		this.outputValueClass = NullWritable.class;
-		conf.set(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, schema.toString());
 		AvroUtils.addAvroSerialization(conf);
 	}
 
@@ -221,9 +220,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 
 	public void addNamedTupleOutput(String namedOutput, Schema outputSchema) throws TupleMRException {
 		validateNamedOutput(namedOutput);
-		Map<String, String> specificContext = new HashMap<String, String>();
-		specificContext.put(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, outputSchema.toString());
-		Output output = new Output(namedOutput, new TupleOutputFormat(), ITuple.class, NullWritable.class, specificContext);
+		Output output = new Output(namedOutput, new TupleOutputFormat(outputSchema.toString()), ITuple.class, NullWritable.class, null);
 		AvroUtils.addAvroSerialization(conf);
 		namedOutputs.add(output);
 	}
@@ -293,13 +290,12 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat, input.inputProcessor);
 		}
 		for(Output output : namedOutputs) {
-			String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
 			try {
-				DCUtils.serializeToDC(output.outputFormat, uniqueName, conf);
+				PangoolMultipleOutputs
+				    .addNamedOutput(job, output.name, output.outputFormat, output.keyClass, output.valueClass);
 			} catch(URISyntaxException e1) {
 				throw new TupleMRException(e1);
 			}
-			PangoolMultipleOutputs.addNamedOutput(job, output.name, uniqueName, output.keyClass, output.valueClass);
 			for(Map.Entry<String, String> contextKeyValue : output.specificContext.entrySet()) {
 				PangoolMultipleOutputs.addNamedOutputContext(job, output.name, contextKeyValue.getKey(),
 				    contextKeyValue.getValue());
@@ -314,7 +310,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		}
 		job.getConfiguration().set(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, uniqueName);
 		job.setOutputFormatClass(ProxyOutputFormat.class);
-		
+
 		return job;
 	}
 }

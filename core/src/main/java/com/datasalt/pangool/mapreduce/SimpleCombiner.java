@@ -66,10 +66,8 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			this.grouperIterator = new TupleIterator<DatumWrapper<ITuple>, NullWritable>(context);
 
 			String fileName = context.getConfiguration().get(SimpleCombiner.CONF_COMBINER_HANDLER);
-			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleCombiner.class, fileName);
-			if(handler instanceof Configurable) {
-				((Configurable) handler).setConf(context.getConfiguration());
-			}
+			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleCombiner.class, fileName, true);
+
 			collector = new Collector(grouperConfig, context);
 			this.context = handler.new TupleMRContext(context, grouperConfig);
 			handler.setup(this.context, collector);

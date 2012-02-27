@@ -49,10 +49,9 @@ public class MapOnlyJobBuilder {
 	private static final class Input {
 
 		Path path;
-		
-		Class<? extends InputFormat> inputFormat;
+		InputFormat inputFormat;
 
-		Input(Path path, Class<? extends InputFormat> inputFormat) {
+		Input(Path path, InputFormat inputFormat) {
 			this.path = path;
 			this.inputFormat = inputFormat;
 		}
@@ -66,7 +65,7 @@ public class MapOnlyJobBuilder {
 		return this;
 	}
 
-	public MapOnlyJobBuilder addInput(Path path, Class<? extends InputFormat> inputFormat) {
+	public MapOnlyJobBuilder addInput(Path path, InputFormat inputFormat) {
 		this.multiInputs.add(new Input(path, inputFormat));
 		return this;
 	}

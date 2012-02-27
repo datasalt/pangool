@@ -45,7 +45,7 @@ public class DelegatingMapper extends Mapper {
 			TaggedInputSplit inputSplit = (TaggedInputSplit) context.getInputSplit();
 			log.info("[profile] Got input split. Going to look at DC.");
 			delegate = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), Mapper.class,
-			    inputSplit.getInputProcessorFile());
+			    inputSplit.getInputProcessorFile(), true);
 			log.info("[profile] Finished. Calling run() on delegate.");
 		}
 		delegate.run(context);

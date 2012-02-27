@@ -82,7 +82,7 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 	private void createOutputFormatIfNeeded(JobContext context) throws IOException {
 		if(outputFormat == null) {
 			outputFormat = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), OutputFormat.class, context
-			    .getConfiguration().get(PROXIED_OUTPUT_FORMAT_CONF, null));
+			    .getConfiguration().get(PROXIED_OUTPUT_FORMAT_CONF, null), true);
 		}
 	}
 
@@ -137,7 +137,7 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 
 		@Override
 		public boolean needsTaskCommit(TaskAttemptContext taskContext) throws IOException {
-			return super.needsTaskCommit(taskContext);
+			return true;
 		}
 
 		@Override

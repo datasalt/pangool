@@ -40,6 +40,7 @@ import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -132,7 +133,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		TupleMRBuilder cg = new TupleMRBuilder(conf);
 		cg.addIntermediateSchema(new Schema("schema",fields));
 		cg.setJarByClass(TestCombiner.class);
-		cg.addInput(new Path(input), SequenceFileInputFormat.class, new Split());
+		cg.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Split());
 		cg.setOutput(new Path(output), new HadoopOutputFormat(SequenceFileOutputFormat.class), Utf8.class, IntWritable.class);
 		cg.setGroupByFields("word");
 		cg.setOrderBy(new SortBy().add("word",Order.ASC));

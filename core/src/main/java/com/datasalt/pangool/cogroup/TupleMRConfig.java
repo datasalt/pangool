@@ -371,7 +371,7 @@ public class TupleMRConfig {
 			for(int i = 0; i < comparatorRefs.length; i++) {
 				String[] ref = comparatorRefs[i].split("\\|");
 				String instanceFile = comparatorInstanceFiles[i];
-				RawComparator<?> comparator = DCUtils.loadSerializedObjectInDC(conf, RawComparator.class, instanceFile);
+				RawComparator<?> comparator = DCUtils.loadSerializedObjectInDC(conf, RawComparator.class, instanceFile, false);
 
 				if(ref[0].equals(COMMON)) {
 					setComparator(grouperConfig.getCommonCriteria(), ref[1], comparator);
