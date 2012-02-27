@@ -37,10 +37,10 @@ import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
@@ -177,10 +177,10 @@ public class UserActivityNormalizer {
 	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("user", Utf8.class));
-		fields.add(new Field("feature", Utf8.class));
-		fields.add(new Field("all", Boolean.class));
-		fields.add(new Field("clicks", Integer.class));
+		fields.add(Field.create("user", Type.STRING));
+		fields.add(Field.create("feature", Type.STRING));
+		fields.add(Field.create("all",Type.BOOLEAN));
+		fields.add(Field.create("clicks", Type.INT));
 
 		Schema schema = new Schema("my_schema", fields);
 

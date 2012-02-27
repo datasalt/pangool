@@ -17,8 +17,6 @@ package com.datasalt.pangool.serialization.tuples;
 
 import static org.apache.hadoop.io.WritableComparator.readDouble;
 import static org.apache.hadoop.io.WritableComparator.readFloat;
-import static org.apache.hadoop.io.WritableComparator.readInt;
-import static org.apache.hadoop.io.WritableComparator.readLong;
 import static org.apache.hadoop.io.WritableComparator.readVInt;
 import static org.apache.hadoop.io.WritableComparator.readVLong;
 
@@ -26,15 +24,13 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.Schema.InternalType;
+import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 
 /**
@@ -47,47 +43,51 @@ public class SingleFieldDeserializer {
 	private final Configuration conf;
 	private final HadoopSerialization ser;
 	private final Map<Class<?>, Enum<?>[]> cachedEnums;
-	private final Class<?> type;
-	private Object instance;
+	private final Type fieldType;
+	private final Class objectClazz;
+	private final Object instance;
 	
-	public SingleFieldDeserializer(Configuration conf, TupleMRConfig grouperConfig, Class<?> type) throws IOException {
+	public SingleFieldDeserializer(Configuration conf, TupleMRConfig grouperConfig,Type fieldType,Class objectClazz) throws IOException {
 		this.conf = conf;
 		this.ser = new HadoopSerialization(conf);
 		this.cachedEnums = PangoolSerialization.getEnums(grouperConfig);
-		this.type = type;
-		Class<?> instanceType = instanceType(type);
-		if (instanceType != null) {
-			this.instance = ReflectionUtils.newInstance(instanceType, conf);
+		this.fieldType = fieldType;
+		this.objectClazz = objectClazz;
+		switch(fieldType){
+			case STRING: this.instance = new Utf8(); break;
+			case OBJECT:
+				this.instance = ReflectionUtils.newInstance(objectClazz, conf);
+				break;
+			default:
+				this.instance=null;
 		}
 	} 
 	
-	static Class<?> instanceType(Class<?> originType) {
-		InternalType iType = InternalType.fromClass(originType);
-		if (iType == InternalType.UTF8) {
-			return Utf8.class;
-		} else if (iType == InternalType.OBJECT) {
-			return originType;
-		} else {
+	static Class<?> instanceType(Field field) {
+		switch(field.getType()){
+		case STRING: return Utf8.class;
+		case OBJECT: return field.getObjectClass();
+		default:
 			return null;
 		}
 	} 
 	
-	/**
-	 * Deserialize an individual field from a byte array position that is encoded with the 
-	 * {@link PangoolSerialization}.
-	 * <br>
-	 * @param bytes The byte array.
-	 * @param offset The place to start reading.
-	 */
-	public Object deserialize(byte[] bytes, int offset) throws IOException {
-		return deserialize(instance, bytes, offset, type, ser, conf, cachedEnums);
-	}
+//	/**
+//	 * Deserialize an individual field from a byte array position that is encoded with the 
+//	 * {@link PangoolSerialization}.
+//	 * <br>
+//	 * @param bytes The byte array.
+//	 * @param offset The place to start reading.
+//	 */
+//	public Object deserialize(byte[] bytes, int offset) throws IOException {
+//		return deserialize(instance, bytes, offset, type, ser, conf, cachedEnums);
+//	}
 	
 	/**
 	 * Deserialize an individual field from a byte array position that is encoded with the 
 	 * {@link PangoolSerialization}.
 	 * <br>
-	 * Objects of {@link InternalType#OBJECT} can return null.
+	 * Objects of {@link Type#OBJECT} can return null.
 	 * 
 	 * @param instance An instance to be reused in the case of objects following standard 
 	 * 				Hadoop serialization or Utf8. If null, always return a new object. Usually
@@ -101,44 +101,34 @@ public class SingleFieldDeserializer {
 	 * @param conf A Hadoop configuration
 	 * @param cachedEnums A map with the cached enumerations, for fast lookup. 
 	 * @return A deserialized instance. Null possible if the type is
-	 *         {@link InternalType#OBJECT} 
+	 *         {@link Type#OBJECT} 
 	 * 				    
 	 */
-	public static Object deserialize(Object instance, byte[] bytes, int offset, Class<?> type, 
-  		HadoopSerialization ser, Configuration conf, Map<Class<?>, Enum<?>[]> cachedEnums) throws IOException {
-  	if(type == Integer.class) {
-  		// Integer
-  		return readVInt(bytes, offset);
-  	} else if(type == Utf8.class) {  		
-  		// String
+	public Object deserialize(byte[] bytes, int offset) throws IOException {
+		//TODO repeated code from PangoolDeserializer. REFACTOR!!
+		switch(fieldType){
+		case INT: return readVInt(bytes, offset);
+		case LONG: return readVLong(bytes, offset);			
+		case FLOAT:	return readFloat(bytes, offset);
+		case DOUBLE: return readDouble(bytes, offset);
+		case BOOLEAN: return bytes[offset] != 0;
+		case ENUM: 
+			int value1 = readVInt(bytes, offset);
+  		return cachedEnums.get(objectClazz)[value1];
+		case STRING:
   		int length = readVInt(bytes, offset);
   		offset += WritableUtils.decodeVIntSize(bytes[offset]);
   		((Utf8) instance).set(bytes, offset, length);
   		return instance;
-  	} else if(type == Long.class) {
-  		// Long
-  		return readVLong(bytes, offset);			
-  	} else if(type.isEnum()) {
-  		// Integer
-  		int value1 = readVInt(bytes, offset);
-  		return cachedEnums.get(type)[value1];			
-  	} else if(type == Float.class) {
-  		// Float
-  		return readFloat(bytes, offset);
-  	} else if(type == Double.class) {
-  		// Double
-  		return readDouble(bytes, offset);
-  	} else if(type == Boolean.class) {
-  		// Boolean
-  		return bytes[offset] > 0;
-  	} else {
-  		// Custom objects uses Hadoop Serialization, but has a header with the length.
-  		int length = readVInt(bytes, offset);
+		case OBJECT: 
+  		length = readVInt(bytes, offset); //read prepended length
   		if (length < 0) {
   			return null;
   		}
   		offset += WritableUtils.decodeVIntSize(bytes[offset]);
   		return ser.deser(instance, bytes, offset, length);
-  	} 
+  	 default:
+  		throw new IOException("Not supported type:" + fieldType); 
+		}
   }	
 }

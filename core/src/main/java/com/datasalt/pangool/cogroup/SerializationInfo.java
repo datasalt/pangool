@@ -24,6 +24,10 @@ import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.mapreduce.Partitioner;
+import com.datasalt.pangool.mapreduce.RollupReducer;
+import com.datasalt.pangool.mapreduce.SimpleReducer;
+import com.datasalt.pangool.mapreduce.SortComparator;
+import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
 
 /**
  * 
@@ -129,8 +133,8 @@ public class SerializationInfo {
 		List<Field> commonFields = new ArrayList<Field>();
 		for (SortElement sortElement : commonSortCriteria.getElements()){
 			String fieldName = sortElement.getName();
-			Class<?> type = checkFieldInAllSources(fieldName);
-			commonFields.add(new Field(fieldName,type));
+			Field field = checkFieldInAllSources(fieldName);
+			commonFields.add(field);
 		}
 
 		//adding the rest
@@ -148,8 +152,8 @@ public class SerializationInfo {
 		List<Field> commonFields = new ArrayList<Field>();
 		for (SortElement sortElement : commonSortCriteria.getElements()){
 			String fieldName = sortElement.getName();
-			Class<?> type = checkFieldInAllSources(fieldName);
-			commonFields.add(new Field(fieldName,type));
+			Field field = checkFieldInAllSources(fieldName);
+			commonFields.add(field);
 		}
 
 		this.commonSchema = new Schema("common",commonFields);
@@ -162,8 +166,8 @@ public class SerializationInfo {
 			if (specificCriteria != null){
 				for (SortElement sortElement : specificCriteria.getElements()){
 					String fieldName = sortElement.getName();
-					Class<?> fieldType = checkFieldInSource(fieldName, sourceId);
-					specificFields.add(new Field(fieldName,fieldType));
+					Field field = checkFieldInSource(fieldName, sourceId);
+					specificFields.add(field);
 				}
 			}
 			specificFieldsBySource.add(specificFields);
@@ -197,26 +201,26 @@ public class SerializationInfo {
 		return false;
 	}
 	
-	private Class<?> checkFieldInAllSources(String name) throws TupleMRException{
-		Class<?> type = null;
+	private Field checkFieldInAllSources(String name) throws TupleMRException{
+		Field field = null;
 		for (int i=0 ; i < grouperConfig.getIntermediateSchemas().size() ; i++){
-			Class<?> typeInSource = checkFieldInSource(name,i);
-			if (type == null){
-				type = typeInSource;
-			} else if (type != typeInSource){
+			Field fieldInSource = checkFieldInSource(name,i);
+			if (field == null){
+				field = fieldInSource;
+			} else if (!field.equals(fieldInSource)){
 				throw new TupleMRException("The type for field '"+ name + "' is not the same in all the sources");
 			}
 		}
-		return type;
+		return field;
 	}
 	
-	private Class<?> checkFieldInSource(String fieldName,int sourceId ) throws TupleMRException{
+	private Field checkFieldInSource(String fieldName,int sourceId ) throws TupleMRException{
 		Schema schema = grouperConfig.getIntermediateSchema(sourceId);
 		Field field =schema.getField(fieldName); 
 		if (field == null){
 			throw new TupleMRException("Field '" + fieldName + "' not present in source '" +  schema.getName() + "' " + schema);
 		} 
-		return field.getType();
+		return field;
 	}
 		
 	public Schema getCommonSchema(){

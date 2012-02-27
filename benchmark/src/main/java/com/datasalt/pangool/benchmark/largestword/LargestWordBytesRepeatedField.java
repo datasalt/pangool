@@ -42,6 +42,7 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
@@ -98,8 +99,8 @@ public class LargestWordBytesRepeatedField {
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("word",Utf8.class));
-		fields.add(new Field("word_length",Integer.class));
+		fields.add(Field.create("word",Type.STRING));
+		fields.add(Field.create("word_length",Type.INT));
 		Schema schema = new Schema("schema",fields);
 
 		TupleMRBuilder cg = new TupleMRBuilder(conf,"Largest Word order repeating fields");

@@ -25,8 +25,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.VLongWritable;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
@@ -34,7 +32,6 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.PangoolRuntimeException;
-import com.datasalt.pangool.io.Utf8;
 
 /**
  * Encapsulates one Pangool schame composed of {@link Field} instances.
@@ -49,90 +46,63 @@ public class Schema {
 		FACTORY.setCodec(MAPPER);
 	}
 
-	public static enum InternalType {
-		INT("int", Integer.class),  
-		LONG("long", Long.class),  
-		FLOAT("float", Float.class), 
-		DOUBLE("double", Double.class), 
-		UTF8("utf8", Utf8.class), 
-		BOOLEAN("boolean", Boolean.class), 
-		ENUM(null, null), 
-		OBJECT(null, null);
-
-		private String parsingString;
-		private Class<?> representativeClass;
-		
-		private static HashMap<Class<?>, InternalType> fromClass; 
-		static {
-			fromClass = new HashMap<Class<?>, InternalType>();
-			for (InternalType iType : InternalType.values()) {
-				if (iType.getRepresentativeClass() != null) {
-					fromClass.put(iType.getRepresentativeClass(), iType);
-				}
-			}
-		}
-
-		InternalType(String parsingString, Class<?> representativeClass) {
-			this.parsingString = parsingString;
-			this.representativeClass = representativeClass;
-		}
-
-		/**
-		 * Returns the string that represents this type. For example "int" 
-		 * for Integer, etc. Used at {@link Fields#parse(String)} method.
-		 * Not present for all {@link InternalType}
-		 */
-		public String getParsingString() {
-			return parsingString;
-		}
-		
-		/**
-		 * Returns the representative class for this InternalType. 
-		 * For example {@link #INT} is represented by {@link Integer}
-		 */
-		public Class<?> getRepresentativeClass() {
-			return representativeClass;
-		}
-		
-		/**
-		 * Maps from class to InternalType
-		 */
-		public static InternalType fromClass(Class<?> clazz) {
-			InternalType iType = fromClass.get(clazz);
-			if (iType != null) {
-				return iType;
-			} else if (clazz.isEnum()) {
-				return ENUM;
-			} else {
-				return OBJECT;
-			}
-		}
-	}
-
 	public static class Field {
+		public static enum Type {
+			INT,  
+			LONG,  
+			FLOAT, 
+			DOUBLE, 
+			STRING, 
+			BOOLEAN, 
+			ENUM, 
+			OBJECT;
+//			private Class clazz;
+//			
+//			private Type(Class clazz){
+//				
+//			}
+		}
+		
+		private final String name;
+		private final Type type;
+		private final Class objectClass;
 
-		private String name;
-		private Class<?> type;
-		private InternalType iType;
-
-		public Field(String name, Class<?> clazz) {
+		public static Field create(String name,Type type){
+			return new Field(name,type,null);
+		}
+		public static Field createObject(String name,Class clazz){
+			return new Field(name,Type.OBJECT,clazz);
+		}
+		public static Field createEnum(String name,Class clazz){
+			return new Field(name,Type.ENUM,clazz);
+		}
+		
+		private Field(String name, Type type,Class clazz) {
 			if(name == null) {
 				throw new IllegalArgumentException("Field name can't be null");
 			}
 
-			if(clazz == null) {
+			if(type == null) {
 				throw new IllegalArgumentException("Field type can't be null");
+			} else if (type == Type.OBJECT || type == Type.ENUM){
+				if (clazz == null){
+					throw new IllegalArgumentException("Field with type " + type + " must specify object class");
+				}
+				
+				if (type == Type.ENUM && !clazz.isEnum()){
+					throw new IllegalArgumentException("Field with type " + type + " must specify an enum class.Use createEnum.");
+				}
+				this.objectClass = clazz;
+			}  else {
+				this.objectClass = null;
 			}
 			this.name = name;
-			setType(clazz);
+			this.type = type;
+			
 		}
 		
-		private void setType(Class<?> type) {
-			this.type = type;
-			this.iType = InternalType.fromClass(type);			
-		}
-
-		public Class<?> getType() {
+				
+		public Type getType() {
 			return type;
 		}
 
@@ -140,16 +110,22 @@ public class Schema {
 			return name;
 		}
 		
-		public InternalType getInternalType() {
-			return iType;
+		public Class getObjectClass(){
+			return objectClass;
 		}
-
+		
 		public boolean equals(Object a) {
 			if(!(a instanceof Field)) {
 				return false;
 			}
 			Field that = (Field) a;
-			return name.equals(that.getName()) && type.equals(that.getType());
+
+			boolean t = name.equals(that.getName()) && type.equals(that.getType());
+			if (type == Type.OBJECT || type == Type.ENUM){
+				return t && objectClass.equals(that.getObjectClass()); 
+			} else {
+				return t;
+			}
 		}
 
 		public String toString() {
@@ -165,10 +141,20 @@ public class Schema {
 		}
 
 		static Field parse(JsonNode node) throws IOException {
-			String name = node.get("name").getTextValue();
-			String clazz = node.get("type").getTextValue();
 			try {
-				return new Field(name, Class.forName(clazz));
+				String name = node.get("name").getTextValue();
+				String typeStr = node.get("type").getTextValue();
+				Type type = Type.valueOf(typeStr);
+				switch(type){
+					case OBJECT:
+						String clazz = node.get("object_class").getTextValue();
+						return Field.createObject(name,Class.forName(clazz));
+					case ENUM: 
+						clazz = node.get("object_class").getTextValue();
+						return Field.createEnum(name,Class.forName(clazz));
+					default: 
+						return Field.create(name, type);
+				}
 			} catch(ClassNotFoundException e) {
 				throw new IOException(e);
 			}
@@ -177,7 +163,10 @@ public class Schema {
 		void toJson(JsonGenerator gen) throws IOException {
 			gen.writeStartObject();
 			gen.writeStringField("name", getName());
-			gen.writeStringField("type", getType().getName());
+			gen.writeStringField("type", getType().toString());
+			if (getType() == Type.OBJECT || getType() == Type.ENUM){
+				gen.writeStringField("object_class",getObjectClass().getName());
+			}
 			gen.writeEndObject();
 		}
 	}

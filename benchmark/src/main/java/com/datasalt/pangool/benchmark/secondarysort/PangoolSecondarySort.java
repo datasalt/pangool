@@ -37,10 +37,10 @@ import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.utils.HadoopUtils;
 
@@ -103,10 +103,10 @@ public class PangoolSecondarySort {
 
 	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("intField", Integer.class));
-		fields.add(new Field("strField", Utf8.class));
-		fields.add(new Field("longField", Long.class));
-		fields.add(new Field("doubleField", Double.class));
+		fields.add(Field.create("intField",Type.INT));
+		fields.add(Field.create("strField",Type.STRING));
+		fields.add(Field.create("longField",Type.LONG));
+		fields.add(Field.create("doubleField",Type.DOUBLE));
 		Schema schema = new Schema("schema", fields);
 
 		TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Secondary Sort");

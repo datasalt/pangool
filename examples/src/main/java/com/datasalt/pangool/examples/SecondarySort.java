@@ -30,16 +30,17 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.cogroup.TupleMRBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
+import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
  * Like original Hadoop's SecondarySort example. Reads a tabulated text file with two numbers, groups by the first and
@@ -82,8 +83,8 @@ public class SecondarySort {
 	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("first",Integer.class));
-		fields.add(new Field("second",Integer.class));
+		fields.add(Field.create("first",Type.INT));
+		fields.add(Field.create("second",Type.INT));
 		
 		Schema schema = new Schema("my_schema",fields);
 		TupleMRBuilder grouper = new TupleMRBuilder(conf);

@@ -35,6 +35,7 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
+import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 
@@ -160,25 +161,22 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	public void readFields(ITuple tuple, DataInput input) throws IOException {
 		Schema schema = tuple.getSchema();
 		for(int index = 0; index < schema.getFields().size(); index++) {
-			Class<?> fieldType = schema.getField(index).getType();
-			if(fieldType == Integer.class) {
-				tuple.set(index,WritableUtils.readVInt(input));
-			} else if(fieldType == Long.class) {
-				tuple.set(index,WritableUtils.readVLong(input));
-			} else if(fieldType == Double.class) {
-				tuple.set(index,input.readDouble());
-			} else if(fieldType == Float.class) {
-				tuple.set(index,input.readFloat());
-			} else if(fieldType == Utf8.class) {
-				readUtf8(input,tuple,index);
-			} else if(fieldType == Boolean.class) {
+			Field field = schema.getField(index);
+			switch(field.getType()){
+			case INT:	tuple.set(index,WritableUtils.readVInt(input)); break;
+			case LONG: tuple.set(index,WritableUtils.readVLong(input)); break;
+			case DOUBLE: tuple.set(index,input.readDouble()); break;
+			case FLOAT: tuple.set(index,input.readFloat()); break;
+			case STRING: readUtf8(input,tuple,index); break;
+			case BOOLEAN:
 				byte b = input.readByte();
 				tuple.set(index,(b != 0));
-			} else if(fieldType.isEnum()) {
-				readEnum(input,tuple,fieldType,index);
-			} else {
-				readCustomObject(input,tuple,fieldType,index);
-			} // end for
+				break;
+			case ENUM: readEnum(input,tuple,field.getObjectClass(),index); break;
+			case OBJECT: readCustomObject(input,tuple,field.getObjectClass(),index); break;
+			default:
+				throw new IOException("Not supported type:" + field.getType());
+			} 
 		}
 	}
 	

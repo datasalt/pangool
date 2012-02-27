@@ -27,10 +27,10 @@ import com.datasalt.pangool.examples.tweets.Beans.HashTag;
 import com.datasalt.pangool.examples.tweets.Beans.SimpleTweet;
 import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.utils.HadoopUtils;
 
@@ -97,10 +97,10 @@ public class TweetsExample {
 		// Configure schema, sort and group by
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("location", Utf8.class));
-		fields.add(new Field("date", Utf8.class));
-		fields.add(new Field("hashtag", Utf8.class));
-		fields.add(new Field("count", Integer.class));
+		fields.add(Field.create("location",Type.STRING));
+		fields.add(Field.create("date", Type.STRING));
+		fields.add(Field.create("hashtag", Type.STRING));
+		fields.add(Field.create("count",Type.INT));
 		Schema schema = new Schema("my_schema", fields);
 
 		TupleMRBuilder grouper = new TupleMRBuilder(conf);

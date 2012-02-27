@@ -46,6 +46,7 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
@@ -97,14 +98,14 @@ public class SansAccentsCustomComparator {
 	}
 	
 	@SuppressWarnings("serial")
-	private static class MyUtf8Comparator extends BaseComparator<Text> {
+	private static class MyUtf8Comparator extends BaseComparator<Utf8> {
 
 		public MyUtf8Comparator() {
-	    super(Text.class);
+	    super(Type.STRING);
     }
 
 		@Override
-    public int compare(Text o1, Text o2) {
+    public int compare(Utf8 o1, Utf8 o2) {
 			String encoded1 = AsciiUtils.convertNonAscii(o1.toString());
 			String encoded2 = AsciiUtils.convertNonAscii(o2.toString());
 			return encoded1.compareTo(encoded2);
@@ -119,7 +120,7 @@ public class SansAccentsCustomComparator {
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("word",Utf8.class));
+		fields.add(Field.create("word",Type.STRING));
 		Schema schema = new Schema("schema",fields);
 
 		TupleMRBuilder cg = new TupleMRBuilder(conf,"Utf8 Alternate order using custom comparator");
