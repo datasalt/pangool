@@ -16,7 +16,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 
 public class HadoopInputFormat extends InputFormat implements Serializable, Configurable {
 
-	private Class clazz;
+	private Class<? extends InputFormat> clazz;
 	private Configuration conf;
 	private InputFormat instance;
 	

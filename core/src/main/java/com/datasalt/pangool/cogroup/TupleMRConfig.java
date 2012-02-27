@@ -371,6 +371,8 @@ public class TupleMRConfig {
 			for(int i = 0; i < comparatorRefs.length; i++) {
 				String[] ref = comparatorRefs[i].split("\\|");
 				String instanceFile = comparatorInstanceFiles[i];
+				
+				// Here we use "false" as last parameter because otherwise it could be an infinite loop. We will call setConf() later.
 				RawComparator<?> comparator = DCUtils.loadSerializedObjectInDC(conf, RawComparator.class, instanceFile, false);
 
 				if(ref[0].equals(COMMON)) {
