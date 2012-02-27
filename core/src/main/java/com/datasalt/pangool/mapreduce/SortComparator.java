@@ -40,7 +40,7 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.Type;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
 
 @SuppressWarnings("rawtypes")
@@ -113,7 +113,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			SortElement e = c.getElements().get(i);
 			Object o1 = w1.get(index1[i]);
 			Object o2 = w2.get(index2[i]);
-			int comparison = compareObjects(o1,o2, e.getCustomComparator(), field.getInternalType());
+			int comparison = compareObjects(o1,o2, e.getCustomComparator(), field.getType());
 			if (comparison != 0){
 				return (e.getOrder() == Order.ASC ? comparison : -comparison);
 			}
@@ -127,7 +127,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * and no raw comparator is present, then a binary comparator is used.
 	 */
 	@SuppressWarnings({ "unchecked" })
-	protected synchronized int compareObjects(Object elem1, Object elem2, RawComparator comparator, Type type) {
+	public int compareObjects(Object elem1, Object elem2, RawComparator comparator, Type type) {
 		// If custom, just use custom.
 		if (comparator != null) {
 			return comparator.compare(elem1, elem2);
@@ -208,7 +208,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			o.offset2 = s2;
 			for(int depth = 0; depth < criteria.getElements().size(); depth++) {
 				Field field = schema.getField(depth);
-				Class<?> type = field.getType();
+				Field.Type type = field.getType();
 				SortElement sortElement = criteria.getElements().get(depth);
 				Order sort = sortElement.getOrder(); 
 				RawComparator comparator = sortElement.getCustomComparator();
@@ -233,7 +233,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					if(comparison != 0) {
 						return (sort == Order.ASC) ? comparison : -comparison;
 					}
-				} else if(type == Integer.class || type.isEnum()) {
+				} else if(type == Type.INT || type == Type.ENUM) {
 					// VInt || Enum
 					int value1 = readVInt(b1, o.offset1);
 					int value2 = readVInt(b2, o.offset2);
@@ -245,7 +245,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					int vintSize = WritableUtils.decodeVIntSize(b1[o.offset1]);
 					o.offset1 += vintSize;
 					o.offset2 += vintSize;
-				} else if(type == Long.class) {
+				} else if(type == Type.LONG) {
 					// VLong
 					long value1 = readVLong(b1, o.offset1);
 					long value2 = readVLong(b2, o.offset2);					
@@ -257,7 +257,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					int vIntSize = WritableUtils.decodeVIntSize(b1[o.offset1]);
 					o.offset1 += vIntSize;
 					o.offset2 += vIntSize;
-				} else if(type == Float.class) {
+				} else if(type == Type.FLOAT) {
 					// Float
 					float value1 = readFloat(b1, o.offset1);
 					float value2 = readFloat(b2, o.offset2);
@@ -268,7 +268,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					}
 					o.offset1 += Float.SIZE / 8;
 					o.offset2 += Float.SIZE / 8;
-				} else if(type == Double.class) {
+				} else if(type == Type.DOUBLE) {
 					// Double
 					double value1 = readDouble(b1, o.offset1);
 					double value2 = readDouble(b2, o.offset2);
@@ -279,7 +279,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					}
 					o.offset1 += Double.SIZE / 8;
 					o.offset2 += Double.SIZE / 8;
-				} else if(type == Boolean.class) {
+				} else if(type == Type.BOOLEAN) {
 					// Boolean
 					byte value1 = b1[o.offset1++];
 					byte value2 = b2[o.offset2++];
@@ -288,7 +288,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					} else if(value1 < value2) {
 						return (sort == Order.ASC) ? -1 : 1;
 					}
-				} else {
+				} else if(type == Type.STRING || type == Type.OBJECT){
 					// Utf8 and Type.OBJECT compareBytes
 					int length1 = readVInt(b1, o.offset1);
 					int length2 = readVInt(b2, o.offset2);
@@ -309,13 +309,15 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 							o.offset1 += length1;
 							o.offset2 += length2;
 						}
-					}
 					
+					}
 					//int 
 					if(comparison != 0) {
 						return (sort == Order.ASC) ? comparison : (-comparison);
 					}
 					
+				} else {
+					throw new IOException("Not supported comparison for type:" + type);
 				}
 			}
 			return 0; // equals
@@ -328,23 +330,21 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * Length can be {@link PangoolSerialization#NULL_LENGTH} in 
 	 * the case of null objects.
 	 */
-	public static int[] getHeaderLengthAndFieldLength(byte[] b1, int offset1, Class<?> type) throws IOException {
-		if(type == Utf8.class ) {
-			return new int[]{0, readVInt(b1, offset1) + WritableUtils.decodeVIntSize(b1[offset1])};
-		} else if(type == Integer.class || type.isEnum()) {
+	public static int[] getHeaderLengthAndFieldLength(byte[] b1, int offset1, Field.Type type) throws IOException {
+		switch(type){
+		case STRING:return new int[]{0, readVInt(b1, offset1) + WritableUtils.decodeVIntSize(b1[offset1])};
+		case INT:
+		case ENUM:
 			return new int[]{0, WritableUtils.decodeVIntSize(b1[offset1])};
-		} else if(type == Long.class) {
-			return new int[]{0, WritableUtils.decodeVIntSize(b1[offset1])};
-		} else if(type == Float.class ) {
-			return new int[]{0, Float.SIZE / 8};
-		} else if(type == Double.class ) {
-			return new int[]{0, Double.SIZE / 8};
-		} else if(type == Boolean.class ) {
-			return new int[]{0, 1};
-		} else {
-			// The rest of types has a VInt with length as header
+		case LONG:return new int[]{0, WritableUtils.decodeVIntSize(b1[offset1])};
+		case FLOAT:	return new int[]{0, Float.SIZE / 8};
+		case DOUBLE: return new int[]{0, Double.SIZE / 8};
+		case BOOLEAN:	return new int[]{0, 1};
+		case OBJECT:
 			// In the case of null objects, length is negative.
 			return new int[]{WritableUtils.decodeVIntSize(b1[offset1]), readVInt(b1, offset1)};
+			default:
+				throw new IOException("Not supported type:"+ type);
 		}		
 	}
 	

@@ -16,17 +16,30 @@
 package com.datasalt.pangool.io.tuple;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.Type;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 
 public class Fields {
 
+	private static Map<String,Type> strToType = new HashMap<String,Type>();
+	
+	static {
+		strToType.put("int",Type.INT);
+		strToType.put("utf8",Type.STRING);
+		strToType.put("boolean",Type.BOOLEAN);
+		strToType.put("double",Type.DOUBLE);
+		strToType.put("float",Type.FLOAT);
+		strToType.put("long",Type.LONG);
+	}
+	
 	public static List<Field> parse(String serialized) throws TupleMRException{
 		
-		try {
+		
 			if(serialized == null || serialized.isEmpty()) {
 				return null;
 			}
@@ -39,24 +52,24 @@ public class Fields {
 				}
 				String fieldName = nameType[0].trim();
 				String fieldType = nameType[1].trim();
-				fields.add(new Field(fieldName, strToClass(fieldType)));
+				Type type = strToType.get(fieldType);
+				try {
+					if (type != null){
+						fields.add(Field.create(fieldName,type));
+					} else {
+						Class objectClazz = Class.forName(fieldType);
+						if (objectClazz.isEnum()){
+							fields.add(Field.createEnum(fieldName,objectClazz));
+						} else {
+							fields.add(Field.createObject(fieldName,objectClazz));
+						}
+					}
+				} catch(ClassNotFoundException e) {
+					throw new TupleMRException("Type " + fieldType + " not a valid class name ",e);
+				}
+				
 			}
 			return fields;
-		} catch(ClassNotFoundException e) {
-			throw new TupleMRException(e);
-		}
-	}
-	
-	public static Class<?> strToClass(String str) throws ClassNotFoundException {
-		Class<?> clazz = null;
-		for (Type iType : Type.values()) {
-			if (iType.getParsingString() != null && str.equals(iType.getParsingString())) {
-				clazz = iType.getRepresentativeClass();
-			}
-		}
-		if(clazz == null) {
-			clazz = Class.forName(str);
-		}
-		return clazz;
+		
 	}
 }

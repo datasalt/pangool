@@ -115,15 +115,11 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> {
 			}
 			wrapper.datum(reader.next(wrapper.datum()));
 			if(tuple == null) {
-				try {
 					// Convert schema from FileReader to pangool Schema
 					tuple = new Tuple(AvroUtils.toPangoolSchema(reader.getSchema()));
-				} catch(ClassNotFoundException e) {
-					throw new IOException(e);
-				}
 			}
 			try {
-	      AvroUtils.toTuple(wrapper.datum(), tuple, reader.getSchema(), conf, ser);
+	      AvroUtils.toTuple(wrapper.datum(), tuple, conf, ser);
       } catch(ClassNotFoundException e) {
       	throw new IOException(e);
       }

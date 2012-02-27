@@ -58,7 +58,8 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		Configuration conf = getConf();
 		
 		ArrayList<Field> fields = new ArrayList<Field> ();
-		fields.add(Field.createObject("a", A.class));
+		Field field = Field.createObject("a", A.class);
+		fields.add(field);
 		Schema schema = new Schema("schema", fields);
 
 		Tuple tuple1 = new Tuple(schema);
@@ -71,7 +72,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("a");
-		builder.setOrderBy(new SortBy().add("a", Order.ASC, new BaseComparator<A>(A.class) {
+		builder.setOrderBy(new SortBy().add("a", Order.ASC, new BaseComparator<A>(Type.OBJECT,A.class) {
 
 			@Override
       public int compare(A o1, A o2) {
@@ -91,7 +92,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
 
-		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf, A.class);
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf,field.getType(),field.getObjectClass());
 		A otherA = (A) fieldDeser.deserialize(buffer1.getData(), 0);
 		assertEquals(a, otherA);
 
@@ -113,7 +114,8 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		Configuration conf = getConf();
 		
 		ArrayList<Field> fields = new ArrayList<Field> ();
-		fields.add(Field.create("int",Type.INT));
+		Field field = Field.create("int",Type.INT);
+		fields.add(field);
 		Schema schema = new Schema("schema", fields);
 
 		Tuple tuple1 = new Tuple(schema);
@@ -125,7 +127,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("int");
-		builder.setOrderBy(new SortBy().add("int", Order.ASC, new BaseComparator<Integer>(Integer.class) {
+		builder.setOrderBy(new SortBy().add("int", Order.ASC, new BaseComparator<Integer>(Type.INT) {
 
 			@Override
       public int compare(Integer o1, Integer o2) {
@@ -145,7 +147,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
 
-		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf, Integer.class);
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf,field.getType(),field.getObjectClass());
 		Integer iDeser = (Integer) fieldDeser.deserialize(buffer1.getData(), 0);
 		assertEquals(200, (int) iDeser);
 
@@ -167,7 +169,8 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		Configuration conf = getConf();
 		
 		ArrayList<Field> fields = new ArrayList<Field> ();
-		fields.add(Field.create("utf8",Type.STRING));
+		Field field = Field.create("utf8",Type.STRING);
+		fields.add(field);
 		Schema schema = new Schema("schema", fields);
 
 		Tuple tuple1 = new Tuple(schema);
@@ -179,7 +182,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("utf8");
-		builder.setOrderBy(new SortBy().add("utf8", Order.ASC, new BaseComparator<Utf8>(Utf8.class) {
+		builder.setOrderBy(new SortBy().add("utf8", Order.ASC, new BaseComparator<Utf8>(Type.STRING) {
 
 			@Override
       public int compare(Utf8 o1, Utf8 o2) {
@@ -199,7 +202,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
 
-		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf, Utf8.class);
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf,field.getType(),field.getObjectClass());
 		Utf8 objDeser = (Utf8) fieldDeser.deserialize(buffer1.getData(), 0);		
 		assertEquals("lameculos", objDeser + "");
 

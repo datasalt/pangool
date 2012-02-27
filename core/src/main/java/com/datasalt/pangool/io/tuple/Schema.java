@@ -55,7 +55,12 @@ public class Schema {
 			STRING, 
 			BOOLEAN, 
 			ENUM, 
-			OBJECT
+			OBJECT;
+//			private Class clazz;
+//			
+//			private Type(Class clazz){
+//				
+//			}
 		}
 		
 		private final String name;
@@ -87,10 +92,13 @@ public class Schema {
 				if (type == Type.ENUM && !clazz.isEnum()){
 					throw new IllegalArgumentException("Field with type " + type + " must specify an enum class.Use createEnum.");
 				}
-			} 
+				this.objectClass = clazz;
+			}  else {
+				this.objectClass = null;
+			}
 			this.name = name;
 			this.type = type;
-			this.objectClass = null;
+			
 		}
 		
 				
@@ -113,7 +121,7 @@ public class Schema {
 			Field that = (Field) a;
 
 			boolean t = name.equals(that.getName()) && type.equals(that.getType());
-			if (type == Type.OBJECT){
+			if (type == Type.OBJECT || type == Type.ENUM){
 				return t && objectClass.equals(that.getObjectClass()); 
 			} else {
 				return t;
@@ -135,12 +143,17 @@ public class Schema {
 		static Field parse(JsonNode node) throws IOException {
 			try {
 				String name = node.get("name").getTextValue();
-				String type = node.get("type").getTextValue();
-				if(node.get("object_class") != null) {
-					String clazz = node.get("object_class").getTextValue();
-					return Field.createObject(name, Class.forName(clazz));
-				} else {
-					return Field.create(name, Type.valueOf(type));
+				String typeStr = node.get("type").getTextValue();
+				Type type = Type.valueOf(typeStr);
+				switch(type){
+					case OBJECT:
+						String clazz = node.get("object_class").getTextValue();
+						return Field.createObject(name,Class.forName(clazz));
+					case ENUM: 
+						clazz = node.get("object_class").getTextValue();
+						return Field.createEnum(name,Class.forName(clazz));
+					default: 
+						return Field.create(name, type);
 				}
 			} catch(ClassNotFoundException e) {
 				throw new IOException(e);
@@ -151,7 +164,7 @@ public class Schema {
 			gen.writeStartObject();
 			gen.writeStringField("name", getName());
 			gen.writeStringField("type", getType().toString());
-			if (getType() == Type.OBJECT){
+			if (getType() == Type.OBJECT || getType() == Type.ENUM){
 				gen.writeStringField("object_class",getObjectClass().getName());
 			}
 			gen.writeEndObject();

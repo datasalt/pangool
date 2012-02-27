@@ -33,17 +33,17 @@ import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.sorting.Criteria;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.BaseComparator;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.Type;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
+import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 import com.datasalt.pangool.utils.DCUtils;
 
@@ -213,11 +213,15 @@ public class TestComparators extends ComparatorsBaseTest {
 	@SuppressWarnings("serial")
   static class ReverseEqualsComparator extends BaseComparator<Object> {
 
-		private static final Utf8 UTF8_TMP_1 = new Utf8();
-		private static final Utf8 UTF8_TMP_2 = new Utf8();
+		private final Utf8 UTF8_TMP_1 = new Utf8();
+		private final Utf8 UTF8_TMP_2 = new Utf8();
 		
-		public ReverseEqualsComparator(Class objectClass) {
-	    super(objectClass);
+		public ReverseEqualsComparator(Type type) {
+	    super(type);
+    }
+		
+		public ReverseEqualsComparator(Type type,Class objectClazz) {
+	    super(type,objectClazz);
     }
 		@Override
 		public int compare(Object o1, Object o2) {
@@ -257,7 +261,7 @@ public class TestComparators extends ComparatorsBaseTest {
 				if (random.nextBoolean()) {
 					// With custom comparator
 					builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC : Order.DESC,
-				    new ReverseEqualsComparator(field.getType())));
+				    new ReverseEqualsComparator(field.getType(),field.getObjectClass())));
 				} else {
 					// Without custom comparator
 					builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC : Order.DESC));					
@@ -276,7 +280,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	}
 	
   @SuppressWarnings("serial")
-  RawComparator<Integer> revIntComp = new BaseComparator<Integer>(Integer.class) {
+  RawComparator<Integer> revIntComp = new BaseComparator<Integer>(Type.INT) {
 
 		@Override
     public int compare(Integer o1, Integer o2) {
@@ -305,7 +309,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	@Test
 	public void testCompare() {
 		ArrayList<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("int", Integer.class));
+		fields.add(Field.create("int",Field.Type.INT));
 		Schema s = new Schema("schema", fields);
 		Criteria cWithCustom  =new Criteria(new SortBy().add("int", Order.ASC, revIntComp).getElements());
 		Criteria c  =new Criteria(new SortBy().add("int", Order.ASC).getElements());

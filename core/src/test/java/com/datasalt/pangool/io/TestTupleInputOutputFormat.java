@@ -43,6 +43,7 @@ import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
@@ -99,8 +100,8 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 		HadoopUtils.deleteIfExists(fS, outPathText);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("title",Utf8.class));
-		fields.add(new Field("content",Utf8.class));
+		fields.add(Field.create("title",Type.STRING));
+		fields.add(Field.create("content",Type.STRING));
 		Schema schema = new Schema("schema",fields);
 		
 		TupleMRBuilder coGrouper = new TupleMRBuilder(conf);

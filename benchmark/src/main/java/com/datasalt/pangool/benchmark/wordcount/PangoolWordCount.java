@@ -36,10 +36,10 @@ import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.processors.TupleCombiner;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 /**
@@ -114,8 +114,8 @@ public class PangoolWordCount {
 
 		
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("word",Utf8.class));
-		fields.add(new Field("count",Integer.class));
+		fields.add(Field.create("word",Type.STRING));
+		fields.add(Field.create("count",Type.INT));
 		Schema schema = new Schema("schema",fields);
 
 		TupleMRBuilder cg = new TupleMRBuilder(conf,"Pangool WordCount");

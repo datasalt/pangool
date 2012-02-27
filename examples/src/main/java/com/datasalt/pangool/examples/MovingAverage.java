@@ -35,14 +35,14 @@ import org.joda.time.format.DateTimeFormatter;
 
 import com.datasalt.pangool.cogroup.TupleMRBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.Pair;
 
@@ -136,9 +136,9 @@ public class MovingAverage {
 	    IOException {
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("url", Utf8.class));
-		fields.add(new Field("date", Utf8.class));
-		fields.add(new Field("visits", Integer.class));
+		fields.add(Field.create("url", Type.STRING));
+		fields.add(Field.create("date", Type.STRING));
+		fields.add(Field.create("visits",Type.INT));
 
 		Schema schema = new Schema("my_schema", fields);
 

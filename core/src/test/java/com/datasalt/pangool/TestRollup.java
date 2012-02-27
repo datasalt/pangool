@@ -42,6 +42,7 @@ import com.datasalt.pangool.io.BaseComparator;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 
@@ -319,7 +320,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
   public static class ReverseComparator extends BaseComparator<Integer> {
 
 		public ReverseComparator() {
-	    super(Integer.class);
+	    super(Type.INT);
     }
 
 		@Override

@@ -38,6 +38,7 @@ import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.utils.HadoopUtils;
@@ -115,13 +116,13 @@ public class PangoolUrlResolution {
 	public Job getJob(Configuration conf, String input1, String input2, String output) throws TupleMRException,
 	    IOException {
 		List<Field> urlRegisterFields = new ArrayList<Field>();
-		urlRegisterFields.add(new Field("url", Utf8.class));
-		urlRegisterFields.add(new Field("timestamp", Long.class));
-		urlRegisterFields.add(new Field("ip", Utf8.class));
+		urlRegisterFields.add(Field.create("url",Type.STRING));
+		urlRegisterFields.add(Field.create("timestamp",Type.LONG));
+		urlRegisterFields.add(Field.create("ip",Type.STRING));
 
 		List<Field> urlMapFields = new ArrayList<Field>();
-		urlMapFields.add(new Field("url", Utf8.class));
-		urlMapFields.add(new Field("canonicalUrl", Utf8.class));
+		urlMapFields.add(Field.create("url",Type.STRING));
+		urlMapFields.add(Field.create("canonicalUrl",Type.STRING));
 
 		TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Url Resolution");
 		grouper.addIntermediateSchema(new Schema("urlMap", urlMapFields));

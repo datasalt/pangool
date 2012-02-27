@@ -26,6 +26,8 @@ import org.apache.hadoop.io.RawComparator;
 
 import com.datasalt.pangool.cogroup.TupleMRConfig;
 import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
 import com.datasalt.pangool.serialization.tuples.SingleFieldDeserializer;
 
@@ -35,19 +37,27 @@ public abstract class BaseComparator<T> implements RawComparator<T>, Serializabl
 	private Configuration conf;
 	private SingleFieldDeserializer fieldDeser1;
 	private SingleFieldDeserializer fieldDeser2;
-	private final Class<?> type;
+	private final Type type;
+	private final Class objectClazz;
   private T object1 = null;
   private T object2 = null;
   
-	public BaseComparator(Class<?> type) {
+	public BaseComparator(Type type) {
 		this.type = type;
+		this.objectClazz = null;
+	}
+	
+	public BaseComparator(Type type,Class clazz){
+		this.type = type;
+		this.objectClazz = clazz;
 	}
 	
 	@Override
 	public void setConf(Configuration conf) {
 		try {
-	    fieldDeser1 = new SingleFieldDeserializer(conf, TupleMRConfig.get(conf), type);
-	    fieldDeser2 = new SingleFieldDeserializer(conf, TupleMRConfig.get(conf), type);
+			TupleMRConfig mrConfig = TupleMRConfig.get(conf);
+	    fieldDeser1 = new SingleFieldDeserializer(conf,mrConfig, type,objectClazz);
+	    fieldDeser2 = new SingleFieldDeserializer(conf,mrConfig, type,objectClazz);
 	    	    
     } catch(IOException e) {
     	throw new RuntimeException(e);
