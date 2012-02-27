@@ -109,18 +109,13 @@ public abstract class BaseTest extends AbstractBaseTest {
 		tuple.set(index, values[isRandom ? random.nextInt(values.length) : 0]);
 	}
 	protected static void fillObject(boolean isRandom,ITuple tuple,Field field,int index){
-		boolean toInstance = random.nextBoolean();
-		if(isRandom && toInstance) {
 		Object instance = ReflectionUtils.newInstance(field.getObjectClass(), null);
 		if (instance instanceof A) {
 			A a = (A) instance;
-			a.setId(random.nextInt() + "");
-			a.setUrl(random.nextLong() + "");
+			a.setId(isRandom ? random.nextInt() + "" : "");
+			a.setUrl(isRandom ? random.nextLong() + "" : "");
 		}
 		tuple.set(index, instance);
-		} else {
-		tuple.set(index, null);
-		}
 	}
 	
 
@@ -140,11 +135,6 @@ public abstract class BaseTest extends AbstractBaseTest {
 		assertEquals(tuple, wrapper2.datum());
 	}
 	
-//	protected static void assertSerializable(CoGrouperConfig config,ITuple tuple,boolean debug) throws IOException {
-//		//HadoopSerialization hadoopSerialization = new HadoopSerialization(conf)
-//		PangoolSerialization serialization = new PangoolSerialization();
-//	}
-	
 	protected static void assertSerializable(PangoolSerialization serialization,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
 		PangoolSerializer ser = (PangoolSerializer)serialization.getSerializer(null); 
 		PangoolDeserializer deser = (PangoolDeserializer)serialization.getDeserializer(null); 
@@ -152,7 +142,6 @@ public abstract class BaseTest extends AbstractBaseTest {
 	}
 	
 	protected static void assertSerializable(PangoolSerializer ser,PangoolDeserializer deser,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
-		
 		DataOutputBuffer output = new DataOutputBuffer();
 		ser.open(output);
 		ser.serialize(tuple);
@@ -171,5 +160,4 @@ public abstract class BaseTest extends AbstractBaseTest {
 		}
 		assertEquals(tuple.datum(), deserializedTuple.datum());
 	}
-
 }

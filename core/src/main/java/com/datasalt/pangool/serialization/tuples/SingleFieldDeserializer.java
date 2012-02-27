@@ -72,17 +72,6 @@ public class SingleFieldDeserializer {
 		}
 	} 
 	
-//	/**
-//	 * Deserialize an individual field from a byte array position that is encoded with the 
-//	 * {@link PangoolSerialization}.
-//	 * <br>
-//	 * @param bytes The byte array.
-//	 * @param offset The place to start reading.
-//	 */
-//	public Object deserialize(byte[] bytes, int offset) throws IOException {
-//		return deserialize(instance, bytes, offset, type, ser, conf, cachedEnums);
-//	}
-	
 	/**
 	 * Deserialize an individual field from a byte array position that is encoded with the 
 	 * {@link PangoolSerialization}.
@@ -122,9 +111,6 @@ public class SingleFieldDeserializer {
   		return instance;
 		case OBJECT: 
   		length = readVInt(bytes, offset); //read prepended length
-  		if (length < 0) {
-  			return null;
-  		}
   		offset += WritableUtils.decodeVIntSize(bytes[offset]);
   		return ser.deser(instance, bytes, offset, length);
   	 default:

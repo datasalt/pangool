@@ -181,7 +181,8 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	}
 	
 	protected void readUtf8(DataInput input,ITuple tuple,int index) throws IOException {
-		Utf8 t = (Utf8)tuple.get(index);
+		//this method is safe because tuple is internal, it's not the one received by the Reducer
+		Utf8 t = (Utf8)tuple.get(index); 
 		if (t == null){
 			t = new Utf8();
 			tuple.set(index,t);
@@ -200,7 +201,7 @@ public class PangoolDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			Object ob = ser.deser(tuple.get(index), tmpInputBuffer.getBytes(), 0, size);
 			tuple.set(index, ob);
 		} else {
-			tuple.set(index,null); 
+			throw new IOException("Error deserializing, custom object serialized with negative length : " + size);
 		}
 	}
 	

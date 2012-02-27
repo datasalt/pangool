@@ -116,7 +116,6 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 			int[] translationTable, DataOutput output) throws IOException {
 		for (int i = 0; i < destinationSchema.getFields().size(); i++) {
 			Field field = destinationSchema.getField(i);
-			String fieldName = field.getName();
 			Type fieldType = field.getType();
 			Object element = tuple.get(translationTable[i]);
 			try {
@@ -144,7 +143,6 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 				case ENUM:
 					writeEnum((Enum<?>) element, field, output); break;
 				case OBJECT:
-					// Non of the other types. Then it is a custom object
 					writeCustomObject(element,output); break;
 				default:
 					throw new IOException("Not supported type:" + fieldType);
@@ -158,15 +156,10 @@ public class PangoolSerializer implements Serializer<DatumWrapper<ITuple>> {
 	}
 	
 	private void writeCustomObject(Object element, DataOutput output) throws IOException{
-		if(element == null) {
-			WritableUtils.writeVInt(output, PangoolSerialization.NULL_LENGTH);
-		} else {
 			tmpOutputBuffer.reset();
 			ser.ser(element, tmpOutputBuffer);
-			// the length of the object is prepended
 			WritableUtils.writeVInt(output, tmpOutputBuffer.getLength());
 			output.write(tmpOutputBuffer.getData(), 0, tmpOutputBuffer.getLength());
-		}
 	}
 
 	private void writeEnum(Enum<?> element, Field field, DataOutput output) throws IOException {

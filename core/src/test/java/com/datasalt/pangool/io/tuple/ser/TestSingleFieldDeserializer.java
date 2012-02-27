@@ -66,8 +66,9 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		final A a = new A("hola", "colega");
 		tuple1.set("a", a);
 
+		final A b = new A("bloblo","coco");
 		Tuple tuple2 = new Tuple(schema);
-		tuple2.set("a", null);
+		tuple2.set("a", b);
 		
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
@@ -77,8 +78,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 			@Override
       public int compare(A o1, A o2) {
 				assertEquals(a, o1);
-				assertTrue(o2 == null);
-				
+				assertEquals(b, o2);
 				return 1;
       }
 			
