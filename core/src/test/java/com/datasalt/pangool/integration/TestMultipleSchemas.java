@@ -39,8 +39,9 @@ import com.datasalt.pangool.cogroup.TupleMRBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
@@ -157,7 +158,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		
 		grouper.addInput(new Path("test-input"), TextInputFormat.class, new FirstInputProcessor());
 		grouper.setTupleReducer(new MyGroupHandler());
-		grouper.setOutput(new Path("test-output"), TextOutputFormat.class, NullWritable.class, NullWritable.class);
+		grouper.setOutput(new Path("test-output"), new HadoopOutputFormat(TextOutputFormat.class), NullWritable.class, NullWritable.class);
 		
 		Job job = grouper.createJob();
 		assertRun(job);

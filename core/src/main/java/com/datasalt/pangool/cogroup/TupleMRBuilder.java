@@ -29,10 +29,11 @@ import java.util.UUID;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapred.lib.MultipleInputs;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.OutputFormat;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.datasalt.pangool.cogroup.processors.TupleCombiner;
@@ -56,54 +57,49 @@ import com.datasalt.pangool.utils.AvroUtils;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
-*
-* TupleMRBuilder creates Tuple-based Map-Reduce jobs.
-*
-* One of the key concepts of Tuple-based Map-Reduce is that Hadoop Key-Value pairs are no longer
-* used.Instead,they are replaced by tuples.Tuples(see {link ITuple}) are just an
-* ordered list of elements whose types are defined in a {@link Schema}.TupleMRBuilder contains
-* several methods to define how grouping and sorting among tuples will be performed, avoiding the
-* complex task of defining custom binary {@link SortComparator} ,{@link GroupComparator} and {@link Partitioner}
-* implementations.
-*
-* A Tuple-based Map-Red job, in its simplest form, requires to define :
-* <ul>
-*  <li><b>Intermediate schemas:</b><br>
-*    An schema specifies the name and types of a Tuple's fields.
-*      Several schemas can be defined in order to perform joins among different input data.
-*    It's mandatory to specify ,at least,one schema using {@link #addIntermediateSchema(Schema)}
-*  </li>
-*  <li><b>Group-by fields:</b><br>
-*    Needed to specify how the tuples will be grouped. Several tuples with the same group-by fields will be
-*    groupped and reduced together in the Reduce phase.
-*  </li>
-*  <li><b>Tuple-based Mapper:</b><br>
-*      The job needs to specify a {@link TupleMapper} instance,the Tuple-based implementation
-*    of Hadoop's {@link Mapper}. Unlike Hadoop's Mappers, Tuple-based mappers are configured using stateful serializable instances
-*    and not static class definitions.
-*  </li>
-*  <li><b>Tuple-based Reducer:</b>
-*    Similar to mapper instances,the job needs to specify a {@link TupleReducer} instance,the Tuple-based implementation
-*    of Hadoop's {@link Reducer}.  <br>
-*  </li>
-* </ul>
-*
-* @see {@link ITuple}, {@link Schema}, {@link TupleMapper}, {@link TupleReducer}
-*
-*/
+ * 
+ * TupleMRBuilder creates Tuple-based Map-Reduce jobs.
+ * 
+ * One of the key concepts of Tuple-based Map-Reduce is that Hadoop Key-Value pairs are no longer used.Instead,they are
+ * replaced by tuples.Tuples(see {link ITuple}) are just an ordered list of elements whose types are defined in a
+ * {@link Schema}.TupleMRBuilder contains several methods to define how grouping and sorting among tuples will be
+ * performed, avoiding the complex task of defining custom binary {@link SortComparator} ,{@link GroupComparator} and
+ * {@link Partitioner} implementations.
+ * 
+ * A Tuple-based Map-Red job, in its simplest form, requires to define :
+ * <ul>
+ * <li><b>Intermediate schemas:</b><br>
+ * An schema specifies the name and types of a Tuple's fields. Several schemas can be defined in order to perform joins
+ * among different input data. It's mandatory to specify ,at least,one schema using
+ * {@link #addIntermediateSchema(Schema)}</li>
+ * <li><b>Group-by fields:</b><br>
+ * Needed to specify how the tuples will be grouped. Several tuples with the same group-by fields will be groupped and
+ * reduced together in the Reduce phase.</li>
+ * <li><b>Tuple-based Mapper:</b><br>
+ * The job needs to specify a {@link TupleMapper} instance,the Tuple-based implementation of Hadoop's {@link Mapper}.
+ * Unlike Hadoop's Mappers, Tuple-based mappers are configured using stateful serializable instances and not static
+ * class definitions.</li>
+ * <li><b>Tuple-based Reducer:</b> Similar to mapper instances,the job needs to specify a {@link TupleReducer}
+ * instance,the Tuple-based implementation of Hadoop's {@link Reducer}. <br>
+ * </li>
+ * </ul>
+ * 
+ * @see {@link ITuple}, {@link Schema}, {@link TupleMapper}, {@link TupleReducer}
+ * 
+ */
 @SuppressWarnings("rawtypes")
-public class TupleMRBuilder extends TupleMRConfigBuilder{
+public class TupleMRBuilder extends TupleMRConfigBuilder {
 
 	private static final class Output {
 
 		private String name;
-		private Class<? extends OutputFormat> outputFormat;
+		private OutputFormat outputFormat;
 		private Class keyClass;
 		private Class valueClass;
 
 		private Map<String, String> specificContext = new HashMap<String, String>();
 
-		private Output(String name, Class<? extends OutputFormat> outputFormat, Class keyClass, Class valueClass,
+		private Output(String name, OutputFormat outputFormat, Class keyClass, Class valueClass,
 		    Map<String, String> specificContext) {
 			this.outputFormat = outputFormat;
 			this.keyClass = keyClass;
@@ -129,11 +125,10 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 	}
 
 	private Configuration conf;
-	
 
 	private TupleReducer tupleReducer;
 	private TupleCombiner tupleCombiner;
-	private Class<? extends OutputFormat> outputFormat;
+	private OutputFormat outputFormat;
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass;
 	private Class<?> outputValueClass;
@@ -147,11 +142,14 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 	public TupleMRBuilder(Configuration conf) {
 		this.conf = conf;
 	}
+
 	/**
-	 * @param conf Configuration instance
-	 * @param name Job's name as in {@link Job}
+	 * @param conf
+	 *          Configuration instance
+	 * @param name
+	 *          Job's name as in {@link Job}
 	 */
-	public TupleMRBuilder(Configuration conf,String name){
+	public TupleMRBuilder(Configuration conf, String name) {
 		this.conf = conf;
 		this.jobName = name;
 	}
@@ -165,16 +163,18 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 
 	/**
 	 * Defines an input as in {@link PangoolMultipleInputs} using {@link TupleInputFormat}
+	 * 
 	 * @see {@link PangoolMultipleInputs}
 	 */
 	public void addTupleInput(Path path, TupleMapper<ITuple, NullWritable> tupleMapper) {
 		this.multiInputs.add(new Input(path, TupleInputFormat.class, tupleMapper));
 		AvroUtils.addAvroSerialization(conf);
-		
+
 	}
-	
+
 	/**
 	 * Defines an input as in {@link PangoolMultipleInputs}
+	 * 
 	 * @see {@link PangoolMultipleInputs}
 	 */
 	public void addInput(Path path, Class<? extends InputFormat> inputFormat, TupleMapper inputProcessor) {
@@ -188,8 +188,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 		this.tupleCombiner = tupleCombiner;
 	}
 
-	public void setOutput(Path outputPath, Class<? extends OutputFormat> outputFormat, Class<?> outputKeyClass,
-	    Class<?> outputValueClass) {
+	public void setOutput(Path outputPath, OutputFormat outputFormat, Class<?> outputKeyClass, Class<?> outputValueClass) {
 		this.outputFormat = outputFormat;
 		this.outputKeyClass = outputKeyClass;
 		this.outputValueClass = outputValueClass;
@@ -198,7 +197,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 
 	public void setTupleOutput(Path outputPath, Schema schema) {
 		this.outputPath = outputPath;
-		this.outputFormat = TupleOutputFormat.class;
+		this.outputFormat = new TupleOutputFormat();
 		this.outputKeyClass = ITuple.class;
 		this.outputValueClass = NullWritable.class;
 		conf.set(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, schema.toString());
@@ -208,25 +207,23 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 	public void setTupleReducer(TupleReducer tupleReducer) {
 		this.tupleReducer = tupleReducer;
 	}
-	
 
-
-	public void addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
-	    Class valueClass) throws TupleMRException {
-		 addNamedOutput(namedOutput, outputFormatClass, keyClass, valueClass, null);
+	public void addNamedOutput(String namedOutput, OutputFormat outputFormat, Class keyClass, Class valueClass)
+	    throws TupleMRException {
+		addNamedOutput(namedOutput, outputFormat, keyClass, valueClass, null);
 	}
 
-	public void addNamedOutput(String namedOutput, Class<? extends OutputFormat> outputFormatClass, Class keyClass,
-	    Class valueClass, Map<String, String> specificContext) throws TupleMRException {
+	public void addNamedOutput(String namedOutput, OutputFormat outputFormat, Class keyClass, Class valueClass,
+	    Map<String, String> specificContext) throws TupleMRException {
 		validateNamedOutput(namedOutput);
-		namedOutputs.add(new Output(namedOutput, outputFormatClass, keyClass, valueClass, specificContext));
+		namedOutputs.add(new Output(namedOutput, outputFormat, keyClass, valueClass, specificContext));
 	}
 
 	public void addNamedTupleOutput(String namedOutput, Schema outputSchema) throws TupleMRException {
 		validateNamedOutput(namedOutput);
 		Map<String, String> specificContext = new HashMap<String, String>();
 		specificContext.put(TupleOutputFormat.CONF_TUPLE_OUTPUT_SCHEMA, outputSchema.toString());
-		Output output = new Output(namedOutput, TupleOutputFormat.class, ITuple.class, NullWritable.class, specificContext);
+		Output output = new Output(namedOutput, new TupleOutputFormat(), ITuple.class, NullWritable.class, specificContext);
 		AvroUtils.addAvroSerialization(conf);
 		namedOutputs.add(output);
 	}
@@ -238,8 +235,8 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 				throw new TupleMRException("Duplicate named output: " + namedOutput);
 			}
 		}
-	}	
-	
+	}
+
 	public Job createJob() throws IOException, TupleMRException {
 
 		failIfNull(tupleReducer, "Need to set a group handler");
@@ -252,13 +249,13 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 		TupleMRConfig grouperConf = buildConf();
 		// Serialize PangoolConf in Hadoop Configuration
 		TupleMRConfig.set(grouperConf, conf);
-		Job job = (jobName == null) ? new Job(conf) : new Job(conf,jobName);
+		Job job = (jobName == null) ? new Job(conf) : new Job(conf, jobName);
 		if(grouperConf.getRollupFrom() != null) {
-				job.setReducerClass(RollupReducer.class);
+			job.setReducerClass(RollupReducer.class);
 		} else {
 			job.setReducerClass(SimpleReducer.class);
 		}
-		
+
 		if(tupleCombiner != null) {
 			job.setCombinerClass(SimpleCombiner.class); // not rollup by now
 			// Set Combiner Handler
@@ -274,8 +271,8 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 		// Set Group Handler
 		try {
 			String uniqueName = UUID.randomUUID().toString() + '.' + "group-handler.dat";
-			DCUtils.serializeToDC(tupleReducer, uniqueName,job.getConfiguration());
-			job.getConfiguration().set( SimpleReducer.CONF_REDUCER_HANDLER, uniqueName);
+			DCUtils.serializeToDC(tupleReducer, uniqueName, job.getConfiguration());
+			job.getConfiguration().set(SimpleReducer.CONF_REDUCER_HANDLER, uniqueName);
 		} catch(URISyntaxException e1) {
 			throw new TupleMRException(e1);
 		}
@@ -284,7 +281,6 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 		PangoolSerialization.enableSerialization(job.getConfiguration());
 
 		job.setJarByClass((jarByClass != null) ? jarByClass : tupleReducer.getClass());
-		job.setOutputFormatClass(outputFormat);
 		job.setMapOutputKeyClass(DatumWrapper.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setPartitionerClass(Partitioner.class);
@@ -297,22 +293,28 @@ public class TupleMRBuilder extends TupleMRConfigBuilder{
 			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat, input.inputProcessor);
 		}
 		for(Output output : namedOutputs) {
-			PangoolMultipleOutputs.addNamedOutput(job, output.name, output.outputFormat, output.keyClass, output.valueClass);
+			String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
+			try {
+				DCUtils.serializeToDC(output.outputFormat, uniqueName, conf);
+			} catch(URISyntaxException e1) {
+				throw new TupleMRException(e1);
+			}
+			PangoolMultipleOutputs.addNamedOutput(job, output.name, uniqueName, output.keyClass, output.valueClass);
 			for(Map.Entry<String, String> contextKeyValue : output.specificContext.entrySet()) {
 				PangoolMultipleOutputs.addNamedOutputContext(job, output.name, contextKeyValue.getKey(),
 				    contextKeyValue.getValue());
 			}
 		}
-		if(!namedOutputs.isEmpty()) {
-			// Configure a {@link ProxyOutputFormat} for Pangool's Multiple Outputs to work: {@link PangoolMultipleOutput}
-			try {
-				job.getConfiguration().setClass(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, job.getOutputFormatClass(),
-				    OutputFormat.class);
-			} catch(ClassNotFoundException e) {
-				// / will never happen
-			}
-			job.setOutputFormatClass(ProxyOutputFormat.class);
+		// Configure a {@link ProxyOutputFormat} for Pangool's Multiple Outputs to work: {@link PangoolMultipleOutput}
+		String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
+		try {
+			DCUtils.serializeToDC(outputFormat, uniqueName, conf);
+		} catch(URISyntaxException e1) {
+			throw new TupleMRException(e1);
 		}
+		job.getConfiguration().set(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, uniqueName);
+		job.setOutputFormatClass(ProxyOutputFormat.class);
+		
 		return job;
 	}
 }

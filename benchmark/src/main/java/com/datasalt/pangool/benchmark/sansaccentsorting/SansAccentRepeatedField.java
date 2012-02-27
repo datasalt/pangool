@@ -34,6 +34,7 @@ import com.datasalt.pangool.cogroup.TupleMRBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
+import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
@@ -105,7 +106,7 @@ public class SansAccentRepeatedField {
 		//cg.setOrderBy(new SortBy().add("encoded_word",Order.ASC).add("word",Order.DESC));
 		cg.setJarByClass(SansAccentRepeatedField.class);
 		cg.addInput(new Path(input), TextInputFormat.class, new Split());
-		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class,NullWritable.class);
+		cg.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,NullWritable.class);
 		cg.setTupleReducer(new Count());
 		return cg.createJob();
 	}

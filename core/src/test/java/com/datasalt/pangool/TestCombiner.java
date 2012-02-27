@@ -38,13 +38,14 @@ import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.processors.TupleCombiner;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 
 public class TestCombiner extends AbstractHadoopTestLibrary{
@@ -132,7 +133,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		cg.addIntermediateSchema(new Schema("schema",fields));
 		cg.setJarByClass(TestCombiner.class);
 		cg.addInput(new Path(input), SequenceFileInputFormat.class, new Split());
-		cg.setOutput(new Path(output), SequenceFileOutputFormat.class, Utf8.class, IntWritable.class);
+		cg.setOutput(new Path(output), new HadoopOutputFormat(SequenceFileOutputFormat.class), Utf8.class, IntWritable.class);
 		cg.setGroupByFields("word");
 		cg.setOrderBy(new SortBy().add("word",Order.ASC));
 		cg.setTupleReducer(new Count());

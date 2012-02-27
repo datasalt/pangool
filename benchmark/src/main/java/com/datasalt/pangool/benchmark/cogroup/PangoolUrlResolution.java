@@ -31,15 +31,16 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.cogroup.TupleMRBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
@@ -134,7 +135,7 @@ public class PangoolUrlResolution {
 		//grouper.setSecondaryOrderBy("urlRegister", new SortBy().add("timestamp", Order.DESC));
 
 		grouper.setTupleReducer(new Handler());
-		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
+		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
 		grouper.addInput(new Path(input1), TextInputFormat.class, new UrlMapProcessor());
 		grouper.addInput(new Path(input2), TextInputFormat.class, new UrlProcessor());
 		return grouper.createJob();

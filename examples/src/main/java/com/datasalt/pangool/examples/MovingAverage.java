@@ -39,6 +39,7 @@ import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
@@ -148,7 +149,7 @@ public class MovingAverage {
 		grouper.setOrderBy(new SortBy().add("url", Order.ASC).add("date", Order.ASC));
 		// Input / output and such
 		grouper.setTupleReducer(new MovingAverageHandler(nDaysAverage));
-		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
+		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
 		grouper.addInput(new Path(input), TextInputFormat.class, new URLVisitsProcessor());
 		return grouper.createJob();
 	}

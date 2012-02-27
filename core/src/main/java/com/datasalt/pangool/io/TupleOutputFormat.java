@@ -16,6 +16,7 @@
 package com.datasalt.pangool.io;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
@@ -39,7 +40,7 @@ import com.datasalt.pangool.utils.AvroUtils;
  * An Avro-based output format for {@link ITuple}s
  * 
  */
-public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> {
+public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> implements Serializable {
 
 	public final static String CONF_TUPLE_OUTPUT_SCHEMA = TupleOutputFormat.class.getName() + ".output.schema";
 	public final static String FILE_PREFIX = "tuple";

@@ -36,9 +36,10 @@ import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.processors.TupleRollupReducer;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.BaseComparator;
+import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
@@ -173,7 +174,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		grouper.setOrderBy(new SortBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
 		grouper.setRollupFrom("country");
 		grouper.setTupleReducer(new IdentityRed());
-		grouper.setOutput(outputPath, SequenceFileOutputFormat.class, Text.class, Text.class);
+		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
 		grouper.addInput(new Path(input), SequenceFileInputFormat.class, new Map());
 
 		Job job = grouper.createJob();
@@ -263,7 +264,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		grouper.setOrderBy(new SortBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
 		grouper.setRollupFrom("age");
 		grouper.setTupleReducer(new IdentityRed());
-		grouper.setOutput(outputPath, SequenceFileOutputFormat.class, Text.class, Text.class);
+		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
 		grouper.addInput(new Path(input), SequenceFileInputFormat.class, new Map());
 
 		Job job = grouper.createJob();
@@ -365,7 +366,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		grouper.setOrderBy(new SortBy().add("country",Order.ASC).add("age",Order.ASC, new ReverseComparator()).add("name",Order.ASC));
 		grouper.setRollupFrom("age");
 		grouper.setTupleReducer(new IdentityRed());
-		grouper.setOutput(outputPath, SequenceFileOutputFormat.class, Text.class, Text.class);
+		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
 		grouper.addInput(new Path(input), SequenceFileInputFormat.class, new Map());
 
 		Job job = grouper.createJob();

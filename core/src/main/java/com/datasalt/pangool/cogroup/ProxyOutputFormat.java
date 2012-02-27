@@ -27,16 +27,17 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.ReflectionUtils;
+
+import com.datasalt.pangool.utils.DCUtils;
 
 /**
- * This special implementation of {@link FileOutputFormat} is used as a proxy for being able to support any type
- * of OutputFormat at the same time that we support Multiple Output Formats (also with any type of OutputFormat).
+ * This special implementation of {@link FileOutputFormat} is used as a proxy for being able to support any type of
+ * OutputFormat at the same time that we support Multiple Output Formats (also with any type of OutputFormat).
  * <p>
- * The idea is to use the "_temporary" folder for storing everything (including multiple sub/folders) so that
- * we have the full control over the commit / fail process.  
- * <p> 
- * The wrapped (proxied) output format can be of any type. It is configured through {@link #PROXIED_OUTPUT_FORMAT_CONF}. 
+ * The idea is to use the "_temporary" folder for storing everything (including multiple sub/folders) so that we have
+ * the full control over the commit / fail process.
+ * <p>
+ * The wrapped (proxied) output format can be of any type. It is configured through {@link #PROXIED_OUTPUT_FORMAT_CONF}.
  * 
  */
 @SuppressWarnings("rawtypes")
@@ -51,7 +52,7 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 	protected String originalDir = null;
 	// The _temporary folder over the mapred.output.dir that will be seen by the proxied output format as the original
 	protected String baseDir = null;
-	
+
 	@Override
 	public void setConf(Configuration conf) {
 		this.conf = conf;
@@ -72,55 +73,56 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 	public void checkOutputSpecs(JobContext context) throws IOException {
 		createOutputFormatIfNeeded(context);
 		try {
-	    outputFormat.checkOutputSpecs(context);
-    } catch(InterruptedException e) {
-    	throw new RuntimeException(e);
-    }
+			outputFormat.checkOutputSpecs(context);
+		} catch(InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
-	private void createOutputFormatIfNeeded(JobContext context) {
+	private void createOutputFormatIfNeeded(JobContext context) throws IOException {
 		if(outputFormat == null) {
-			outputFormat = ((OutputFormat) ReflectionUtils.newInstance(
-			    context.getConfiguration().getClass(PROXIED_OUTPUT_FORMAT_CONF, null), context.getConfiguration()));
+			outputFormat = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), OutputFormat.class, context
+			    .getConfiguration().get(PROXIED_OUTPUT_FORMAT_CONF, null));
 		}
 	}
 
 	@Override
 	public OutputCommitter getOutputCommitter(TaskAttemptContext context) throws IOException {
 		createOutputFormatIfNeeded(context);
-		
+
 		String outDir = context.getConfiguration().get("mapred.output.dir");
 		originalDir = outDir;
-    FileOutputCommitter committer = (FileOutputCommitter) super.getOutputCommitter(context);
+		FileOutputCommitter committer = (FileOutputCommitter) super.getOutputCommitter(context);
 		baseDir = committer.getWorkPath() + "";
 		Configuration conf = new Configuration(context.getConfiguration());
 		TaskAttemptContext reContext = new TaskAttemptContext(conf, context.getTaskAttemptID());
 		reContext.getConfiguration().set("mapred.output.dir", baseDir);
 
 		try {
-	    return new ProxyOutputCommitter(new Path(originalDir), context, outputFormat.getOutputCommitter(reContext));
-    } catch(InterruptedException e) {
-	    throw new RuntimeException(e);
-    }
+			return new ProxyOutputCommitter(new Path(originalDir), context, outputFormat.getOutputCommitter(reContext));
+		} catch(InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public class ProxyOutputCommitter extends FileOutputCommitter {
 
 		OutputCommitter committer;
 
-		public ProxyOutputCommitter(Path outputPath, TaskAttemptContext context, OutputCommitter committer) throws IOException {
+		public ProxyOutputCommitter(Path outputPath, TaskAttemptContext context, OutputCommitter committer)
+		    throws IOException {
 			this(outputPath, context);
 			this.committer = committer;
 		}
-		
+
 		public ProxyOutputCommitter(Path outputPath, TaskAttemptContext context) throws IOException {
-	    super(outputPath, context);
-    }
+			super(outputPath, context);
+		}
 
 		public String getBaseDir() {
 			return baseDir;
 		}
-		
+
 		@Override
 		public void setupJob(JobContext jobContext) throws IOException {
 			committer.setupJob(jobContext);
@@ -147,10 +149,10 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 		@Override
 		public void abortTask(TaskAttemptContext taskContext) {
 			try {
-	      committer.abortTask(taskContext);
-      } catch(IOException e) {
-	      throw new RuntimeException(e);
-      }
+				committer.abortTask(taskContext);
+			} catch(IOException e) {
+				throw new RuntimeException(e);
+			}
 			super.abortTask(taskContext);
 		}
 	}

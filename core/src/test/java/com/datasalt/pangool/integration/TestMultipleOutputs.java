@@ -35,8 +35,9 @@ import com.datasalt.pangool.cogroup.TupleMRBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.ITuple;
@@ -115,10 +116,10 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		coGrouper.setOrderBy(new SortBy().add("country",Order.ASC).add("money",Order.DESC).add("name",Order.ASC));
 		coGrouper.addInput(new Path(INPUT), TextInputFormat.class, new MyInputProcessor());
 		coGrouper.setTupleReducer(new MyGroupHandler());
-		coGrouper.setOutput(new Path(OUTPUT), SequenceFileOutputFormat.class, DoubleWritable.class, NullWritable.class);
+		coGrouper.setOutput(new Path(OUTPUT), new HadoopOutputFormat(SequenceFileOutputFormat.class), DoubleWritable.class, NullWritable.class);
 		// Configure extra outputs
-		coGrouper.addNamedOutput(OUTPUT_1, SequenceFileOutputFormat.class, Utf8.class, Utf8.class);
-		coGrouper.addNamedOutput(OUTPUT_2, SequenceFileOutputFormat.class, IntWritable.class, NullWritable.class);
+		coGrouper.addNamedOutput(OUTPUT_1, new HadoopOutputFormat(SequenceFileOutputFormat.class), Utf8.class, Utf8.class);
+		coGrouper.addNamedOutput(OUTPUT_2, new HadoopOutputFormat(SequenceFileOutputFormat.class), IntWritable.class, NullWritable.class);
 		coGrouper.addNamedTupleOutput(TUPLEOUTPUT_1, baseSchema);
 
 		getConf()

@@ -36,6 +36,7 @@ import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.SortBy;
+import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
@@ -106,7 +107,7 @@ public class LargestWordBytesRepeatedField {
 		cg.setOrderBy(new SortBy().add("word_length",Order.DESC));
 		cg.setJarByClass(LargestWordBytesRepeatedField.class);
 		cg.addInput(new Path(input), TextInputFormat.class, new Split());
-		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class,NullWritable.class);
+		cg.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,NullWritable.class);
 		cg.setTupleReducer(new Count());
 		return cg.createJob();
 	}
