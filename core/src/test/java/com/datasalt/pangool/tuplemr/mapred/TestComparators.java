@@ -38,7 +38,7 @@ import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.Criteria;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
@@ -99,7 +99,7 @@ public class TestComparators extends ComparatorsBaseTest {
 
 		for(int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
 			Schema schema = permuteSchema(SCHEMA);
-			SortBy sortCriteria = createRandomSortCriteria(schema, maxIndex + 1);
+			OrderBy sortCriteria = createRandomSortCriteria(schema, maxIndex + 1);
 			//TODO could we get empty group fields ??
 			String[] groupFields = getFirstFields(sortCriteria,1+ random.nextInt(sortCriteria.getElements().size()-1));
 			ITuple[] tuples = new ITuple[] { new Tuple(schema), new Tuple(schema) };
@@ -256,7 +256,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	 * Creates a random sort criteria based in the specified schema.
 	 * @throws TupleMRException 
 	 */
-	protected static SortBy createRandomSortCriteria(Schema schema, int numFields) throws TupleMRException {			
+	protected static OrderBy createRandomSortCriteria(Schema schema, int numFields) throws TupleMRException {			
 			List<SortElement> builder = new ArrayList<SortElement>();
 			for(int i = 0; i < numFields; i++) {
 				Field field = schema.getField(i);
@@ -269,10 +269,10 @@ public class TestComparators extends ComparatorsBaseTest {
 					builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC : Order.DESC));					
 				}
 			}
-			return new SortBy(builder);
+			return new OrderBy(builder);
 	}
 
-	protected static String[] getFirstFields(SortBy sortCriteria, int numFields) {
+	protected static String[] getFirstFields(OrderBy sortCriteria, int numFields) {
 		String[] result = new String[numFields];
 		for(int i = 0; i < numFields; i++) {
 			SortElement element = sortCriteria.getElements().get(i);
@@ -313,8 +313,8 @@ public class TestComparators extends ComparatorsBaseTest {
 		ArrayList<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("int",Field.Type.INT));
 		Schema s = new Schema("schema", fields);
-		Criteria cWithCustom  =new Criteria(new SortBy().add("int", Order.ASC, revIntComp).getElements());
-		Criteria c  =new Criteria(new SortBy().add("int", Order.ASC).getElements());
+		Criteria cWithCustom  =new Criteria(new OrderBy().add("int", Order.ASC, revIntComp).getElements());
+		Criteria c  =new Criteria(new OrderBy().add("int", Order.ASC).getElements());
 		Tuple t1 = new Tuple(s);
 		Tuple t2 = new Tuple(s);
 		int index[] = new int[]{0};

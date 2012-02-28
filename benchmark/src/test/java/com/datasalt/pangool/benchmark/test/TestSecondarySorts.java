@@ -22,7 +22,7 @@ import org.junit.Test;
 import com.datasalt.pangool.benchmark.secondarysort.CascadingSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.CrunchSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.HadoopSecondarySort;
-import com.datasalt.pangool.benchmark.secondarysort.PangoolSecondarySort;
+import com.datasalt.pangool.examples.secondarysort.PangoolSecondarySort;
 
 /**
  * This unit test verifies that each of the secondary sort example implementations can be run and that they give the

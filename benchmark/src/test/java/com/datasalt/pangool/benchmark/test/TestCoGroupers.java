@@ -32,7 +32,7 @@ import org.junit.Test;
 import com.datasalt.pangool.benchmark.cogroup.CascadingUrlResolution;
 import com.datasalt.pangool.benchmark.cogroup.CrunchUrlResolution;
 import com.datasalt.pangool.benchmark.cogroup.HadoopUrlResolution;
-import com.datasalt.pangool.benchmark.cogroup.PangoolUrlResolution;
+import com.datasalt.pangool.examples.urlresolution.PangoolUrlResolution;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 /**

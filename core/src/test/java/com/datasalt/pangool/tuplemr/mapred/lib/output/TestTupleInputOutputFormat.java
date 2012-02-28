@@ -38,7 +38,7 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
@@ -109,7 +109,7 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 		TupleMRBuilder coGrouper = new TupleMRBuilder(conf);
 		coGrouper.addIntermediateSchema(schema);
 		coGrouper.setGroupByFields("title");
-		coGrouper.setOrderBy(new SortBy().add("title",Order.ASC).add("content",Order.ASC));
+		coGrouper.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
 
 		coGrouper.setTupleReducer(new IdentityTupleReducer());
 		coGrouper.setTupleOutput(outPath, schema); // setTupleOutput method
@@ -122,7 +122,7 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 		coGrouper = new TupleMRBuilder(conf);
 		coGrouper.addIntermediateSchema(schema);
 		coGrouper.setGroupByFields("title");
-		coGrouper.setOrderBy(new SortBy().add("title",Order.ASC).add("content",Order.ASC));
+		coGrouper.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
 		coGrouper.setTupleReducer(new MyGroupHandler());
 		coGrouper.setOutput(outPathText, new HadoopOutputFormat(TextOutputFormat.class), Text.class, Text.class);
 		coGrouper.addTupleInput(outPath, new IdentityTupleMapper()); // addTupleInput method

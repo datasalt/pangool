@@ -1,8 +1,8 @@
-package com.datasalt.pangool.examples.tweets;
+package com.datasalt.pangool.examples;
 
 public class TestUtils {
 
-	static char randomChar() {
+	public static char randomChar() {
 		return (char) (int) (Math.random() * 26.0D + 97.0D);
 	}
 

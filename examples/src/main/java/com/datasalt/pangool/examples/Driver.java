@@ -17,6 +17,10 @@ package com.datasalt.pangool.examples;
 
 import org.apache.hadoop.util.ProgramDriver;
 
+import com.datasalt.pangool.examples.movingaverage.MovingAverage;
+import com.datasalt.pangool.examples.simplesecondarysort.SecondarySort;
+import com.datasalt.pangool.examples.useractivitynormalizer.UserActivityNormalizer;
+
 /**
  * This is Hadoop's main entry point - here we'll add 
  * all the different programs that we want to execute with Hadoop.

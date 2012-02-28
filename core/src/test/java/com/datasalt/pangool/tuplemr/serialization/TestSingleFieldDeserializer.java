@@ -37,7 +37,7 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.thrift.test.A;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
@@ -71,7 +71,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("a");
-		builder.setOrderBy(new SortBy().add("a", Order.ASC, new BaseComparator<A>(Type.OBJECT,A.class) {
+		builder.setOrderBy(new OrderBy().add("a", Order.ASC, new BaseComparator<A>(Type.OBJECT,A.class) {
 
 			@Override
       public int compare(A o1, A o2) {
@@ -125,7 +125,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("int");
-		builder.setOrderBy(new SortBy().add("int", Order.ASC, new BaseComparator<Integer>(Type.INT) {
+		builder.setOrderBy(new OrderBy().add("int", Order.ASC, new BaseComparator<Integer>(Type.INT) {
 
 			@Override
       public int compare(Integer o1, Integer o2) {
@@ -180,7 +180,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("utf8");
-		builder.setOrderBy(new SortBy().add("utf8", Order.ASC, new BaseComparator<Utf8>(Type.STRING) {
+		builder.setOrderBy(new OrderBy().add("utf8", Order.ASC, new BaseComparator<Utf8>(Type.STRING) {
 
 			@Override
       public int compare(Utf8 o1, Utf8 o2) {

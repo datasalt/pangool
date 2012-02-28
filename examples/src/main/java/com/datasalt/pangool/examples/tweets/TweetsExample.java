@@ -24,7 +24,7 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
@@ -105,7 +105,7 @@ public class TweetsExample {
 
 		TupleMRBuilder grouper = new TupleMRBuilder(conf);
 		grouper.addIntermediateSchema(schema);
-		grouper.setOrderBy(new SortBy().add("location", Order.ASC).add("date", Order.ASC).add("hashtag", Order.ASC));
+		grouper.setOrderBy(new OrderBy().add("location", Order.ASC).add("date", Order.ASC).add("hashtag", Order.ASC));
 		grouper.setGroupByFields("location", "date", "hashtag");
 		grouper.setRollupFrom("date");
 		// Input / output and such

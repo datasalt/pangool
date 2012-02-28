@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.examples;
+package com.datasalt.pangool.examples.useractivitynormalizer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
@@ -187,7 +187,7 @@ public class UserActivityNormalizer {
 		TupleMRBuilder grouper = new TupleMRBuilder(conf);
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("user", "all", "feature");
-		grouper.setOrderBy(new SortBy().add("user", Order.ASC).add("all", Order.DESC).add("feature", Order.ASC));
+		grouper.setOrderBy(new OrderBy().add("user", Order.ASC).add("all", Order.DESC).add("feature", Order.ASC));
 		// By partitioning by "user" field we assure that all features go to the same Reducer
 		grouper.setRollupFrom("user");
 		// Input / output and such

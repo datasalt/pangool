@@ -29,6 +29,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.junit.Test;
 
+import com.datasalt.pangool.examples.movingaverage.MovingAverage;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;

@@ -15,7 +15,7 @@ import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.IdentityTupleMapper;
@@ -83,7 +83,7 @@ public class TopicFingerprint extends BaseExampleJob {
 		// We need to group the counts by (topic)
 		cg.setGroupByFields("topic");
 		// Then we need to sort by topic and count (DESC) -> This way we will receive the most relevant words first.
-		cg.setOrderBy(new SortBy().add("topic", Order.ASC).add("count", Order.DESC));
+		cg.setOrderBy(new OrderBy().add("topic", Order.ASC).add("count", Order.DESC));
 		// Note that we are changing the grouping logic in the job configuration,
 		// However, as we work with tuples, we don't need to write specific code for grouping the same data differently,
 		// Therefore an IdentityTupleMapper is sufficient for this Job.

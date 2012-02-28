@@ -39,7 +39,7 @@ import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
@@ -154,8 +154,8 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		grouper.addIntermediateSchema(new Schema("user",Fields.parse("name:utf8, money:int, country:utf8")));
 		
 		grouper.setGroupByFields("country");
-		grouper.setOrderBy(new SortBy().add("country",Order.ASC).addSourceOrder(Order.DESC));
-		grouper.setSecondaryOrderBy("user", new SortBy().add("money",Order.ASC));
+		grouper.setOrderBy(new OrderBy().add("country",Order.ASC).addSourceOrder(Order.DESC));
+		grouper.setSpecificOrderBy("user", new OrderBy().add("money",Order.ASC));
 		
 		grouper.addInput(new Path("test-input"), new HadoopInputFormat(TextInputFormat.class), new FirstInputProcessor());
 		grouper.setTupleReducer(new MyGroupHandler());

@@ -53,7 +53,7 @@ public class Beans {
 		Entities entities;
 		UserInfo user;
 		
-		private SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy", Locale.ENGLISH);
+		public static SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy", Locale.ENGLISH);
 
 		public String getCreated_at() {
 			return created_at;

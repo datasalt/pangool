@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.examples;
+package com.datasalt.pangool.examples.simplesecondarysort;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
@@ -90,7 +90,7 @@ public class SecondarySort {
 		TupleMRBuilder grouper = new TupleMRBuilder(conf);
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("first");
-		grouper.setOrderBy(new SortBy().add("first",Order.ASC).add("second",Order.ASC));
+		grouper.setOrderBy(new OrderBy().add("first",Order.ASC).add("second",Order.ASC));
 		// Input / output and such
 		grouper.setTupleReducer(new Handler());
 		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
