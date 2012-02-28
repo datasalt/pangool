@@ -72,7 +72,7 @@ public class CrunchUrlResolution extends Configured implements Tool, Serializabl
 			groupComparatorSchema.setFields(fields);
 			fields.clear();
 			fields.add(new Field("url", Schema.create(Schema.Type.STRING), null, null));
-			fields.add(new Field("sourceId", Schema.create(Schema.Type.INT), null, null));
+			fields.add(new Field("schemaId", Schema.create(Schema.Type.INT), null, null));
 			groupSchema = Schema.createRecord("IntStringGroup", null, null, false);
 			groupSchema.setFields(fields);
 			fields.clear();

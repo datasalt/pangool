@@ -43,12 +43,12 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 		} else {
 			ITuple tuple = key.datum();
 			String sourceName = tuple.getSchema().getName();
-			Integer sourceId = grouperConfig.getSchemaIdByName(sourceName);
-			if(sourceId == null) {
+			Integer schemaId = grouperConfig.getSchemaIdByName(sourceName);
+			if(schemaId == null) {
 				throw new RuntimeException("Schema name '" + sourceName + "' is unknown. Known schemas are : "
 				    + grouperConfig.getIntermediateSchemaNames());
 			}
-			int[] fieldsToPartition = serInfo.getPartitionFieldsIndexes().get(sourceId);
+			int[] fieldsToPartition = serInfo.getPartitionFieldsIndexes().get(schemaId);
 			return (partialHashCode(tuple, fieldsToPartition) & Integer.MAX_VALUE) % numPartitions;
 		}
 	}

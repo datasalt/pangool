@@ -106,8 +106,8 @@ public class TupleMRConfig {
 	 * Returns a defined intermediate schema with the specified schemaId. 
 	 * The schemaId follows the order of schema definition in {@link TupleMRConfig#addIntermediateSchema(Schema)}
 	 */
-	public Schema getIntermediateSchema(int sourceId) {
-		return schemas.get(sourceId);
+	public Schema getIntermediateSchema(int schemaId) {
+		return schemas.get(schemaId);
 	}
 
 	/**
@@ -317,7 +317,7 @@ public class TupleMRConfig {
 		serializeComparators(grouperConfig.getCommonCriteria(), conf, comparatorRefs, comparatorInstanceFiles, COMMON);
 
 		List<Criteria> secondaryCriterias = grouperConfig.getSecondarySortBys();
-		// We use the sourceId as prefix for the secondary sorting.
+		// We use the schemaId as prefix for the secondary sorting.
 		for(int i = 0; i < secondaryCriterias.size(); i++) {
 			serializeComparators(secondaryCriterias.get(i), conf, comparatorRefs, comparatorInstanceFiles, i + "");
 		}

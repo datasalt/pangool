@@ -35,10 +35,10 @@ public class GroupComparator extends SortComparator {
 	
 	@Override
 	public int compare(ITuple w1, ITuple w2) {
-		int sourceId1 = grouperConf.getSchemaIdByName(w1.getSchema().getName());
-		int sourceId2 = grouperConf.getSchemaIdByName(w2.getSchema().getName());
-		int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(sourceId1);
-		int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(sourceId2);
+		int schemaId1 = grouperConf.getSchemaIdByName(w1.getSchema().getName());
+		int schemaId2 = grouperConf.getSchemaIdByName(w2.getSchema().getName());
+		int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(schemaId1);
+		int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(schemaId2);
 		return compare(w1.getSchema(), groupSortBy, w1, indexes1, w2, indexes2);
 	}
 

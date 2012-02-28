@@ -121,22 +121,22 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		CachedTuples tuples = cachedTuples.datum();
 		ITuple commonTuple =tuples.commonTuple; 
 		readFields(commonTuple,in);
-		int sourceId = WritableUtils.readVInt(in);
-		ITuple specificTuple = tuples.specificTuples.get(sourceId);
+		int schemaId = WritableUtils.readVInt(in);
+		ITuple specificTuple = tuples.specificTuples.get(schemaId);
 		readFields(specificTuple,in);
-		ITuple result = tuples.resultTuples.get(sourceId);
-		mixIntermediateIntoResult(commonTuple,specificTuple,result,sourceId);
+		ITuple result = tuples.resultTuples.get(schemaId);
+		mixIntermediateIntoResult(commonTuple,specificTuple,result,schemaId);
 		return result;
 	}
 	
-	private void mixIntermediateIntoResult(ITuple commonTuple,ITuple specificTuple,ITuple result,int sourceId){
-		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(sourceId);
+	private void mixIntermediateIntoResult(ITuple commonTuple,ITuple specificTuple,ITuple result,int schemaId){
+		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(schemaId);
 		for (int i =0 ; i < commonTranslation.length ; i++){
 			int destPos = commonTranslation[i];
 			result.set(destPos,commonTuple.get(i));
 		}
 		
-		int[] specificTranslation = serInfo.getSpecificSchemaIndexTranslation(sourceId);
+		int[] specificTranslation = serInfo.getSpecificSchemaIndexTranslation(schemaId);
 		for (int i =0 ; i < specificTranslation.length ; i++){
 			int destPos = specificTranslation[i];
 			result.set(destPos,specificTuple.get(i));

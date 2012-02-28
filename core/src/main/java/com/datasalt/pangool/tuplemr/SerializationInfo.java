@@ -84,20 +84,20 @@ public class SerializationInfo {
 		return fieldsToPartition;
 	}
 	
-	public int[] getFieldsToPartition(int sourceId){
-		return fieldsToPartition.get(sourceId);
+	public int[] getFieldsToPartition(int schemaId){
+		return fieldsToPartition.get(schemaId);
 	}
 	
-	public int[] getCommonSchemaIndexTranslation(int sourceId){
-		return commonToSourcesIndexes.get(sourceId);
+	public int[] getCommonSchemaIndexTranslation(int schemaId){
+		return commonToSourcesIndexes.get(schemaId);
 	}
 	
-	public int[] getSpecificSchemaIndexTranslation(int sourceId){
-		return specificToSourcesIndexes.get(sourceId);
+	public int[] getSpecificSchemaIndexTranslation(int schemaId){
+		return specificToSourcesIndexes.get(schemaId);
 	}
 	
-	public int[] getGroupSchemaIndexTranslation(int sourceId){
-		return groupToSourcesIndexes.get(sourceId);
+	public int[] getGroupSchemaIndexTranslation(int schemaId){
+		return groupToSourcesIndexes.get(schemaId);
 	}
 	
 	
@@ -159,13 +159,13 @@ public class SerializationInfo {
 		this.specificSchemas = new ArrayList<Schema>();
 		List<List<Field>> specificFieldsBySource = new ArrayList<List<Field>>();
 		
-		for (int sourceId=0 ; sourceId < grouperConfig.getNumIntermediateSchemas(); sourceId++){
-			Criteria specificCriteria = grouperConfig.getSecondarySortBys().get(sourceId);
+		for (int schemaId=0 ; schemaId < grouperConfig.getNumIntermediateSchemas(); schemaId++){
+			Criteria specificCriteria = grouperConfig.getSecondarySortBys().get(schemaId);
 			List<Field> specificFields = new ArrayList<Field>();
 			if (specificCriteria != null){
 				for (SortElement sortElement : specificCriteria.getElements()){
 					String fieldName = sortElement.getName();
-					Field field = checkFieldInSource(fieldName, sourceId);
+					Field field = checkFieldInSource(fieldName, schemaId);
 					specificFields.add(field);
 				}
 			}
@@ -221,8 +221,8 @@ public class SerializationInfo {
 	/**
 	 * 
 	 */
-	private Field checkFieldInSource(String fieldName,int sourceId ) throws TupleMRException{
-		Schema schema = grouperConfig.getIntermediateSchema(sourceId);
+	private Field checkFieldInSource(String fieldName,int schemaId ) throws TupleMRException{
+		Schema schema = grouperConfig.getIntermediateSchema(schemaId);
 		Field field =schema.getField(fieldName); 
 		if (field == null){
 			throw new TupleMRException("Field '" + fieldName + "' not present in source '" +  schema.getName() + "' " + schema);
@@ -244,8 +244,8 @@ public class SerializationInfo {
 	 * fields that will be serialized after the schemaId.
 	 * Returns null if no fields are serialized after the schemaId.
 	 */
-	public Schema getSpecificSchema(int sourceId){
-		return specificSchemas.get(sourceId);
+	public Schema getSpecificSchema(int schemaId){
+		return specificSchemas.get(schemaId);
 	}
 	
 	/**
@@ -265,12 +265,12 @@ public class SerializationInfo {
 	}
 	
 	private void calculateIndexTranslations(){ 
-		for (int sourceId = 0 ; sourceId < grouperConfig.getIntermediateSchemas().size() ; sourceId++){
-			Schema sourceSchema = grouperConfig.getIntermediateSchema(sourceId);
+		for (int schemaId = 0 ; schemaId < grouperConfig.getIntermediateSchemas().size() ; schemaId++){
+			Schema sourceSchema = grouperConfig.getIntermediateSchema(schemaId);
 			commonToSourcesIndexes.add(getIndexTranslation(commonSchema,sourceSchema));
 			groupToSourcesIndexes.add(getIndexTranslation(groupSchema,sourceSchema));
 			if (specificSchemas != null && !specificSchemas.isEmpty()){
-				Schema particularSchema = specificSchemas.get(sourceId);
+				Schema particularSchema = specificSchemas.get(schemaId);
 				specificToSourcesIndexes.add(getIndexTranslation(particularSchema,sourceSchema));
 			}
 		}

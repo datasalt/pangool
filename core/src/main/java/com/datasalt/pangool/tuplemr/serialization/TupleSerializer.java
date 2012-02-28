@@ -80,19 +80,19 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 
 	private void multipleSourcesSerialization(ITuple tuple) throws IOException {
 		String sourceName = tuple.getSchema().getName();
-		Integer sourceId = coGrouperConfig.getSchemaIdByName(sourceName);
-		if (sourceId == null){
+		Integer schemaId = coGrouperConfig.getSchemaIdByName(sourceName);
+		if (schemaId == null){
 			throw new IOException("Schema '" + tuple.getSchema() +"' is not a valid intermediate schema");
 		}
-		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(sourceId);
+		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(schemaId);
 		// serialize common
 		write(commonSchema, tuple, commonTranslation, out);
 		// serialize source id
-		WritableUtils.writeVInt(out, sourceId);
+		WritableUtils.writeVInt(out, schemaId);
 		// serialize rest of the fields
-		Schema specificSchema = serInfo.getSpecificSchema(sourceId);
+		Schema specificSchema = serInfo.getSpecificSchema(schemaId);
 		int[] specificTranslation = serInfo
-				.getSpecificSchemaIndexTranslation(sourceId);
+				.getSpecificSchemaIndexTranslation(schemaId);
 		write(specificSchema, tuple, specificTranslation, out);
 	}
 
