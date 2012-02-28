@@ -26,6 +26,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -36,7 +37,6 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.tuplemr.TupleCombiner;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
@@ -73,10 +73,10 @@ public class PangoolWordCount {
 	}
 
 	@SuppressWarnings("serial")
-	public static class CountCombiner extends TupleCombiner {
+	public static class CountCombiner extends TupleReducer<ITuple, NullWritable> {
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException, TupleMRException {
 			int count = 0;
 			ITuple outputTuple=null;
@@ -85,7 +85,7 @@ public class PangoolWordCount {
 				count += (Integer) tuple.get(1);
 			}
 			outputTuple.set(1, count);
-			collector.write(outputTuple);
+			collector.write(outputTuple, NullWritable.get());
 		}
 	}
 

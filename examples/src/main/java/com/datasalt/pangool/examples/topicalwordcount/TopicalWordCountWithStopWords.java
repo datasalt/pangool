@@ -13,7 +13,6 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.ToolRunner;
 
 import com.datasalt.pangool.examples.BaseExampleJob;
-import com.datasalt.pangool.examples.topicalwordcount.TopicalWordCount.CountCombiner;
 import com.datasalt.pangool.examples.topicalwordcount.TopicalWordCount.CountReducer;
 import com.datasalt.pangool.examples.topicalwordcount.TopicalWordCount.TokenizeMapper;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
@@ -69,7 +68,7 @@ public class TopicalWordCountWithStopWords extends BaseExampleJob {
 		// We'll use a TupleOutputFormat with the same schema than the intermediate schema
 		cg.setTupleOutput(new Path(args[1]), TopicalWordCount.getSchema());
 		cg.setTupleReducer(new CountReducer());
-		cg.setTupleCombiner(new CountCombiner());
+		cg.setTupleCombiner(new CountReducer());
 
 		cg.createJob().waitForCompletion(true);
 

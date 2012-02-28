@@ -20,7 +20,6 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.tuplemr.TupleCombiner;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
@@ -60,23 +59,6 @@ public class TopicalWordCount extends BaseExampleJob {
 
 		protected void emitTuple(Collector collector) throws IOException, InterruptedException {
 			collector.write(tuple);
-		}
-	}
-
-	@SuppressWarnings("serial")
-	public static class CountCombiner extends TupleCombiner {
-
-		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
-		    throws IOException, InterruptedException, TupleMRException {
-			int count = 0;
-			ITuple outputTuple = null;
-			for(ITuple tuple : tuples) {
-				outputTuple = tuple;
-				count += (Integer) tuple.get("count");
-			}
-			outputTuple.set("count", count);
-			collector.write(outputTuple);
 		}
 	}
 
@@ -129,7 +111,7 @@ public class TopicalWordCount extends BaseExampleJob {
 		// We'll use a TupleOutputFormat with the same schema than the intermediate schema
 		mr.setTupleOutput(new Path(args[1]), getSchema());
 		mr.setTupleReducer(new CountReducer());
-		mr.setTupleCombiner(new CountCombiner());
+		mr.setTupleCombiner(new CountReducer());
 
 		mr.createJob().waitForCompletion(true);
 
