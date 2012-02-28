@@ -19,7 +19,6 @@ package com.datasalt.pangool.tuplemr.mapred;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
@@ -29,11 +28,17 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.ViewTuple;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
+import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.utils.DCUtils;
 
+/**
+ * This is a proxy {@link Reducer} implementation that delegates its funcionality to a {@link TupleReducer}
+ * instance configured by {@link TupleMRBuilder#setTupleReducer(TupleReducer)} 
+ * 
+ */
 public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	public final static String CONF_REDUCER_HANDLER = SimpleReducer.class.getName() + ".reducer.handler";
