@@ -19,12 +19,12 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.TupleCombiner;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.TupleMapper;
+import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleCombiner;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
 
 public class TopicalWordCount extends BaseExampleJob {
 

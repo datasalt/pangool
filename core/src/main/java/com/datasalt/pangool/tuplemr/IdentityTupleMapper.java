@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.tuplemr.mapred.tuplemr;
+package com.datasalt.pangool.tuplemr;
 
 import java.io.IOException;
 

@@ -31,7 +31,7 @@ import com.datasalt.pangool.io.ViewTuple;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
+import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.utils.DCUtils;
 
 public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {

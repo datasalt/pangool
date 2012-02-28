@@ -27,11 +27,11 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.ViewTuple;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
+import com.datasalt.pangool.tuplemr.TupleCombiner;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleCombiner;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleCombiner.Collector;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleCombiner.TupleMRContext;
+import com.datasalt.pangool.tuplemr.TupleCombiner.Collector;
+import com.datasalt.pangool.tuplemr.TupleCombiner.TupleMRContext;
 import com.datasalt.pangool.utils.DCUtils;
 
 public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,DatumWrapper<ITuple>, NullWritable> {

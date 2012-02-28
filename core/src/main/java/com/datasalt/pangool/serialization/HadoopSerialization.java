@@ -73,6 +73,9 @@ public class HadoopSerialization {
 		Serializer ser = serializers.get(datum.getClass());
 		if (ser == null){
 			ser = serialization.getSerializer(datum.getClass());
+			if (ser == null) {
+				throw new IOException("Serializer for class " + datum.getClass() + " not found");
+			}	
 			serializers.put(datum.getClass(), ser);
 		}
     ser.open(output);

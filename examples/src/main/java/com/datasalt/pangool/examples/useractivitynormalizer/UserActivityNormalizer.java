@@ -34,14 +34,14 @@ import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.tuplemr.OrderBy;
+import com.datasalt.pangool.tuplemr.TupleCombiner;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.TupleMapper;
+import com.datasalt.pangool.tuplemr.TupleRollupReducer;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleCombiner;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleRollupReducer;
 
 /**
  * In this advanced example we are normalizing user activity on certain features. We have a register of ["user",

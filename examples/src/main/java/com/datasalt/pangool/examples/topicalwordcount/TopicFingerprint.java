@@ -15,11 +15,11 @@ import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.IdentityTupleMapper;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.IdentityTupleMapper;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
+import com.datasalt.pangool.tuplemr.TupleReducer;
 
 public class TopicFingerprint extends BaseExampleJob {
 

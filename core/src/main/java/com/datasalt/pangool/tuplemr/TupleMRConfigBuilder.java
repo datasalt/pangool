@@ -35,8 +35,6 @@ import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.Partitioner;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
 
 /**
  * 

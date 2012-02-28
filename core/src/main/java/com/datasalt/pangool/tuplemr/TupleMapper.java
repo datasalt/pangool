@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangool.tuplemr.mapred.tuplemr;
+package com.datasalt.pangool.tuplemr;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -26,9 +26,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 
 import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.tuplemr.MultipleOutputsCollector;
-import com.datasalt.pangool.tuplemr.TupleMRConfig;
-import com.datasalt.pangool.tuplemr.TupleMRException;
 
 /**
  * TupleMapper is the Tuple-based Hadoop's {@link Mapper} version. 
