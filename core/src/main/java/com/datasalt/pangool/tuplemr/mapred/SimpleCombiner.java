@@ -18,7 +18,6 @@ package com.datasalt.pangool.tuplemr.mapred;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;

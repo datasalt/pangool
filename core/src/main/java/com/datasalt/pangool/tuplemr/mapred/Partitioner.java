@@ -15,7 +15,6 @@
  */
 package com.datasalt.pangool.tuplemr.mapred;
 
-
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;

@@ -24,9 +24,8 @@ import org.apache.hadoop.conf.Configuration;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.Criteria;
-import com.datasalt.pangool.tuplemr.TupleMRConfig;
-import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
+import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 
 public class GroupComparator extends SortComparator {
 
