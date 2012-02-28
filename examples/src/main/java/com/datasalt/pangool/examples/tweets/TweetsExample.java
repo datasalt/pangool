@@ -1,4 +1,4 @@
-package com.datasalt.pangool.examples;
+package com.datasalt.pangool.examples.tweets;
 
 import java.io.IOException;
 import java.util.ArrayList;
