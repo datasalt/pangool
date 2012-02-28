@@ -28,7 +28,7 @@ import com.datasalt.pangool.examples.TestUtils;
  * The generated output will a tabulated text file with the form: {department idPerson timestamp sale}
  * <p>
  */
-public class GenerateData {
+public class SecondarySortGenerateData {
 
 	final static int INTRANGE = 1000;
 	final static int TIMEFRAME = 100000;

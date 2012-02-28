@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-public class GenerateData {
+public class MovingAverageGenerateData {
 
 	public final static void main(String[] args) throws IOException {
 		if(args.length != 3) {

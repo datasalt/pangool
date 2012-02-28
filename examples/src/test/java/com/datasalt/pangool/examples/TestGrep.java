@@ -18,37 +18,27 @@ package com.datasalt.pangool.examples;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.util.ToolRunner;
 import org.junit.Test;
 
-import com.datasalt.pangool.examples.Grep;
-import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.utils.HadoopUtils;
+import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
 
-public class TestGrep {
+public class TestGrep extends AbstractHadoopTestLibrary {
+
 	private final static String FOLDER = "/tmp";
-	private final static String INPUT = FOLDER +"/test-input-" + TestGrep.class.getName();
+	private final static String INPUT = FOLDER + "/test-input-" + TestGrep.class.getName();
 	private final static String OUTPUT = FOLDER + "/tests-files/test-output-" + TestGrep.class.getName();
 
 	@Test
-	public void test() throws IOException, TupleMRException, InterruptedException,
-	    ClassNotFoundException, URISyntaxException {
-		
+	public void test() throws Exception {
+
 		Files.write("foo\nbar", new File(INPUT), Charset.forName("UTF-8"));
-		Configuration conf = new Configuration();
-		Grep grep = new Grep();
-		grep.getJob(conf, "foo", INPUT, OUTPUT).waitForCompletion(true);
+		ToolRunner.run(new Grep(), new String[] { "foo", INPUT, OUTPUT });
 		assertEquals("foo", Files.toString(new File(OUTPUT + "/part-m-00000"), Charset.forName("UTF-8")).trim());
-		
-		FileSystem fS = FileSystem.get(conf);
-		HadoopUtils.deleteIfExists(fS, new Path(INPUT));
-		HadoopUtils.deleteIfExists(fS, new Path(OUTPUT));
+
+		trash(INPUT, OUTPUT);
 	}
 }

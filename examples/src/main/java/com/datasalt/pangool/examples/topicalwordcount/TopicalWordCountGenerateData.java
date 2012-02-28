@@ -10,7 +10,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.examples.TestUtils;
 
-public class GenerateData {
+public class TopicalWordCountGenerateData {
 
 	public final static void main(String[] args) throws IOException {
 		if(args.length != 3) {

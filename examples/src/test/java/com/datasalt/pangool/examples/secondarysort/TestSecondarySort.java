@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.examples;
+package com.datasalt.pangool.examples.secondarysort;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,14 +28,14 @@ import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
 
 public class TestSecondarySort extends AbstractHadoopTestLibrary{
-	private final static String FOLDER = "/tmp";
-	private final static String INPUT = FOLDER +"/test-input-" + TestSecondarySort.class.getName();
-	private final static String OUTPUT = FOLDER +"/test-output-" + TestSecondarySort.class.getName();
+
+	private final static String INPUT = "test-input-" + TestSecondarySort.class.getName();
+	private final static String OUTPUT = "test-output-" + TestSecondarySort.class.getName();
 
 	@Test
 	public void test() throws Exception {
-
 		trash(OUTPUT);
+		
 		Files.write("10 3 \n 5 3 \n 5 30 \n 10 10", new File(INPUT), Charset.forName("UTF-8"));
 
 		ToolRunner.run(new SimpleSecondarySort(), new String[] { INPUT, OUTPUT });

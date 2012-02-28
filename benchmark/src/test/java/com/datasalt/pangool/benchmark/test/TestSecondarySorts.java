@@ -33,7 +33,6 @@ public class TestSecondarySorts extends BaseBenchmarkTest {
 	private final static String EXPECTED_OUTPUT = "src/test/resources/secondarysort/expected-output.txt";
 	
 	private final static String OUTPUT_FOLDER = "/tmp";
-	private final static String OUT_PANGOOL = OUTPUT_FOLDER +"/out-pangool-ss";
 	private final static String OUT_CASCADING = OUTPUT_FOLDER +"/out-cascading-ss";
 	private final static String OUT_CRUNCH = OUTPUT_FOLDER +"/out-crunch-ss";
 	private final static String OUT_HADOOP = OUTPUT_FOLDER +"/out-mapred-ss";

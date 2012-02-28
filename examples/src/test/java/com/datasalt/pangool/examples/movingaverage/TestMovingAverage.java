@@ -13,31 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.examples;
+package com.datasalt.pangool.examples.movingaverage;
 
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.nio.charset.Charset;
 
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.junit.Test;
 
-import com.datasalt.pangool.examples.movingaverage.MovingAverage;
-import com.datasalt.pangool.utils.HadoopUtils;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
 
 public class TestMovingAverage extends AbstractHadoopTestLibrary{
-	private final static String FOLDER = "/tmp";
-	private final static String INPUT = FOLDER +"/test-input-" + TestMovingAverage.class.getName();
-	private final static String OUTPUT = FOLDER + "/test-output-" + TestMovingAverage.class.getName();
+	
+	private final static String INPUT = "test-input-" + TestMovingAverage.class.getName();
+	private final static String OUTPUT = "test-output-" + TestMovingAverage.class.getName();
 	
 	@Test
 	public void test() throws Exception {
-
 		trash(OUTPUT);
+		
 		Files.write(
 				"url1" + "\t" + "2011-02-28" + "\t" + "100" + "\n" +
 				"url1" + "\t" + "2011-02-27" + "\t" + "50" + "\n" +
@@ -79,7 +76,6 @@ public class TestMovingAverage extends AbstractHadoopTestLibrary{
 		
 		assertEquals(6, validatedOutputLines);
 
-		HadoopUtils.deleteIfExists(fS, new Path(INPUT));
-		HadoopUtils.deleteIfExists(fS, new Path(OUTPUT));
+		trash(INPUT, OUTPUT);
 	}
 }

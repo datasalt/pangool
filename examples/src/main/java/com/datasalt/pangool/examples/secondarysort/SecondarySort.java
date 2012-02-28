@@ -50,7 +50,7 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
  * obtain total sales value for certain periods of time, therefore we need to registers in each group to come sorted by
  * "timestamp".
  */
-public class PangoolSecondarySort extends BaseExampleJob {
+public class SecondarySort extends BaseExampleJob {
 
 	@SuppressWarnings("serial")
 	public static class IProcessor extends TupleMapper<LongWritable, Text> {
@@ -99,7 +99,7 @@ public class PangoolSecondarySort extends BaseExampleJob {
 		}
 	}
 
-	public PangoolSecondarySort() {
+	public SecondarySort() {
 		super("Needed arguments: [input] [output]");
 	}
 	
@@ -134,6 +134,6 @@ public class PangoolSecondarySort extends BaseExampleJob {
 	}
 
 	public static void main(String[] args) throws Exception {
-		ToolRunner.run( new PangoolSecondarySort(), args);
+		ToolRunner.run( new SecondarySort(), args);
 	}
 }
