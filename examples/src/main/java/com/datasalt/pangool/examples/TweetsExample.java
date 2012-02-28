@@ -17,12 +17,6 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.joda.time.DateTime;
 
-import com.datasalt.pangool.cogroup.TupleMRBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.TupleMapper;
-import com.datasalt.pangool.cogroup.processors.TupleRollupReducer;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.examples.tweets.Beans.HashTag;
 import com.datasalt.pangool.examples.tweets.Beans.SimpleTweet;
 import com.datasalt.pangool.io.HadoopInputFormat;
@@ -32,6 +26,12 @@ import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.tuplemr.TupleMRBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleRollupReducer;
+import com.datasalt.pangool.tuplemr.sorting.SortBy;
+import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 public class TweetsExample {
@@ -74,7 +74,7 @@ public class TweetsExample {
 
 		int totalCount = 0;
 
-		public void onCloseGroup(int depth, String field, ITuple lastElement, com.datasalt.pangool.cogroup.processors.TupleReducer<Text,NullWritable>.TupleMRContext context, com.datasalt.pangool.cogroup.processors.TupleReducer<Text,NullWritable>.Collector collector) throws IOException ,InterruptedException ,TupleMRException {
+		public void onCloseGroup(int depth, String field, ITuple lastElement, com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer<Text,NullWritable>.TupleMRContext context, com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer<Text,NullWritable>.Collector collector) throws IOException ,InterruptedException ,TupleMRException {
 		
 			if(field.equals("hashtag")) {
 				totalCount = 0;

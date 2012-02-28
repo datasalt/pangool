@@ -29,13 +29,6 @@ import org.apache.hadoop.io.RawComparator;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.TupleMRConfig;
-import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.sorting.Criteria;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
-import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.BaseComparator;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.DatumWrapper;
@@ -45,6 +38,15 @@ import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
+import com.datasalt.pangool.tuplemr.TupleMRConfig;
+import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.mapred.GroupComparator;
+import com.datasalt.pangool.tuplemr.mapred.SortComparator;
+import com.datasalt.pangool.tuplemr.sorting.Criteria;
+import com.datasalt.pangool.tuplemr.sorting.SortBy;
+import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
+import com.datasalt.pangool.tuplemr.sorting.Criteria.SortElement;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**

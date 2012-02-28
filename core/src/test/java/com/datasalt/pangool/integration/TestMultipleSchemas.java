@@ -35,21 +35,21 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.TupleMRBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.TupleMapper;
-import com.datasalt.pangool.cogroup.processors.TupleReducer;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.io.HadoopOutputFormat;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
-import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangool.tuplemr.TupleMRBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
+import com.datasalt.pangool.tuplemr.sorting.SortBy;
+import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
 import com.datasalt.pangool.utils.CommonUtils;
 import com.datasalt.pangool.utils.HadoopUtils;
+import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
 public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 

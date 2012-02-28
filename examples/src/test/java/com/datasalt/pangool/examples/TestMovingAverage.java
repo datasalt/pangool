@@ -29,9 +29,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.utils.HadoopUtils;
+import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
 
 public class TestMovingAverage extends AbstractHadoopTestLibrary{

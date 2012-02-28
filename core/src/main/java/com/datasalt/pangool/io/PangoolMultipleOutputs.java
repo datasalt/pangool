@@ -38,7 +38,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskInputOutputContext;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.cogroup.ProxyOutputFormat.ProxyOutputCommitter;
+import com.datasalt.pangool.tuplemr.ProxyOutputFormat.ProxyOutputCommitter;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**

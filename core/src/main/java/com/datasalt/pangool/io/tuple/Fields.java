@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.io.tuple.Schema.Field;
 import com.datasalt.pangool.io.tuple.Schema.Field.Type;
+import com.datasalt.pangool.tuplemr.TupleMRException;
 
 public class Fields {
 

@@ -25,15 +25,16 @@ import org.junit.Assert;
 import org.junit.Before;
 
 import com.datasalt.pangool.BaseTest;
-import com.datasalt.pangool.cogroup.TupleMRConfig;
-import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.tuplemr.TupleMRConfig;
+import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.mapred.SortComparator;
+import com.datasalt.pangool.tuplemr.sorting.SortBy;
+import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
 
 public abstract class ComparatorsBaseTest extends BaseTest{
 	

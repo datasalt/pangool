@@ -22,17 +22,17 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.datasalt.pangool.BaseTest;
-import com.datasalt.pangool.cogroup.TupleMRConfig;
-import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 import com.datasalt.pangool.serialization.thrift.ThriftSerialization;
-import com.datasalt.pangool.serialization.tuples.PangoolDeserializer;
-import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
-import com.datasalt.pangool.serialization.tuples.PangoolSerializer;
 import com.datasalt.pangool.thrift.test.A;
+import com.datasalt.pangool.tuplemr.TupleMRConfig;
+import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.serialization.TupleDeserializer;
+import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
+import com.datasalt.pangool.tuplemr.serialization.TupleSerializer;
+import com.datasalt.pangool.tuplemr.sorting.SortBy;
+import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
 
 
 public class TestPangoolSerialization extends BaseTest{
@@ -66,9 +66,9 @@ public class TestPangoolSerialization extends BaseTest{
 		
 		HadoopSerialization hadoopSer = new HadoopSerialization(conf);
 		Schema schema = pangoolConf.getIntermediateSchema("schema5"); //most complete
-		PangoolSerialization serialization = new PangoolSerialization(hadoopSer,pangoolConf);
-		PangoolSerializer serializer = (PangoolSerializer)serialization.getSerializer(null);
-		PangoolDeserializer deser = (PangoolDeserializer)serialization.getDeserializer(null);
+		TupleSerialization serialization = new TupleSerialization(hadoopSer,pangoolConf);
+		TupleSerializer serializer = (TupleSerializer)serialization.getSerializer(null);
+		TupleDeserializer deser = (TupleDeserializer)serialization.getDeserializer(null);
 		Tuple tuple = new Tuple(schema);
 		int NUM_ITERATIONS=100000;
 		DatumWrapper<ITuple> wrapper = new DatumWrapper<ITuple>(tuple);

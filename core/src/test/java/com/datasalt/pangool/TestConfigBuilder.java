@@ -22,16 +22,16 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.SerializationInfo;
-import com.datasalt.pangool.cogroup.TupleMRConfig;
-import com.datasalt.pangool.cogroup.TupleMRConfigBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.sorting.Criteria;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
-import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
 import com.datasalt.pangool.io.tuple.Fields;
 import com.datasalt.pangool.io.tuple.Schema;
+import com.datasalt.pangool.tuplemr.SerializationInfo;
+import com.datasalt.pangool.tuplemr.TupleMRConfig;
+import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.sorting.Criteria;
+import com.datasalt.pangool.tuplemr.sorting.SortBy;
+import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
+import com.datasalt.pangool.tuplemr.sorting.Criteria.SortElement;
 
 
 /**
