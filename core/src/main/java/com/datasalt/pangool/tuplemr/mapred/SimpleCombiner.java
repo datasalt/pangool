@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Iterator;
 
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +28,10 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.ViewTuple;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
-import com.datasalt.pangool.tuplemr.TupleCombiner;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.TupleCombiner.Collector;
-import com.datasalt.pangool.tuplemr.TupleCombiner.TupleMRContext;
+import com.datasalt.pangool.tuplemr.TupleReducer;
+import com.datasalt.pangool.tuplemr.TupleReducer.TupleMRContext;
 import com.datasalt.pangool.utils.DCUtils;
 
 public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,DatumWrapper<ITuple>, NullWritable> {
@@ -45,11 +45,12 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 	private TupleIterator<DatumWrapper<ITuple>, NullWritable> grouperIterator;
 	private ViewTuple groupTuple; // Tuple view over the group
 	private TupleMRContext context;
-	private TupleCombiner handler;
-	private Collector collector;
+	private TupleReducer<ITuple, NullWritable> handler;
+	private TupleReducer<ITuple, NullWritable>.CombinerCollector collector;
 	private boolean isMultipleSources;
 
-	public void setup(Context context) throws IOException, InterruptedException {
+	@SuppressWarnings("unchecked")
+  public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
 			log.info("Getting CoGrouper grouperConf.");
@@ -65,10 +66,13 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			this.grouperIterator = new TupleIterator<DatumWrapper<ITuple>, NullWritable>(context);
 
 			String fileName = context.getConfiguration().get(SimpleCombiner.CONF_COMBINER_HANDLER);
-			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleCombiner.class, fileName, true);
-
-			collector = new Collector(grouperConfig, context);
-			this.context = handler.new TupleMRContext(context, grouperConfig);
+			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleReducer.class, fileName, true);
+			
+			@SuppressWarnings("rawtypes")
+      ReduceContext castedContext = context;			
+			this.context = new TupleMRContext( castedContext
+					, grouperConfig);
+			collector = handler.new CombinerCollector(castedContext);
 			handler.setup(this.context, collector);
 		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
@@ -104,7 +108,7 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			} else {
 				groupTuple.setContained(firstTupleGroup);
 			}
-			handler.onGroupElements(groupTuple, grouperIterator, this.context, collector);
+			handler.reduce(groupTuple, grouperIterator, this.context, collector);
 
 		} catch(TupleMRException e) {
 			throw new RuntimeException(e);

@@ -125,7 +125,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	private Configuration conf;
 
 	private TupleReducer tupleReducer;
-	private TupleCombiner tupleCombiner;
+	private TupleReducer tupleCombiner;
 	private OutputFormat outputFormat;
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass;
@@ -182,7 +182,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	/**
 	 * 
 	 */
-	public void setTupleCombiner(TupleCombiner tupleCombiner) {
+	public void setTupleCombiner(TupleReducer tupleCombiner) {
 		this.tupleCombiner = tupleCombiner;
 	}
 

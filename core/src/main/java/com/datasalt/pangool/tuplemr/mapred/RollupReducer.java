@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.RawComparator;
+import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.io.DatumWrapper;
@@ -34,6 +35,7 @@ import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
+import com.datasalt.pangool.tuplemr.TupleReducer.TupleMRContext;
 import com.datasalt.pangool.tuplemr.TupleRollupReducer;
 import com.datasalt.pangool.utils.DCUtils;
 
@@ -46,7 +48,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	private boolean firstRun=true;
 	private TupleMRConfig grouperConfig;
 	private SerializationInfo serInfo;
-	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE>.TupleMRContext context;
+	private TupleMRContext context;
 	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	private int minDepth, maxDepth;
 	private ViewTuple groupTuple;
@@ -105,8 +107,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	  String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
 	  handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleRollupReducer.class, fileName, true);
 
-	  collector = handler.new Collector(context);
-	  this.context = handler.new TupleMRContext(context, grouperConfig);
+	  collector = handler.new Collector((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context);
+	  this.context = new TupleMRContext((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context, grouperConfig);
 	  handler.setup(this.context, collector);
   }
 

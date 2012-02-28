@@ -64,37 +64,75 @@ public class TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
 	/**
 	 * 	A base class for the {@link TupleReducer.Collector}
 	 */
-	public static class StaticCollector<OUTPUT_KEY, OUTPUT_VALUE> extends MultipleOutputsCollector {
+	public static class StaticCollector<OUTPUT_KEY, OUTPUT_VALUE, CONTEXT_OUTPUT_KEY, CONTEXT_OUTPUT_VALUE> extends MultipleOutputsCollector {
 
-		protected ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context;
+		protected ReduceContext<DatumWrapper<ITuple>, NullWritable, CONTEXT_OUTPUT_KEY, CONTEXT_OUTPUT_VALUE> context;
 		
-    public StaticCollector(ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) {
+    public StaticCollector(ReduceContext<DatumWrapper<ITuple>, NullWritable, CONTEXT_OUTPUT_KEY, CONTEXT_OUTPUT_VALUE> context) {
 	    super(context);
 	    this.context = context;
     }
 		
-		public void write(OUTPUT_KEY key, OUTPUT_VALUE value) throws IOException, InterruptedException {
-			context.write(key, value);
+		@SuppressWarnings("unchecked")
+    public void write(OUTPUT_KEY key, OUTPUT_VALUE value) throws IOException, InterruptedException { 
+			context.write((CONTEXT_OUTPUT_KEY) key, (CONTEXT_OUTPUT_VALUE) value);
 		}
 	}
 	
-	public class Collector extends StaticCollector<OUTPUT_KEY, OUTPUT_VALUE> {
+	/**
+	 * Base class for collecting data from a {@link TupleReducer} in the reduce phase.
+   * This non static inner class is created to eliminate the need in
+	 * of the extended TupleReducer methods to specify the generic types
+	 * for the Collector meanwhile keeping generics. 
+	 */
+	public class Collector extends StaticCollector<OUTPUT_KEY, OUTPUT_VALUE, Object, Object> {
+		public Collector(ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object> context) {
+	    super(context);
+    }
+	}
+		
+	/**
+	 * Class for collecting data from a {@link TupleReducer} in the combining phase
+	 */
+	public class CombinerCollector extends Collector {
+		
+		private ThreadLocal<DatumWrapper<ITuple>> cachedDatum = new ThreadLocal<DatumWrapper<ITuple>>(){
+			@Override
+			public DatumWrapper<ITuple> get(){
+				return new DatumWrapper<ITuple>();
+			}
+		};
+			
+		private NullWritable nullWritable;
+		
 		/*
 		 * This non static inner class is created to eliminate the need in
 		 * of the extended GroupHandler methods to specify the generic types
 		 * for the Collector meanwhile keeping generics. 
 		 */
-		public Collector(ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) {
+		public CombinerCollector(
+				ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object> context) {
 	    super(context);
-    }		
-	}
+			nullWritable = NullWritable.get();
+		}
+		
+		/**
+		 * Overrided write for wrapping tuples into DatumWrappers.  
+		 */
+		@Override
+    public void write(OUTPUT_KEY tuple, OUTPUT_VALUE ignored) throws IOException, InterruptedException {
+			DatumWrapper<ITuple> outputDatum = cachedDatum.get();
+			outputDatum.datum((ITuple) tuple);
+			context.write(outputDatum, nullWritable);
+		}
+	}  
 	
-  public static class StaticTupleMRContext<OUTPUT_KEY, OUTPUT_VALUE> {
+  public static class TupleMRContext {
   	
   	private TupleMRConfig pangoolConfig;
-  	private ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext;
+  	private ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object> hadoopContext;
   	
-  	public StaticTupleMRContext(ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext, TupleMRConfig pangoolConfig) {
+  	public TupleMRContext(ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object> hadoopContext, TupleMRConfig pangoolConfig) {
   		this.pangoolConfig = pangoolConfig;
   		this.hadoopContext = hadoopContext;
   	}
@@ -106,20 +144,8 @@ public class TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
   	/**
   	 * Return the Hadoop {@link ReduceContext}.  
   	 */
-  	public ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> getHadoopContext() {
+  	public ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object> getHadoopContext() {
   		return hadoopContext;
   	}
-  }
-  
-  public class TupleMRContext extends StaticTupleMRContext<OUTPUT_KEY, OUTPUT_VALUE> {
-		/*
-		 * This non static inner class is created to eliminate the need in
-		 * of the extended GroupHandler methods to specify the generic types
-		 * for the CoGrouperContext meanwhile keeping generics. 
-		 */
-		public TupleMRContext(ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> hadoopContext,
-        TupleMRConfig pangoolConfig) {
-      super(hadoopContext, pangoolConfig);
-    }    	
-  }
+  }  
 }
