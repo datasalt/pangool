@@ -41,6 +41,12 @@ import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 
+/**
+ * Tuple-based MapRed job binary comparator. It decodes the binary serialization 
+ * performed by {@link TupleSerialization}.
+ * 
+ * Used to group tuples according to {@link TupleMRConfigBuilder#setOrderBy(com.datasalt.pangool.tuplemr.OrderBy)}
+ */
 @SuppressWarnings("rawtypes")
 public class SortComparator implements RawComparator<ITuple>, Configurable {
 
@@ -49,9 +55,6 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	protected SerializationInfo serInfo;
 	
 	protected final BinaryComparator binaryComparator = new BinaryComparator();
-	
-//	private static final Utf8 UTF8_TMP_1 = new Utf8();
-//	private static final Utf8 UTF8_TMP_2 = new Utf8();
 	
 	private static final class Offsets {
 		protected int offset1=0;
@@ -86,7 +89,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				return (grouperConf.getSchemasOrder() == Order.ASC) ? r : -r;
 			}
 			int schemaId = schemaId1;
-			c = grouperConf.getSecondarySortBys().get(schemaId);
+			c = grouperConf.getSpecificOrderBys().get(schemaId);
 			if (c != null){
 				int[] indexes = serInfo.getSpecificSchemaIndexTranslation(schemaId);
 				return compare(w1.getSchema(),c,w1,indexes,w2,indexes);
@@ -190,7 +193,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		offsets.offset2 += vintSize;
 		
 		//sources are the same
-		Criteria criteria = grouperConf.getSecondarySortBys().get(schemaId1); 
+		Criteria criteria = grouperConf.getSpecificOrderBys().get(schemaId1); 
 		if (criteria == null){
 			return 0;
 		}

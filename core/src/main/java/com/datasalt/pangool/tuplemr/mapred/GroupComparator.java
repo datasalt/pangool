@@ -26,7 +26,12 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.Criteria;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
-
+/**
+ * 
+ * Tuple-based MapRed jobs binary group comparator. Used to group tuples 
+ * according to {@link TupleMRConfigBuilder#setGroupByFields(String...)}
+ *
+ */
 public class GroupComparator extends SortComparator {
 
 	private Criteria groupSortBy;
