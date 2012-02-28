@@ -30,7 +30,6 @@ import org.junit.Test;
 import com.datasalt.pangool.benchmark.wordcount.CascadingWordCount;
 import com.datasalt.pangool.benchmark.wordcount.CrunchWordCount;
 import com.datasalt.pangool.benchmark.wordcount.HadoopWordCount;
-import com.datasalt.pangool.benchmark.wordcount.PangoolWordCount;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
@@ -67,13 +66,13 @@ public class TestWordCounts extends BaseBenchmarkTest {
 		assertEquals(outMapred, expectedOutput);
 	}
 	
-	@Test
-	public void testPangool() throws Exception {
-		PangoolWordCount.main(new String[] { TEST_FILE, OUT_PANGOOL });
-		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
-		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
-		assertEquals(outPangool, expectedOutput);
-	}
+//	@Test
+//	public void testPangool() throws Exception {
+//		PangoolWordCount.main(new String[] { TEST_FILE, OUT_PANGOOL });
+//		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
+//		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
+//		assertEquals(outPangool, expectedOutput);
+//	}
 	
 	@Test
 	public void testCascading() throws Exception {

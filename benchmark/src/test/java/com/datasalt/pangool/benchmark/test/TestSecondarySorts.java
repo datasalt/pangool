@@ -22,7 +22,6 @@ import org.junit.Test;
 import com.datasalt.pangool.benchmark.secondarysort.CascadingSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.CrunchSecondarySort;
 import com.datasalt.pangool.benchmark.secondarysort.HadoopSecondarySort;
-import com.datasalt.pangool.examples.secondarysort.PangoolSecondarySort;
 
 /**
  * This unit test verifies that each of the secondary sort example implementations can be run and that they give the
@@ -59,13 +58,13 @@ public class TestSecondarySorts extends BaseBenchmarkTest {
 		assertEquals(expectedOutput,outMapred);
 	}
 	
-	@Test
-	public void testPangool() throws Exception {
-		PangoolSecondarySort.main(new String[] { TEST_FILE, OUT_PANGOOL });
-		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
-		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
-		assertEquals(expectedOutput,outPangool);
-	}
+//	@Test
+//	public void testPangool() throws Exception {
+//		PangoolSecondarySort.main(new String[] { TEST_FILE, OUT_PANGOOL });
+//		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
+//		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
+//		assertEquals(expectedOutput,outPangool);
+//	}
 	
 	@Test
 	public void testCascading() throws Exception {
