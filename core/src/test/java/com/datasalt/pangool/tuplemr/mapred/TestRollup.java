@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datasalt.pangool.tuplemr.tuplemr.mapred;
+package com.datasalt.pangool.tuplemr.mapred;
 
 import java.io.IOException;
 import java.util.Iterator;
