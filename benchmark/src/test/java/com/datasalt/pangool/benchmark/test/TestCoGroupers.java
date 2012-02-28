@@ -22,9 +22,6 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +29,6 @@ import org.junit.Test;
 import com.datasalt.pangool.benchmark.cogroup.CascadingUrlResolution;
 import com.datasalt.pangool.benchmark.cogroup.CrunchUrlResolution;
 import com.datasalt.pangool.benchmark.cogroup.HadoopUrlResolution;
-import com.datasalt.pangool.benchmark.cogroup.PangoolUrlResolution;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
@@ -71,15 +67,15 @@ public class TestCoGroupers extends BaseBenchmarkTest {
 		assertEquals(expectedOutput, outMapred);
 	}
 	
-	@Test
-	public void testPangool() throws Exception {
-		Logger root = Logger.getRootLogger();
-		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
-		PangoolUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_PANGOOL });
-		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
-		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
-		assertEquals(expectedOutput,outPangool);
-	}
+//	@Test
+//	public void testPangool() throws Exception {
+//		Logger root = Logger.getRootLogger();
+//		root.addAppender(new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
+//		PangoolUrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_PANGOOL });
+//		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
+//		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
+//		assertEquals(expectedOutput,outPangool);
+//	}
 	
 	@Test
 	public void testCascading() throws Exception {

@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.benchmark.secondarysort;
+package com.datasalt.pangool.examples.secondarysort;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
 
-import com.datasalt.pangool.benchmark.secondarysort.CascadingSecondarySort;
-import com.datasalt.pangool.benchmark.secondarysort.CrunchSecondarySort;
-import com.datasalt.pangool.benchmark.secondarysort.HadoopSecondarySort;
+import com.datasalt.pangool.examples.TestUtils;
 
 /**
- * This program generates input that can be used for running {@link PangoolSecondarySort}, {@link HadoopSecondarySort},
- * {@link CascadingSecondarySort}, {@link CrunchSecondarySort}
+ * This program generates input that can be used for running ...
  * <p>
  * The generated output will a tabulated text file with the form: {department idPerson timestamp sale}
  * <p>
@@ -58,7 +55,7 @@ public class GenerateData {
 		for(int i = 0; i < nDeps; i++) {
 			int randomDep = (r.nextInt());
 			for(int j = 0; j < nPersonPerDep; j++) {
-				String randomName = "" + randomChar() + randomChar();
+				String randomName = "" + TestUtils.randomChar() + TestUtils.randomChar();
 				for(int k = 0; k < nPaymentsPerPerson; k++) {
 					long randomDate = r.nextLong();
 					double randomPrice = r.nextDouble();
@@ -67,9 +64,5 @@ public class GenerateData {
 			}
 		}
 		writer.close();
-	}
-
-	public static char randomChar() {
-		return (char) ((int) (Math.random() * 26) + 'a');
 	}
 }

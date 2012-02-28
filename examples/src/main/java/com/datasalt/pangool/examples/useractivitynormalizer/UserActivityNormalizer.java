@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.examples;
+package com.datasalt.pangool.examples.useractivitynormalizer;
 
 import java.io.IOException;
 import java.util.ArrayList;
