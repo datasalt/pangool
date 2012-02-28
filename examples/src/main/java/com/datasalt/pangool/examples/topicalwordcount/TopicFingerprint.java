@@ -8,18 +8,18 @@ import java.util.List;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 
-import com.datasalt.pangool.cogroup.TupleMRBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.IdentityTupleMapper;
-import com.datasalt.pangool.cogroup.processors.TupleReducer;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.examples.BaseExampleJob;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Tuple;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.Field.Type;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.TupleMRBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.IdentityTupleMapper;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
 
 public class TopicFingerprint extends BaseExampleJob {
 

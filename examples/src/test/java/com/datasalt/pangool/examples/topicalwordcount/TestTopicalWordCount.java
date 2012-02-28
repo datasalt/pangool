@@ -16,9 +16,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.datasalt.pangool.io.TupleInputFormat.TupleInputReader;
+import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 
 public class TestTopicalWordCount {
 

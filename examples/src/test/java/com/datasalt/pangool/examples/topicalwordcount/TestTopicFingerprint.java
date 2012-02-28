@@ -14,12 +14,12 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.util.ToolRunner;
 import org.junit.Test;
 
-import com.datasalt.pangool.io.TupleInputFormat.TupleInputReader;
-import com.datasalt.pangool.io.TupleOutputFormat.TupleRecordWriter;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Tuple;
-import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.serialization.HadoopSerialization;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat.TupleRecordWriter;
 import com.datasalt.pangool.utils.AvroUtils;
 
 public class TestTopicFingerprint {

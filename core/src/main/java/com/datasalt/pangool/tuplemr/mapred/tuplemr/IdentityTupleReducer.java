@@ -1,0 +1,36 @@
+/**
+ * Copyright [2012] [Datasalt Systems S.L.]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.datasalt.pangool.tuplemr.mapred.tuplemr;
+
+import java.io.IOException;
+
+import org.apache.hadoop.io.NullWritable;
+
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+
+@SuppressWarnings("serial")
+public class IdentityTupleReducer extends TupleReducer<ITuple, NullWritable> {
+
+	@Override
+	public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
+	    Collector collector) throws IOException, InterruptedException, TupleMRException {
+
+		for(ITuple tuple : tuples) {
+			collector.write(tuple, NullWritable.get());
+		}
+	}
+}

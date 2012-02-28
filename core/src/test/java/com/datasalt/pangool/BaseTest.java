@@ -28,21 +28,21 @@ import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.io.DatumWrapper;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.DatumWrapper;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.Field.Type;
-import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
-import com.datasalt.pangool.serialization.tuples.PangoolDeserializer;
-import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
-import com.datasalt.pangool.serialization.tuples.PangoolSerializer;
-import com.datasalt.pangool.test.AbstractBaseTest;
+import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.thrift.test.A;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.serialization.TupleDeserializer;
+import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
+import com.datasalt.pangool.tuplemr.serialization.TupleSerializer;
+import com.datasalt.pangool.utils.test.AbstractBaseTest;
 
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({ "rawtypes" })
 public abstract class BaseTest extends AbstractBaseTest {
 
 	public final static  Schema SCHEMA;
@@ -135,13 +135,13 @@ public abstract class BaseTest extends AbstractBaseTest {
 		assertEquals(tuple, wrapper2.datum());
 	}
 	
-	protected static void assertSerializable(PangoolSerialization serialization,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
-		PangoolSerializer ser = (PangoolSerializer)serialization.getSerializer(null); 
-		PangoolDeserializer deser = (PangoolDeserializer)serialization.getDeserializer(null); 
+	protected static void assertSerializable(TupleSerialization serialization,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
+		TupleSerializer ser = (TupleSerializer)serialization.getSerializer(null); 
+		TupleDeserializer deser = (TupleDeserializer)serialization.getDeserializer(null); 
 		assertSerializable(ser,deser,tuple,debug);
 	}
 	
-	protected static void assertSerializable(PangoolSerializer ser,PangoolDeserializer deser,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
+	protected static void assertSerializable(TupleSerializer ser,TupleDeserializer deser,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
 		DataOutputBuffer output = new DataOutputBuffer();
 		ser.open(output);
 		ser.serialize(tuple);

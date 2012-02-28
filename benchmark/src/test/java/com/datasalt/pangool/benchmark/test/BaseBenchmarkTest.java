@@ -19,7 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
-import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
+import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
 
 public abstract class BaseBenchmarkTest extends AbstractHadoopTestLibrary{

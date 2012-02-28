@@ -32,11 +32,11 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.PangoolRuntimeException;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.Field.Type;
-import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.serialization.HadoopSerialization;
 
 public class AvroUtils {
 
