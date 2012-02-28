@@ -26,7 +26,7 @@ import java.util.Random;
  * The generated output will be two tabulated text files: one containing a URL mapping in the form of: {url
  * cannnonicalUrl} and the other one containing a register of URLs in the form of: {url timestamp ip}.
  */
-public class GenerateData {
+public class UrlResolutionGenerateData {
 
 	final static int TIMEFRAME = 100000;
 

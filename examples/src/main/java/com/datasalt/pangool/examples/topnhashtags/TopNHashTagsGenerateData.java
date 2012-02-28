@@ -1,4 +1,4 @@
-package com.datasalt.pangool.examples.tweets;
+package com.datasalt.pangool.examples.topnhashtags;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -11,12 +11,12 @@ import java.util.List;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.examples.TestUtils;
-import com.datasalt.pangool.examples.tweets.Beans.Entities;
-import com.datasalt.pangool.examples.tweets.Beans.HashTag;
-import com.datasalt.pangool.examples.tweets.Beans.SimpleTweet;
-import com.datasalt.pangool.examples.tweets.Beans.UserInfo;
+import com.datasalt.pangool.examples.topnhashtags.Beans.Entities;
+import com.datasalt.pangool.examples.topnhashtags.Beans.HashTag;
+import com.datasalt.pangool.examples.topnhashtags.Beans.SimpleTweet;
+import com.datasalt.pangool.examples.topnhashtags.Beans.UserInfo;
 
-public class GenerateData {
+public class TopNHashTagsGenerateData {
 
 	public static void main(String[] args) throws IOException, ParseException {
 		if(args.length != 5) {

@@ -1,4 +1,4 @@
-package com.datasalt.pangool.examples.tweets;
+package com.datasalt.pangool.examples.topnhashtags;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,8 +17,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.joda.time.DateTime;
 
 import com.datasalt.pangool.examples.BaseExampleJob;
-import com.datasalt.pangool.examples.tweets.Beans.HashTag;
-import com.datasalt.pangool.examples.tweets.Beans.SimpleTweet;
+import com.datasalt.pangool.examples.topnhashtags.Beans.HashTag;
+import com.datasalt.pangool.examples.topnhashtags.Beans.SimpleTweet;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
@@ -38,7 +38,7 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
  * per each (location, date) pair.
  * TODO Add combiner and unit test 
  */
-public class TweetsExample extends BaseExampleJob {
+public class TopNHashTags extends BaseExampleJob {
 
 	@SuppressWarnings("serial")
 	private static class TweetsProcessor extends TupleMapper<LongWritable, Text> {
@@ -126,7 +126,7 @@ public class TweetsExample extends BaseExampleJob {
 		}
 	}
 
-	public TweetsExample() {
+	public TopNHashTags() {
 		super("Usage: [input_path] [output_path] [n] . The n parameter is the size of the top hashtags to be calculated.");
 	}
 
@@ -164,6 +164,6 @@ public class TweetsExample extends BaseExampleJob {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		ToolRunner.run(new TweetsExample(), args);
+		ToolRunner.run(new TopNHashTags(), args);
 	}
 }

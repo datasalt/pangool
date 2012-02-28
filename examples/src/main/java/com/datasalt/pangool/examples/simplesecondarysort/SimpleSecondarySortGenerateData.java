@@ -4,7 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class GenerateData {
+public class SimpleSecondarySortGenerateData {
 
 	public final static void main(String[] args) throws IOException {
 		if(args.length != 3) {

@@ -21,9 +21,10 @@ import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat.TupleRecordWriter;
 import com.datasalt.pangool.utils.AvroUtils;
+import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
-public class TestTopicFingerprint {
-
+public class TestTopicFingerprint extends AbstractHadoopTestLibrary {
+	
 	public static NullWritable nothing = NullWritable.get();
 
 	public final static String INPUT = TestTopicFingerprint.class.getName() + "-input";
@@ -31,6 +32,8 @@ public class TestTopicFingerprint {
 	
 	@Test
 	public void test() throws Exception {
+		trash(OUTPUT);
+		
 		Configuration conf = new Configuration();
 		
 		createInput(INPUT, conf);
@@ -81,6 +84,8 @@ public class TestTopicFingerprint {
 		assertEquals(19, tuple.get("totalcount"));
 
 		reader.close();
+		
+		trash(INPUT, OUTPUT);
 	}
 	
 	public static TupleRecordWriter getTupleWriter(Configuration conf, String file, Schema schema) throws IOException {
