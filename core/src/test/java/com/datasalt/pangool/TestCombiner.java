@@ -46,6 +46,7 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 import com.datasalt.pangool.test.AbstractHadoopTestLibrary;
 
@@ -127,8 +128,8 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("word",Utf8.class));
-		fields.add(new Field("count",Integer.class));
+		fields.add(Field.create("word",Type.STRING));
+		fields.add(Field.create("count",Type.INT));
 		
 		TupleMRBuilder cg = new TupleMRBuilder(conf);
 		cg.addIntermediateSchema(new Schema("schema",fields));

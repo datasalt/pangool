@@ -29,12 +29,16 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 
+import com.datasalt.pangool.cogroup.processors.TupleMapper;
+import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
 import com.datasalt.pangool.cogroup.sorting.Criteria.SortElement;
+import com.datasalt.pangool.cogroup.sorting.SortBy;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
+import com.datasalt.pangool.mapreduce.Partitioner;
 
 /**
  * 
@@ -43,7 +47,7 @@ import com.datasalt.pangool.io.tuple.Schema.Field;
  */
 public class TupleMRConfigBuilder {
 
-	private List<Schema> intermediateSchemas= new ArrayList<Schema>();
+	private List<Schema> schemas= new ArrayList<Schema>();
 	private SortBy commonSortBy;
 	private Map<String,SortBy> secondarysOrderBy=new HashMap<String,SortBy>();
 	private List<String> groupByFields;
@@ -54,25 +58,29 @@ public class TupleMRConfigBuilder {
 		
 	}
 	
-	private boolean sourceAlreadyExists(String source){
-		for (Schema sourceSchema : intermediateSchemas){
-			if (sourceSchema.getName().equals(source)){
+	private boolean schemaAlreadyExists(String source){
+		for (Schema schema : schemas){
+			if (schema.getName().equals(source)){
 				return true;
 			}
 		}
 		return false;
 	}
 	
+	/**
+	 * Adds a Map-output schema. Tuples emitted by TupleMapper will use one of the schemas added by this method.
+	 * Schemas added in consecutive calls to this method must be named differently.
+	 */
 	public void addIntermediateSchema(Schema schema) throws TupleMRException {
-		if (sourceAlreadyExists(schema.getName())){
+		if (schemaAlreadyExists(schema.getName())){
 			throw new TupleMRException("There's a schema with that name '" + schema.getName() + "'");
 		}
-		intermediateSchemas.add(schema);
+		schemas.add(schema);
 	}
 	
 	private boolean fieldSameTypeInAllSources(String field){
-		Class<?> type = null;
-		for (Schema source : intermediateSchemas){
+		Type type = null;
+		for (Schema source : schemas){
 			Field f = source.getField(field);
 			if (type == null){
 				type = f.getType();
@@ -83,21 +91,29 @@ public class TupleMRConfigBuilder {
 		return true;
 	}
 	
-	private boolean fieldPresentInAllSources(String field){
-		for (Schema source : intermediateSchemas){
-			if (!source.containsField(field)){
+	private boolean fieldPresentInAllSchemas(String field){
+		for (Schema schema : schemas){
+			if (!schema.containsField(field)){
 				return false;
 			}
 		}
 		return true;
 	}
 	
+	/**
+	 * Defines the fields used to group tuples by. Similar to the GROUP BY in SQL. 
+	 * Tuples whose group-by fields are the same will be grouped and received in the same
+	 * {@link TupleReducer#reduce} call.
+	 * 
+	 * When multiple schemas are set then the groupBy fields are used to perform co-grouping among tuples with different schemas.
+	 * The groupBy fields specified in this method in a multi-source scenario must be present in every intermediate schema defined.
+	 */
 	public void setGroupByFields(String... groupByFields) throws TupleMRException {
 		failIfEmpty(groupByFields,"GroupBy fields can't be null or empty");
-		failIfEmpty(intermediateSchemas,"No eschemas defined");
+		failIfEmpty(schemas,"No eschemas defined");
 		failIfNotNull(this.groupByFields,"GroupBy fields already set : " + groupByFields);
 		for (String field : groupByFields){
-			if (!fieldPresentInAllSources(field)){
+			if (!fieldPresentInAllSchemas(field)){
 				throw new TupleMRException("Can't group by field '" + field + "' . Not present in all sources");
 			}
 			if (!fieldSameTypeInAllSources(field)){
@@ -107,6 +123,12 @@ public class TupleMRConfigBuilder {
 		this.groupByFields = Arrays.asList(groupByFields);
 	}
 	
+	
+	//TODO document this
+	/**
+	 * 
+	 * 
+	 */
 	public void setRollupFrom(String rollupFrom) throws TupleMRException {
 		failIfNull(rollupFrom,"Rollup can't be null");
 		failIfNotNull(this.rollupFrom,"Rollup was already set");
@@ -118,15 +140,23 @@ public class TupleMRConfigBuilder {
 			//rollup needs explicit common orderby
 			throw new TupleMRException("Rollup needs explicit order by. No common order previously set");
 		}
-		
 		this.rollupFrom = rollupFrom;
 	}
 	
+	
+	//TODO explain how customPartitionFields works with rollup
+	
+	/**
+	 * Sets the fields used to partition the tuples emmited by {@link TupleMapper}.
+	 * The default implementation performs a partial hashing over the group-by fields. 
+	 *   
+	 * see {@link Partitioner}
+	 */
 	public void setCustomPartitionFields(String ... fields) throws TupleMRException {
 		failIfEmpty(fields,"Need to specify at leas tone field to partition by");
 		//check if all fields are present in all sources and with the same type
 		for (String field : fields){
-			if (!fieldPresentInAllSources(field)){
+			if (!fieldPresentInAllSchemas(field)){
 				throw new TupleMRException("Can't group by field '" + field + "' . Not present in all sources");
 			}
 			if (!fieldSameTypeInAllSources(field)){
@@ -138,18 +168,24 @@ public class TupleMRConfigBuilder {
 	
 //------------------------------------------------------------------------- //
 
+	/**
+	 * Sets the criteria to sort the tuples by. In a multi-schema scenario all the fields 
+	 * defined in the specified ordering must be present in every intermediate schema defined. 
+	 * 
+	 * see {@link SortBy}
+	 */
 	public void setOrderBy(SortBy ordering) throws TupleMRException {
 		failIfNull(ordering,"OrderBy can't be null");
 		failIfEmpty(ordering.getElements(),"OrderBy can't be empty");
-		failIfEmpty(intermediateSchemas,"Need to specify source schemas");
+		failIfEmpty(schemas,"Need to specify source schemas");
 		failIfEmpty(groupByFields,"Need to specify group by fields");
-		if (intermediateSchemas.size() == 1){
+		if (schemas.size() == 1){
 			if (ordering.getSourceOrderIndex() != null){
 				throw new TupleMRException("Not able to use source order when just one source specified");
 			}
 		}
 		for (SortElement sortElement : ordering.getElements()){
-			if (!fieldPresentInAllSources(sortElement.getName())){
+			if (!fieldPresentInAllSchemas(sortElement.getName())){
 				throw new TupleMRException("Can't sort by field '" + sortElement.getName() + "' . Not present in all sources");
 			}
 			if (!fieldSameTypeInAllSources(sortElement.getName())){
@@ -166,8 +202,8 @@ public class TupleMRConfigBuilder {
 		this.commonSortBy = ordering;
 	}
 		
-	private Schema getIntermediateSchemaByName(String name){
-		for (Schema s : intermediateSchemas){
+	private Schema getSchemaByName(String name){
+		for (Schema s : schemas){
 			if (s.getName().equals(name)){
 				return s;
 			}
@@ -175,12 +211,17 @@ public class TupleMRConfigBuilder {
 		return null;
 	}
 	
-	public void setSecondaryOrderBy(String sourceName,SortBy ordering) throws TupleMRException {
-		failIfNull(sourceName,"Not able to set secondary sort for null source");
-		if (!sourceAlreadyExists(sourceName)){
-			throw new TupleMRException("Unknown source '" + sourceName +"' in secondary SortBy");
+	//TODO improve doc. Not clear!!
+	/**
+	 * Sets how tuples from the specific schemaName will be sorted after being sorted by commonOrderBy and schemaOrder
+	 * 
+	 */
+	public void setSecondaryOrderBy(String schemaName,SortBy ordering) throws TupleMRException {
+		failIfNull(schemaName,"Not able to set secondary sort for null source");
+		if (!schemaAlreadyExists(schemaName)){
+			throw new TupleMRException("Unknown source '" + schemaName +"' in secondary SortBy");
 		}
-		failIfNull(ordering,"Not able to set null criteria for source '" + sourceName + "'");
+		failIfNull(ordering,"Not able to set null criteria for source '" + schemaName + "'");
 		failIfEmpty(ordering.getElements(),"Can't set empty ordering");
 		failIfNull(commonSortBy,"Not able to set secondary order with no previous common OrderBy");
 		if (commonSortBy.getSourceOrderIndex() == null){
@@ -189,10 +230,10 @@ public class TupleMRConfigBuilder {
 		if (ordering.getSourceOrderIndex() != null){
 			throw new TupleMRException("Not allowed to set source order in secondary order");
 		}
-		Schema sourceSchema = getIntermediateSchemaByName(sourceName);
+		Schema schema = getSchemaByName(schemaName);
 		for (SortElement e : ordering.getElements()){
-			if (!sourceSchema.containsField(e.getName())){
-				throw new TupleMRException("Source '" + sourceName +"' doesn't contain field '" + e.getName());
+			if (!schema.containsField(e.getName())){
+				throw new TupleMRException("Source '" + schemaName +"' doesn't contain field '" + e.getName());
 			}
 		}
 		
@@ -201,16 +242,20 @@ public class TupleMRConfigBuilder {
 				throw new TupleMRException("Common sort by already contains sorting for field '" + e.getName());
 			}
 		}
-		this.secondarysOrderBy.put(sourceName, ordering);
+		this.secondarysOrderBy.put(schemaName, ordering);
 	}
 	
 
+	/**
+	 * 
+	 * Creates a brand new and immutable {@link TupleMRConfig} instance.
+	 */
 	public TupleMRConfig buildConf() throws TupleMRException {
-		failIfEmpty(intermediateSchemas," Need to declare at least one intermediate schema");
+		failIfEmpty(schemas," Need to declare at least one intermediate schema");
 		failIfEmpty(groupByFields," Need to declare group by fields");
 		
 		TupleMRConfig conf =  new TupleMRConfig();
-		conf.setIntermediateSchemas(intermediateSchemas);
+		conf.setIntermediateSchemas(schemas);
 		
 		
 		conf.setGroupByFields(groupByFields);
@@ -225,18 +270,16 @@ public class TupleMRConfigBuilder {
 		} else {
 			conf.setSourceOrder(Order.ASC);
 		}
-		
 		conf.setCommonCriteria(convertedCommonOrder);
-		
-		
 		if (commonSortBy != null){
-			Map<String,Criteria> convertedParticularOrderings = getSecondarySortBys(commonSortBy,intermediateSchemas,secondarysOrderBy);
+			Map<String,Criteria> convertedParticularOrderings = getSecondarySortBys(commonSortBy,schemas,secondarysOrderBy);
 			for (Map.Entry<String,Criteria> entry : convertedParticularOrderings.entrySet()){
 				conf.setSecondarySortBy(entry.getKey(), entry.getValue());
 			}
 		}
 		return conf;
 	}
+	
 	
 	private Criteria convertCommonSortByToCriteria(SortBy sortBy){
 		if (sortBy == null){

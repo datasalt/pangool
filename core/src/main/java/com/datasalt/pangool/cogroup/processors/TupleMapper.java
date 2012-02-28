@@ -31,7 +31,7 @@ import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 /**
- * TODO doc
+ * TupleMapper is the Tuple-based Hadoop's {@link Mapper} version. 
  */
 @SuppressWarnings({ "rawtypes", "serial" })
 public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends

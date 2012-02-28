@@ -63,6 +63,11 @@ public class Criteria {
 			return elements;
 		}
 		
+		/**
+		 * Basic {@link Criteria} element.
+		 * Just a structure containing field's name , order , and custom comparator.
+		 *
+		 */
 		public static class SortElement {
 			private String name;
 			private Order order;

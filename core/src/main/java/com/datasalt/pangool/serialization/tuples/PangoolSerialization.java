@@ -34,6 +34,7 @@ import com.datasalt.pangool.io.tuple.DatumWrapper;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
 
 /**
@@ -113,11 +114,12 @@ public class PangoolSerialization implements Serialization<DatumWrapper<ITuple>>
 	public static void extractEnumsFromSchema(Map<Class<?>, Enum<?>[]> mapToFill, Schema schema) {
 		try {
 			for(Field field : schema.getFields()) {
-				Class<?> type = field.getType();
-				if(type.isEnum()) {
-					Method method = type.getMethod("values", (Class<?>[]) null);
+				Type type = field.getType();
+				if(type == Type.ENUM) {
+					Class<?> t = field.getObjectClass();
+					Method method = t.getMethod("values", (Class<?>[]) null);
 					Object values = method.invoke(null);
-					mapToFill.put(type, (Enum[]) values);
+					mapToFill.put(t, (Enum[]) values);
 				}
 			}
 
