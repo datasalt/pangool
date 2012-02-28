@@ -20,10 +20,10 @@ import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.io.HadoopInputFormat;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.tuple.ITuple;
 import com.datasalt.pangool.io.tuple.Schema;
 import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.tuple.Schema.Field.Type;
 import com.datasalt.pangool.io.tuple.Tuple;
 
 public class TopicalWordCount extends BaseExampleJob {
@@ -104,9 +104,9 @@ public class TopicalWordCount extends BaseExampleJob {
 	static Schema getSchema() {
 		List<Field> fields = new ArrayList<Field>();
 		// The schema has 3 fields: word, topicId and count
-		fields.add(new Field("word", Utf8.class));
-		fields.add(new Field("topic", Integer.class));
-		fields.add(new Field("count", Integer.class));
+		fields.add(Field.create("word", Type.STRING));
+		fields.add(Field.create("topic", Type.INT));
+		fields.add(Field.create("count", Type.INT));
 		return new Schema("schema", fields);
 	}
 
