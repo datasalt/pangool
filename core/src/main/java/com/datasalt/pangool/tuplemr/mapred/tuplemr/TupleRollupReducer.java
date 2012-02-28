@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.mapreduce.Reducer;
 
-import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 
 @SuppressWarnings("serial")

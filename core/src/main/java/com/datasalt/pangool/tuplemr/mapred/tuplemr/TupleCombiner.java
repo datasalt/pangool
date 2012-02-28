@@ -21,8 +21,8 @@ import java.io.Serializable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.DatumWrapper;
+import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer.StaticTupleMRContext;

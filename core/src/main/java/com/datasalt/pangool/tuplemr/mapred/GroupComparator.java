@@ -21,12 +21,12 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.tuplemr.Criteria;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
-import com.datasalt.pangool.tuplemr.sorting.Criteria;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.SortElement;
+import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 
 public class GroupComparator extends SortComparator {
 

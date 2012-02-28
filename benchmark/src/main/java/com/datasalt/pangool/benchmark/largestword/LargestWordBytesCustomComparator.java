@@ -36,19 +36,19 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
-import com.datasalt.pangool.io.HadoopInputFormat;
-import com.datasalt.pangool.io.HadoopOutputFormat;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.Field.Type;
-import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.tuplemr.SortBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
-import com.datasalt.pangool.tuplemr.sorting.SortBy;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
 
 /**
  * 

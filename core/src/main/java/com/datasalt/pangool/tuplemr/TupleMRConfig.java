@@ -37,13 +37,12 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.datasalt.pangool.io.tuple.Schema;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.GroupComparator;
 import com.datasalt.pangool.tuplemr.mapred.SortComparator;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
-import com.datasalt.pangool.tuplemr.sorting.Criteria;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.SortElement;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**

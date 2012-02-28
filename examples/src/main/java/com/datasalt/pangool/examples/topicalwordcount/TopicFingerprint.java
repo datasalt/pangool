@@ -6,13 +6,13 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 
 import com.datasalt.pangool.examples.BaseExampleJob;
-import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.tuplemr.SortBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.IdentityTupleMapper;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
-import com.datasalt.pangool.tuplemr.sorting.SortBy;
 
 public class TopicFingerprint extends BaseExampleJob {
 

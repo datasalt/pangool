@@ -21,8 +21,8 @@ import java.util.Iterator;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.DatumWrapper;
+import com.datasalt.pangool.io.DatumWrapper;
+import com.datasalt.pangool.io.ITuple;
 
 /**
  * Iterator used in {@link Grouper},specially in {@link RollupReducer}. Basically it translates an {@link Iterable} containing 

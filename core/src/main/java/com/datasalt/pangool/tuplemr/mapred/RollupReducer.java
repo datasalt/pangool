@@ -25,17 +25,17 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.mapreduce.Reducer;
 
-import com.datasalt.pangool.io.tuple.DatumWrapper;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.ViewTuple;
+import com.datasalt.pangool.io.DatumWrapper;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.ViewTuple;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleRollupReducer;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.SortElement;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**

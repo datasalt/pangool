@@ -38,8 +38,8 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 
-import com.datasalt.pangool.io.TupleInputFormat.TupleInputReader;
-import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.datasalt.pangool.utils.Pair;
 

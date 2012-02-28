@@ -19,15 +19,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.Partitioner;
 import com.datasalt.pangool.tuplemr.mapred.RollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.SimpleReducer;
 import com.datasalt.pangool.tuplemr.mapred.SortComparator;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
-import com.datasalt.pangool.tuplemr.sorting.Criteria;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.SortElement;
 
 /**
  * 

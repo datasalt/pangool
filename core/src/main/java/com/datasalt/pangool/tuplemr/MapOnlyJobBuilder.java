@@ -27,8 +27,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.datasalt.pangool.mapreduce.lib.input.PangoolMultipleInputs;
 import com.datasalt.pangool.tuplemr.mapred.MapOnlyTupleMapper;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.PangoolMultipleInputs;
 
 /**
  * The MapOnlyJobBuilder is a simple Pangool primitive that executes map-only Jobs. You can implement {@link MapOnlyTupleMapper} for using it.

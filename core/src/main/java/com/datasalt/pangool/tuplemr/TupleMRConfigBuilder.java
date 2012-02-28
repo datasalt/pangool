@@ -29,16 +29,14 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.Field.Type;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.Partitioner;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
-import com.datasalt.pangool.tuplemr.sorting.Criteria;
-import com.datasalt.pangool.tuplemr.sorting.SortBy;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.SortElement;
 
 /**
  * 

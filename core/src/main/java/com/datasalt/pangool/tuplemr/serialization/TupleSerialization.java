@@ -28,12 +28,12 @@ import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 
-import com.datasalt.pangool.io.tuple.DatumWrapper;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.Field.Type;
-import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
+import com.datasalt.pangool.io.DatumWrapper;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 
@@ -46,7 +46,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 public class TupleSerialization implements Serialization<DatumWrapper<ITuple>>, Configurable {
 
 	private Configuration conf;
-	private com.datasalt.pangool.serialization.hadoop.HadoopSerialization ser;
+	private com.datasalt.pangool.serialization.HadoopSerialization ser;
 	private TupleMRConfig grouperConfig;
 	
 	
@@ -79,7 +79,7 @@ public class TupleSerialization implements Serialization<DatumWrapper<ITuple>>, 
 				disableSerialization(this.conf);
 
 				this.grouperConfig = TupleMRConfig.get(conf);
-				this.ser = new com.datasalt.pangool.serialization.hadoop.HadoopSerialization(this.conf);
+				this.ser = new com.datasalt.pangool.serialization.HadoopSerialization(this.conf);
 			}
 		} catch(TupleMRException e) {
 			throw new RuntimeException(e);

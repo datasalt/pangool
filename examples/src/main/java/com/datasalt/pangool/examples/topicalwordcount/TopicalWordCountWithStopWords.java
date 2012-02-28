@@ -15,8 +15,8 @@ import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.examples.topicalwordcount.TopicalWordCount.CountCombiner;
 import com.datasalt.pangool.examples.topicalwordcount.TopicalWordCount.CountReducer;
 import com.datasalt.pangool.examples.topicalwordcount.TopicalWordCount.TokenizeMapper;
-import com.datasalt.pangool.io.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.google.common.io.Files;
 
 public class TopicalWordCountWithStopWords extends BaseExampleJob {

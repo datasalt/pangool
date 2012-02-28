@@ -28,19 +28,18 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.WritableUtils;
 
-import com.datasalt.pangool.io.BinaryComparator;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.Field.Type;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.tuplemr.Criteria;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
-import com.datasalt.pangool.tuplemr.sorting.Criteria;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.SortElement;
 
 @SuppressWarnings("rawtypes")
 public class SortComparator implements RawComparator<ITuple>, Configurable {

@@ -21,7 +21,7 @@ import org.apache.hadoop.mapreduce.MapContext;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.ReduceContext;
 
-import com.datasalt.pangool.io.PangoolMultipleOutputs;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.PangoolMultipleOutputs;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MultipleOutputsCollector {

@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
 
-import com.datasalt.pangool.io.tuple.ITuple;
+import com.datasalt.pangool.io.ITuple;
 
 @SuppressWarnings("serial")
 public class IdentityTupleMapper extends TupleMapper<ITuple, NullWritable> {

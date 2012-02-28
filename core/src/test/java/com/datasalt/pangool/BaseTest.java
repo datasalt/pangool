@@ -28,18 +28,19 @@ import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.ReflectionUtils;
 
+import com.datasalt.pangool.io.DatumWrapper;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.DatumWrapper;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Schema.Field.Type;
-import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.thrift.test.A;
+import com.datasalt.pangool.tuplemr.Criteria;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.serialization.TupleDeserializer;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerializer;
-import com.datasalt.pangool.tuplemr.sorting.Criteria.Order;
 import com.datasalt.pangool.utils.test.AbstractBaseTest;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
