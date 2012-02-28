@@ -22,7 +22,7 @@ import org.apache.hadoop.io.NullWritable;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 @SuppressWarnings("serial")
-public class IdentityInputProcessor extends TupleMapper<ITuple, NullWritable> {
+public class IdentityTupleMapper extends TupleMapper<ITuple, NullWritable> {
 
 	@Override
 	public void map(ITuple key, NullWritable value, TupleMRContext context, Collector collector)

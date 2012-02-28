@@ -23,7 +23,7 @@ import com.datasalt.pangool.cogroup.TupleMRException;
 import com.datasalt.pangool.io.tuple.ITuple;
 
 @SuppressWarnings("serial")
-public class IdentityGroupHandler extends TupleReducer<ITuple, NullWritable> {
+public class IdentityTupleReducer extends TupleReducer<ITuple, NullWritable> {
 
 	@Override
 	public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,

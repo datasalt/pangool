@@ -35,8 +35,8 @@ import org.junit.Test;
 
 import com.datasalt.pangool.cogroup.TupleMRBuilder;
 import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.IdentityGroupHandler;
-import com.datasalt.pangool.cogroup.processors.IdentityInputProcessor;
+import com.datasalt.pangool.cogroup.processors.IdentityTupleReducer;
+import com.datasalt.pangool.cogroup.processors.IdentityTupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleMapper;
 import com.datasalt.pangool.cogroup.processors.TupleReducer;
 import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
@@ -108,7 +108,7 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 		coGrouper.setGroupByFields("title");
 		coGrouper.setOrderBy(new SortBy().add("title",Order.ASC).add("content",Order.ASC));
 
-		coGrouper.setTupleReducer(new IdentityGroupHandler());
+		coGrouper.setTupleReducer(new IdentityTupleReducer());
 		coGrouper.setTupleOutput(outPath, schema); // setTupleOutput method
 		coGrouper.addInput(inPath, new HadoopInputFormat(TextInputFormat.class), new MyInputProcessor());
 
@@ -122,7 +122,7 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 		coGrouper.setOrderBy(new SortBy().add("title",Order.ASC).add("content",Order.ASC));
 		coGrouper.setTupleReducer(new MyGroupHandler());
 		coGrouper.setOutput(outPathText, new HadoopOutputFormat(TextOutputFormat.class), Text.class, Text.class);
-		coGrouper.addTupleInput(outPath, new IdentityInputProcessor()); // addTupleInput method
+		coGrouper.addTupleInput(outPath, new IdentityTupleMapper()); // addTupleInput method
 		Job job = coGrouper.createJob();
 		assertRun(job);
 
