@@ -34,7 +34,7 @@ public abstract class BaseComparator<T> implements RawComparator<T>, Serializabl
 	private SingleFieldDeserializer fieldDeser1;
 	private SingleFieldDeserializer fieldDeser2;
 	private final Type type;
-	private final Class objectClazz;
+	private final Class<?> objectClazz;
   private T object1 = null;
   private T object2 = null;
   
@@ -43,7 +43,7 @@ public abstract class BaseComparator<T> implements RawComparator<T>, Serializabl
 		this.objectClazz = null;
 	}
 	
-	public BaseComparator(Type type,Class clazz){
+	public BaseComparator(Type type,Class<?> clazz){
 		this.type = type;
 		this.objectClazz = clazz;
 	}

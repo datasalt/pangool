@@ -147,7 +147,6 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	}
 
 	// Returns the named output OutputFormat.
-	@SuppressWarnings("unchecked")
 	private static String getNamedOutputFormatInstanceFile(JobContext job, String namedOutput) {
 		return job.getConfiguration().get(MO_PREFIX + namedOutput + FORMAT_INSTANCE_FILE, null);
 	}

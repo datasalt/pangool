@@ -65,19 +65,19 @@ public class Schema {
 		
 		private final String name;
 		private final Type type;
-		private final Class objectClass;
+		private final Class<?> objectClass;
 
 		public static Field create(String name,Type type){
 			return new Field(name,type,null);
 		}
-		public static Field createObject(String name,Class clazz){
+		public static Field createObject(String name,Class<?> clazz){
 			return new Field(name,Type.OBJECT,clazz);
 		}
-		public static Field createEnum(String name,Class clazz){
+		public static Field createEnum(String name,Class<?> clazz){
 			return new Field(name,Type.ENUM,clazz);
 		}
 		
-		private Field(String name, Type type,Class clazz) {
+		private Field(String name, Type type,Class<?> clazz) {
 			if(name == null) {
 				throw new IllegalArgumentException("Field name can't be null");
 			}
@@ -110,7 +110,7 @@ public class Schema {
 			return name;
 		}
 		
-		public Class getObjectClass(){
+		public Class<?> getObjectClass(){
 			return objectClass;
 		}
 		

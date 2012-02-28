@@ -14,9 +14,9 @@ import org.apache.hadoop.util.ReflectionUtils;
 
 public class HadoopOutputFormat extends OutputFormat implements Configurable, Serializable {
 
-	Class<? extends OutputFormat>  clazz;
-	OutputFormat instance;
-	Configuration conf;
+	private Class<? extends OutputFormat>  clazz;
+	private OutputFormat instance;
+	private Configuration conf;
 	
 	public HadoopOutputFormat(Class<? extends OutputFormat> wrappedOutputFormat) {
 		this.clazz = wrappedOutputFormat;

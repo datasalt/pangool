@@ -40,15 +40,16 @@ import com.datasalt.pangool.tuplemr.TupleMRConfig;
  */
 public class SingleFieldDeserializer {
 
-	private final Configuration conf;
+	//private final Configuration conf;
 	private final HadoopSerialization ser;
 	private final Map<Class<?>, Enum<?>[]> cachedEnums;
 	private final Type fieldType;
-	private final Class objectClazz;
+	private final Class<?> objectClazz;
 	private final Object instance;
 	
-	public SingleFieldDeserializer(Configuration conf, TupleMRConfig grouperConfig,Type fieldType,Class objectClazz) throws IOException {
-		this.conf = conf;
+	
+  public SingleFieldDeserializer(Configuration conf, TupleMRConfig grouperConfig,Type fieldType,Class<?> objectClazz) throws IOException {
+		//this.conf = conf;
 		this.ser = new HadoopSerialization(conf);
 		this.cachedEnums = TupleSerialization.getEnums(grouperConfig);
 		this.fieldType = fieldType;

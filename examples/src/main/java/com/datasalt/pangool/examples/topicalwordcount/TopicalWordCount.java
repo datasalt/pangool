@@ -16,15 +16,13 @@ import org.codehaus.jackson.map.ObjectMapper;
 import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleCombiner;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleCombiner.Collector;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleCombiner.TupleMRContext;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
 

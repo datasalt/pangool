@@ -57,7 +57,7 @@ public class Fields {
 					if (type != null){
 						fields.add(Field.create(fieldName,type));
 					} else {
-						Class objectClazz = Class.forName(fieldType);
+						Class<?> objectClazz = Class.forName(fieldType);
 						if (objectClazz.isEnum()){
 							fields.add(Field.createEnum(fieldName,objectClazz));
 						} else {
