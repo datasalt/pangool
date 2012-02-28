@@ -36,7 +36,7 @@ import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
@@ -173,7 +173,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		TupleMRBuilder grouper = new TupleMRBuilder(getConf());
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("country","age","name");
-		grouper.setOrderBy(new SortBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
+		grouper.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
 		grouper.setRollupFrom("country");
 		grouper.setTupleReducer(new IdentityRed());
 		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
@@ -263,7 +263,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		TupleMRBuilder grouper = new TupleMRBuilder(getConf());
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("country","age","name");
-		grouper.setOrderBy(new SortBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
+		grouper.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
 		grouper.setRollupFrom("age");
 		grouper.setTupleReducer(new IdentityRed());
 		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
@@ -365,7 +365,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		TupleMRBuilder grouper = new TupleMRBuilder(getConf());
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("country","age","name");
-		grouper.setOrderBy(new SortBy().add("country",Order.ASC).add("age",Order.ASC, new ReverseComparator()).add("name",Order.ASC));
+		grouper.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC, new ReverseComparator()).add("name",Order.ASC));
 		grouper.setRollupFrom("age");
 		grouper.setTupleReducer(new IdentityRed());
 		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);

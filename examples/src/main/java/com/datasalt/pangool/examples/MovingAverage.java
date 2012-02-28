@@ -38,7 +38,7 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
@@ -147,7 +147,7 @@ public class MovingAverage {
 		TupleMRBuilder grouper = new TupleMRBuilder(conf);
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("url");
-		grouper.setOrderBy(new SortBy().add("url", Order.ASC).add("date", Order.ASC));
+		grouper.setOrderBy(new OrderBy().add("url", Order.ASC).add("date", Order.ASC));
 		// Input / output and such
 		grouper.setTupleReducer(new MovingAverageHandler(nDaysAverage));
 		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);

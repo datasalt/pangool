@@ -37,15 +37,15 @@ import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 public class SerializationInfo {
 
 	private final TupleMRConfig grouperConfig;
-	/* Fields that will be ser/deserialized before finding sourceId */
+	/* Fields that will be ser/deserialized before finding schema id */
 	private Schema commonSchema; 
 	
-	/*Fields,for every source,that will be ser/deserialized after the sourceId.*/
+	/*Fields,for every source,that will be ser/deserialized after the schema id.*/
 	private List<Schema> specificSchemas; 
 	
 	/** 
 	 * Fields that define a group. It matches the fields defined in 
-	 * {@link TupleMRConfig#getGroupByFields()} ordered accordingly {@link TupleMRConfig#getCommonCriteria()} 
+	 * {@link TupleMRConfig#getGroupByFields()} ordered accordingly to {@link TupleMRConfig#getCommonCriteria()} 
 	 */ 
 	private Schema groupSchema;
 	
@@ -74,7 +74,7 @@ public class SerializationInfo {
 	}
 	
 	private void initializeMultipleSources() throws TupleMRException{
-		calculateMultipleSourcesIntermediateSchemas();
+		calculateMultipleSourcesSubSchemas();
 		calculatePartitionFields();
 		calculateGroupSchema();
 		calculateIndexTranslations();
@@ -146,7 +146,7 @@ public class SerializationInfo {
 	}
 	
 	
-	private void calculateMultipleSourcesIntermediateSchemas() throws TupleMRException {
+	private void calculateMultipleSourcesSubSchemas() throws TupleMRException {
 		Criteria commonSortCriteria = grouperConfig.getCommonCriteria();
 		List<Field> commonFields = new ArrayList<Field>();
 		for (SortElement sortElement : commonSortCriteria.getElements()){
@@ -175,9 +175,6 @@ public class SerializationInfo {
 		for (int i= 0 ; i < grouperConfig.getNumIntermediateSchemas(); i++){
 			Schema sourceSchema = grouperConfig.getIntermediateSchema(i);
 			List<Field> specificFields = specificFieldsBySource.get(i);
-//			if (specificFields == null){
-//				specificFields = new ArrayList<Field>();
-//			}
 			for (Field field : sourceSchema.getFields()){
 				if (!commonSchema.containsField(field.getName()) && !containsFieldName(field.getName(),specificFields)){
 					specificFields.add(field);
@@ -189,8 +186,11 @@ public class SerializationInfo {
 		this.specificSchemas = Collections.unmodifiableList(this.specificSchemas);
 	}
 	
-	
-	
+	//TODO doc this
+	/**
+	 *
+	 * 
+	 */
 	private boolean containsFieldName(String fieldName,List<Field> fields){
 		for (Field field : fields){
 			if (field.getName().equals(fieldName)){
@@ -200,6 +200,10 @@ public class SerializationInfo {
 		return false;
 	}
 	
+	//TODO doc
+	/**
+	 * 
+	 */
 	private Field checkFieldInAllSources(String name) throws TupleMRException{
 		Field field = null;
 		for (int i=0 ; i < grouperConfig.getIntermediateSchemas().size() ; i++){
@@ -213,6 +217,10 @@ public class SerializationInfo {
 		return field;
 	}
 	
+	//TODO doc
+	/**
+	 * 
+	 */
 	private Field checkFieldInSource(String fieldName,int sourceId ) throws TupleMRException{
 		Schema schema = grouperConfig.getIntermediateSchema(sourceId);
 		Field field =schema.getField(fieldName); 
@@ -222,18 +230,36 @@ public class SerializationInfo {
 		return field;
 	}
 		
+	/**
+	 * Returns the schema that contains fields that will be ser/deserialized before the schemaId.
+	 * In case that one intermediate schema used then returns a schema containing all the fields from the 
+	 * provided intermediate schema with fields sorted by common criteria.
+	 */
 	public Schema getCommonSchema(){
 		return commonSchema;
 	}
 	
+	/**
+	 * Given a intermediate schema id it returns a subschema from that intermediate schema that contains
+	 * fields that will be serialized after the schemaId.
+	 * Returns null if no fields are serialized after the schemaId.
+	 */
 	public Schema getSpecificSchema(int sourceId){
 		return specificSchemas.get(sourceId);
 	}
 	
+	/**
+	 * Returns a list containing all the specific schemas ordered by schema id. 
+	 * see {@link #getSpecificSchema} 
+	 * 
+	 */
 	public List<Schema> getSpecificSchemas(){
 		return specificSchemas;
 	}
 	
+	/**
+	 * Returns the schema containing the group-by fields ordered by the common sorting criteria. 
+	 */
 	public Schema getGroupSchema(){
 		return groupSchema;
 	}

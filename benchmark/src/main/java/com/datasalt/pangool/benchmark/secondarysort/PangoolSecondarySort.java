@@ -34,7 +34,7 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
@@ -112,7 +112,7 @@ public class PangoolSecondarySort {
 		TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Secondary Sort");
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("intField", "strField");
-		grouper.setOrderBy(new SortBy().add("intField", Order.ASC).add("strField", Order.ASC)
+		grouper.setOrderBy(new OrderBy().add("intField", Order.ASC).add("strField", Order.ASC)
 		    .add("longField", Order.ASC));
 		grouper.setTupleReducer(new Handler());
 		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, DoubleWritable.class);

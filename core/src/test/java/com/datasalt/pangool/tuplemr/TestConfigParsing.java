@@ -31,7 +31,7 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.thrift.test.A;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
@@ -99,9 +99,9 @@ public class TestConfigParsing {
 		b.addIntermediateSchema(schema2);
 		b.addIntermediateSchema(schema3);
 		b.setGroupByFields("int_field");
-		b.setOrderBy(new SortBy().add("int_field",Order.DESC).addSourceOrder(Order.DESC).add("boolean_field",Order.DESC, new DummyComparator()));
+		b.setOrderBy(new OrderBy().add("int_field",Order.DESC).addSourceOrder(Order.DESC).add("boolean_field",Order.DESC, new DummyComparator()));
 		b.setRollupFrom("int_field");
-		b.setSecondaryOrderBy(schema3.getName(),new SortBy().add("enum_field", Order.ASC, new DummyComparator()));
+		b.setSpecificOrderBy(schema3.getName(),new OrderBy().add("enum_field", Order.ASC, new DummyComparator()));
 		
 		TupleMRConfig conf =b.buildConf();
 		Configuration hconf = new Configuration();
@@ -129,9 +129,9 @@ public class TestConfigParsing {
 		b.addIntermediateSchema(schema2);
 		b.addIntermediateSchema(schema3);
 		b.setGroupByFields("int_field");
-		b.setOrderBy(new SortBy().add("int_field",Order.DESC).addSourceOrder(Order.DESC).add("boolean_field",Order.DESC));
+		b.setOrderBy(new OrderBy().add("int_field",Order.DESC).addSourceOrder(Order.DESC).add("boolean_field",Order.DESC));
 		b.setRollupFrom("int_field");
-		b.setSecondaryOrderBy(schema3.getName(),new SortBy().add("enum_field", Order.ASC,new DummyComparator()));
+		b.setSpecificOrderBy(schema3.getName(),new OrderBy().add("enum_field", Order.ASC,new DummyComparator()));
 		b.setCustomPartitionFields("int_field","boolean_field");
 		
 		TupleMRConfig conf =b.buildConf();

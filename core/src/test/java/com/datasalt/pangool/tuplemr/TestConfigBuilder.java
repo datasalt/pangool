@@ -27,7 +27,7 @@ import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.Criteria;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
@@ -57,7 +57,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("a",Order.ASC).addSourceOrder(Order.DESC).add("b",Order.DESC));
+		b.setOrderBy(new OrderBy().add("a",Order.ASC).addSourceOrder(Order.DESC).add("b",Order.DESC));
 		TupleMRConfig conf = b.buildConf();
 		conf.getSerializationInfo();
 	}
@@ -68,8 +68,8 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8,c:utf8,blabla:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,c:utf8,b:utf8,bloblo:utf8")));
 		b.setGroupByFields("c","b");
-		b.setOrderBy(new SortBy().add("b",Order.ASC).add("c",Order.DESC).addSourceOrder(Order.DESC).add("a",Order.DESC));
-		b.setSecondaryOrderBy("schema1",new SortBy().add("blabla", Order.DESC));
+		b.setOrderBy(new OrderBy().add("b",Order.ASC).add("c",Order.DESC).addSourceOrder(Order.DESC).add("a",Order.DESC));
+		b.setSpecificOrderBy("schema1",new OrderBy().add("blabla", Order.DESC));
 		TupleMRConfig config = b.buildConf();
 		config.getSerializationInfo();
 		{
@@ -115,7 +115,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.setGroupByFields("a");
 		//not allowed to sort in common order by a field that has different types even after source order
 		//it can be confusing
-		b.setOrderBy(new SortBy().add("a",Order.ASC).addSourceOrder(Order.DESC).add("b",Order.DESC)); 
+		b.setOrderBy(new OrderBy().add("a",Order.ASC).addSourceOrder(Order.DESC).add("b",Order.DESC)); 
 		b.buildConf();
 	}
 	
@@ -125,7 +125,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:boolean")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("a",Order.ASC).add("b",Order.DESC));
+		b.setOrderBy(new OrderBy().add("a",Order.ASC).add("b",Order.DESC));
 		b.buildConf();
 	}
 	
@@ -160,7 +160,7 @@ public class TestConfigBuilder extends BaseTest{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("b",Order.ASC));
+		b.setOrderBy(new OrderBy().add("b",Order.ASC));
 		b.buildConf();
 	}
 	
@@ -170,19 +170,19 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8,c:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8,d:utf8")));
 		b.setGroupByFields("a","b");
-		b.setOrderBy(new SortBy().add("b",Order.ASC).addSourceOrder(Order.DESC).add("a",Order.DESC));
+		b.setOrderBy(new OrderBy().add("b",Order.ASC).addSourceOrder(Order.DESC).add("a",Order.DESC));
 		b.buildConf();
 	}
 	
 	
 	@Test (expected=IllegalArgumentException.class)
 	public void testNotRepeatedFieldsInSortBy() {
-		new SortBy().add("foo",Order.ASC).add("foo",Order.DESC);
+		new OrderBy().add("foo",Order.ASC).add("foo",Order.DESC);
 	}
 	
 	@Test (expected=IllegalStateException.class)
 	public void testNotRepeatedSourceOrderInSortBy() throws TupleMRException {
-		new SortBy().add("foo",Order.DESC).addSourceOrder(Order.ASC).add("bar",Order.DESC).addSourceOrder(Order.DESC);
+		new OrderBy().add("foo",Order.DESC).addSourceOrder(Order.ASC).add("bar",Order.DESC).addSourceOrder(Order.DESC);
 	}
 	
 	@Test (expected=TupleMRException.class)
@@ -190,7 +190,7 @@ public class TestConfigBuilder extends BaseTest{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("a",Order.ASC).addSourceOrder(Order.DESC));
+		b.setOrderBy(new OrderBy().add("a",Order.ASC).addSourceOrder(Order.DESC));
 		b.buildConf();
 	}
 	
@@ -200,8 +200,8 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:utf8")));
 		b.setGroupByFields("b");
-		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
-		b.setSecondaryOrderBy("schema1", new SortBy().add("a",Order.DESC).addSourceOrder(Order.DESC)); //this is incorrect
+		b.setOrderBy(new OrderBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
+		b.setSpecificOrderBy("schema1", new OrderBy().add("a",Order.DESC).addSourceOrder(Order.DESC)); //this is incorrect
 		b.buildConf();
 	}
 	
@@ -211,8 +211,8 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:utf8")));
 		b.setGroupByFields("b");
-		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
-		b.setSecondaryOrderBy("invented_schema", new SortBy().add("a",Order.DESC).addSourceOrder(Order.DESC));
+		b.setOrderBy(new OrderBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
+		b.setSpecificOrderBy("invented_schema", new OrderBy().add("a",Order.DESC).addSourceOrder(Order.DESC));
 		b.buildConf();
 	}
 	
@@ -222,8 +222,8 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:utf8")));
 		b.setGroupByFields("b");
-		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
-		b.setSecondaryOrderBy("schema1", null);
+		b.setOrderBy(new OrderBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
+		b.setSpecificOrderBy("schema1", null);
 		b.buildConf();
 	}
 	
@@ -233,8 +233,8 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("c:int,b:utf8")));
 		b.setGroupByFields("b");
-		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
-		b.setSecondaryOrderBy("schema1", new SortBy());
+		b.setOrderBy(new OrderBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
+		b.setSpecificOrderBy("schema1", new OrderBy());
 		b.buildConf();
 	}
 	
@@ -252,7 +252,7 @@ public class TestConfigBuilder extends BaseTest{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
-		b.setOrderBy(new SortBy());
+		b.setOrderBy(new OrderBy());
 		b.buildConf();
 	}
 	
@@ -264,8 +264,8 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
-		b.setOrderBy(new SortBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
-		b.setSecondaryOrderBy("schema1", new SortBy().add("b",Order.ASC));
+		b.setOrderBy(new OrderBy().add("b",Order.DESC).addSourceOrder(Order.DESC));
+		b.setSpecificOrderBy("schema1", new OrderBy().add("b",Order.ASC));
 		b.buildConf();
 	}
 	
@@ -277,7 +277,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
-		b.setSecondaryOrderBy("schema1", new SortBy().add("a",Order.ASC));
+		b.setSpecificOrderBy("schema1", new OrderBy().add("a",Order.ASC));
 		b.buildConf();
 	}
 	
@@ -287,8 +287,8 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
-		b.setOrderBy(new SortBy().add("b",Order.DESC));
-		b.setSecondaryOrderBy("schema1", new SortBy().add("a",Order.ASC));
+		b.setOrderBy(new OrderBy().add("b",Order.DESC));
+		b.setSpecificOrderBy("schema1", new OrderBy().add("a",Order.ASC));
 		b.buildConf();
 		
 	}
@@ -299,7 +299,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
-		b.setOrderBy(new SortBy().add("b",Order.DESC));
+		b.setOrderBy(new OrderBy().add("b",Order.DESC));
 		b.setRollupFrom(null);
 		b.buildConf();
 	}
@@ -309,7 +309,7 @@ public class TestConfigBuilder extends BaseTest{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("b");
-		b.setOrderBy(new SortBy().add("b",Order.DESC));
+		b.setOrderBy(new OrderBy().add("b",Order.DESC));
 		b.setRollupFrom(null);
 		b.buildConf();
 	}
@@ -328,8 +328,8 @@ public class TestConfigBuilder extends BaseTest{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("a", Order.ASC));
-		b.setSecondaryOrderBy("schema1", new SortBy().add("b", Order.ASC));		
+		b.setOrderBy(new OrderBy().add("a", Order.ASC));
+		b.setSpecificOrderBy("schema1", new OrderBy().add("b", Order.ASC));		
 		b.buildConf();		
 	}
 	
@@ -338,7 +338,7 @@ public class TestConfigBuilder extends BaseTest{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setOrderBy(new OrderBy().add("a", Order.ASC));
 		b.setCustomPartitionFields();		
 		b.buildConf();	
 	}
@@ -348,7 +348,7 @@ public class TestConfigBuilder extends BaseTest{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setOrderBy(new OrderBy().add("a", Order.ASC));
 		String [] array = null;
 		b.setCustomPartitionFields(array);		
 		b.buildConf();
@@ -360,7 +360,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:utf8,c:long")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setOrderBy(new OrderBy().add("a", Order.ASC));
 		b.setCustomPartitionFields("c");		
 		b.buildConf();
 	}
@@ -371,7 +371,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("a:int,b:long")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setOrderBy(new OrderBy().add("a", Order.ASC));
 		b.setCustomPartitionFields("b");		
 		b.buildConf();
 	}
@@ -382,7 +382,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("b:utf8,a:int")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setOrderBy(new OrderBy().add("a", Order.ASC));
 		b.setCustomPartitionFields("b");		
 		TupleMRConfig config = b.buildConf();
 		System.out.println(config);
@@ -403,7 +403,7 @@ public class TestConfigBuilder extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema1",Fields.parse("a:int,b:utf8")));
 		b.addIntermediateSchema(new Schema("schema2",Fields.parse("b:utf8,a:int")));
 		b.setGroupByFields("a");
-		b.setOrderBy(new SortBy().add("a", Order.ASC));
+		b.setOrderBy(new OrderBy().add("a", Order.ASC));
 		b.setCustomPartitionFields("b");		
 		TupleMRConfig config = b.buildConf(); //TODO
 	}

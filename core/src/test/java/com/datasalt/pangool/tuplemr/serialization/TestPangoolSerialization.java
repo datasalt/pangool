@@ -30,7 +30,7 @@ import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.serialization.ThriftSerialization;
 import com.datasalt.pangool.thrift.test.A;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
@@ -58,9 +58,9 @@ public class TestPangoolSerialization extends BaseTest{
 		b.addIntermediateSchema(new Schema("schema5",Fields.parse("booleanField:boolean, intField:int, longField:long,strField:utf8, enumField:"+TestEnum.class.getName() + ",thriftField:" + A.class.getName())));
 		
 		b.setGroupByFields("booleanField","intField");
-		b.setOrderBy(new SortBy().add("booleanField",Order.ASC).add("intField",Order.DESC).addSourceOrder(Order.DESC));
-		b.setSecondaryOrderBy("schema1",new SortBy().add("strField",Order.DESC));
-		b.setSecondaryOrderBy("schema2",new SortBy().add("longField",Order.ASC));
+		b.setOrderBy(new OrderBy().add("booleanField",Order.ASC).add("intField",Order.DESC).addSourceOrder(Order.DESC));
+		b.setSpecificOrderBy("schema1",new OrderBy().add("strField",Order.DESC));
+		b.setSpecificOrderBy("schema2",new OrderBy().add("longField",Order.ASC));
 		pangoolConf = b.buildConf();
 	}
 	

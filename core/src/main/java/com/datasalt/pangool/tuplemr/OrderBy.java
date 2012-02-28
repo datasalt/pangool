@@ -25,23 +25,23 @@ import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 
 /**
- * SortBy is a convenience builder used by {@link TupleMRConfig} , similar to {@link Criteria}.
- * The main difference is that {@link SortBy} is mutable using the concatenation pattern and 
+ * OrderBy is a convenience builder used by {@link TupleMRConfig} , similar to {@link Criteria}.
+ * The main difference is that {@link OrderBy} is mutable using the concatenation pattern and 
  * allows to specify sourceOrder. 
  * 
- * The SortBy instances are converted to immutable Criteria objects by {@link TupleMRConfig}.
+ * The OrderBy instances are converted to immutable Criteria objects by {@link TupleMRConfig}.
  */
-public class SortBy {
+public class OrderBy {
 	
 	private Order sourceOrder;
 	private Integer sourceOrderIndex;
 	private List<SortElement> elements = new ArrayList<SortElement>();
 	
-	public SortBy(List<SortElement> elements){
+	public OrderBy(List<SortElement> elements){
 		this.elements = elements;
 	}
 	
-	public SortBy(){
+	public OrderBy(){
 	}
 	
 	/**
@@ -52,7 +52,7 @@ public class SortBy {
 	 * 
 	 * @see Order
 	 */
-	public SortBy add(String name, Order order){
+	public OrderBy add(String name, Order order){
 		failIfFieldNamePresent(name);
 		this.elements.add(new SortElement(name,order));
 		return this;
@@ -68,7 +68,7 @@ public class SortBy {
 	 * 
 	 * @see Order
 	 */
-	public SortBy add(String name, Order order,RawComparator<?> comparator){
+	public OrderBy add(String name, Order order,RawComparator<?> comparator){
 		failIfFieldNamePresent(name);
 		this.elements.add(new SortElement(name,order,comparator));
 		return this;
@@ -80,15 +80,15 @@ public class SortBy {
 	 * Example : 
 	 * b.addIntermediateSchema(schema1);
 	 * b.addIntermediateSchema(schema2);
-	 * b.setOrderBy(new SortBy().add("user_id",Order.ASC).addSourceOrder(Order.DESC));
+	 * b.setOrderBy(new OrderBy().add("user_id",Order.ASC).addSourceOrder(Order.DESC));
 	 *  
 	 * In the case above, tuples will be first sorted by user_id and then if they compare as equals then tuples from 
 	 * schema2 will sort before those from schema1. 
 	 * 
-	 * This method must be called just once, and it's not allowed in {@link TupleMRConfigBuilder#setSecondaryOrderBy(String, SortBy)
+	 * This method must be called just once, and it's not allowed in {@link TupleMRConfigBuilder#setSpecificOrderBy(String, OrderBy)
 	 *  
 	 */
-	public SortBy addSourceOrder(Order order){
+	public OrderBy addSourceOrder(Order order){
 		if (this.sourceOrderIndex != null){
 			throw new IllegalStateException("The schema order is already set");
 		}

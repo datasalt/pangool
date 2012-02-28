@@ -104,7 +104,7 @@ public class SansAccentRepeatedField {
 		TupleMRBuilder cg = new TupleMRBuilder(conf,"Utf8 Alternate order repeating fields");
 		cg.addIntermediateSchema(schema);
 		cg.setGroupByFields("encoded_word");
-		//cg.setOrderBy(new SortBy().add("encoded_word",Order.ASC).add("word",Order.DESC));
+		//cg.setOrderBy(new OrderBy().add("encoded_word",Order.ASC).add("word",Order.DESC));
 		cg.setJarByClass(SansAccentRepeatedField.class);
 		cg.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new Split());
 		cg.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,NullWritable.class);
