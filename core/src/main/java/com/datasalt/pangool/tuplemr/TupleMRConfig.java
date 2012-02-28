@@ -42,7 +42,6 @@ import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.GroupComparator;
 import com.datasalt.pangool.tuplemr.mapred.SortComparator;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**

@@ -27,11 +27,11 @@ import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.TupleMapper;
+import com.datasalt.pangool.tuplemr.TupleRollupReducer;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleRollupReducer;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 public class TweetsExample {
@@ -74,7 +74,7 @@ public class TweetsExample {
 
 		int totalCount = 0;
 
-		public void onCloseGroup(int depth, String field, ITuple lastElement, com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer<Text,NullWritable>.TupleMRContext context, com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer<Text,NullWritable>.Collector collector) throws IOException ,InterruptedException ,TupleMRException {
+		public void onCloseGroup(int depth, String field, ITuple lastElement, com.datasalt.pangool.tuplemr.TupleReducer<Text,NullWritable>.TupleMRContext context, com.datasalt.pangool.tuplemr.TupleReducer<Text,NullWritable>.Collector collector) throws IOException ,InterruptedException ,TupleMRException {
 		
 			if(field.equals("hashtag")) {
 				totalCount = 0;

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.tuplemr.mapred.tuplemr;
+package com.datasalt.pangool.tuplemr;
 
 import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
 
 import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.tuplemr.TupleMRException;
 
 @SuppressWarnings("serial")
 public class IdentityTupleReducer extends TupleReducer<ITuple, NullWritable> {

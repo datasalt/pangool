@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.tuplemr.mapred.tuplemr;
+package com.datasalt.pangool.tuplemr;
 
 import java.io.IOException;
 
 import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.tuplemr.TupleMRException;
 
 @SuppressWarnings("serial")
 public class TupleRollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> {

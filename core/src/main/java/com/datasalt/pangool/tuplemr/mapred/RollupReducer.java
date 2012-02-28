@@ -33,8 +33,8 @@ import com.datasalt.pangool.tuplemr.SerializationInfo;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
-import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleRollupReducer;
+import com.datasalt.pangool.tuplemr.TupleReducer;
+import com.datasalt.pangool.tuplemr.TupleRollupReducer;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
