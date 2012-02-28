@@ -86,7 +86,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				return (grouperConf.getSchemasOrder() == Order.ASC) ? r : -r;
 			}
 			int schemaId = schemaId1;
-			c = grouperConf.getSecondarySortBys().get(schemaId);
+			c = grouperConf.getSpecificOrderBys().get(schemaId);
 			if (c != null){
 				int[] indexes = serInfo.getSpecificSchemaIndexTranslation(schemaId);
 				return compare(w1.getSchema(),c,w1,indexes,w2,indexes);
@@ -190,7 +190,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		offsets.offset2 += vintSize;
 		
 		//sources are the same
-		Criteria criteria = grouperConf.getSecondarySortBys().get(schemaId1); 
+		Criteria criteria = grouperConf.getSpecificOrderBys().get(schemaId1); 
 		if (criteria == null){
 			return 0;
 		}

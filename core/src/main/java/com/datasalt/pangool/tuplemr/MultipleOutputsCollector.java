@@ -26,7 +26,7 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.PangoolMultipleOutputs;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MultipleOutputsCollector {
 
-  PangoolMultipleOutputs multipleOutputs;
+  protected PangoolMultipleOutputs multipleOutputs;
 	
 	public MultipleOutputsCollector(MapContext context) {
 		multipleOutputs = new PangoolMultipleOutputs(context);

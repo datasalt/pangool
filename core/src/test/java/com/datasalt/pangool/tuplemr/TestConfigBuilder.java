@@ -82,12 +82,12 @@ public class TestConfigBuilder extends BaseTest{
 			List<SortElement> expectedSchema1 = new ArrayList<SortElement>();
 			expectedSchema1.add(new SortElement("a",Order.DESC));
 			expectedSchema1.add(new SortElement("blabla",Order.DESC));
-			Assert.assertEquals(new Criteria(expectedSchema1),config.getSecondarySortBys().get(0));
+			Assert.assertEquals(new Criteria(expectedSchema1),config.getSpecificOrderBys().get(0));
 		}
 		{
 			List<SortElement> expectedSchema2 = new ArrayList<SortElement>();
 			expectedSchema2.add(new SortElement("a",Order.DESC));
-			Assert.assertEquals(new Criteria(expectedSchema2),config.getSecondarySortBys().get(1));
+			Assert.assertEquals(new Criteria(expectedSchema2),config.getSpecificOrderBys().get(1));
 		}
 		
 	}

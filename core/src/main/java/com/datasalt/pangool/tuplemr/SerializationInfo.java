@@ -51,9 +51,9 @@ public class SerializationInfo {
 	
 	
 	private List<int[]> fieldsToPartition=new ArrayList<int[]>();
-	private List<int[]> commonToSourcesIndexes=new ArrayList<int[]>();
-	private List<int[]> groupToSourcesIndexes=new ArrayList<int[]>();
-	private List<int[]> specificToSourcesIndexes=new ArrayList<int[]>();
+	private List<int[]> commonToIntermediateIndexes=new ArrayList<int[]>();
+	private List<int[]> groupToIntermediateIndexes=new ArrayList<int[]>();
+	private List<int[]> specificToIntermediateIndexes=new ArrayList<int[]>();
 	
 	
 	
@@ -84,20 +84,43 @@ public class SerializationInfo {
 		return fieldsToPartition;
 	}
 	
+	/**
+	 * Given a schema returns the fields (indexes) that will be used
+	 * to calculate a partial hashing by {@link Partitioner}  
+	 * 
+	 */
 	public int[] getFieldsToPartition(int schemaId){
 		return fieldsToPartition.get(schemaId);
 	}
 	
+	/**
+	 * Given a intermediate schema id, returns an index correlation 
+	 * from common schema indexes to the specified intermediate schema indexes.
+	 * The length of this array matches the number of fields in the common schema.
+	 * 
+	 */
 	public int[] getCommonSchemaIndexTranslation(int schemaId){
-		return commonToSourcesIndexes.get(schemaId);
+		return commonToIntermediateIndexes.get(schemaId);
 	}
 	
+	/**
+	 * Given a intermediate schema id, returns an index correlation 
+	 * from the specific schema to the  intermediate schema.
+	 * The length of this array matches the number of fields in the specific schema.
+	 * 
+	 */
 	public int[] getSpecificSchemaIndexTranslation(int schemaId){
-		return specificToSourcesIndexes.get(schemaId);
+		return specificToIntermediateIndexes.get(schemaId);
 	}
 	
+	/**
+	 * Given a intermediate schema id, returns an index correlation 
+	 * from the group schema to the intermediate schema.
+	 * The length of this array matches the number of fields in the group schema.
+	 * 
+	 */
 	public int[] getGroupSchemaIndexTranslation(int schemaId){
-		return groupToSourcesIndexes.get(schemaId);
+		return groupToIntermediateIndexes.get(schemaId);
 	}
 	
 	
@@ -160,7 +183,7 @@ public class SerializationInfo {
 		List<List<Field>> specificFieldsBySource = new ArrayList<List<Field>>();
 		
 		for (int schemaId=0 ; schemaId < grouperConfig.getNumIntermediateSchemas(); schemaId++){
-			Criteria specificCriteria = grouperConfig.getSecondarySortBys().get(schemaId);
+			Criteria specificCriteria = grouperConfig.getSpecificOrderBys().get(schemaId);
 			List<Field> specificFields = new ArrayList<Field>();
 			if (specificCriteria != null){
 				for (SortElement sortElement : specificCriteria.getElements()){
@@ -267,16 +290,16 @@ public class SerializationInfo {
 	private void calculateIndexTranslations(){ 
 		for (int schemaId = 0 ; schemaId < grouperConfig.getIntermediateSchemas().size() ; schemaId++){
 			Schema sourceSchema = grouperConfig.getIntermediateSchema(schemaId);
-			commonToSourcesIndexes.add(getIndexTranslation(commonSchema,sourceSchema));
-			groupToSourcesIndexes.add(getIndexTranslation(groupSchema,sourceSchema));
+			commonToIntermediateIndexes.add(getIndexTranslation(commonSchema,sourceSchema));
+			groupToIntermediateIndexes.add(getIndexTranslation(groupSchema,sourceSchema));
 			if (specificSchemas != null && !specificSchemas.isEmpty()){
 				Schema particularSchema = specificSchemas.get(schemaId);
-				specificToSourcesIndexes.add(getIndexTranslation(particularSchema,sourceSchema));
+				specificToIntermediateIndexes.add(getIndexTranslation(particularSchema,sourceSchema));
 			}
 		}
-		commonToSourcesIndexes = Collections.unmodifiableList(commonToSourcesIndexes);
-		groupToSourcesIndexes = Collections.unmodifiableList(groupToSourcesIndexes);
-		specificToSourcesIndexes = Collections.unmodifiableList(specificToSourcesIndexes);
+		commonToIntermediateIndexes = Collections.unmodifiableList(commonToIntermediateIndexes);
+		groupToIntermediateIndexes = Collections.unmodifiableList(groupToIntermediateIndexes);
+		specificToIntermediateIndexes = Collections.unmodifiableList(specificToIntermediateIndexes);
 	}
 	
 	

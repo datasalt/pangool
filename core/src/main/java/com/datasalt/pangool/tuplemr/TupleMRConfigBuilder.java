@@ -44,8 +44,8 @@ import com.datasalt.pangool.tuplemr.mapred.Partitioner;
 public class TupleMRConfigBuilder {
 
 	private List<Schema> schemas= new ArrayList<Schema>();
-	private OrderBy commonSortBy;
-	private Map<String,OrderBy> secondarysOrderBy=new HashMap<String,OrderBy>();
+	private OrderBy commonOrderBy;
+	private Map<String,OrderBy> specificsOrderBy=new HashMap<String,OrderBy>();
 	private List<String> groupByFields;
 	private String rollupFrom;
 	private String[] fieldsToPartition;
@@ -139,7 +139,7 @@ public class TupleMRConfigBuilder {
 		if (!this.groupByFields.contains(rollupFrom)){
 			throw new TupleMRException("Rollup field must be present fields to group by '" + groupByFields + "'");
 		}
-		if (this.commonSortBy == null){
+		if (this.commonOrderBy == null){
 			//rollup needs explicit common orderby
 			throw new TupleMRException("Rollup needs explicit order by. No common order previously set");
 		}
@@ -202,7 +202,7 @@ public class TupleMRConfigBuilder {
 			}
 		}
 		
-		this.commonSortBy = ordering;
+		this.commonOrderBy = ordering;
 	}
 		
 	
@@ -214,18 +214,18 @@ public class TupleMRConfigBuilder {
 	 */
 	public void setSpecificOrderBy(String schemaName,OrderBy ordering) throws TupleMRException {
 		//TODO 
-		failIfNull(schemaName,"Not able to set secondary sort for null source");
+		failIfNull(schemaName,"Not able to set specific orderBy for null source");
 		if (!schemaAlreadyExists(schemaName)){
-			throw new TupleMRException("Unknown source '" + schemaName +"' in secondary OrderBy");
+			throw new TupleMRException("Unknown source '" + schemaName +"' in specific OrderBy");
 		}
 		failIfNull(ordering,"Not able to set null criteria for source '" + schemaName + "'");
 		failIfEmpty(ordering.getElements(),"Can't set empty ordering");
-		failIfNull(commonSortBy,"Not able to set secondary order with no previous common OrderBy");
-		if (commonSortBy.getSourceOrderIndex() == null){
-			throw new TupleMRException("Need to specify source order in common OrderBy when using secondary OrderBy");
+		failIfNull(commonOrderBy,"Not able to set specific order with no previous common OrderBy");
+		if (commonOrderBy.getSourceOrderIndex() == null){
+			throw new TupleMRException("Need to specify source order in common OrderBy when using specific OrderBy");
 		}
 		if (ordering.getSourceOrderIndex() != null){
-			throw new TupleMRException("Not allowed to set source order in secondary order");
+			throw new TupleMRException("Not allowed to set source order in specific order");
 		}
 		Schema schema = getSchemaByName(schemaName);
 		for (SortElement e : ordering.getElements()){
@@ -235,11 +235,11 @@ public class TupleMRConfigBuilder {
 		}
 		
 		for (SortElement e : ordering.getElements()){
-			if (commonSortBy.containsFieldName(e.getName())){
+			if (commonOrderBy.containsFieldName(e.getName())){
 				throw new TupleMRException("Common sort by already contains sorting for field '" + e.getName());
 			}
 		}
-		this.secondarysOrderBy.put(schemaName, ordering);
+		this.specificsOrderBy.put(schemaName, ordering);
 	}
 	
 
@@ -259,15 +259,15 @@ public class TupleMRConfigBuilder {
 			conf.setCustomPartitionFields(Arrays.asList(fieldsToPartition));
 		}
 		
-		Criteria convertedCommonOrder =convertCommonSortByToCriteria(commonSortBy);
-		if (commonSortBy != null && commonSortBy.getSourceOrder() != null){
-			conf.setSourceOrder(commonSortBy.getSourceOrder());
+		Criteria convertedCommonOrder =convertCommonSortByToCriteria(commonOrderBy);
+		if (commonOrderBy != null && commonOrderBy.getSourceOrder() != null){
+			conf.setSourceOrder(commonOrderBy.getSourceOrder());
 		} else {
 			conf.setSourceOrder(Order.ASC);//by default source order is ASC
 		}
 		conf.setCommonCriteria(convertedCommonOrder);
-		if (commonSortBy != null){
-			Map<String,Criteria> convertedParticularOrderings = getSecondarySortBys(commonSortBy,schemas,secondarysOrderBy);
+		if (commonOrderBy != null){
+			Map<String,Criteria> convertedParticularOrderings = getSecondarySortBys(commonOrderBy,schemas,specificsOrderBy);
 			for (Map.Entry<String,Criteria> entry : convertedParticularOrderings.entrySet()){
 				conf.setSecondarySortBy(entry.getKey(), entry.getValue());
 			}
@@ -292,14 +292,14 @@ public class TupleMRConfigBuilder {
 		}
 	}
 	
-	private static Map<String,Criteria> getSecondarySortBys(OrderBy commonSortBy,List<Schema> sourceSchemas,Map<String,OrderBy> secondarys){
-		if (secondarys == null){
+	private static Map<String,Criteria> getSecondarySortBys(OrderBy commonSortBy,List<Schema> sourceSchemas,Map<String,OrderBy> specifics){
+		if (specifics == null){
 			return null;
 		} else if (commonSortBy == null){
-			throw new IllegalArgumentException("Common sort by must not be null if secondary sort by is set");
+			throw new IllegalArgumentException("Common sort by must not be null if specific sort by is set");
 		}	else if (commonSortBy.getSourceOrderIndex() == null || commonSortBy.getSourceOrderIndex() == commonSortBy.getElements().size()){
 			Map<String,Criteria> result = new HashMap<String,Criteria>();
-			for (Map.Entry<String,OrderBy> entry : secondarys.entrySet()){
+			for (Map.Entry<String,OrderBy> entry : specifics.entrySet()){
 				result.put(entry.getKey(),new Criteria(entry.getValue().getElements()));
 			}
 			return result;
@@ -310,7 +310,7 @@ public class TupleMRConfigBuilder {
 				String source = sourceSchema.getName();
 				List<SortElement> newList = new ArrayList<SortElement>();
 				newList.addAll(toPrepend);
-				OrderBy criteria = secondarys.get(source);
+				OrderBy criteria = specifics.get(source);
 				if (criteria != null){
 					newList.addAll(criteria.getElements());
 				}
@@ -326,7 +326,7 @@ public class TupleMRConfigBuilder {
    */
   public static void initializeComparators(Configuration conf, TupleMRConfig groupConfig) {
   	TupleMRConfigBuilder.initializeComparators(conf, groupConfig.getCommonCriteria());
-  	for(Criteria criteria : groupConfig.getSecondarySortBys()) {
+  	for(Criteria criteria : groupConfig.getSpecificOrderBys()) {
   		if (criteria != null) {
   			TupleMRConfigBuilder.initializeComparators(conf, criteria);
   		}
