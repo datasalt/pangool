@@ -74,7 +74,7 @@ public class TopicFingerprint extends BaseExampleJob {
 			failArguments("Wrong number of arguments");
 		}
 
-		deleteOuput(args[1]);
+		deleteOutput(args[1]);
 		// Parse the size of the Top
 		Integer n = Integer.parseInt(args[2]);
 

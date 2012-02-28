@@ -19,30 +19,28 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.util.ToolRunner;
 
+import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
-import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * Code for solving a secondary sort problem with Pangool.
@@ -52,7 +50,7 @@ import com.datasalt.pangool.utils.HadoopUtils;
  * obtain total sales value for certain periods of time, therefore we need to registers in each group to come sorted by
  * "timestamp".
  */
-public class PangoolSecondarySort {
+public class PangoolSecondarySort extends BaseExampleJob {
 
 	@SuppressWarnings("serial")
 	public static class IProcessor extends TupleMapper<LongWritable, Text> {
@@ -101,7 +99,21 @@ public class PangoolSecondarySort {
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
+	public PangoolSecondarySort() {
+		super("Needed arguments: [input] [output]");
+	}
+	
+	@Override
+	public int run(String[] args) throws Exception {
+		if(args.length != 2) {
+			failArguments("Invalid number of arguments");
+			return -1;
+		}
+		String input = args[0];
+		String output = args[1];
+
+		deleteOutput(output);
+		
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("intField",Type.INT));
 		fields.add(Field.create("strField",Type.STRING));
@@ -115,19 +127,13 @@ public class PangoolSecondarySort {
 		grouper.setOrderBy(new OrderBy().add("intField", Order.ASC).add("strField", Order.ASC)
 		    .add("longField", Order.ASC));
 		grouper.setTupleReducer(new Handler());
-		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, DoubleWritable.class);
 		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new IProcessor());
-		return grouper.createJob();
+		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, DoubleWritable.class);
+		grouper.createJob().waitForCompletion(true);
+	  return 1;
 	}
 
-	public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException,
-	    TupleMRException {
-
-		Configuration conf = new Configuration();
-		FileSystem fS = FileSystem.get(conf);
-		String input = args[0];
-		String output = args[1];
-		HadoopUtils.deleteIfExists(fS, new Path(output));
-		new PangoolSecondarySort().getJob(conf, input, output).waitForCompletion(true);
+	public static void main(String[] args) throws Exception {
+		ToolRunner.run( new PangoolSecondarySort(), args);
 	}
 }

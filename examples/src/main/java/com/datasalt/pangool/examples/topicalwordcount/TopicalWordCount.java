@@ -116,7 +116,7 @@ public class TopicalWordCount extends BaseExampleJob {
 			failArguments("Wrong number of arguments");
 		}
 
-		deleteOuput(args[1]);
+		deleteOutput(args[1]);
 
 		TupleMRBuilder cg = new TupleMRBuilder(conf, "Pangool Topical Word Count");
 		cg.addIntermediateSchema(getSchema());

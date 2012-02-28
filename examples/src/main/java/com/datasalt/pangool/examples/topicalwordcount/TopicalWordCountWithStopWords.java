@@ -52,7 +52,7 @@ public class TopicalWordCountWithStopWords extends BaseExampleJob {
 			failArguments("Wrong number of arguments");
 		}
 
-		deleteOuput(args[1]);
+		deleteOutput(args[1]);
 		List<String> stopWords = Files.readLines(new File(args[2]), Charset.forName("UTF-8"));
 
 		TupleMRBuilder cg = new TupleMRBuilder(conf, "Pangool Topical Word Count With Stop Words");

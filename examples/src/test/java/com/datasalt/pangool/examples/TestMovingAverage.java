@@ -18,19 +18,13 @@ package com.datasalt.pangool.examples;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.text.ParseException;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.util.ToolRunner;
 import org.junit.Test;
 
 import com.datasalt.pangool.examples.movingaverage.MovingAverage;
-import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
@@ -41,13 +35,9 @@ public class TestMovingAverage extends AbstractHadoopTestLibrary{
 	private final static String OUTPUT = FOLDER + "/test-output-" + TestMovingAverage.class.getName();
 	
 	@Test
-	public void test() throws IOException, TupleMRException, InterruptedException,
-	    ClassNotFoundException, URISyntaxException, ParseException {
+	public void test() throws Exception {
 
-		Configuration conf = new Configuration();
-		FileSystem fS = FileSystem.get(conf);
-		HadoopUtils.deleteIfExists(fS, new Path(OUTPUT));
-		//File file = new File(INPUT).createTempFile(INPUT,"");
+		trash(OUTPUT);
 		Files.write(
 				"url1" + "\t" + "2011-02-28" + "\t" + "100" + "\n" +
 				"url1" + "\t" + "2011-02-27" + "\t" + "50" + "\n" +
@@ -57,9 +47,7 @@ public class TestMovingAverage extends AbstractHadoopTestLibrary{
 				"url2" + "\t" + "2011-02-25" + "\t" + "25" + "\n"
 		, new File(INPUT), Charset.forName("UTF-8"));
 
-		MovingAverage mAverage = new MovingAverage();
-		Job job = mAverage.getJob(conf, INPUT, OUTPUT, 3);
-		assertRun(job);
+		ToolRunner.run(new MovingAverage(), new String[] { INPUT, OUTPUT, "3" });
 
 		int validatedOutputLines = 0;
 		for(String line : Files.readLines(new File(OUTPUT + "/part-r-00000"), Charset.forName("UTF-8"))) {

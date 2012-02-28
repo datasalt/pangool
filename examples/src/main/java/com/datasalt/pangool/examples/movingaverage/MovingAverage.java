@@ -21,27 +21,27 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.util.ToolRunner;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
@@ -69,7 +69,7 @@ import com.datasalt.pangool.utils.Pair;
  * With Pangool we can define an intermediate schema like ["url", "date", "clicks"], group by "url" and sort by "url", "date".
  * Then we can just keep a windowed stack of data points and compute the average per each date that we receive.  
  */
-public class MovingAverage {
+public class MovingAverage extends BaseExampleJob {
 
 	@SuppressWarnings("serial")
 	private static class URLVisitsProcessor extends TupleMapper<LongWritable, Text> {
@@ -134,8 +134,22 @@ public class MovingAverage {
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output, int nDaysAverage) throws TupleMRException,
-	    IOException {
+	public MovingAverage() {
+	  super("Usage: [input_path] [output_path] [num_days_average]");
+  }
+
+	@Override
+  public int run(String[] args) throws Exception {
+		if(args.length != 3) {
+			failArguments("Invalid number of arguments");
+			return -1;
+		}
+		String input = args[0];
+		String output = args[1];
+		Integer nDaysAverage = Integer.parseInt(args[2]);
+		
+		deleteOutput(output);
+		
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("url", Type.STRING));
@@ -144,28 +158,19 @@ public class MovingAverage {
 
 		Schema schema = new Schema("my_schema", fields);
 
-		TupleMRBuilder grouper = new TupleMRBuilder(conf);
-		grouper.addIntermediateSchema(schema);
-		grouper.setGroupByFields("url");
-		grouper.setOrderBy(new OrderBy().add("url", Order.ASC).add("date", Order.ASC));
+		TupleMRBuilder mr = new TupleMRBuilder(conf);
+		mr.addIntermediateSchema(schema);
+		mr.setGroupByFields("url");
+		mr.setOrderBy(new OrderBy().add("url", Order.ASC).add("date", Order.ASC));
 		// Input / output and such
-		grouper.setTupleReducer(new MovingAverageHandler(nDaysAverage));
-		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new URLVisitsProcessor());
-		return grouper.createJob();
-	}
+		mr.setTupleReducer(new MovingAverageHandler(nDaysAverage));
+		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+		mr.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new URLVisitsProcessor());
+		mr.createJob().waitForCompletion(true);
+	  return 1;
+  }
 	
-	private static final String HELP = "Usage: [input_path] [output_path] [num_days_average]";
-
-	public static void main(String args[]) throws TupleMRException, IOException, InterruptedException,
-	    ClassNotFoundException {
-		if(args.length != 3) {
-			System.err.println("Wrong number of arguments");
-			System.err.println(HELP);
-			System.exit(-1);
-		}
-
-		Configuration conf = new Configuration();
-		new MovingAverage().getJob(conf, args[0], args[1],Integer.parseInt(args[2])).waitForCompletion(true);
+	public static void main(String args[]) throws Exception {
+		ToolRunner.run(new MovingAverage(), args);
 	}
 }

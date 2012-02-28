@@ -32,7 +32,7 @@ public class GenerateData {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
 		Map<String, Object> jsonRecord = new HashMap<String, Object>();
 		for(int i = 0; i < nRegisters; i++) {
-			int randomTopic = (int) (Math.random() % nTopics);
+			int randomTopic = (int) (Math.random() * nTopics);
 			String text = TestUtils.randomString(10) + " " + TestUtils.randomString(10) + " " + TestUtils.randomString(10); 
 			jsonRecord.put("topic", randomTopic);
 			jsonRecord.put("text", text);

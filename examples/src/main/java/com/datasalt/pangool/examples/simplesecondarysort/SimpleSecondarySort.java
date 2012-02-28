@@ -19,34 +19,34 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.util.ToolRunner;
 
+import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
 
 /**
- * Like original Hadoop's SecondarySort example. Reads a tabulated text file with two numbers, groups by the first and
+ * Like original Hadoop's SecondarySort example. Reads a space-separated text file with two numbers, groups by the first and
  * sorts by both.
  */
-public class SecondarySort {
+public class SimpleSecondarySort extends BaseExampleJob {
 
 	@SuppressWarnings("serial")
   private static class IProcessor extends TupleMapper<LongWritable, Text> {
@@ -80,7 +80,21 @@ public class SecondarySort {
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
+	public SimpleSecondarySort() {
+		super("Usage: [input] [output]");
+	}
+	
+	@Override
+	public int run(String[] args) throws Exception {
+		if(args.length != 2) {
+			failArguments("Invalid number of arguments");
+			return -1;
+		}
+		String input = args[0];
+		String output = args[1];
+		
+		deleteOutput(output);
+		
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("first",Type.INT));
@@ -95,20 +109,12 @@ public class SecondarySort {
 		grouper.setTupleReducer(new Handler());
 		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
 		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new IProcessor());
-		return grouper.createJob();
+		grouper.createJob().waitForCompletion(true);
+
+		return 1;
 	}
 	
-	private static final String HELP = "Usage: [input_path] [output_path]";
-
-	public static void main(String args[]) throws TupleMRException, IOException, InterruptedException,
-	    ClassNotFoundException {
-		if(args.length != 2) {
-			System.err.println("Wrong number of arguments");
-			System.err.println(HELP);
-			System.exit(-1);
-		}
-
-		Configuration conf = new Configuration();
-		new SecondarySort().getJob(conf, args[0], args[1]).waitForCompletion(true);
+	public static void main(String args[]) throws Exception {
+		ToolRunner.run(new SimpleSecondarySort(), args);
 	}
 }

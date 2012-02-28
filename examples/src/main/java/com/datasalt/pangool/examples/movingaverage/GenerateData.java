@@ -30,9 +30,10 @@ public class GenerateData {
 
 		BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
 		for(int i = 0; i < nRegisters; i++) {
-			int urlId = (int) (Math.random() % nUrls);
-			int randomCount = (int) (Math.random() % 10000);
+			int urlId = (int) (Math.random() * nUrls);
+			int randomCount = (int) (Math.random() * 10000);
 			writer.write("url" + urlId + "\t" + format.print(now) + "\t" + randomCount + "\n");
+			now -= 1000 * 60 * 60 * 24;
 		}
 
 		writer.close();

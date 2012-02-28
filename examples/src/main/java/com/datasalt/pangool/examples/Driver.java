@@ -18,7 +18,7 @@ package com.datasalt.pangool.examples;
 import org.apache.hadoop.util.ProgramDriver;
 
 import com.datasalt.pangool.examples.movingaverage.MovingAverage;
-import com.datasalt.pangool.examples.simplesecondarysort.SecondarySort;
+import com.datasalt.pangool.examples.simplesecondarysort.SimpleSecondarySort;
 import com.datasalt.pangool.examples.useractivitynormalizer.UserActivityNormalizer;
 
 /**
@@ -30,7 +30,7 @@ public class Driver extends ProgramDriver {
 	public Driver() throws Throwable {
 		super();
 		addClass("wordcount", PangoolWordCount.class, "Typical word count in Pangool");
-		addClass("secondarysort", SecondarySort.class, "Typical secondary sort (two ints) in Pangool");
+		addClass("secondarysort", SimpleSecondarySort.class, "Typical secondary sort (two ints) in Pangool");
 		addClass("grep", Grep.class, "Map-only job that performs Grep");
 		addClass("moving_average",MovingAverage.class,"Moving average ");
 		addClass("user_activity_normalizer",UserActivityNormalizer.class,"User activity normalizer");

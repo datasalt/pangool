@@ -8,6 +8,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 
 public abstract class BaseExampleJob implements Tool, Configurable {
 	
@@ -32,10 +33,11 @@ public abstract class BaseExampleJob implements Tool, Configurable {
 	public void failArguments(String message) {
 		System.err.println(message);
 		System.err.println();
+		ToolRunner.printGenericCommandUsage(System.out);
 		System.out.println(help);
 	}
 	
-	public void deleteOuput(String output) throws IOException {
+	public void deleteOutput(String output) throws IOException {
 		FileSystem.get(conf).delete(new Path(output), true);
 	}
 }

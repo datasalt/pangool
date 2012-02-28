@@ -18,19 +18,12 @@ package com.datasalt.pangool.examples;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.util.ToolRunner;
 import org.junit.Test;
 
-import com.datasalt.pangool.examples.simplesecondarysort.SecondarySort;
-import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.utils.HadoopUtils;
+import com.datasalt.pangool.examples.simplesecondarysort.SimpleSecondarySort;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
 
@@ -40,17 +33,12 @@ public class TestSecondarySort extends AbstractHadoopTestLibrary{
 	private final static String OUTPUT = FOLDER +"/test-output-" + TestSecondarySort.class.getName();
 
 	@Test
-	public void test() throws IOException, TupleMRException, InterruptedException,
-	    ClassNotFoundException, URISyntaxException {
+	public void test() throws Exception {
 
-		Configuration conf = new Configuration();
-		FileSystem fS = FileSystem.get(conf);
-		HadoopUtils.deleteIfExists(fS, new Path(OUTPUT));
+		trash(OUTPUT);
 		Files.write("10 3 \n 5 3 \n 5 30 \n 10 10", new File(INPUT), Charset.forName("UTF-8"));
 
-		SecondarySort sSort = new SecondarySort();
-		Job job = sSort.getJob(conf, INPUT, OUTPUT);
-		assertRun(job);
+		ToolRunner.run(new SimpleSecondarySort(), new String[] { INPUT, OUTPUT });
 
 		String[][] expectedOutput = new String[][] { new String[] { "5", "3" }, new String[] { "5", "30" },
 		    new String[] { "10", "3" }, new String[] { "10", "10" } };
@@ -63,7 +51,6 @@ public class TestSecondarySort extends AbstractHadoopTestLibrary{
 			count++;
 		}
 
-		HadoopUtils.deleteIfExists(fS, new Path(INPUT));
-		HadoopUtils.deleteIfExists(fS, new Path(OUTPUT));
+		trash(INPUT, OUTPUT);
 	}
 }

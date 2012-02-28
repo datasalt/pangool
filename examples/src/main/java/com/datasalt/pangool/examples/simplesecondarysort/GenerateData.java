@@ -13,7 +13,7 @@ public class GenerateData {
 			System.err.println("Usage: [out-file] [nRegisters] [maxIntValue]");
 			System.err.println();
 			System.err
-			    .println("Example: numbers.txt 10 2 -> Will generate a file 'numbers.txt' with 10 pairs of numbers and each of them will be between [0, 2]");
+			    .println("Example: numbers.txt 10 5 -> Will generate a file 'numbers.txt' with 10 pairs of numbers and each of them will be between [1, 5]");
 			System.err.println();
 			System.exit(-1);
 		}
@@ -24,9 +24,9 @@ public class GenerateData {
 
 		BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
 		for(int i = 0; i < nRegisters; i++) {
-			int randomNumber1 = (int) (Math.random() % maxIntValue);
-			int randomNumber2 = (int) (Math.random() % maxIntValue);
-			writer.write(randomNumber1 + "\t" + randomNumber2 + "\n");
+			int randomNumber1 = (int) (Math.random() * maxIntValue) + 1;
+			int randomNumber2 = (int) (Math.random() * maxIntValue) + 1;
+			writer.write(randomNumber1 + " " + randomNumber2 + "\n");
 		}
 
 		writer.close();
