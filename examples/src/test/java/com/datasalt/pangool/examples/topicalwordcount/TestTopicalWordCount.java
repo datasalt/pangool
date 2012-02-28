@@ -21,9 +21,8 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 
 public class TestTopicalWordCount {
-
-	public final static String INPUT = TestTopicalWordCount.class.getName() + "-input";
-	public final static String OUTPUT = TestTopicalWordCount.class.getName() + "-output";
+	public final static String INPUT = "/tmp/"+TestTopicalWordCount.class.getName() + "-input";
+	public final static String OUTPUT = "/tmp/"+TestTopicalWordCount.class.getName() + "-output";
 	
 	@Test
 	public void test() throws Exception {

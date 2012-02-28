@@ -98,8 +98,8 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 
 			// A view is created over the first tuple to give the user the group fields
 			if (isMultipleSources){ 
-				int sourceId = grouperConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
-				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(sourceId);
+				int schemaId = grouperConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
+				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(schemaId);
 				groupTuple.setContained(firstTupleGroup,indexTranslation);
 			} else {
 				groupTuple.setContained(firstTupleGroup);

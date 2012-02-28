@@ -214,9 +214,6 @@ public class TestComparators extends ComparatorsBaseTest {
 
 	@SuppressWarnings("serial")
   static class ReverseEqualsComparator extends BaseComparator<Object> {
-
-		private final Utf8 UTF8_TMP_1 = new Utf8();
-		private final Utf8 UTF8_TMP_2 = new Utf8();
 		
 		public ReverseEqualsComparator(Type type) {
 	    super(type);
@@ -234,13 +231,17 @@ public class TestComparators extends ComparatorsBaseTest {
 		public int cmp(Object o1, Object o2) {
 			// Need for being able to compare still not serialized objects with serialized objects.
 			// That is only needed in testing. User comparators doesn't need to use this trick.
-			o1 = Utf8.safeForUtf8(o1, UTF8_TMP_1);
-			o2 = Utf8.safeForUtf8(o2, UTF8_TMP_2);
 			if (o1 == null) {
 				return (o2 == null) ? 0 : -1; 
 			} else if (o2 == null) {
 				return 1;
-			} else {				
+			} else {
+				if (o1 instanceof String){
+					o1 = new Utf8((String)o1);
+				}
+				if (o2 instanceof String){
+					o2 = new Utf8((String)o2);
+				}
 				return - ((Comparable) o1).compareTo(o2);
 			}
     }

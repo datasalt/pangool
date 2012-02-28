@@ -50,8 +50,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	
 	protected final BinaryComparator binaryComparator = new BinaryComparator();
 	
-	private static final Utf8 UTF8_TMP_1 = new Utf8();
-	private static final Utf8 UTF8_TMP_2 = new Utf8();
+//	private static final Utf8 UTF8_TMP_1 = new Utf8();
+//	private static final Utf8 UTF8_TMP_2 = new Utf8();
 	
 	private static final class Offsets {
 		protected int offset1=0;
@@ -73,22 +73,22 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	@Override
 	public int compare(ITuple w1, ITuple w2) {
 		if (isMultipleSources){
-			int sourceId1 = grouperConf.getSchemaIdByName(w1.getSchema().getName());
-			int sourceId2 = grouperConf.getSchemaIdByName(w2.getSchema().getName());
-			int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(sourceId1);
-			int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(sourceId2);
+			int schemaId1 = grouperConf.getSchemaIdByName(w1.getSchema().getName());
+			int schemaId2 = grouperConf.getSchemaIdByName(w2.getSchema().getName());
+			int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(schemaId1);
+			int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(schemaId2);
 			Criteria c = grouperConf.getCommonCriteria();
 			int comparison = compare(w1.getSchema(),c,w1,indexes1,w2,indexes2);
 			if (comparison != 0){
 				return comparison;
-			} else if (sourceId1 != sourceId2){
-				int r = sourceId1 - sourceId2; 
+			} else if (schemaId1 != schemaId2){
+				int r = schemaId1 - schemaId2; 
 				return (grouperConf.getSchemasOrder() == Order.ASC) ? r : -r;
 			}
-			int source = sourceId1;
-			c = grouperConf.getSecondarySortBys().get(source);
+			int schemaId = schemaId1;
+			c = grouperConf.getSecondarySortBys().get(schemaId);
 			if (c != null){
-				int[] indexes = serInfo.getSpecificSchemaIndexTranslation(source);
+				int[] indexes = serInfo.getSpecificSchemaIndexTranslation(schemaId);
 				return compare(w1.getSchema(),c,w1,indexes,w2,indexes);
 			} else {
 				return 0;
@@ -102,8 +102,9 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		
 	}
 	
+	//TODO doc
 	/**
-	 * Compare two {@link ITuple} by the given indexes. 
+	 * 
 	 */
 	public int compare(Schema schema, Criteria c,ITuple w1,int[] index1,ITuple w2,int[] index2){
 		for (int i=0 ; i < c.getElements().size() ; i++){
@@ -121,7 +122,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	
 	/**
 	 * Compares two objects. Uses the given custom comparator
-	 * if present. If internalType is {@link Type#OBJECT}
+	 * if present. If the type is {@link Type#OBJECT}
 	 * and no raw comparator is present, then a binary comparator is used.
 	 */
 	@SuppressWarnings({ "unchecked" })
@@ -142,8 +143,12 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		} else if(element2 == null) {
 			return 1;
 		} else {
-			element1 = Utf8.safeForUtf8(element1, UTF8_TMP_1);
-			element2 = Utf8.safeForUtf8(element2, UTF8_TMP_2);
+			if (element1 instanceof String){
+				element1 = new Utf8((String)element1);
+			}
+			if (element2 instanceof String){
+				element2 = new Utf8((String)element2);
+			}
 			if(element1 instanceof Comparable) {
 				return ((Comparable) element1).compareTo(element2);
 			} else if(element2 instanceof Comparable) {
@@ -173,10 +178,10 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			return comparison;
 		}
 		
-		int sourceId1 = readVInt(b1, offsets.offset1);
-		int sourceId2 = readVInt(b2, offsets.offset2);
-		if (sourceId1 != sourceId2){
-			int r = sourceId1 - sourceId2;
+		int schemaId1 = readVInt(b1, offsets.offset1);
+		int schemaId2 = readVInt(b2, offsets.offset2);
+		if (schemaId1 != schemaId2){
+			int r = schemaId1 - schemaId2;
 			return (grouperConf.getSchemasOrder() == Order.ASC) ? r : -r;
 		}
 		
@@ -185,12 +190,12 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		offsets.offset2 += vintSize;
 		
 		//sources are the same
-		Criteria criteria = grouperConf.getSecondarySortBys().get(sourceId1); 
+		Criteria criteria = grouperConf.getSecondarySortBys().get(schemaId1); 
 		if (criteria == null){
 			return 0;
 		}
 		
-		Schema specificSchema = serInfo.getSpecificSchema(sourceId1);
+		Schema specificSchema = serInfo.getSpecificSchema(schemaId1);
 		return compare(b1,offsets.offset1,b2,offsets.offset2,specificSchema,criteria,offsets);
 	
 	}
@@ -287,34 +292,17 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					int length2 = readVInt(b2, o.offset2);
 					o.offset1 += WritableUtils.decodeVIntSize(b1[o.offset1]);
 					o.offset2 += WritableUtils.decodeVIntSize(b2[o.offset2]);
-					int comparison;
-					if (length1 < 0 ){ 
-						if (length2 < 0){ 
-							comparison = 0; //object1 null and object2 null
-						} else {
-							comparison = -1; //object1 null and object2 not null
-						}
-					} else {
-						if (length2 < 0){ //object1 not null and object2 null
-							comparison = 1;
-						} else {
-							comparison = compareBytes(b1, o.offset1, length1, b2, o.offset2, length2);
-							o.offset1 += length1;
-							o.offset2 += length2;
-						}
-					
-					}
-					//int 
+					int comparison = compareBytes(b1, o.offset1, length1, b2, o.offset2, length2);
+					o.offset1 += length1;
+					o.offset2 += length2;
 					if(comparison != 0) {
 						return (sort == Order.ASC) ? comparison : (-comparison);
 					}
-					
 				} else {
 					throw new IOException("Not supported comparison for type:" + type);
 				}
 			}
 			return 0; // equals
-		
 	}
 
 	/**
@@ -334,7 +322,6 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		case DOUBLE: return new int[]{0, Double.SIZE / 8};
 		case BOOLEAN:	return new int[]{0, 1};
 		case OBJECT:
-			// In the case of null objects, length is negative.
 			return new int[]{WritableUtils.decodeVIntSize(b1[offset1]), readVInt(b1, offset1)};
 			default:
 				throw new IOException("Not supported type:"+ type);

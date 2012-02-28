@@ -104,8 +104,8 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	
 			// A view is created over the first tuple to give the user the group fields
 			if (isMultipleSources){
-				int sourceId = grouperConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
-				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(sourceId);
+				int schemaId = grouperConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
+				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(schemaId);
 				groupTuple.setContained(firstTupleGroup,indexTranslation);
 			} else {
 				groupTuple.setContained(firstTupleGroup);

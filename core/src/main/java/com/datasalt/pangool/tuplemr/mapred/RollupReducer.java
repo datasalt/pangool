@@ -169,8 +169,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 
 			// We set a view over the group fields to the method.
 			if (isMultipleSources){ 
-				int sourceId = grouperConfig.getSchemaIdByName(currentTuple.getSchema().getName());
-				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(sourceId);
+				int schemaId = grouperConfig.getSchemaIdByName(currentTuple.getSchema().getName());
+				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(schemaId);
 				groupTuple.setContained(currentTuple,indexTranslation);
 			} else {
 				groupTuple.setContained(currentTuple);
@@ -197,10 +197,10 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	 * @return
 	 */
 	private int indexMismatch(ITuple tuple1, ITuple tuple2, int minFieldIndex, int maxFieldIndex) {		
-		int sourceId1 = grouperConfig.getSchemaIdByName(tuple1.getSchema().getName());
-		int sourceId2 = grouperConfig.getSchemaIdByName(tuple2.getSchema().getName());
-		int[] translationTuple1 = serInfo.getGroupSchemaIndexTranslation(sourceId1);
-		int[] translationTuple2 = serInfo.getGroupSchemaIndexTranslation(sourceId2);
+		int schemaId1 = grouperConfig.getSchemaIdByName(tuple1.getSchema().getName());
+		int schemaId2 = grouperConfig.getSchemaIdByName(tuple2.getSchema().getName());
+		int[] translationTuple1 = serInfo.getGroupSchemaIndexTranslation(schemaId1);
+		int[] translationTuple2 = serInfo.getGroupSchemaIndexTranslation(schemaId2);
 		
 		for(int i = minFieldIndex; i <= maxFieldIndex; i++) {
 			Object obj1 = tuple1.get(translationTuple1[i]);
