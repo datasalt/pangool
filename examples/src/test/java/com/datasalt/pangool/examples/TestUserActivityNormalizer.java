@@ -28,7 +28,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
-import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.google.common.io.Files;
 

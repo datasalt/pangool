@@ -27,8 +27,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.Tool;
 
-import com.datasalt.pangool.cogroup.TupleMRBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
+import com.datasalt.pangool.tuplemr.TupleMRBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
 
 /**
  * This is the base class that executable jobs must extend for being used with {@link LinearFlow}.

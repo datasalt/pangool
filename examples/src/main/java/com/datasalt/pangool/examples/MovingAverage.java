@@ -33,18 +33,20 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.datasalt.pangool.cogroup.TupleMRBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.TupleReducer;
-import com.datasalt.pangool.cogroup.processors.TupleMapper;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
-import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Tuple;
-import com.datasalt.pangool.test.Pair;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.tuplemr.OrderBy;
+import com.datasalt.pangool.tuplemr.TupleMRBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
+import com.datasalt.pangool.utils.Pair;
 
 /**
  * We have a register of unique visits per day per URL. In this example we want to calculate, for each URL, the moving
@@ -136,20 +138,20 @@ public class MovingAverage {
 	    IOException {
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("url", Utf8.class));
-		fields.add(new Field("date", Utf8.class));
-		fields.add(new Field("visits", Integer.class));
+		fields.add(Field.create("url", Type.STRING));
+		fields.add(Field.create("date", Type.STRING));
+		fields.add(Field.create("visits",Type.INT));
 
 		Schema schema = new Schema("my_schema", fields);
 
 		TupleMRBuilder grouper = new TupleMRBuilder(conf);
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("url");
-		grouper.setOrderBy(new SortBy().add("url", Order.ASC).add("date", Order.ASC));
+		grouper.setOrderBy(new OrderBy().add("url", Order.ASC).add("date", Order.ASC));
 		// Input / output and such
 		grouper.setTupleReducer(new MovingAverageHandler(nDaysAverage));
-		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
-		grouper.addInput(new Path(input), TextInputFormat.class, new URLVisitsProcessor());
+		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new URLVisitsProcessor());
 		return grouper.createJob();
 	}
 	

@@ -26,38 +26,37 @@ import java.util.Random;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.VIntWritable;
-import org.apache.hadoop.io.VLongWritable;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangolin.thrift.test.A;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
+import com.datasalt.pangool.io.DatumWrapper;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.DatumWrapper;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.serialization.hadoop.HadoopSerialization;
-import com.datasalt.pangool.serialization.tuples.PangoolDeserializer;
-import com.datasalt.pangool.serialization.tuples.PangoolSerialization;
-import com.datasalt.pangool.serialization.tuples.PangoolSerializer;
-import com.datasalt.pangool.test.AbstractBaseTest;
+import com.datasalt.pangool.serialization.HadoopSerialization;
+import com.datasalt.pangool.thrift.test.A;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.serialization.TupleDeserializer;
+import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
+import com.datasalt.pangool.tuplemr.serialization.TupleSerializer;
+import com.datasalt.pangool.utils.test.AbstractBaseTest;
 
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({ "rawtypes" })
 public abstract class BaseTest extends AbstractBaseTest {
 
 	public final static  Schema SCHEMA;
 	
 	static{
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("int_field",Integer.class));
-		fields.add(new Field("string_field",Utf8.class));
-		fields.add(new Field("long_field",Long.class));
-  	fields.add(new Field("float_field",Float.class));
-		fields.add(new Field("double_field",Double.class));
-		fields.add(new Field("boolean_field",Boolean.class));
-  	fields.add(new Field("enum_field",Order.class));
-		fields.add(new Field("thrift_field",A.class));
+		fields.add(Field.create("int_field",Type.INT));
+		fields.add(Field.create("string_field",Type.STRING));
+		fields.add(Field.create("long_field",Type.LONG));
+  	fields.add(Field.create("float_field",Type.FLOAT));
+		fields.add(Field.create("double_field",Type.DOUBLE));
+		fields.add(Field.create("boolean_field",Type.BOOLEAN));
+  	fields.add(Field.createEnum("enum_field",Order.class));
+		fields.add(Field.createObject("thrift_field",A.class));
 		SCHEMA = new Schema("schema",fields);
 	}
 
@@ -76,61 +75,49 @@ public abstract class BaseTest extends AbstractBaseTest {
 		try {
 			for(int i = minIndex; i <= maxIndex; i++) {
 				Field field = tuple.getSchema().getField(i);
-				Class fieldType = field.getType();
-				if(fieldType == Integer.class) {
-					tuple.set(i, isRandom ? random.nextInt() : 0);
-				} else if(fieldType == Long.class) {
-					tuple.set(i, isRandom ? random.nextLong() : 0);
-				} else if(fieldType == Boolean.class) {
-					tuple.set(i, isRandom ? random.nextBoolean() : false);
-				} else if(fieldType == Double.class) {
-					tuple.set(i, isRandom ? random.nextDouble() : 0.0);
-				} else if(fieldType == Float.class) {
-					tuple.set(i, isRandom ? random.nextFloat() : 0f);
-				} else if(fieldType == Utf8.class) {
-					if (isRandom) {
-						switch (random.nextInt(4)) {
-						case 0:
-							tuple.set(i, "");
-							break;
-						case 1:
-							tuple.set(i, random.nextLong() + "");
-							break;
-						case 2:
-							tuple.set(i, new Utf8(random.nextLong() + ""));
-							break;
-						case 3:
-							tuple.set(i, new Text(random.nextLong() + ""));
-							break;														
-						}
-					} else {
-						tuple.set(i, "");
-					}
-				} else if(fieldType.isEnum()) {
-          Method method = fieldType.getMethod("values", (Class[])null);
-					Enum[] values = (Enum[]) method.invoke(null);
-					tuple.set(i, values[isRandom ? random.nextInt(values.length) : 0]);
-				} else {
-					boolean toInstance = random.nextBoolean();
-					if(isRandom && toInstance) {
-						Object instance = ReflectionUtils.newInstance(fieldType, null);
-						
-						if (instance instanceof A) {
-							
-							A a = (A) instance;
-							a.setId(random.nextInt() + "");
-							a.setUrl(random.nextLong() + "");
-						}
-						tuple.set(i, instance);
-					} else {
-						tuple.set(i, null);
-					}
+				switch(field.getType()){
+					case INT:	tuple.set(i, isRandom ? random.nextInt() : 0);break;
+					case LONG: tuple.set(i, isRandom ? random.nextLong() : 0);break;
+					case BOOLEAN:	tuple.set(i, isRandom ? random.nextBoolean() : false); break;
+					case DOUBLE: tuple.set(i, isRandom ? random.nextDouble() : 0.0); break;
+					case FLOAT:	tuple.set(i, isRandom ? random.nextFloat() : 0f); break;
+					case STRING: fillString(isRandom,tuple,i); break;
+					case ENUM: fillEnum(isRandom,field,tuple,i); break;
+					case OBJECT: fillObject(isRandom,tuple,field,i); break;
+					default: throw new IllegalArgumentException("Not supported type " + field.getType());
 				}
 			}
 		} catch(Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
+	protected static void fillString(boolean isRandom,ITuple tuple,int index){
+		if (isRandom) {
+			switch (random.nextInt(4)) {
+			case 0:	tuple.set(index, "");	break;
+			case 1:	tuple.set(index, random.nextLong() + "");	break;
+			case 2:	tuple.set(index, new Utf8(random.nextLong() + ""));	break;
+			case 3:	tuple.set(index, new Text(random.nextLong() + ""));	break;														
+			}
+		} else {
+			tuple.set(index, "");
+		}
+	}
+	protected static void fillEnum(boolean isRandom,Field field,ITuple tuple,int index) throws Exception{
+		Method method = field.getObjectClass().getMethod("values", (Class[])null);
+		Enum[] values = (Enum[]) method.invoke(null);
+		tuple.set(index, values[isRandom ? random.nextInt(values.length) : 0]);
+	}
+	protected static void fillObject(boolean isRandom,ITuple tuple,Field field,int index){
+		Object instance = ReflectionUtils.newInstance(field.getObjectClass(), null);
+		if (instance instanceof A) {
+			A a = (A) instance;
+			a.setId(isRandom ? random.nextInt() + "" : "");
+			a.setUrl(isRandom ? random.nextLong() + "" : "");
+		}
+		tuple.set(index, instance);
+	}
+	
 
 	protected static void assertSerializable(HadoopSerialization ser,ITuple tuple, boolean debug) throws IOException {
 		DataInputBuffer input = new DataInputBuffer();
@@ -148,19 +135,13 @@ public abstract class BaseTest extends AbstractBaseTest {
 		assertEquals(tuple, wrapper2.datum());
 	}
 	
-//	protected static void assertSerializable(CoGrouperConfig config,ITuple tuple,boolean debug) throws IOException {
-//		//HadoopSerialization hadoopSerialization = new HadoopSerialization(conf)
-//		PangoolSerialization serialization = new PangoolSerialization();
-//	}
-	
-	protected static void assertSerializable(PangoolSerialization serialization,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
-		PangoolSerializer ser = (PangoolSerializer)serialization.getSerializer(null); 
-		PangoolDeserializer deser = (PangoolDeserializer)serialization.getDeserializer(null); 
+	protected static void assertSerializable(TupleSerialization serialization,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
+		TupleSerializer ser = (TupleSerializer)serialization.getSerializer(null); 
+		TupleDeserializer deser = (TupleDeserializer)serialization.getDeserializer(null); 
 		assertSerializable(ser,deser,tuple,debug);
 	}
 	
-	protected static void assertSerializable(PangoolSerializer ser,PangoolDeserializer deser,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
-		
+	protected static void assertSerializable(TupleSerializer ser,TupleDeserializer deser,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
 		DataOutputBuffer output = new DataOutputBuffer();
 		ser.open(output);
 		ser.serialize(tuple);
@@ -179,5 +160,4 @@ public abstract class BaseTest extends AbstractBaseTest {
 		}
 		assertEquals(tuple.datum(), deserializedTuple.datum());
 	}
-
 }

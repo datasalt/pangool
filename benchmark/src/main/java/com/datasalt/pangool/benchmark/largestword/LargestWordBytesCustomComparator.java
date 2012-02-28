@@ -36,19 +36,19 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
-
-
-import com.datasalt.pangool.cogroup.TupleMRBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.TupleReducer;
-import com.datasalt.pangool.cogroup.processors.TupleMapper;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
-import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Tuple;
-import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.tuplemr.OrderBy;
+import com.datasalt.pangool.tuplemr.TupleMRBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
 
 /**
  * 
@@ -124,16 +124,16 @@ public class LargestWordBytesCustomComparator {
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("word",Utf8.class));
+		fields.add(Field.create("word",Type.STRING));
 		Schema schema = new Schema("schema",fields);
 
 		TupleMRBuilder cg = new TupleMRBuilder(conf,"Largest Word using custom comparator");
 		cg.addIntermediateSchema(schema);
 		cg.setGroupByFields("word");
-		cg.setOrderBy(new SortBy().add("word",Order.DESC,new MyUtf8Comparator()));
+		cg.setOrderBy(new OrderBy().add("word",Order.DESC,new MyUtf8Comparator()));
 		cg.setJarByClass(LargestWordBytesCustomComparator.class);
-		cg.addInput(new Path(input), TextInputFormat.class, new Split());
-		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class,NullWritable.class);
+		cg.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new Split());
+		cg.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,NullWritable.class);
 		cg.setTupleReducer(new Count());
 		return cg.createJob();
 	}

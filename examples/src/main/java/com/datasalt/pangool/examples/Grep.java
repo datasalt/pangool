@@ -30,9 +30,10 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.processor.MapOnlyJobBuilder;
-import com.datasalt.pangool.processor.MapOnlyHandler;
+import com.datasalt.pangool.tuplemr.MapOnlyJobBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.mapred.MapOnlyTupleMapper;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
@@ -41,7 +42,7 @@ import com.datasalt.pangool.utils.HadoopUtils;
  */
 public class Grep {
 
-	public static class GrepHandler extends MapOnlyHandler<LongWritable, Text, Text, NullWritable> {
+	public static class GrepHandler extends MapOnlyTupleMapper<LongWritable, Text, Text, NullWritable> {
 
 		private static final long serialVersionUID = 1L;
 		private Pattern regex;
@@ -64,7 +65,7 @@ public class Grep {
 		MapOnlyJobBuilder b = new MapOnlyJobBuilder(conf);
 		b.setHandler(new GrepHandler(regex));
 		b.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
-		b.addInput(new Path(input), TextInputFormat.class);
+		b.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class));
 		return b.createJob();
 	}
 

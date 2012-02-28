@@ -28,18 +28,20 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.cogroup.TupleMRBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.TupleCombiner;
-import com.datasalt.pangool.cogroup.processors.TupleRollupReducer;
-import com.datasalt.pangool.cogroup.processors.TupleMapper;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
-import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.tuplemr.OrderBy;
+import com.datasalt.pangool.tuplemr.TupleMRBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleCombiner;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleRollupReducer;
 
 /**
  * In this advanced example we are normalizing user activity on certain features. We have a register of ["user",
@@ -175,24 +177,24 @@ public class UserActivityNormalizer {
 	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("user", Utf8.class));
-		fields.add(new Field("feature", Utf8.class));
-		fields.add(new Field("all", Boolean.class));
-		fields.add(new Field("clicks", Integer.class));
+		fields.add(Field.create("user", Type.STRING));
+		fields.add(Field.create("feature", Type.STRING));
+		fields.add(Field.create("all",Type.BOOLEAN));
+		fields.add(Field.create("clicks", Type.INT));
 
 		Schema schema = new Schema("my_schema", fields);
 
 		TupleMRBuilder grouper = new TupleMRBuilder(conf);
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("user", "all", "feature");
-		grouper.setOrderBy(new SortBy().add("user", Order.ASC).add("all", Order.DESC).add("feature", Order.ASC));
+		grouper.setOrderBy(new OrderBy().add("user", Order.ASC).add("all", Order.DESC).add("feature", Order.ASC));
 		// By partitioning by "user" field we assure that all features go to the same Reducer
 		grouper.setRollupFrom("user");
 		// Input / output and such
 		grouper.setTupleCombiner(new CountCombinerHandler());
 		grouper.setTupleReducer(new NormalizingHandler());
-		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
-		grouper.addInput(new Path(input), TextInputFormat.class, new UserActivityProcessor());
+		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new UserActivityProcessor());
 		return grouper.createJob();
 	}
 	

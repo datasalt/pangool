@@ -29,17 +29,19 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.cogroup.TupleMRBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.TupleMapper;
-import com.datasalt.pangool.cogroup.processors.TupleReducer;
-import com.datasalt.pangool.cogroup.sorting.Criteria.Order;
-import com.datasalt.pangool.cogroup.sorting.SortBy;
-import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Schema.Field;
-import com.datasalt.pangool.io.tuple.Tuple;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.tuplemr.OrderBy;
+import com.datasalt.pangool.tuplemr.TupleMRBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
@@ -101,20 +103,20 @@ public class PangoolSecondarySort {
 
 	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("intField", Integer.class));
-		fields.add(new Field("strField", Utf8.class));
-		fields.add(new Field("longField", Long.class));
-		fields.add(new Field("doubleField", Double.class));
+		fields.add(Field.create("intField",Type.INT));
+		fields.add(Field.create("strField",Type.STRING));
+		fields.add(Field.create("longField",Type.LONG));
+		fields.add(Field.create("doubleField",Type.DOUBLE));
 		Schema schema = new Schema("schema", fields);
 
 		TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Secondary Sort");
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("intField", "strField");
-		grouper.setOrderBy(new SortBy().add("intField", Order.ASC).add("strField", Order.ASC)
+		grouper.setOrderBy(new OrderBy().add("intField", Order.ASC).add("strField", Order.ASC)
 		    .add("longField", Order.ASC));
 		grouper.setTupleReducer(new Handler());
-		grouper.setOutput(new Path(output), TextOutputFormat.class, Text.class, DoubleWritable.class);
-		grouper.addInput(new Path(input), TextInputFormat.class, new IProcessor());
+		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, DoubleWritable.class);
+		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new IProcessor());
 		return grouper.createJob();
 	}
 

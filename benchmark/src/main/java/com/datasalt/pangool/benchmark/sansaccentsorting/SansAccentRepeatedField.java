@@ -30,15 +30,17 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import com.datasalt.pangool.cogroup.TupleMRBuilder;
-import com.datasalt.pangool.cogroup.TupleMRException;
-import com.datasalt.pangool.cogroup.processors.TupleReducer;
-import com.datasalt.pangool.cogroup.processors.TupleMapper;
-import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.tuple.ITuple;
-import com.datasalt.pangool.io.tuple.Schema;
-import com.datasalt.pangool.io.tuple.Tuple;
-import com.datasalt.pangool.io.tuple.Schema.Field;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.tuplemr.TupleMRBuilder;
+import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
+import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleReducer;
 
 /**
  * 
@@ -95,17 +97,17 @@ public class SansAccentRepeatedField {
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(new Field("word",Utf8.class));
-		fields.add(new Field("encoded_word",Utf8.class));
+		fields.add(Field.create("word",Type.STRING));
+		fields.add(Field.create("encoded_word",Type.STRING));
 		Schema schema = new Schema("schema",fields);
 
 		TupleMRBuilder cg = new TupleMRBuilder(conf,"Utf8 Alternate order repeating fields");
 		cg.addIntermediateSchema(schema);
 		cg.setGroupByFields("encoded_word");
-		//cg.setOrderBy(new SortBy().add("encoded_word",Order.ASC).add("word",Order.DESC));
+		//cg.setOrderBy(new OrderBy().add("encoded_word",Order.ASC).add("word",Order.DESC));
 		cg.setJarByClass(SansAccentRepeatedField.class);
-		cg.addInput(new Path(input), TextInputFormat.class, new Split());
-		cg.setOutput(new Path(output), TextOutputFormat.class, Text.class,NullWritable.class);
+		cg.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new Split());
+		cg.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,NullWritable.class);
 		cg.setTupleReducer(new Count());
 		return cg.createJob();
 	}

@@ -27,6 +27,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.URISyntaxException;
 
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
@@ -109,14 +110,16 @@ public class DCUtils {
 	 *          The object type class.
 	 * @param fileName
 	 *          The file name to locate in DC
+	 * @param setConf
+	 * 					If true, will call setConf() if deserialized object is Configurable
 	 * @return
 	 * @throws IOException
 	 */
-	public static <T> T loadSerializedObjectInDC(Configuration conf, Class<T> objClass, String fileName)
+	public static <T> T loadSerializedObjectInDC(Configuration conf, Class<T> objClass, String fileName, boolean callSetConf)
 	    throws IOException {
 		
-		log.debug("[profile] Locate file in DC");
 		Path path = DCUtils.locateFileInDC(conf, fileName);
+		T obj;
 		
 		/*
 		 * The following trick is for having the serialization, deserialization
@@ -124,20 +127,20 @@ public class DCUtils {
 		 */
 		if (path == null) {
 			String tmpdir = ensureTmpFolder().toString();
-			log.debug("[profile] Not found in DC. Looking in " + tmpdir + " folder");
 			path = locateFileInFolder(tmpdir, fileName);
 		}
-		
-		log.debug("[profile] Deserialize instance");
+
 		ObjectInput in = new ObjectInputStream(new FileInputStream(new File(path + "")));
-		T obj;
+
 		try {
 			obj = objClass.cast(in.readObject());
 		} catch(ClassNotFoundException e) {
 			throw new RuntimeException(e);
 		}
 		in.close();
-		log.debug("[profile] Done deserializing.");
+		if(obj instanceof Configurable && callSetConf) {
+			((Configurable)obj).setConf(conf);
+		}
 		return obj;
 	}
 	
