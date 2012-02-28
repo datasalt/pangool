@@ -12,17 +12,17 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
+import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
-public class TestTopicalWordCount {
-	public final static String INPUT = "/tmp/"+TestTopicalWordCount.class.getName() + "-input";
-	public final static String OUTPUT = "/tmp/"+TestTopicalWordCount.class.getName() + "-output";
+public class TestTopicalWordCount extends AbstractHadoopTestLibrary {
+	
+	public final static String INPUT = TestTopicalWordCount.class.getName() + "-input";
+	public final static String OUTPUT = TestTopicalWordCount.class.getName() + "-output";
 	
 	@Test
 	public void test() throws Exception {
@@ -30,6 +30,8 @@ public class TestTopicalWordCount {
 		ToolRunner.run( new TopicalWordCount(), new String[] {  INPUT, OUTPUT });
 		
 		assertEquals(6, assertOutput(OUTPUT + "/part-r-00000", new Configuration()));
+		
+		trash(INPUT, OUTPUT);
 	}
 	
 	public static int assertOutput(String output, Configuration conf) throws NumberFormatException, IOException, InterruptedException {
@@ -84,12 +86,5 @@ public class TestTopicalWordCount {
 		writer.write(jsonMapper.writeValueAsString(jsonEntry) + "\n");
 
 		writer.close();
-	}
-	
-	@After
-	@Before
-	public void cleanUp() throws IOException {
-		Runtime.getRuntime().exec("rm " + INPUT);
-		Runtime.getRuntime().exec("rm -rf " + OUTPUT);
 	}
 }

@@ -11,6 +11,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.util.ToolRunner;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.examples.BaseExampleJob;
@@ -114,23 +115,28 @@ public class TopicalWordCount extends BaseExampleJob {
 	public int run(String[] args) throws Exception {
 		if(args.length != 2) {
 			failArguments("Wrong number of arguments");
+			return -1;
 		}
 
 		deleteOutput(args[1]);
 
-		TupleMRBuilder cg = new TupleMRBuilder(conf, "Pangool Topical Word Count");
-		cg.addIntermediateSchema(getSchema());
+		TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Topical Word Count");
+		mr.addIntermediateSchema(getSchema());
 		// We will count each (topicId, word) pair
 		// Note that the order in which we defined the fields of the Schema is not relevant here
-		cg.setGroupByFields("topic", "word");
-		cg.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), new TokenizeMapper());
+		mr.setGroupByFields("topic", "word");
+		mr.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), new TokenizeMapper());
 		// We'll use a TupleOutputFormat with the same schema than the intermediate schema
-		cg.setTupleOutput(new Path(args[1]), getSchema());
-		cg.setTupleReducer(new CountReducer());
-		cg.setTupleCombiner(new CountCombiner());
+		mr.setTupleOutput(new Path(args[1]), getSchema());
+		mr.setTupleReducer(new CountReducer());
+		mr.setTupleCombiner(new CountCombiner());
 
-		cg.createJob().waitForCompletion(true);
+		mr.createJob().waitForCompletion(true);
 
 		return 1;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		ToolRunner.run(new TopicalWordCount(), args);
 	}
 }

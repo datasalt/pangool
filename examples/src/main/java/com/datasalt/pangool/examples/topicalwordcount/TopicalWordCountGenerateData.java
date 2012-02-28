@@ -10,7 +10,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.examples.TestUtils;
 
-public class GenerateData {
+public class TopicalWordCountGenerateData {
 
 	public final static void main(String[] args) throws IOException {
 		if(args.length != 3) {
@@ -33,8 +33,8 @@ public class GenerateData {
 		Map<String, Object> jsonRecord = new HashMap<String, Object>();
 		for(int i = 0; i < nRegisters; i++) {
 			int randomTopic = (int) (Math.random() * nTopics);
-			String text = TestUtils.randomString(10) + " " + TestUtils.randomString(10) + " " + TestUtils.randomString(10); 
-			jsonRecord.put("topic", randomTopic);
+			String text = TestUtils.randomString(2) + " " + TestUtils.randomString(3) + " " + TestUtils.randomString(4); 
+			jsonRecord.put("topicId", randomTopic);
 			jsonRecord.put("text", text);
 			writer.write(mapper.writeValueAsString(jsonRecord) + "\n");
 		}

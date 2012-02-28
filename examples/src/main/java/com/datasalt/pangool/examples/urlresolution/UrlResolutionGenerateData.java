@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.benchmark.cogroup;
+package com.datasalt.pangool.examples.urlresolution;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -21,13 +21,12 @@ import java.io.IOException;
 import java.util.Random;
 
 /**
- * Generates data that can be used as input for {@link PangoolUrlResolution}, {@link HadoopUrlResolution},
- * {@link CascadingUrlResolution}, {@link CrunchUrlResolution}
+ * Generates data that can be used as input for ...
  * <p>
  * The generated output will be two tabulated text files: one containing a URL mapping in the form of: {url
  * cannnonicalUrl} and the other one containing a register of URLs in the form of: {url timestamp ip}.
  */
-public class GenerateData {
+public class UrlResolutionGenerateData {
 
 	final static int TIMEFRAME = 100000;
 

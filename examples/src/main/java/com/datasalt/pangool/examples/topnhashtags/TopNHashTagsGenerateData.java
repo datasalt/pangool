@@ -1,4 +1,4 @@
-package com.datasalt.pangool.examples.tweets;
+package com.datasalt.pangool.examples.topnhashtags;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -11,12 +11,12 @@ import java.util.List;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.examples.TestUtils;
-import com.datasalt.pangool.examples.tweets.Beans.Entities;
-import com.datasalt.pangool.examples.tweets.Beans.HashTag;
-import com.datasalt.pangool.examples.tweets.Beans.SimpleTweet;
-import com.datasalt.pangool.examples.tweets.Beans.UserInfo;
+import com.datasalt.pangool.examples.topnhashtags.Beans.Entities;
+import com.datasalt.pangool.examples.topnhashtags.Beans.HashTag;
+import com.datasalt.pangool.examples.topnhashtags.Beans.SimpleTweet;
+import com.datasalt.pangool.examples.topnhashtags.Beans.UserInfo;
 
-public class GenerateData {
+public class TopNHashTagsGenerateData {
 
 	public static void main(String[] args) throws IOException, ParseException {
 		if(args.length != 5) {
@@ -31,24 +31,25 @@ public class GenerateData {
 			System.exit(-1);
 		}
 		String outFile = args[0];
-		int nTweets = Integer.parseInt(args[1]);
+		int nTweets = Integer.parseInt(args[1]), nHashTags = Integer.parseInt(args[2]), nLocations = Integer.parseInt(args[3]),
+		nDates = Integer.parseInt(args[4]);
 		
-		List<String> hashTags = new ArrayList<String>(Integer.parseInt(args[2]));
-		List<String> locations = new ArrayList<String>(Integer.parseInt(args[3]));
-		List<Long> dates = new ArrayList<Long>(Integer.parseInt(args[4]));
+		List<String> hashTags = new ArrayList<String>(nHashTags);
+		List<String> locations = new ArrayList<String>(nLocations);
+		List<Long> dates = new ArrayList<Long>(nDates);
 		
 		// Pregenerate data that will be used to generate tweets
 		
-		for(int i = 0; i < hashTags.size(); i++) {
+		for(int i = 0; i < nHashTags; i++) {
 			hashTags.add("hashtag" + TestUtils.randomString(10));
 		}
 		
-		for(int i = 0; i < locations.size(); i++) {
+		for(int i = 0; i < nLocations; i++) {
 			locations.add("location" + TestUtils.randomString(10));
 		}
 
 		long currDate = System.currentTimeMillis();
-		for(int i = 0; i < dates.size(); i++) {
+		for(int i = 0; i < nDates; i++) {
 			dates.add(currDate);
 			currDate -= 1000 * 60 * 60 * 24;
 		}

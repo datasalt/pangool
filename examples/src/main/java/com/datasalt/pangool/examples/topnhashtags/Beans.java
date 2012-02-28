@@ -1,4 +1,4 @@
-package com.datasalt.pangool.examples.tweets;
+package com.datasalt.pangool.examples.topnhashtags;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
