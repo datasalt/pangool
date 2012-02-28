@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.util.ToolRunner;
 
 import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.examples.topicalwordcount.TopicalWordCount.CountCombiner;
@@ -50,6 +51,7 @@ public class TopicalWordCountWithStopWords extends BaseExampleJob {
 	public int run(String[] args) throws Exception {
 		if(args.length != 3) {
 			failArguments("Wrong number of arguments");
+			return -1;
 		}
 
 		deleteOutput(args[1]);
@@ -72,5 +74,9 @@ public class TopicalWordCountWithStopWords extends BaseExampleJob {
 		cg.createJob().waitForCompletion(true);
 
 		return 1;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		ToolRunner.run(new TopicalWordCountWithStopWords(), args);
 	}
 }

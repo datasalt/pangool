@@ -43,13 +43,13 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
- * Code for solving the URL Resolution CoGroup Problem in Pangool.
+ * This example shows how to perform reduce-side joins using Hadoop.
  * <p>
- * The URL Resolution CoGroup Problem is: We have one file with URL Registers: {url timestamp ip} and another file with
+ * The URL Resolution Problem is: We have one file with URL Registers: {url timestamp ip} and another file with
  * canonical URL mapping: {url canonicalUrl}. We want to obtain the URL Registers file with the url substituted with the
  * canonical one according to the mapping file: {canonicalUrl timestamp ip}.
  */
-public class PangoolUrlResolution {
+public class UrlResolution {
 
 	@SuppressWarnings("serial")
 	public static class UrlProcessor extends TupleMapper<LongWritable, Text> {
@@ -143,6 +143,6 @@ public class PangoolUrlResolution {
 		String input2 = args[1];
 		String output = args[2];
 		HadoopUtils.deleteIfExists(fS, new Path(output));
-		new PangoolUrlResolution().getJob(conf, input1, input2, output).waitForCompletion(true);
+		new UrlResolution().getJob(conf, input1, input2, output).waitForCompletion(true);
 	}
 }

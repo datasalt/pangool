@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.util.ToolRunner;
 
 import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.io.ITuple;
@@ -72,6 +73,7 @@ public class TopicFingerprint extends BaseExampleJob {
 	public int run(String[] args) throws Exception {
 		if(args.length != 3) {
 			failArguments("Wrong number of arguments");
+			return -1;
 		}
 
 		deleteOutput(args[1]);
@@ -98,5 +100,9 @@ public class TopicFingerprint extends BaseExampleJob {
 		cg.createJob().waitForCompletion(true);
 
 		return 1;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		ToolRunner.run(new TopicFingerprint(), args);
 	}
 }

@@ -3,38 +3,42 @@ package com.datasalt.pangool.examples.tweets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.util.ToolRunner;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.joda.time.DateTime;
 
+import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.examples.tweets.Beans.HashTag;
 import com.datasalt.pangool.examples.tweets.Beans.SimpleTweet;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.TupleRollupReducer;
-import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
-import com.datasalt.pangool.utils.HadoopUtils;
 
-public class TweetsExample {
+/**
+ * This example shows an advanced use of the Rollup feature for calculating the top N hashtags from a set of tweets
+ * per each (location, date) pair.
+ * TODO Add combiner and unit test 
+ */
+public class TweetsExample extends BaseExampleJob {
 
 	@SuppressWarnings("serial")
 	private static class TweetsProcessor extends TupleMapper<LongWritable, Text> {
@@ -52,37 +56,66 @@ public class TweetsExample {
 		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException,
 		    InterruptedException {
 
-			for(Object rawTweet : jsonMapper.readValue(value.toString(), List.class)) { // For each tweet
-				SimpleTweet tweet = jsonMapper.readValue(jsonMapper.writeValueAsString(rawTweet), SimpleTweet.class);
-				if(tweet.getUser().getLocation() == null) {
-					continue;
-				}
-				DateTime dateTime = new DateTime(tweet.getCreated_at_date());
-				tuple.set("date", dateTime.getYear() + "-" + dateTime.getMonthOfYear() + "-" + dateTime.getDayOfMonth());
-				tuple.set("location", tweet.getUser().getLocation());
-				for(HashTag hashTag : tweet.getEntities().getHashtags()) {
-					tuple.set("hashtag", hashTag.getText());
-					tuple.set("count", 1);
-					collector.write(tuple);
-				}
+			SimpleTweet tweet = jsonMapper.readValue(value.toString(), SimpleTweet.class);
+			DateTime dateTime = new DateTime(tweet.getCreated_at_date());
+			tuple.set("date", dateTime.getYear() + "-" + dateTime.getMonthOfYear() + "-" + dateTime.getDayOfMonth());
+			tuple.set("location", tweet.getUser().getLocation());
+			for(HashTag hashTag : tweet.getEntities().getHashtags()) {
+				tuple.set("hashtag", hashTag.getText());
+				tuple.set("count", 1);
+				collector.write(tuple);
 			}
 		}
 	}
-
+	
 	@SuppressWarnings("serial")
 	public static class TweetsHandler extends TupleRollupReducer<Text, NullWritable> {
 
 		int totalCount = 0;
+		int n;
+		PriorityQueue<HashTagCount> topNHashtags;
+		Text textToEmit;
 
-		public void onCloseGroup(int depth, String field, ITuple lastElement, com.datasalt.pangool.tuplemr.TupleReducer<Text,NullWritable>.TupleMRContext context, com.datasalt.pangool.tuplemr.TupleReducer<Text,NullWritable>.Collector collector) throws IOException ,InterruptedException ,TupleMRException {
-		
+		static class HashTagCount implements Comparable<HashTagCount> {
+			String hashTag;
+			Integer count;
+
+			@Override
+			public int compareTo(HashTagCount arg) {
+				return count.compareTo(arg.count);
+			}
+		}
+
+		public TweetsHandler(int n) {
+			this.n = n;
+			topNHashtags = new PriorityQueue<HashTagCount>(n);
+		}
+
+		public void onCloseGroup(int depth, String field, ITuple lastElement, TupleMRContext context, Collector collector) throws IOException ,InterruptedException ,TupleMRException {
 			if(field.equals("hashtag")) {
+				// Add the count for this hashtag to the top-n Heap
+				HashTagCount hashTagCount = new HashTagCount();
+				hashTagCount.hashTag = lastElement.get("hashtag").toString();
+				hashTagCount.count = totalCount;
+				topNHashtags.add(hashTagCount);
+				if(topNHashtags.size() > n) { // remove one element from the Heap if there are too many
+					topNHashtags.poll();
+				}
 				totalCount = 0;
 			} else if(field.equals("date")) {
-				// Flush top N
+				// Flush the top N
+				while(!topNHashtags.isEmpty()) {
+					if(textToEmit == null) {
+						textToEmit = new Text();
+					}
+					HashTagCount hashTagCount = topNHashtags.poll();
+					textToEmit.set(lastElement.get("location") + "\t" + lastElement.get("date") + "\t" + hashTagCount.hashTag
+					    + "\t" + hashTagCount.count);
+					collector.write(textToEmit, NullWritable.get());
+				}
 			}
 		};
-		
+
 		@Override
 		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException, TupleMRException {
@@ -93,40 +126,44 @@ public class TweetsExample {
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
-		// Configure schema, sort and group by
-
-		List<Field> fields = new ArrayList<Field>();
-		fields.add(Field.create("location",Type.STRING));
-		fields.add(Field.create("date", Type.STRING));
-		fields.add(Field.create("hashtag", Type.STRING));
-		fields.add(Field.create("count",Type.INT));
-		Schema schema = new Schema("my_schema", fields);
-
-		TupleMRBuilder grouper = new TupleMRBuilder(conf);
-		grouper.addIntermediateSchema(schema);
-		grouper.setOrderBy(new OrderBy().add("location", Order.ASC).add("date", Order.ASC).add("hashtag", Order.ASC));
-		grouper.setGroupByFields("location", "date", "hashtag");
-		grouper.setRollupFrom("date");
-		// Input / output and such
-		grouper.setTupleReducer(new TweetsHandler());
-		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new TweetsProcessor());
-		return grouper.createJob();
+	public TweetsExample() {
+		super("Usage: [input_path] [output_path] [n] . The n parameter is the size of the top hashtags to be calculated.");
 	}
 
-	private static final String HELP = "Usage: [input_path] [output_path]";
-
-	public static void main(String args[]) throws TupleMRException, IOException, InterruptedException,
-	    ClassNotFoundException {
-		if(args.length != 2) {
-			System.err.println("Wrong number of arguments");
-			System.err.println(HELP);
-			System.exit(-1);
+	@Override
+	public int run(String[] args) throws Exception {
+		if(args.length != 3) {
+			failArguments("Invalid number of arguments");
+			return -1;
 		}
+		String input = args[0];
+		String output = args[1];
+		int n = Integer.parseInt(args[2]);
+		
+		deleteOutput(output);
+		
+		// Configure schema, sort and group by
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("location", Type.STRING));
+		fields.add(Field.create("date", Type.STRING));
+		fields.add(Field.create("hashtag", Type.STRING));
+		fields.add(Field.create("count", Type.INT));
+		Schema schema = new Schema("my_schema", fields);
 
-		Configuration conf = new Configuration();
-		HadoopUtils.deleteIfExists(FileSystem.get(conf), new Path(args[1]));
-		new TweetsExample().getJob(conf, args[0], args[1]).waitForCompletion(true);
+		TupleMRBuilder mr = new TupleMRBuilder(conf);
+		mr.addIntermediateSchema(schema);
+		mr.setGroupByFields("location", "date", "hashtag");
+		mr.setOrderBy(new OrderBy().add("location", Order.ASC).add("date", Order.ASC).add("hashtag", Order.ASC));
+		mr.setRollupFrom("date");
+		// Input / output and such
+		mr.setTupleReducer(new TweetsHandler(n));
+		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+		mr.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new TweetsProcessor());
+		mr.createJob().waitForCompletion(true);
+		return 0;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		ToolRunner.run(new TweetsExample(), args);
 	}
 }

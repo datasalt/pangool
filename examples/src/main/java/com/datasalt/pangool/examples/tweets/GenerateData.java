@@ -31,24 +31,25 @@ public class GenerateData {
 			System.exit(-1);
 		}
 		String outFile = args[0];
-		int nTweets = Integer.parseInt(args[1]);
+		int nTweets = Integer.parseInt(args[1]), nHashTags = Integer.parseInt(args[2]), nLocations = Integer.parseInt(args[3]),
+		nDates = Integer.parseInt(args[4]);
 		
-		List<String> hashTags = new ArrayList<String>(Integer.parseInt(args[2]));
-		List<String> locations = new ArrayList<String>(Integer.parseInt(args[3]));
-		List<Long> dates = new ArrayList<Long>(Integer.parseInt(args[4]));
+		List<String> hashTags = new ArrayList<String>(nHashTags);
+		List<String> locations = new ArrayList<String>(nLocations);
+		List<Long> dates = new ArrayList<Long>(nDates);
 		
 		// Pregenerate data that will be used to generate tweets
 		
-		for(int i = 0; i < hashTags.size(); i++) {
+		for(int i = 0; i < nHashTags; i++) {
 			hashTags.add("hashtag" + TestUtils.randomString(10));
 		}
 		
-		for(int i = 0; i < locations.size(); i++) {
+		for(int i = 0; i < nLocations; i++) {
 			locations.add("location" + TestUtils.randomString(10));
 		}
 
 		long currDate = System.currentTimeMillis();
-		for(int i = 0; i < dates.size(); i++) {
+		for(int i = 0; i < nDates; i++) {
 			dates.add(currDate);
 			currDate -= 1000 * 60 * 60 * 24;
 		}
