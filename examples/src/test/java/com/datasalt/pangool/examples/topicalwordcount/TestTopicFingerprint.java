@@ -62,6 +62,25 @@ public class TestTopicFingerprint {
 		
 		assertEquals(2, tuple.get("topic"));
 		assertEquals("b", tuple.get("word").toString());
+		
+		// Check the named output
+	
+		reader.close();
+		reader = new TupleInputReader(conf);
+		reader.initialize(new Path(OUTPUT + "/" + TopicFingerprint.OUTPUT_TOTALCOUNT + "/" + "part-r-00000"), conf);
+		reader.nextKeyValueNoSync();
+		tuple = reader.getCurrentKey();
+		
+		assertEquals(1, tuple.get("topic"));
+		assertEquals(15, tuple.get("totalcount"));
+		
+		reader.nextKeyValueNoSync();
+		tuple = reader.getCurrentKey();
+		
+		assertEquals(2, tuple.get("topic"));
+		assertEquals(19, tuple.get("totalcount"));
+
+		reader.close();
 	}
 	
 	public static TupleRecordWriter getTupleWriter(Configuration conf, String file, Schema schema) throws IOException {
