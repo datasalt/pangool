@@ -35,17 +35,14 @@ public class Driver extends ProgramDriver {
 
 	public Driver() throws Throwable {
 		super();
-		addClass("pangool-wordcount", PangoolWordCount.class, "Typical word count in Pangool");
 		addClass("hadoop-wordcount", HadoopWordCount.class, "Typical word count in Hadoop Map/Red API");
 		addClass("crunch-wordcount", CrunchWordCount.class, "Typical word count in Crunch");
 		addClass("cascading-wordcount", CascadingWordCount.class, "Typical word count in Cascading");
 		// ----------- //
-		addClass("pangool-secondarysort", PangoolSecondarySort.class, "Secondary sort example (Pangool)");
 		addClass("hadoop-secondarysort", HadoopSecondarySort.class, "Secondary sort example (Hadoop Map/Red API)");
 		addClass("crunch-secondarysort", CrunchSecondarySort.class, "Secondary sort example (Crunch / Avro)");
 		addClass("cascading-secondarysort", CascadingSecondarySort.class, "Secondary sort example (Cascading)");
 		// ----------- //
-		addClass("pangool-urlresolution", PangoolUrlResolution.class, "URL Resolution CoGroup (Pangool)");
 		addClass("hadoop-urlresolution", HadoopUrlResolution.class, "URL Resolution CoGroup (Hadoop Map/Red API)");
 		addClass("crunch-urlresolution", CrunchUrlResolution.class, "URL Resolution CoGroup (Crunch / Avro)");
 		addClass("cascading-urlresolution", CascadingUrlResolution.class, "URL Resolution CoGroup (Cascading)");

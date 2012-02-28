@@ -31,13 +31,11 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.tuplemr.SortBy;
+import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.tuplemr.TupleMapper;
@@ -128,13 +126,7 @@ public class PangoolUrlResolution {
 		TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Url Resolution");
 		grouper.addIntermediateSchema(new Schema("urlMap", urlMapFields));
 		grouper.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
-		
-
 		grouper.setGroupByFields("url");
-		grouper.setOrderBy(new SortBy().add("url", Order.ASC).addSourceOrder(Order.ASC));
-		
-		//grouper.setSecondaryOrderBy("urlRegister", new SortBy().add("timestamp", Order.DESC));
-
 		grouper.setTupleReducer(new Handler());
 		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
 		grouper.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());

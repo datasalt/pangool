@@ -47,7 +47,7 @@ public class CrunchWordCount extends Configured implements Tool, Serializable {
       return 1;
     }
     // Create an object to coordinate pipeline creation and execution.
-    Pipeline pipeline = new MRPipeline(PangoolWordCount.class, getConf());
+    Pipeline pipeline = new MRPipeline(CrunchWordCount.class, getConf());
     // Reference a given text file as a collection of Strings.
     PCollection<String> lines = pipeline.readTextFile(args[0]);
 
