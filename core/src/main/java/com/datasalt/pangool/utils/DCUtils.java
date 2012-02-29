@@ -61,7 +61,11 @@ public class DCUtils {
 	public static void serializeToDC(Object obj, String serializeToLocalFile, Configuration conf)
 	    throws FileNotFoundException, IOException, URISyntaxException {
 
-		File file = new File(conf.get("hadoop.tmp.dir"), serializeToLocalFile);
+		File hadoopTmpDir = new File(conf.get("hadoop.tmp.dir"));
+		if(!hadoopTmpDir.exists()) {
+			hadoopTmpDir.mkdir();
+		}
+		File file = new File(hadoopTmpDir, serializeToLocalFile);
 		FileSystem fS = FileSystem.get(conf);
 
 		ObjectOutput out = new ObjectOutputStream(new FileOutputStream(file));
