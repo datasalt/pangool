@@ -121,15 +121,15 @@ public class UrlResolution {
 		urlMapFields.add(Field.create("url",Type.STRING));
 		urlMapFields.add(Field.create("canonicalUrl",Type.STRING));
 
-		TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Url Resolution");
-		grouper.addIntermediateSchema(new Schema("urlMap", urlMapFields));
-		grouper.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
-		grouper.setGroupByFields("url");
-		grouper.setTupleReducer(new Handler());
-		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		grouper.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
-		grouper.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
-		return grouper.createJob();
+		TupleMRBuilder builder = new TupleMRBuilder(conf,"Pangool Url Resolution");
+		builder.addIntermediateSchema(new Schema("urlMap", urlMapFields));
+		builder.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
+		builder.setGroupByFields("url");
+		builder.setTupleReducer(new Handler());
+		builder.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+		builder.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
+		builder.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
+		return builder.createJob();
 	}
 
 	public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException,

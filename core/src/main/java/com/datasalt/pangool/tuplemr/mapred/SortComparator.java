@@ -51,7 +51,7 @@ import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	protected Configuration conf;
-	protected TupleMRConfig grouperConf;
+	protected TupleMRConfig tupleMRConf;
 	protected SerializationInfo serInfo;
 	
 	protected final BinaryComparator binaryComparator = new BinaryComparator();
@@ -65,7 +65,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	
 
 	public TupleMRConfig getConfig() {
-		return grouperConf;
+		return tupleMRConf;
 	}
 
 	public SortComparator() {}
@@ -76,20 +76,20 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	@Override
 	public int compare(ITuple w1, ITuple w2) {
 		if (isMultipleSources){
-			int schemaId1 = grouperConf.getSchemaIdByName(w1.getSchema().getName());
-			int schemaId2 = grouperConf.getSchemaIdByName(w2.getSchema().getName());
+			int schemaId1 = tupleMRConf.getSchemaIdByName(w1.getSchema().getName());
+			int schemaId2 = tupleMRConf.getSchemaIdByName(w2.getSchema().getName());
 			int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(schemaId1);
 			int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(schemaId2);
-			Criteria c = grouperConf.getCommonCriteria();
+			Criteria c = tupleMRConf.getCommonCriteria();
 			int comparison = compare(w1.getSchema(),c,w1,indexes1,w2,indexes2);
 			if (comparison != 0){
 				return comparison;
 			} else if (schemaId1 != schemaId2){
 				int r = schemaId1 - schemaId2; 
-				return (grouperConf.getSchemasOrder() == Order.ASC) ? r : -r;
+				return (tupleMRConf.getSchemasOrder() == Order.ASC) ? r : -r;
 			}
 			int schemaId = schemaId1;
-			c = grouperConf.getSpecificOrderBys().get(schemaId);
+			c = tupleMRConf.getSpecificOrderBys().get(schemaId);
 			if (c != null){
 				int[] indexes = serInfo.getSpecificSchemaIndexTranslation(schemaId);
 				return compare(w1.getSchema(),c,w1,indexes,w2,indexes);
@@ -99,7 +99,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		} else {
 			
 			int[] indexes = serInfo.getCommonSchemaIndexTranslation(0);
-			Criteria c = grouperConf.getCommonCriteria();
+			Criteria c = tupleMRConf.getCommonCriteria();
 			return compare(w1.getSchema(),c,w1,indexes,w2,indexes);
 		}
 		
@@ -174,7 +174,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	
 	protected int compareMultipleSources(byte[] b1,int s1,int l1,byte[] b2,int s2,int l2) throws IOException {
 		Schema commonSchema = serInfo.getCommonSchema();
-		Criteria commonOrder = grouperConf.getCommonCriteria();
+		Criteria commonOrder = tupleMRConf.getCommonCriteria();
 
 		int comparison = compare(b1,s1,b2,s2,commonSchema,commonOrder,offsets);
 		if (comparison != 0){
@@ -185,7 +185,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		int schemaId2 = readVInt(b2, offsets.offset2);
 		if (schemaId1 != schemaId2){
 			int r = schemaId1 - schemaId2;
-			return (grouperConf.getSchemasOrder() == Order.ASC) ? r : -r;
+			return (tupleMRConf.getSchemasOrder() == Order.ASC) ? r : -r;
 		}
 		
 		int vintSize = WritableUtils.decodeVIntSize(b1[offsets.offset1]);
@@ -193,7 +193,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		offsets.offset2 += vintSize;
 		
 		//sources are the same
-		Criteria criteria = grouperConf.getSpecificOrderBys().get(schemaId1); 
+		Criteria criteria = tupleMRConf.getSpecificOrderBys().get(schemaId1); 
 		if (criteria == null){
 			return 0;
 		}
@@ -205,7 +205,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	
 	private int compareOneSource(byte[] b1,int s1,int l1,byte[] b2,int s2,int l2) throws IOException {
 		Schema commonSchema = serInfo.getCommonSchema();
-		Criteria commonOrder = grouperConf.getCommonCriteria();
+		Criteria commonOrder = tupleMRConf.getCommonCriteria();
 		return compare(b1,s1,b2,s2,commonSchema,commonOrder,offsets);
 	}
 	
@@ -341,8 +341,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		try {
 			if(conf != null) {
 				this.conf = conf;
-				setGrouperConf(TupleMRConfig.get(conf));
-				TupleMRConfigBuilder.initializeComparators(conf, this.grouperConf);
+				setTupleMRConf(TupleMRConfig.get(conf));
+				TupleMRConfigBuilder.initializeComparators(conf, this.tupleMRConf);
 				binaryComparator.setConf(conf);
 			}
 		} catch(Exception e) {
@@ -350,13 +350,13 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		}
 	}
 	
-	private void setGrouperConf(TupleMRConfig config){
-		if (this.grouperConf != null){
-			throw new RuntimeException("Grouper config is already set");
+	private void setTupleMRConf(TupleMRConfig config){
+		if (this.tupleMRConf != null){
+			throw new RuntimeException("TupleMR config is already set");
 		}
-		this.grouperConf = config;
-		this.serInfo = grouperConf.getSerializationInfo();
-		this.isMultipleSources = grouperConf.getNumIntermediateSchemas() >= 2;
+		this.tupleMRConf = config;
+		this.serInfo = tupleMRConf.getSerializationInfo();
+		this.isMultipleSources = tupleMRConf.getNumIntermediateSchemas() >= 2;
 	}
 	
 }

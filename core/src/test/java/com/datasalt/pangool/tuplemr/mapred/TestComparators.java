@@ -114,10 +114,10 @@ public class TestComparators extends ComparatorsBaseTest {
 				builder.setGroupByFields(groupFields);
 				builder.setOrderBy(sortCriteria);
 				
-				TupleMRConfig grouperConf = builder.buildConf();
-				TupleMRConfig.set(grouperConf, conf);
+				TupleMRConfig tupleMRConf = builder.buildConf();
+				TupleMRConfig.set(tupleMRConf, conf);
 				
-				// grouperConf has changed -> we need a new Serialization object
+				// tupleMRConf has changed -> we need a new Serialization object
 				ser = new HadoopSerialization(conf);
 				
 				SortComparator sortComparator = new SortComparator();

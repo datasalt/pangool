@@ -80,7 +80,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		private Tuple tuple;
 		
 		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
-			Schema schema = context.getCoGrouperConfig().getIntermediateSchema("schema");
+			Schema schema = context.getTupleMRConfig().getIntermediateSchema("schema");
 			this.tuple = new Tuple(schema);
 		}
 
@@ -102,7 +102,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 
 		private IntWritable countToEmit;
 		
-		public void setup(TupleMRContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
+		public void setup(TupleMRContext tupleMRContext, Collector collector) throws IOException, InterruptedException,
 		    TupleMRException {
 			countToEmit = new IntWritable();
 		};

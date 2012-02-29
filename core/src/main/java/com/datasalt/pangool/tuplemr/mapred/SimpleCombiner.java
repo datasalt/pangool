@@ -40,9 +40,9 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 	private final static Logger log = LoggerFactory.getLogger(SimpleCombiner.class);
 	
 	// Following variables protected to be shared by Combiners
-	private TupleMRConfig grouperConfig;
+	private TupleMRConfig tupleMRConfig;
 	private SerializationInfo serInfo;
-	private TupleIterator<DatumWrapper<ITuple>, NullWritable> grouperIterator;
+	private TupleIterator<DatumWrapper<ITuple>, NullWritable> tupleIterator;
 	private ViewTuple groupTuple; // Tuple view over the group
 	private TupleMRContext context;
 	private TupleReducer<ITuple, NullWritable> handler;
@@ -53,17 +53,15 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
   public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
-			log.info("Getting CoGrouper grouperConf.");
-			this.grouperConfig = TupleMRConfig.get(context.getConfiguration());
-			this.serInfo = this.grouperConfig.getSerializationInfo();
-			this.isMultipleSources = this.grouperConfig.getNumIntermediateSchemas() >= 2;
-			log.info("Getting CoGrouper grouperConf done.");
+			this.tupleMRConfig = TupleMRConfig.get(context.getConfiguration());
+			this.serInfo = this.tupleMRConfig.getSerializationInfo();
+			this.isMultipleSources = this.tupleMRConfig.getNumIntermediateSchemas() >= 2;
 			if (isMultipleSources){
 				this.groupTuple = new ViewTuple(serInfo.getGroupSchema());
 			} else {
 				this.groupTuple = new ViewTuple(serInfo.getGroupSchema(),serInfo.getGroupSchemaIndexTranslation(0));
 			}
-			this.grouperIterator = new TupleIterator<DatumWrapper<ITuple>, NullWritable>(context);
+			this.tupleIterator = new TupleIterator<DatumWrapper<ITuple>, NullWritable>(context);
 
 			String fileName = context.getConfiguration().get(SimpleCombiner.CONF_COMBINER_HANDLER);
 			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleReducer.class, fileName, true);
@@ -71,7 +69,7 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			@SuppressWarnings("rawtypes")
       ReduceContext castedContext = context;			
 			this.context = new TupleMRContext( castedContext
-					, grouperConfig);
+					, tupleMRConfig);
 			collector = handler.new CombinerCollector(castedContext);
 			handler.setup(this.context, collector);
 		} catch(TupleMRException e) {
@@ -95,20 +93,20 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 	    InterruptedException {
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
-			grouperIterator.setIterator(iterator);
+			tupleIterator.setIterator(iterator);
 
 			// We get the firts tuple, to create the groupTuple view
 			ITuple firstTupleGroup = key.datum();
 
 			// A view is created over the first tuple to give the user the group fields
 			if (isMultipleSources){ 
-				int schemaId = grouperConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
+				int schemaId = tupleMRConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
 				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(schemaId);
 				groupTuple.setContained(firstTupleGroup,indexTranslation);
 			} else {
 				groupTuple.setContained(firstTupleGroup);
 			}
-			handler.reduce(groupTuple, grouperIterator, this.context, collector);
+			handler.reduce(groupTuple, tupleIterator, this.context, collector);
 
 		} catch(TupleMRException e) {
 			throw new RuntimeException(e);

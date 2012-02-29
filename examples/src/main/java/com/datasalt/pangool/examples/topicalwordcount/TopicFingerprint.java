@@ -56,12 +56,12 @@ public class TopicFingerprint extends BaseExampleJob {
 			this.n = n;
 		}
 
-		public void setup(TupleMRContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException,
 		    TupleMRException {
 			outputCountTuple = new Tuple(getOutputCountSchema());
 		};
 
-		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext coGrouperContext, Collector collector)
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
 		    throws java.io.IOException, InterruptedException, TupleMRException {
 
 			int totalCount = 0;
@@ -100,24 +100,24 @@ public class TopicFingerprint extends BaseExampleJob {
 		// Parse the size of the Top
 		Integer n = Integer.parseInt(args[2]);
 
-		TupleMRBuilder cg = new TupleMRBuilder(conf, "Pangool Topic Fingerprint From Topical Word Count");
-		cg.addIntermediateSchema(TopicalWordCount.getSchema());
+		TupleMRBuilder builder = new TupleMRBuilder(conf, "Pangool Topic Fingerprint From Topical Word Count");
+		builder.addIntermediateSchema(TopicalWordCount.getSchema());
 		// We need to group the counts by (topic)
-		cg.setGroupByFields("topic");
+		builder.setGroupByFields("topic");
 		// Then we need to sort by topic and count (DESC) -> This way we will receive the most relevant words first.
-		cg.setOrderBy(new OrderBy().add("topic", Order.ASC).add("count", Order.DESC));
+		builder.setOrderBy(new OrderBy().add("topic", Order.ASC).add("count", Order.DESC));
 		// Note that we are changing the grouping logic in the job configuration,
 		// However, as we work with tuples, we don't need to write specific code for grouping the same data differently,
 		// Therefore an IdentityTupleMapper is sufficient for this Job.
-		cg.addTupleInput(new Path(args[0]), new IdentityTupleMapper()); // Note the use of "addTupleInput"
+		builder.addTupleInput(new Path(args[0]), new IdentityTupleMapper()); // Note the use of "addTupleInput"
 		/*
 		 * TODO Add Combiner as same Reducer when possible
 		 */
-		cg.setTupleOutput(new Path(args[1]), TopicalWordCount.getSchema());
-		cg.addNamedTupleOutput(OUTPUT_TOTALCOUNT, getOutputCountSchema());
-		cg.setTupleReducer(new TopNWords(n));
+		builder.setTupleOutput(new Path(args[1]), TopicalWordCount.getSchema());
+		builder.addNamedTupleOutput(OUTPUT_TOTALCOUNT, getOutputCountSchema());
+		builder.setTupleReducer(new TopNWords(n));
 
-		cg.createJob().waitForCompletion(true);
+		builder.createJob().waitForCompletion(true);
 
 		return 1;
 	}

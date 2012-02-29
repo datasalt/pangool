@@ -47,16 +47,16 @@ public class TupleSerialization implements Serialization<DatumWrapper<ITuple>>, 
 
 	private Configuration conf;
 	private com.datasalt.pangool.serialization.HadoopSerialization ser;
-	private TupleMRConfig grouperConfig;
+	private TupleMRConfig tupleMRConfig;
 	
 	
 
 	public TupleSerialization() {
 	}
 	
-	public TupleSerialization(HadoopSerialization ser,TupleMRConfig grouperConf){
+	public TupleSerialization(HadoopSerialization ser,TupleMRConfig tupleMRConf){
 		this.ser = ser;
-		this.grouperConfig = grouperConf;
+		this.tupleMRConfig = tupleMRConf;
 	}
 
 	@Override
@@ -78,7 +78,7 @@ public class TupleSerialization implements Serialization<DatumWrapper<ITuple>>, 
 				// Mega tricky!!!!. This is to avoid recursive serialization instantiation!!
 				disableSerialization(this.conf);
 
-				this.grouperConfig = TupleMRConfig.get(conf);
+				this.tupleMRConfig = TupleMRConfig.get(conf);
 				this.ser = new com.datasalt.pangool.serialization.HadoopSerialization(this.conf);
 			}
 		} catch(TupleMRException e) {
@@ -90,21 +90,21 @@ public class TupleSerialization implements Serialization<DatumWrapper<ITuple>>, 
 
 	@Override
 	public Serializer<DatumWrapper<ITuple>> getSerializer(Class<DatumWrapper<ITuple>> c) {
-		return new TupleSerializer(this.ser, this.grouperConfig);
+		return new TupleSerializer(this.ser, this.tupleMRConfig);
 	}
 
 	@Override
 	public Deserializer<DatumWrapper<ITuple>> getDeserializer(Class<DatumWrapper<ITuple>> c) {
-		return new TupleDeserializer(this.ser, this.grouperConfig, this.conf);
+		return new TupleDeserializer(this.ser, this.tupleMRConfig, this.conf);
 	}
 
 	/**
 	 * Caches the values from the enum fields. This is done just once for efficiency since it uses reflection.
 	 * 
 	 */
-	public static Map<Class<?>, Enum<?>[]> getEnums(TupleMRConfig grouperConfig) {
+	public static Map<Class<?>, Enum<?>[]> getEnums(TupleMRConfig tupleMRConfig) {
 		Map<Class<?>, Enum<?>[]> result = new HashMap<Class<?>, Enum<?>[]>();
-		for(Schema s : grouperConfig.getIntermediateSchemas()) {
+		for(Schema s : tupleMRConfig.getIntermediateSchemas()) {
 			extractEnumsFromSchema(result, s);
 		}
 		return result;

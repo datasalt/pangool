@@ -106,27 +106,27 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 		fields.add(Field.create("content",Type.STRING));
 		Schema schema = new Schema("schema",fields);
 		
-		TupleMRBuilder coGrouper = new TupleMRBuilder(conf);
-		coGrouper.addIntermediateSchema(schema);
-		coGrouper.setGroupByFields("title");
-		coGrouper.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
+		TupleMRBuilder builder = new TupleMRBuilder(conf);
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("title");
+		builder.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
 
-		coGrouper.setTupleReducer(new IdentityTupleReducer());
-		coGrouper.setTupleOutput(outPath, schema); // setTupleOutput method
-		coGrouper.addInput(inPath, new HadoopInputFormat(TextInputFormat.class), new MyInputProcessor());
+		builder.setTupleReducer(new IdentityTupleReducer());
+		builder.setTupleOutput(outPath, schema); // setTupleOutput method
+		builder.addInput(inPath, new HadoopInputFormat(TextInputFormat.class), new MyInputProcessor());
 
-		coGrouper.createJob().waitForCompletion(true);
+		builder.createJob().waitForCompletion(true);
 
-		// Use output as input of new CoGrouper
+		// Use output as input of new TupleMRBuilder
 
-		coGrouper = new TupleMRBuilder(conf);
-		coGrouper.addIntermediateSchema(schema);
-		coGrouper.setGroupByFields("title");
-		coGrouper.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
-		coGrouper.setTupleReducer(new MyGroupHandler());
-		coGrouper.setOutput(outPathText, new HadoopOutputFormat(TextOutputFormat.class), Text.class, Text.class);
-		coGrouper.addTupleInput(outPath, new IdentityTupleMapper()); // addTupleInput method
-		Job job = coGrouper.createJob();
+		builder = new TupleMRBuilder(conf);
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("title");
+		builder.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
+		builder.setTupleReducer(new MyGroupHandler());
+		builder.setOutput(outPathText, new HadoopOutputFormat(TextOutputFormat.class), Text.class, Text.class);
+		builder.addTupleInput(outPath, new IdentityTupleMapper()); // addTupleInput method
+		Job job = builder.createJob();
 		assertRun(job);
 
 		Assert.assertEquals("title\tbar2 foo2\ntitle\tfoo1 bar1",

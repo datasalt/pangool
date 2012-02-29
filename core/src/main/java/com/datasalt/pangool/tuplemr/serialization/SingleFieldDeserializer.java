@@ -48,10 +48,10 @@ public class SingleFieldDeserializer {
 	private final Object instance;
 	
 	
-  public SingleFieldDeserializer(Configuration conf, TupleMRConfig grouperConfig,Type fieldType,Class<?> objectClazz) throws IOException {
+  public SingleFieldDeserializer(Configuration conf, TupleMRConfig mrConfig,Type fieldType,Class<?> objectClazz) throws IOException {
 		//this.conf = conf;
 		this.ser = new HadoopSerialization(conf);
-		this.cachedEnums = TupleSerialization.getEnums(grouperConfig);
+		this.cachedEnums = TupleSerialization.getEnums(mrConfig);
 		this.fieldType = fieldType;
 		this.objectClazz = objectClazz;
 		switch(fieldType){

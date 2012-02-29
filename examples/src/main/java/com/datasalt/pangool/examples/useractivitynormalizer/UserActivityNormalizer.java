@@ -112,7 +112,7 @@ public class UserActivityNormalizer extends BaseExampleJob {
 		private Tuple tuple;
 
 		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
-			tuple = new Tuple(context.getCoGrouperConfig().getIntermediateSchema("my_schema"));
+			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("my_schema"));
 		}
 
 		@Override
@@ -150,7 +150,7 @@ public class UserActivityNormalizer extends BaseExampleJob {
 			}
 		};
 
-		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext coGrouperContext,
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
 		    Collector collector) throws IOException, InterruptedException, TupleMRException {
 
 			int featureClicks = 0;

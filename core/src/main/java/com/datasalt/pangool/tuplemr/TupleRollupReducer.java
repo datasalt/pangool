@@ -26,7 +26,7 @@ public class TupleRollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends TupleReducer<O
 
 	/**
 	 * 
-	 * This is the method called any time that a sub-group is opened when rollup is used. Check {@link Grouper} doc about
+	 * This is the method called any time that a sub-group is opened when rollup is used. Check {@link TupleMRBuilder} doc about
 	 * how roll-up feature works
 	 * 
 	 * @param depth
@@ -45,7 +45,7 @@ public class TupleRollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends TupleReducer<O
 
 	/**
 	 * 
-	 * This is the method called after every sub-group is being closed when rollup is used. Check {@link Grouper} doc
+	 * This is the method called after every sub-group is being closed when rollup is used. Check {@link TupleMRBuilder} doc
 	 * about how roll-up feature works
 	 * 
 	 * @param depth

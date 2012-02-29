@@ -241,11 +241,11 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		failIfNull(outputValueClass, "Need to set outputValueClass");
 		failIfNull(outputPath, "Need to set outputPath");
 
-		TupleMRConfig grouperConf = buildConf();
+		TupleMRConfig tupleMRConf = buildConf();
 		// Serialize PangoolConf in Hadoop Configuration
-		TupleMRConfig.set(grouperConf, conf);
+		TupleMRConfig.set(tupleMRConf, conf);
 		Job job = (jobName == null) ? new Job(conf) : new Job(conf, jobName);
-		if(grouperConf.getRollupFrom() != null) {
+		if(tupleMRConf.getRollupFrom() != null) {
 			job.setReducerClass(RollupReducer.class);
 		} else {
 			job.setReducerClass(SimpleReducer.class);

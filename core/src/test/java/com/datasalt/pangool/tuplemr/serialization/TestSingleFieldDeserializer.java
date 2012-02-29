@@ -82,15 +82,15 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 			
 		}));		
 		
-		TupleMRConfig grouperConf = builder.buildConf();
-		TupleMRConfig.set(grouperConf, conf);
+		TupleMRConfig tupleMRConf = builder.buildConf();
+		TupleMRConfig.set(tupleMRConf, conf);
 		
 		HadoopSerialization ser = new HadoopSerialization(conf);
 	
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
 
-		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf,field.getType(),field.getObjectClass());
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, tupleMRConf,field.getType(),field.getObjectClass());
 		A otherA = (A) fieldDeser.deserialize(buffer1.getData(), 0);
 		assertEquals(a, otherA);
 
@@ -137,15 +137,15 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 			
 		}));		
 		
-		TupleMRConfig grouperConf = builder.buildConf();
-		TupleMRConfig.set(grouperConf, conf);
+		TupleMRConfig tupleMRConf = builder.buildConf();
+		TupleMRConfig.set(tupleMRConf, conf);
 		
 		HadoopSerialization ser = new HadoopSerialization(conf);
 	
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
 
-		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf,field.getType(),field.getObjectClass());
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, tupleMRConf,field.getType(),field.getObjectClass());
 		Integer iDeser = (Integer) fieldDeser.deserialize(buffer1.getData(), 0);
 		assertEquals(200, (int) iDeser);
 
@@ -192,15 +192,15 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 			
 		}));		
 		
-		TupleMRConfig grouperConf = builder.buildConf();
-		TupleMRConfig.set(grouperConf, conf);
+		TupleMRConfig tupleMRConf = builder.buildConf();
+		TupleMRConfig.set(tupleMRConf, conf);
 		
 		HadoopSerialization ser = new HadoopSerialization(conf);
 		
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
 
-		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, grouperConf,field.getType(),field.getObjectClass());
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, tupleMRConf,field.getType(),field.getObjectClass());
 		Utf8 objDeser = (Utf8) fieldDeser.deserialize(buffer1.getData(), 0);		
 		assertEquals("lameculos", objDeser + "");
 

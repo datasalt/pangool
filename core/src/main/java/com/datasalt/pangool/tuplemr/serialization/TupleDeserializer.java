@@ -49,7 +49,7 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	}
 	
 	
-	private final TupleMRConfig coGrouperConf;
+	private final TupleMRConfig tupleMRConf;
 	private final Configuration conf;
 	private final SerializationInfo serInfo;
 	private  DataInputStream in;
@@ -61,17 +61,17 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private final Buffer tmpInputBuffer = new Buffer();
 	private DatumWrapper<CachedTuples> cachedTuples = new DatumWrapper<CachedTuples>();
 
-	public TupleDeserializer(HadoopSerialization ser, TupleMRConfig grouperConfig, Configuration conf) {
-		this.coGrouperConf = grouperConfig;
+	public TupleDeserializer(HadoopSerialization ser, TupleMRConfig tupleMRConfig, Configuration conf) {
+		this.tupleMRConf = tupleMRConfig;
 		this.conf = conf;
-		this.serInfo = coGrouperConf.getSerializationInfo();
+		this.serInfo = tupleMRConf.getSerializationInfo();
 		this.ser = ser;
-		this.cachedEnums = TupleSerialization.getEnums(grouperConfig);
-		this.isRollup = coGrouperConf.getRollupFrom() != null && !coGrouperConf.getRollupFrom().isEmpty();
-		this.multipleSources = coGrouperConf.getNumIntermediateSchemas() >= 2;
-		this.cachedTuples.datum(createCachedTuples(coGrouperConf));
+		this.cachedEnums = TupleSerialization.getEnums(tupleMRConfig);
+		this.isRollup = tupleMRConf.getRollupFrom() != null && !tupleMRConf.getRollupFrom().isEmpty();
+		this.multipleSources = tupleMRConf.getNumIntermediateSchemas() >= 2;
+		this.cachedTuples.datum(createCachedTuples(tupleMRConf));
 		this.cachedTuples.swapInstances(); //do rollup
-		this.cachedTuples.datum(createCachedTuples(coGrouperConf));
+		this.cachedTuples.datum(createCachedTuples(tupleMRConf));
 		
 	}
 	
