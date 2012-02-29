@@ -20,13 +20,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
 
-import com.datasalt.pangool.examples.TestUtils;
+import com.datasalt.pangool.examples.Utils;
 
 /**
- * This program generates input that can be used for running ...
- * <p>
- * The generated output will a tabulated text file with the form: {department idPerson timestamp sale}
- * <p>
+ * Input data generator for the {@link SecondarySort} example.
  */
 public class SecondarySortGenerateData {
 
@@ -55,7 +52,7 @@ public class SecondarySortGenerateData {
 		for(int i = 0; i < nDeps; i++) {
 			int randomDep = (r.nextInt());
 			for(int j = 0; j < nPersonPerDep; j++) {
-				String randomName = "" + TestUtils.randomChar() + TestUtils.randomChar();
+				String randomName = "" + Utils.randomChar() + Utils.randomChar();
 				for(int k = 0; k < nPaymentsPerPerson; k++) {
 					long randomDate = r.nextLong();
 					double randomPrice = r.nextDouble();

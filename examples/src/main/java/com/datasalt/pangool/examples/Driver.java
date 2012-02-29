@@ -17,6 +17,7 @@ package com.datasalt.pangool.examples;
 
 import org.apache.hadoop.util.ProgramDriver;
 
+import com.datasalt.pangool.benchmark.wordcount.PangoolWordCount;
 import com.datasalt.pangool.examples.movingaverage.MovingAverage;
 import com.datasalt.pangool.examples.movingaverage.MovingAverageGenerateData;
 import com.datasalt.pangool.examples.secondarysort.SecondarySort;

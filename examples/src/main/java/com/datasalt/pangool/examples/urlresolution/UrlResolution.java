@@ -43,11 +43,9 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
- * This example shows how to perform reduce-side joins using Hadoop.
- * <p>
- * The URL Resolution Problem is: We have one file with URL Registers: {url timestamp ip} and another file with
- * canonical URL mapping: {url canonicalUrl}. We want to obtain the URL Registers file with the url substituted with the
- * canonical one according to the mapping file: {canonicalUrl timestamp ip}.
+ * This example shows how to perform reduce-side joins using Pangool. We have one file with URL Registers: ["url", "timestamp", "ip"] and another file with
+ * canonical URL mapping: ["url", "canonicalUrl"]. We want to obtain the URL Registers file with the url substituted with the
+ * canonical one according to the mapping file: ["canonicalUrl", "timestamp", "ip"].
  */
 public class UrlResolution {
 

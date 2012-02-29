@@ -19,27 +19,27 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.util.ToolRunner;
 
+import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.TupleRollupReducer;
-import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 
@@ -74,7 +74,7 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
  * This advanced use case includes a Combiner for reducing the intermediate input size that just sums up individual
  * feature counts.
  **/
-public class UserActivityNormalizer {
+public class UserActivityNormalizer extends BaseExampleJob {
 
 	@SuppressWarnings("serial")
 	private static class UserActivityProcessor extends TupleMapper<LongWritable, Text> {
@@ -174,7 +174,17 @@ public class UserActivityNormalizer {
 		};
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws TupleMRException, IOException {
+	@Override
+	public int run(String[] args) throws Exception {
+		if(args.length != 2) {
+			failArguments("Wrong number of arguments");
+			return -1;
+		}
+		String input = args[0];
+		String output = args[1];
+		
+		deleteOutput(output);
+		
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("user", Type.STRING));
@@ -184,31 +194,27 @@ public class UserActivityNormalizer {
 
 		Schema schema = new Schema("my_schema", fields);
 
-		TupleMRBuilder grouper = new TupleMRBuilder(conf);
-		grouper.addIntermediateSchema(schema);
-		grouper.setGroupByFields("user", "all", "feature");
-		grouper.setOrderBy(new OrderBy().add("user", Order.ASC).add("all", Order.DESC).add("feature", Order.ASC));
+		TupleMRBuilder mr = new TupleMRBuilder(conf);
+		mr.addIntermediateSchema(schema);
+		mr.setGroupByFields("user", "all", "feature");
+		mr.setOrderBy(new OrderBy().add("user", Order.ASC).add("all", Order.DESC).add("feature", Order.ASC));
 		// Rollup from "user" - all features from same user will go to the same Reducer
-		grouper.setRollupFrom("user");
+		mr.setRollupFrom("user");
 		// Input / output and such
-		grouper.setTupleCombiner(new CountCombinerHandler());
-		grouper.setTupleReducer(new NormalizingHandler());
-		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new UserActivityProcessor());
-		return grouper.createJob();
+		mr.setTupleCombiner(new CountCombinerHandler());
+		mr.setTupleReducer(new NormalizingHandler());
+		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+		mr.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new UserActivityProcessor());
+		mr.createJob().waitForCompletion(true);
+		
+		return 1;
 	}
 	
-	private static final String HELP = "Usage: [input_path] [output_path]";
-
-	public static void main(String args[]) throws TupleMRException, IOException, InterruptedException,
-	    ClassNotFoundException {
-		if(args.length != 2) {
-			System.err.println("Wrong number of arguments");
-			System.err.println(HELP);
-			System.exit(-1);
-		}
-
-		Configuration conf = new Configuration();
-		new UserActivityNormalizer().getJob(conf, args[0], args[1]).waitForCompletion(true);
+	public UserActivityNormalizer() {
+		super("Usage: [input_path] [output_path]");
+	}
+	
+	public static void main(String args[]) throws Exception {
+		ToolRunner.run(new UserActivityNormalizer(), args);
 	}
 }
