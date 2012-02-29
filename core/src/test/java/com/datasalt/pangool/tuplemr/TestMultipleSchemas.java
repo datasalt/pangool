@@ -148,8 +148,8 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 
 		TupleMRBuilder builder = new TupleMRBuilder(new Configuration());
-		builder.addIntermediateSchema(new Schema("country",Fields.parse("country:utf8, averageSalary:int")));
-		builder.addIntermediateSchema(new Schema("user",Fields.parse("name:utf8, money:int, country:utf8")));
+		builder.addIntermediateSchema(new Schema("country",Fields.parse("country:string, averageSalary:int")));
+		builder.addIntermediateSchema(new Schema("user",Fields.parse("name:string, money:int, country:string")));
 		
 		builder.setGroupByFields("country");
 		builder.setOrderBy(new OrderBy().add("country",Order.ASC).addSourceOrder(Order.DESC));

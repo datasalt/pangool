@@ -111,7 +111,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		CommonUtils.writeTXT("ignore-me", new File(INPUT));
 
 		TupleMRBuilder builder = new TupleMRBuilder(getConf());
-		Schema baseSchema = new Schema("schema",Fields.parse("name:utf8, money:int, country:utf8"));
+		Schema baseSchema = new Schema("schema",Fields.parse("name:string, money:int, country:string"));
 		builder.addIntermediateSchema(baseSchema);
 		builder.setGroupByFields("country");
 		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("money",Order.DESC).add("name",Order.ASC));

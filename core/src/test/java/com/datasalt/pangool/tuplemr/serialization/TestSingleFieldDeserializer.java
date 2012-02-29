@@ -167,20 +167,20 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		Configuration conf = getConf();
 		
 		ArrayList<Field> fields = new ArrayList<Field> ();
-		Field field = Field.create("utf8",Type.STRING);
+		Field field = Field.create("string",Type.STRING);
 		fields.add(field);
 		Schema schema = new Schema("schema", fields);
 
 		Tuple tuple1 = new Tuple(schema);
-		tuple1.set("utf8", "lameculos");
+		tuple1.set("string", "lameculos");
 
 		Tuple tuple2 = new Tuple(schema);
-		tuple2.set("utf8", "mojigata");
+		tuple2.set("string", "mojigata");
 		
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
-		builder.setGroupByFields("utf8");
-		builder.setOrderBy(new OrderBy().add("utf8", Order.ASC, new BaseComparator<Utf8>(Type.STRING) {
+		builder.setGroupByFields("string");
+		builder.setOrderBy(new OrderBy().add("string", Order.ASC, new BaseComparator<Utf8>(Type.STRING) {
 
 			@Override
       public int compare(Utf8 o1, Utf8 o2) {

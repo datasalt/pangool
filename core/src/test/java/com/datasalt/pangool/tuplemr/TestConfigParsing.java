@@ -45,7 +45,7 @@ public class TestConfigParsing {
 	
 	@Before
 	public void init() throws TupleMRException {
-		this.schema1 = new Schema("schema1", Fields.parse("int_field:int, string_field:utf8,boolean_field:boolean"));
+		this.schema1 = new Schema("schema1", Fields.parse("int_field:int, string_field:string,boolean_field:boolean"));
 		this.schema2 = new Schema("schema2", Fields.parse("long_field:long,boolean_field:boolean, int_field:int"));
 
 		List<Field> fields = new ArrayList<Field>();
