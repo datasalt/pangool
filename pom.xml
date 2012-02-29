@@ -46,7 +46,42 @@
    <url>http://pangool.net</url>
     <connection>https://git@github.com:datasalt/pangool.git</connection>
   </scm>
-  
+  <developers>
+      <developer>
+        <id>ivan</id>
+        <name>Ivan De Prado</name>
+        <email>ivan@datasalt.com</email>
+        <organization>Datasalt S.L.</organization>
+        <organizationUrl>http://www.datasalt.com</organizationUrl>
+        <roles>
+          <role>developer</role>
+        </roles>
+        <timezone>-1</timezone>
+      </developer>
+      <developer>
+        <id>pere</id>
+        <name>Pere Ferrera</name>
+        <email>pere@datasalt.com</email>
+        <organization>Datasalt S.L.</organization>
+        <organizationUrl>http://www.datasalt.com</organizationUrl>
+        <roles>
+          <role>developer</role>
+        </roles>
+        <timezone>-1</timezone>
+      </developer> 
+      <developer>
+        <id>epalace</id>
+        <name>Eric Palacios</name>
+        <email>epalacios@datasalt.com</email>
+        <organization>Datasalt S.L.</organization>
+        <organizationUrl>http://www.datasalt.com</organizationUrl>
+        <roles>
+          <role>developer</role>
+        </roles>
+        <timezone>-1</timezone>
+      </developer>
+      
+    </developers>  
   <build>
     <plugins>
       <plugin>
