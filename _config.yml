@@ -13,6 +13,6 @@ lsi: false
 analytics :
   provider : google
   google : 
-      tracking_id : 'UA-123-12'
+      tracking_id : 'UA-23098335-4'
   getclicky :
     site_id :
