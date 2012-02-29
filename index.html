@@ -1,0 +1,93 @@
+---
+layout: default
+title: Pangool - Hadoop API made easy
+name: home
+---
+
+  	<!-- Main hero unit for a primary marketing message or call to action -->
+    <div class="hero-unit">
+      <h1>Pangool</h1>
+      <p><a href="http://www.datasalt.com/2012/02/tuple-mapreduce-beyond-the-classic-mapreduce/">Tuple MapReduce</a> for Hadoop: Hadoop API made easy</p>      
+      <p>Some Features:
+	    <ul>
+		  <li>Easier MapReduce development</li>
+		  <li>Support for tuples instead of just key/value</li>
+		  <li>Easy secondary sorting</li>
+		  <li>Built in joining capabilities</li>
+		  <li>Performance and flexibility</li>
+		  <li>Configuration by instance instead of configuration by class</li>
+		  <li>First-class multiple inputs/outputs</li>
+		  <li>Serialization support for Thrift and ProtoStuff</li>
+		  <li>100% Hadoop compatibility</li>
+		</ul>
+	  </p>
+      <p><a class="btn primary large" href="#">Get started &raquo;</a></p>
+    </div>
+
+    <!-- Example row of columns -->
+    <div class="row">
+      <div class="span5">
+        <h2>Pangool</h2>
+        <p>
+	     		Hadoop has a steep learning curve. Pangool has the goal to simplify Hadoop development
+	     		without loosing the performance and flexibility that the low level Hadoop API provides. 
+	 			</p>
+				<p>
+					The most common patterns that arises when writing MapReduce jobs are easier to implement
+					with Pangool with similar performance. That is thanfully to implement the new paradigm
+					<a href="http://www.datasalt.com/2012/02/tuple-mapreduce-beyond-the-classic-mapreduce/">Tuple MapReduce</a>				
+        </p>
+      </div>
+
+		<div class="span5">
+        <h2>Easy secondary sorting</h2>
+        <p>
+	      	Although it is a very common pattern, secondary sorting is a nightmare with Hadoop. 
+        </p>
+        <p>
+        	Check it out how easy	it is with Pangool. 
+        </p>
+        <pre class="prettyprint" id="java">
+job.setGroupByFields("word");
+job.setOrderBy(new OrderBy()
+  .add("word", Order.ASC)
+  .add("count", Order.DESC));</pre>
+       <p><a class="btn" href="#">View details &raquo;</a></p>
+      </div>
+	
+		<div class="span6">
+        <h2>Easy reduce-join</h2>
+        <p>
+        	blablabla
+        </p>
+        <p><a class="btn" href="#" target="_blank">View details &raquo;</a></p>
+      </div>
+	</div>
+	
+	<div class="row">
+	  <div class="span5">
+        <h2>Performance & Flexibility</h2>
+        <p>
+        	blablabl
+        <p><a class="btn" href="#">View details &raquo;</a></p>
+      </div>
+      
+	  <div class="span5">
+        <h2>Just a library</h2>
+        <p>
+        	Pangool is just a library that you can add to your project. 
+        </p>
+        <p><a class="btn" href="#">View details &raquo;</a></p>
+      </div>
+      <div class="span6">
+        <h2>Other features</h2>
+        	<p>Pangool is full of interesting features:
+           <ul>
+		          <li>Configuration by instance</li>
+		          <li>First-class multiple inputs/outputs</li>
+		          <li>Serialization support for Thrift and ProtoStuff</li> 
+		          <li>Rollup Reducer</li>
+          </ul>
+        <p><a class="btn" href="#">View details &raquo;</a></p>
+      </div>
+	</div>
