@@ -17,8 +17,6 @@
   <modules>
     <module>core</module>
     <module>examples</module>
-    <module>benchmark</module>
-    <module>pangool-flow</module>
   </modules>
 
   <build>
