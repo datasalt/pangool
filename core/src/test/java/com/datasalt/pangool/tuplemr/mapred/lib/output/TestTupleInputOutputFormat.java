@@ -33,11 +33,15 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
 
+import com.datasalt.pangool.BaseTest;
+import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.serialization.HadoopSerialization;
+import com.datasalt.pangool.serialization.ThriftSerialization;
 import com.datasalt.pangool.tuplemr.IdentityTupleMapper;
 import com.datasalt.pangool.tuplemr.IdentityTupleReducer;
 import com.datasalt.pangool.tuplemr.OrderBy;
@@ -48,12 +52,15 @@ import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
+import com.datasalt.pangool.tuplemr.serialization.TupleDeserializer;
+import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
+import com.datasalt.pangool.tuplemr.serialization.TupleSerializer;
 import com.datasalt.pangool.utils.CommonUtils;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
 
-public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
+public class TestTupleInputOutputFormat extends BaseTest {
 
 	public static String OUT = TestTupleInputOutputFormat.class.getName() + "-out";
 	public static String OUT_TEXT = TestTupleInputOutputFormat.class.getName() + "-out-text";
@@ -88,6 +95,9 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 		}
 	}
 
+	
+	
+	
 	@Test
 	public void test() throws TupleMRException, IOException, InterruptedException,
 	    ClassNotFoundException {
@@ -106,27 +116,27 @@ public class TestTupleInputOutputFormat extends AbstractHadoopTestLibrary {
 		fields.add(Field.create("content",Type.STRING));
 		Schema schema = new Schema("schema",fields);
 		
-		TupleMRBuilder coGrouper = new TupleMRBuilder(conf);
-		coGrouper.addIntermediateSchema(schema);
-		coGrouper.setGroupByFields("title");
-		coGrouper.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
+		TupleMRBuilder builder = new TupleMRBuilder(conf);
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("title");
+		builder.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
 
-		coGrouper.setTupleReducer(new IdentityTupleReducer());
-		coGrouper.setTupleOutput(outPath, schema); // setTupleOutput method
-		coGrouper.addInput(inPath, new HadoopInputFormat(TextInputFormat.class), new MyInputProcessor());
+		builder.setTupleReducer(new IdentityTupleReducer());
+		builder.setTupleOutput(outPath, schema); // setTupleOutput method
+		builder.addInput(inPath, new HadoopInputFormat(TextInputFormat.class), new MyInputProcessor());
 
-		coGrouper.createJob().waitForCompletion(true);
+		builder.createJob().waitForCompletion(true);
 
-		// Use output as input of new CoGrouper
+		// Use output as input of new TupleMRBuilder
 
-		coGrouper = new TupleMRBuilder(conf);
-		coGrouper.addIntermediateSchema(schema);
-		coGrouper.setGroupByFields("title");
-		coGrouper.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
-		coGrouper.setTupleReducer(new MyGroupHandler());
-		coGrouper.setOutput(outPathText, new HadoopOutputFormat(TextOutputFormat.class), Text.class, Text.class);
-		coGrouper.addTupleInput(outPath, new IdentityTupleMapper()); // addTupleInput method
-		Job job = coGrouper.createJob();
+		builder = new TupleMRBuilder(conf);
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("title");
+		builder.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
+		builder.setTupleReducer(new MyGroupHandler());
+		builder.setOutput(outPathText, new HadoopOutputFormat(TextOutputFormat.class), Text.class, Text.class);
+		builder.addTupleInput(outPath, new IdentityTupleMapper()); // addTupleInput method
+		Job job = builder.createJob();
 		assertRun(job);
 
 		Assert.assertEquals("title\tbar2 foo2\ntitle\tfoo1 bar1",

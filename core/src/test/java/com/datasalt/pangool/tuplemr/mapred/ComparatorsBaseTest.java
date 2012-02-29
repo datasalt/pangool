@@ -43,7 +43,7 @@ public abstract class ComparatorsBaseTest extends BaseTest{
 	
 	@Before
 	public void initSchemas() throws TupleMRException{
-		this.schema1 =  new Schema("schema1",Fields.parse("intField:int, strField:utf8,booleanField:boolean"));
+		this.schema1 =  new Schema("schema1",Fields.parse("intField:int, strField:string,booleanField:boolean"));
 		this.schema2 = new Schema("schema2",Fields.parse("longField:long,booleanField:boolean, intField:int"));
 		
 	}

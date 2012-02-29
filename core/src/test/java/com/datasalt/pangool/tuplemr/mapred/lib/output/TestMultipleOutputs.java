@@ -110,22 +110,22 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		// Business logic in {@link MyInputProcessor}
 		CommonUtils.writeTXT("ignore-me", new File(INPUT));
 
-		TupleMRBuilder coGrouper = new TupleMRBuilder(getConf());
-		Schema baseSchema = new Schema("schema",Fields.parse("name:utf8, money:int, country:utf8"));
-		coGrouper.addIntermediateSchema(baseSchema);
-		coGrouper.setGroupByFields("country");
-		coGrouper.setOrderBy(new OrderBy().add("country",Order.ASC).add("money",Order.DESC).add("name",Order.ASC));
-		coGrouper.addInput(new Path(INPUT), new HadoopInputFormat(TextInputFormat.class), new MyInputProcessor());
-		coGrouper.setTupleReducer(new MyGroupHandler());
-		coGrouper.setOutput(new Path(OUTPUT), new HadoopOutputFormat(SequenceFileOutputFormat.class), DoubleWritable.class, NullWritable.class);
+		TupleMRBuilder builder = new TupleMRBuilder(getConf());
+		Schema baseSchema = new Schema("schema",Fields.parse("name:string, money:int, country:string"));
+		builder.addIntermediateSchema(baseSchema);
+		builder.setGroupByFields("country");
+		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("money",Order.DESC).add("name",Order.ASC));
+		builder.addInput(new Path(INPUT), new HadoopInputFormat(TextInputFormat.class), new MyInputProcessor());
+		builder.setTupleReducer(new MyGroupHandler());
+		builder.setOutput(new Path(OUTPUT), new HadoopOutputFormat(SequenceFileOutputFormat.class), DoubleWritable.class, NullWritable.class);
 		// Configure extra outputs
-		coGrouper.addNamedOutput(OUTPUT_1, new HadoopOutputFormat(SequenceFileOutputFormat.class), Utf8.class, Utf8.class);
-		coGrouper.addNamedOutput(OUTPUT_2, new HadoopOutputFormat(SequenceFileOutputFormat.class), IntWritable.class, NullWritable.class);
-		coGrouper.addNamedTupleOutput(TUPLEOUTPUT_1, baseSchema);
+		builder.addNamedOutput(OUTPUT_1, new HadoopOutputFormat(SequenceFileOutputFormat.class), Utf8.class, Utf8.class);
+		builder.addNamedOutput(OUTPUT_2, new HadoopOutputFormat(SequenceFileOutputFormat.class), IntWritable.class, NullWritable.class);
+		builder.addNamedTupleOutput(TUPLEOUTPUT_1, baseSchema);
 
 		getConf()
 		    .setClass(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, SequenceFileOutputFormat.class, OutputFormat.class);
-		Job job = coGrouper.createJob();
+		Job job = builder.createJob();
 		job.waitForCompletion(true);
 
 		// Check outputs

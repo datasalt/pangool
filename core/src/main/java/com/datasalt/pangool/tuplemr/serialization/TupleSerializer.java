@@ -40,19 +40,19 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 	private final HadoopSerialization ser;
 
 	private DataOutputStream out;
-	private final TupleMRConfig coGrouperConfig;
+	private final TupleMRConfig tupleMRConfig;
 	private final Utf8 HELPER_TEXT = new Utf8();
 	private boolean isMultipleSources = false;
 	private final DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 	private final SerializationInfo serInfo;
 	private final Schema commonSchema;
 
-	public TupleSerializer(HadoopSerialization ser, TupleMRConfig grouperConfig) {
+	public TupleSerializer(HadoopSerialization ser, TupleMRConfig tupleMRConfig) {
 		this.ser = ser;
-		this.coGrouperConfig = grouperConfig;
-		this.serInfo = grouperConfig.getSerializationInfo();
+		this.tupleMRConfig = tupleMRConfig;
+		this.serInfo = tupleMRConfig.getSerializationInfo();
 		this.commonSchema = this.serInfo.getCommonSchema();
-		this.isMultipleSources = (coGrouperConfig.getNumIntermediateSchemas() >= 2);
+		this.isMultipleSources = (tupleMRConfig.getNumIntermediateSchemas() >= 2);
 	}
 
 	public void open(OutputStream out) {
@@ -80,7 +80,7 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 
 	private void multipleSourcesSerialization(ITuple tuple) throws IOException {
 		String sourceName = tuple.getSchema().getName();
-		Integer schemaId = coGrouperConfig.getSchemaIdByName(sourceName);
+		Integer schemaId = tupleMRConfig.getSchemaIdByName(sourceName);
 		if (schemaId == null){
 			throw new IOException("Schema '" + tuple.getSchema() +"' is not a valid intermediate schema");
 		}

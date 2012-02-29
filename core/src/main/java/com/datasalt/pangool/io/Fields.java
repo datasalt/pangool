@@ -26,50 +26,47 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 
 public class Fields {
 
-	private static Map<String,Type> strToType = new HashMap<String,Type>();
-	
+	private final static Map<String, Type> strToType = new HashMap<String, Type>();
+
 	static {
-		strToType.put("int",Type.INT);
-		strToType.put("utf8",Type.STRING);
-		strToType.put("boolean",Type.BOOLEAN);
-		strToType.put("double",Type.DOUBLE);
-		strToType.put("float",Type.FLOAT);
-		strToType.put("long",Type.LONG);
+		strToType.put("int", Type.INT);
+		strToType.put("string", Type.STRING);
+		strToType.put("boolean", Type.BOOLEAN);
+		strToType.put("double", Type.DOUBLE);
+		strToType.put("float", Type.FLOAT);
+		strToType.put("long", Type.LONG);
 	}
-	
-	public static List<Field> parse(String serialized) throws TupleMRException{
-		
-		
-			if(serialized == null || serialized.isEmpty()) {
-				return null;
+
+	public static List<Field> parse(String serialized) throws TupleMRException {
+		if(serialized == null || serialized.isEmpty()) {
+			return null;
+		}
+		String[] fieldsStr = serialized.split(",");
+		List<Field> fields = new ArrayList<Field>();
+		for(String field : fieldsStr) {
+			String[] nameType = field.split(":");
+			if(nameType.length != 2) {
+				throw new TupleMRException("Incorrect fields description " + serialized);
 			}
-			String[] fieldsStr = serialized.split(",");
-			List<Field> fields = new ArrayList<Field>();
-			for(String field : fieldsStr) {
-				String[] nameType = field.split(":");
-				if(nameType.length != 2) {
-					throw new TupleMRException("Incorrect fields description " + serialized);
-				}
-				String fieldName = nameType[0].trim();
-				String fieldType = nameType[1].trim();
-				Type type = strToType.get(fieldType);
-				try {
-					if (type != null){
-						fields.add(Field.create(fieldName,type));
+			String fieldName = nameType[0].trim();
+			String fieldType = nameType[1].trim();
+			Type type = strToType.get(fieldType);
+			try {
+				if(type != null) {
+					fields.add(Field.create(fieldName, type));
+				} else {
+					Class<?> objectClazz = Class.forName(fieldType);
+					if(objectClazz.isEnum()) {
+						fields.add(Field.createEnum(fieldName, objectClazz));
 					} else {
-						Class<?> objectClazz = Class.forName(fieldType);
-						if (objectClazz.isEnum()){
-							fields.add(Field.createEnum(fieldName,objectClazz));
-						} else {
-							fields.add(Field.createObject(fieldName,objectClazz));
-						}
+						fields.add(Field.createObject(fieldName, objectClazz));
 					}
-				} catch(ClassNotFoundException e) {
-					throw new TupleMRException("Type " + fieldType + " not a valid class name ",e);
 				}
-				
+			} catch(ClassNotFoundException e) {
+				throw new TupleMRException("Type " + fieldType
+				    + " not a valid class name ", e);
 			}
-			return fields;
-		
+		}
+		return fields;
 	}
 }

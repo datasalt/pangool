@@ -19,6 +19,7 @@ import java.io.Serializable;
 
 import org.apache.hadoop.io.Text;
 
+import com.datasalt.pangool.PangoolRuntimeException;
 import com.datasalt.pangool.io.Schema.Field;
 
 /**
@@ -52,25 +53,43 @@ public class Tuple implements ITuple,Serializable {
 	}
 
 	public static String toString(ITuple tuple) {
-		//TODO do proper JSON ser
 		Schema schema = tuple.getSchema();
 		StringBuilder b = new StringBuilder();
 		b.append("{");
 		for (int i = 0 ; i < schema.getFields().size() ; i++){
 			Field f = schema.getField(i);
-			b.append("\"").append(f.getName()).append("\"").append(":").append("\"").append(tuple.get(i)).append("\"").append(" , ");
+			if (i != 0){
+				b.append(",");
+			}
+			b.append("\"").append(f.getName()).append("\"").append(":");
+			switch(f.getType()){
+			case INT:
+			case LONG:
+			case FLOAT:
+			case DOUBLE:
+			case BOOLEAN:
+				b.append(tuple.get(i));
+				break;
+			case STRING:
+			case ENUM:
+				b.append("\"").append(tuple.get(i)).append("\"");
+				break;
+			case OBJECT:
+				b.append("{").append(tuple.get(i)).append("}");
+				break;
+			default:
+				throw new PangoolRuntimeException("Not stringifiable type :" + f.getType());
+			}
 		}
-		String str = b.toString();
-		//nasty
-		return str.substring(0, str.length() - 2) + "}";
+		b.append("}");
+		return b.toString();
 	}
-	
 
 	@Override
   public void clear() {
-			for (int i=0 ; i < array.length ; i++){
-				array[i] = null;
-			}
+		for (int i=0 ; i < array.length ; i++){
+			array[i] = null;
+		}
   }
 
 	@Override

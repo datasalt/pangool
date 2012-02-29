@@ -41,9 +41,10 @@ import com.datasalt.pangool.tuplemr.serialization.TupleDeserializer;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerializer;
 import com.datasalt.pangool.utils.test.AbstractBaseTest;
+import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
 @SuppressWarnings({ "rawtypes" })
-public abstract class BaseTest extends AbstractBaseTest {
+public abstract class BaseTest extends AbstractHadoopTestLibrary {
 
 	public final static  Schema SCHEMA;
 	

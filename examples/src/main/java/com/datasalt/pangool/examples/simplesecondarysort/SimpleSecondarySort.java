@@ -101,15 +101,15 @@ public class SimpleSecondarySort extends BaseExampleJob {
 		fields.add(Field.create("second",Type.INT));
 		
 		Schema schema = new Schema("my_schema",fields);
-		TupleMRBuilder grouper = new TupleMRBuilder(conf);
-		grouper.addIntermediateSchema(schema);
-		grouper.setGroupByFields("first");
-		grouper.setOrderBy(new OrderBy().add("first",Order.ASC).add("second",Order.ASC));
+		TupleMRBuilder builder = new TupleMRBuilder(conf);
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("first");
+		builder.setOrderBy(new OrderBy().add("first",Order.ASC).add("second",Order.ASC));
 		// Input / output and such
-		grouper.setTupleReducer(new Handler());
-		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new IProcessor());
-		grouper.createJob().waitForCompletion(true);
+		builder.setTupleReducer(new Handler());
+		builder.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+		builder.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new IProcessor());
+		builder.createJob().waitForCompletion(true);
 
 		return 1;
 	}

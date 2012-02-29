@@ -121,7 +121,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 			}
 		}
 		
-		public void cleanup(TupleMRContext coGrouperContext, Collector collector) throws IOException ,InterruptedException ,TupleMRException {
+		public void cleanup(TupleMRContext tupleMRContext, Collector collector) throws IOException ,InterruptedException ,TupleMRException {
 			/*
 			 * Validate test conditions
 			 */
@@ -147,19 +147,19 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		CommonUtils.writeTXT("foo", new File("test-input"));
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 
-		TupleMRBuilder grouper = new TupleMRBuilder(new Configuration());
-		grouper.addIntermediateSchema(new Schema("country",Fields.parse("country:utf8, averageSalary:int")));
-		grouper.addIntermediateSchema(new Schema("user",Fields.parse("name:utf8, money:int, country:utf8")));
+		TupleMRBuilder builder = new TupleMRBuilder(new Configuration());
+		builder.addIntermediateSchema(new Schema("country",Fields.parse("country:string, averageSalary:int")));
+		builder.addIntermediateSchema(new Schema("user",Fields.parse("name:string, money:int, country:string")));
 		
-		grouper.setGroupByFields("country");
-		grouper.setOrderBy(new OrderBy().add("country",Order.ASC).addSourceOrder(Order.DESC));
-		grouper.setSpecificOrderBy("user", new OrderBy().add("money",Order.ASC));
+		builder.setGroupByFields("country");
+		builder.setOrderBy(new OrderBy().add("country",Order.ASC).addSourceOrder(Order.DESC));
+		builder.setSpecificOrderBy("user", new OrderBy().add("money",Order.ASC));
 		
-		grouper.addInput(new Path("test-input"), new HadoopInputFormat(TextInputFormat.class), new FirstInputProcessor());
-		grouper.setTupleReducer(new MyGroupHandler());
-		grouper.setOutput(new Path("test-output"), new HadoopOutputFormat(TextOutputFormat.class), NullWritable.class, NullWritable.class);
+		builder.addInput(new Path("test-input"), new HadoopInputFormat(TextInputFormat.class), new FirstInputProcessor());
+		builder.setTupleReducer(new MyGroupHandler());
+		builder.setOutput(new Path("test-output"), new HadoopOutputFormat(TextOutputFormat.class), NullWritable.class, NullWritable.class);
 		
-		Job job = grouper.createJob();
+		Job job = builder.createJob();
 		assertRun(job);
 
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));

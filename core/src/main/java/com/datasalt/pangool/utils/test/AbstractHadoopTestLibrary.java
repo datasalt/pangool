@@ -55,7 +55,6 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 
 	@Before
 	public void initHadoop() throws IOException {
-		// conf = getConf();
 		fS = FileSystem.get(getConf());
 	}
 
@@ -147,12 +146,12 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 		withOutput(output, key, NullWritable.get());
 	}
 
-	public void withTupleOutput(String output, ITuple tuple) throws IOException {
+	public void withTupleOutput(String output, ITuple expectedTuple) throws IOException {
 		List<Pair<Object, Object>> outs = ensureTupleOutput(output);
 		for(Pair<Object, Object> out : outs) {
-			ITuple theTuple = (ITuple) out.getFirst();
-			if(theTuple.toString().equals(tuple.toString())) {
-				return;
+			ITuple currentTuple = (ITuple) out.getFirst();
+			if(currentTuple.equals(expectedTuple)) {
+				return; //found
 			}
 		}
 		/*
@@ -161,11 +160,11 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 		if(outs.size() == 0) {
 			throw new AssertionError("Empty output " + output);
 		}
-		System.err.println("Not found in output. Tuple: " + tuple);
+		System.err.println("Not found in output. Tuple: " + expectedTuple);
 		for(Pair<Object, Object> inOutput : outs) {
 			System.err.println("Output entry -> Tuple: " + inOutput.getFirst());
 		}
-		throw new AssertionError("Not found in output -> Tuple: " + tuple + ". Found tuples: " + outs);
+		throw new AssertionError("Not found in output -> Tuple: " + expectedTuple + ". Found tuples: " + outs);
 	}
 
 	public void withOutput(String output, Object key, Object value) throws IOException {

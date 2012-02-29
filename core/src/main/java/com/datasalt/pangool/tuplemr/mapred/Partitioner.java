@@ -29,7 +29,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 
 public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWrapper<ITuple>, NullWritable> implements Configurable {
 
-	private TupleMRConfig grouperConfig;
+	private TupleMRConfig tupleMRConfig;
 	private SerializationInfo serInfo;
 	
 	private Configuration conf;
@@ -43,10 +43,10 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 		} else {
 			ITuple tuple = key.datum();
 			String sourceName = tuple.getSchema().getName();
-			Integer schemaId = grouperConfig.getSchemaIdByName(sourceName);
+			Integer schemaId = tupleMRConfig.getSchemaIdByName(sourceName);
 			if(schemaId == null) {
 				throw new RuntimeException("Schema name '" + sourceName + "' is unknown. Known schemas are : "
-				    + grouperConfig.getIntermediateSchemaNames());
+				    + tupleMRConfig.getIntermediateSchemaNames());
 			}
 			int[] fieldsToPartition = serInfo.getPartitionFieldsIndexes().get(schemaId);
 			return (partialHashCode(tuple, fieldsToPartition) & Integer.MAX_VALUE) % numPartitions;
@@ -63,8 +63,8 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 		if(conf != null) {
 			this.conf = conf;
 			try {
-				this.grouperConfig = TupleMRConfig.get(conf);
-				this.serInfo = grouperConfig.getSerializationInfo();
+				this.tupleMRConfig = TupleMRConfig.get(conf);
+				this.serInfo = tupleMRConfig.getSerializationInfo();
 			} catch (TupleMRException e) {
 				throw new RuntimeException(e);
 			}

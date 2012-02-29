@@ -60,9 +60,8 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
    * 
    * @param inputSplit The InputSplit to be tagged
    * @param conf The configuration to use
-   * @param inputFormatClass The InputFormat class to use for this job
-   * @param mapperClass The Mapper class to use for this job
    */
+  //TODO doc
   public TaggedInputSplit(InputSplit inputSplit, Configuration conf,
       String inputFormatFile,
       String inputProcessorFile) {

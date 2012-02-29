@@ -40,8 +40,8 @@ public class GroupComparator extends SortComparator {
 	
 	@Override
 	public int compare(ITuple w1, ITuple w2) {
-		int schemaId1 = grouperConf.getSchemaIdByName(w1.getSchema().getName());
-		int schemaId2 = grouperConf.getSchemaIdByName(w2.getSchema().getName());
+		int schemaId1 = tupleMRConf.getSchemaIdByName(w1.getSchema().getName());
+		int schemaId2 = tupleMRConf.getSchemaIdByName(w2.getSchema().getName());
 		int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(schemaId1);
 		int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(schemaId2);
 		return compare(w1.getSchema(), groupSortBy, w1, indexes1, w2, indexes2);
@@ -60,13 +60,13 @@ public class GroupComparator extends SortComparator {
 	@Override
 	public void setConf(Configuration conf) {
 	  super.setConf(conf);
-		List<SortElement> sortElements = grouperConf.getCommonCriteria().getElements();
-		int numGroupByFields = grouperConf.getGroupByFields().size();
+		List<SortElement> sortElements = tupleMRConf.getCommonCriteria().getElements();
+		int numGroupByFields = tupleMRConf.getGroupByFields().size();
 		List<SortElement> groupSortElements = new ArrayList<SortElement>();
 		groupSortElements.addAll(sortElements);
 		groupSortElements = groupSortElements.subList(0,numGroupByFields);
 		groupSortBy = new Criteria(groupSortElements);					
-		TupleMRConfigBuilder.initializeComparators(conf, grouperConf);	  
+		TupleMRConfigBuilder.initializeComparators(conf, tupleMRConf);	  
 	}
 	
 }

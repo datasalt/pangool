@@ -161,7 +161,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		    "XE 20 listo 230" 
 		    };
 
-		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:int, name:utf8, height:int"));
+		Schema schema = new Schema("schema",Fields.parse("country:string, age:int, name:string, height:int"));
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {
@@ -170,23 +170,23 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		}
 		Path outputPath = new Path(output);
 
-		TupleMRBuilder grouper = new TupleMRBuilder(getConf());
-		grouper.addIntermediateSchema(schema);
-		grouper.setGroupByFields("country","age","name");
-		grouper.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
-		grouper.setRollupFrom("country");
-		grouper.setTupleReducer(new IdentityRed());
-		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
-		grouper.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
+		TupleMRBuilder builder = new TupleMRBuilder(getConf());
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("country","age","name");
+		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
+		builder.setRollupFrom("country");
+		builder.setTupleReducer(new IdentityRed());
+		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
+		builder.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
 
-		Job job = grouper.createJob();
+		Job job = builder.createJob();
 		job.setNumReduceTasks(1);
 
 		assertRun(job);
 
 		FileSystem fs = FileSystem.get(getConf());
 		Path outputFile = new Path(output + "/part-r-00000");
-		checkGrouperWithRollupOutput(outputFile, 0, 2);
+		checkRollupOutput(outputFile, 0, 2);
 		SequenceFile.Reader reader = new SequenceFile.Reader(fs, outputFile, getConf());
 
 		assertOutput(reader, "OPEN 0", tuples[0]);
@@ -251,7 +251,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		    "XE 16 listo 230" 
 		    };
 
-		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:int, name:utf8, height:int"));
+		Schema schema = new Schema("schema",Fields.parse("country:string, age:int, name:string, height:int"));
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {
@@ -260,23 +260,23 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		}
 		Path outputPath = new Path(output);
 
-		TupleMRBuilder grouper = new TupleMRBuilder(getConf());
-		grouper.addIntermediateSchema(schema);
-		grouper.setGroupByFields("country","age","name");
-		grouper.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
-		grouper.setRollupFrom("age");
-		grouper.setTupleReducer(new IdentityRed());
-		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
-		grouper.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
+		TupleMRBuilder builder = new TupleMRBuilder(getConf());
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("country","age","name");
+		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
+		builder.setRollupFrom("age");
+		builder.setTupleReducer(new IdentityRed());
+		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
+		builder.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
 
-		Job job = grouper.createJob();
+		Job job = builder.createJob();
 		job.setNumReduceTasks(1);
 
 		assertRun(job);
 
 		FileSystem fs = FileSystem.get(getConf());
 		Path outputFile = new Path(output + "/part-r-00000");
-		checkGrouperWithRollupOutput(outputFile, 1, 2);
+		checkRollupOutput(outputFile, 1, 2);
 		SequenceFile.Reader reader = new SequenceFile.Reader(fs, outputFile, getConf());
 
 		assertOutput(reader, "OPEN 1", tuples[0]);
@@ -353,7 +353,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		    "XE 20 listo 230" 
 		    };
 
-		Schema schema = new Schema("schema",Fields.parse("country:utf8, age:int, name:utf8, height:int"));
+		Schema schema = new Schema("schema",Fields.parse("country:string, age:int, name:string, height:int"));
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {
@@ -362,23 +362,23 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		}
 		Path outputPath = new Path(output);
 		
-		TupleMRBuilder grouper = new TupleMRBuilder(getConf());
-		grouper.addIntermediateSchema(schema);
-		grouper.setGroupByFields("country","age","name");
-		grouper.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC, new ReverseComparator()).add("name",Order.ASC));
-		grouper.setRollupFrom("age");
-		grouper.setTupleReducer(new IdentityRed());
-		grouper.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
-		grouper.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
+		TupleMRBuilder builder = new TupleMRBuilder(getConf());
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("country","age","name");
+		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC, new ReverseComparator()).add("name",Order.ASC));
+		builder.setRollupFrom("age");
+		builder.setTupleReducer(new IdentityRed());
+		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
+		builder.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
 
-		Job job = grouper.createJob();
+		Job job = builder.createJob();
 		job.setNumReduceTasks(1);
 
 		assertRun(job);
 
 		FileSystem fs = FileSystem.get(getConf());
 		Path outputFile = new Path(output + "/part-r-00000");
-		checkGrouperWithRollupOutput(outputFile, 1, 2);
+		checkRollupOutput(outputFile, 1, 2);
 		SequenceFile.Reader reader = new SequenceFile.Reader(fs, outputFile, getConf());
 
 		assertOutput(reader, "OPEN 1", tuples[0]);
@@ -426,7 +426,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 
 	/**
 	 * 
-	 * Checks that {@link Grouper} calls properly {@link TupleReducer#onOpenGroup}, {@link TupleReducer#onCloseGroup} and
+	 * Checks that {@link RollupReducer} calls properly {@link TupleReducer#onOpenGroup}, {@link TupleReducer#onCloseGroup} and
 	 * {@link TupleReducer#onGroupElements} and checks that the elements (tuples) passed are coherent. This method assumes
 	 * an specific output from the {@link TupleReducer}. The output needs to be a Text,Text for key and value This will be
 	 * the format used : key("OPEN depth"), value("serialized value") key("CLOSE depth"), value("serialized value")
@@ -438,7 +438,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 	 * 
 	 * 
 	 */
-	public void checkGrouperWithRollupOutput(Path path, int minDepth, int maxDepth) throws IOException {
+	public void checkRollupOutput(Path path, int minDepth, int maxDepth) throws IOException {
 		SequenceFile.Reader reader = new SequenceFile.Reader(FileSystem.getLocal(getConf()), path, getConf());
 
 		Text actualKey = new Text();

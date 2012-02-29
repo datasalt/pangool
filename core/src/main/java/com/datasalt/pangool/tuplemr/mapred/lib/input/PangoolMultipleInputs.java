@@ -37,7 +37,7 @@ import com.datasalt.pangool.utils.DCUtils;
  * This class supports MapReduce jobs that have multiple input paths with a different {@link InputFormat} and
  * {@link Mapper} for each path.
  * <p>
- * This class is inspired by the {@link org.apache.hadoop.lib.input.MultipleInputs} 
+ * This class is inspired by the {@link org.apache.hadoop.mapred.lib.MultipleInputs} 
  */
 @SuppressWarnings("rawtypes")
 public class PangoolMultipleInputs {
@@ -49,14 +49,10 @@ public class PangoolMultipleInputs {
 	 * Add a {@link Path} with a custom {@link InputFormat} and {@link Mapper} to the list of inputs for the map-reduce
 	 * job.
 	 * 
-	 * @param job
-	 *          The {@link Job}
-	 * @param path
-	 *          {@link Path} to be added to the list of inputs for the job
-	 * @param inputFormatClass
-	 *          {@link InputFormat} class to use for this path
-	 * @param mapperInstance
-	 *          {@link Mapper} instance to use
+	 * @param job The {@link Job}
+	 * @param path {@link Path} to be added to the list of inputs for the job
+	 * @param inputFormat {@link InputFormat} class to use for this path
+	 * @param mapperInstance {@link Mapper} instance to use
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
 	 */
@@ -112,8 +108,7 @@ public class PangoolMultipleInputs {
 	/**
 	 * Retrieves a map of {@link Path}s to the serialized {@link TupleMapper} that should be used for them.
 	 * 
-	 * @param job
-	 *          The {@link JobContext}
+	 * @param job The {@link JobContext}
 	 * @return A map of paths to InputProcessor instances for the job
 	 */
 	static Map<Path, String> getInputProcessorFileMap(JobContext job) {

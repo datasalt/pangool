@@ -58,15 +58,15 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 	    throws IOException, InterruptedException;
 	
 	/**
-	 * Do not override. Override {@link TupleMapper#setup(Collector)} instead.
+	 * Do not override. Override {@link TupleMapper#setup(TupleMRContext, Collector)} instead.
 	 */
 	@Override
 	public final void setup(Mapper<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable>.Context context) throws IOException, InterruptedException {
 		try {
 			super.setup(context);
 			Configuration conf = context.getConfiguration();
-			TupleMRConfig pangoolConfig = TupleMRConfig.get(conf);
-			this.context = new TupleMRContext(context, pangoolConfig);
+			TupleMRConfig tupleMRConfig = TupleMRConfig.get(conf);
+			this.context = new TupleMRContext(context, tupleMRConfig);
 			this.collector = new Collector(context);
 			setup(this.context, this.collector);
 		} catch(TupleMRException e) {
@@ -75,7 +75,7 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 	}
 
 	/**
-	 * Do not override. Override {@link TupleMapper#cleanup(Collector)} instead.
+	 * Do not override. Override {@link TupleMapper#cleanup(TupleMRContext, Collector)} instead.
 	 */
 	@Override
 	public final void cleanup(Context context) throws IOException, InterruptedException {
@@ -85,7 +85,7 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 	}
 
 	/**
-	 * Do not override! Override {@link TupleMapper#process(Object, Object, Collector)} instead.
+	 * Do not override! Override {@link TupleMapper#map(Object, Object, TupleMRContext, Collector)} instead.
 	 */
 	@Override
 	public final void map(INPUT_KEY key, INPUT_VALUE value, Context context) throws IOException, InterruptedException {
@@ -127,11 +127,11 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 	public static class StaticTupleMRContext<INPUT_KEY, INPUT_VALUE> {
 
 		private MapContext<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable> context;
-		private TupleMRConfig pangoolConfig;
+		private TupleMRConfig tupleMRConfig;
 
-		StaticTupleMRContext(MapContext<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable> context, TupleMRConfig pangoolConfig) {
+		StaticTupleMRContext(MapContext<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable> context, TupleMRConfig tupleMRConfig) {
 			this.context = context;
-			this.pangoolConfig = pangoolConfig;
+			this.tupleMRConfig = tupleMRConfig;
 		}
 
 		/**
@@ -142,7 +142,7 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 		}
 
 		public TupleMRConfig getTupleMRConfig() {
-			return pangoolConfig;
+			return tupleMRConfig;
 		}
 	}
 	
@@ -153,8 +153,8 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 		 * for the Collector meanwhile keeping generics. 
 		 */
 		TupleMRContext(MapContext<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable> context,
-        TupleMRConfig pangoolConfig) {
-	    super(context, pangoolConfig);
+        TupleMRConfig tupleMRConfig) {
+	    super(context, tupleMRConfig);
     }		
 	}
 }

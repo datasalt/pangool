@@ -59,7 +59,7 @@ public class OrderBy {
 	}
 	
 	/**
-	 * Same as {@link #add(String, Order)} but adding the possibility
+	 * Same as {@link OrderBy#add(String, Order)} but adding the possibility
 	 * to specify a custom comparator for that field.
 	 * 
 	 * @param name Field's name
@@ -74,7 +74,7 @@ public class OrderBy {
 		return this;
 	}
 	/**
-	 * This method,unlike the traditional {@link #add} method, adds a symbolic elements to order by.
+	 * This method,unlike the traditional {@link OrderBy#add(String, Order, RawComparator)} method, adds a symbolic elements to order by.
 	 * 
 	 * This method only works in a multi-schema scenario, and it specifies that tuples will be sorted by their schema,not by a field's name.
 	 * Example : 
@@ -85,7 +85,7 @@ public class OrderBy {
 	 * In the case above, tuples will be first sorted by user_id and then if they compare as equals then tuples from 
 	 * schema2 will sort before those from schema1. 
 	 * 
-	 * This method must be called just once, and it's not allowed in {@link TupleMRConfigBuilder#setSpecificOrderBy(String, OrderBy)
+	 * This method must be called just once, and it's not allowed in {@link TupleMRConfigBuilder#setSpecificOrderBy(String, OrderBy)}
 	 *  
 	 */
 	public OrderBy addSourceOrder(Order order){

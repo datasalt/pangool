@@ -41,6 +41,7 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.GroupComparator;
+import com.datasalt.pangool.tuplemr.mapred.RollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.SortComparator;
 import com.datasalt.pangool.utils.DCUtils;
 
@@ -207,7 +208,7 @@ public class TupleMRConfig {
 
 	/**
 	 * Returns the fields that are a subset from the groupBy fields and will be used when rollup is needed.
-	 * @see {@link RollupReducer}  
+	 * @see RollupReducer  
 	 */
 	public List<String> calculateRollupBaseFields() {
 		if(rollupFrom == null) {
@@ -297,9 +298,9 @@ public class TupleMRConfig {
 		}
 	}
 
-	public static void set(TupleMRConfig grouperConfig, Configuration conf) throws TupleMRException {
-		conf.set(CONF_PANGOOL_CONF, grouperConfig.toString());
-		serializeComparators(grouperConfig, conf);
+	public static void set(TupleMRConfig mrConfig, Configuration conf) throws TupleMRException {
+		conf.set(CONF_PANGOOL_CONF, mrConfig.toString());
+		serializeComparators(mrConfig, conf);
 	}
 
 	// Stores the instances and the references to the instances (common|field or
@@ -317,14 +318,14 @@ public class TupleMRConfig {
 	 * other config property stores the instance file paths where the instances
 	 * are stored in the distributed cache.
 	 */
-	static void serializeComparators(TupleMRConfig grouperConfig, Configuration conf) throws TupleMRException {
+	static void serializeComparators(TupleMRConfig tupleMRConfig, Configuration conf) throws TupleMRException {
 		ArrayList<String> comparatorRefs = new ArrayList<String>();
 		ArrayList<String> comparatorInstanceFiles = new ArrayList<String>();
 
 		// We use "common" as the prefix for the common criteria
-		serializeComparators(grouperConfig.getCommonCriteria(), conf, comparatorRefs, comparatorInstanceFiles, COMMON);
+		serializeComparators(tupleMRConfig.getCommonCriteria(), conf, comparatorRefs, comparatorInstanceFiles, COMMON);
 
-		List<Criteria> specificCriterias = grouperConfig.getSpecificOrderBys();
+		List<Criteria> specificCriterias = tupleMRConfig.getSpecificOrderBys();
 		// We use the schemaId as prefix for the specific sorting.
 		for(int i = 0; i < specificCriterias.size(); i++) {
 			serializeComparators(specificCriterias.get(i), conf, comparatorRefs, comparatorInstanceFiles, i + "");
@@ -366,7 +367,7 @@ public class TupleMRConfig {
 		}
 	}
 
-	static void deserializeComparators(Configuration conf, TupleMRConfig grouperConfig) throws TupleMRException {
+	static void deserializeComparators(Configuration conf, TupleMRConfig mrConfig) throws TupleMRException {
 		String[] comparatorRefs = conf.getStrings(CONF_COMPARATOR_REFERENCES);
 		String[] comparatorInstanceFiles = conf.getStrings(CONF_COMPARATOR_INSTANCES);
 
@@ -383,9 +384,9 @@ public class TupleMRConfig {
 				RawComparator<?> comparator = DCUtils.loadSerializedObjectInDC(conf, RawComparator.class, instanceFile, false);
 
 				if(ref[0].equals(COMMON)) {
-					setComparator(grouperConfig.getCommonCriteria(), ref[1], comparator);
+					setComparator(mrConfig.getCommonCriteria(), ref[1], comparator);
 				} else {
-					setComparator(grouperConfig.getSpecificOrderBys().get(new Integer(ref[0])), ref[1], comparator);
+					setComparator(mrConfig.getSpecificOrderBys().get(new Integer(ref[0])), ref[1], comparator);
 				}
 			}
 		} catch(IOException e) {

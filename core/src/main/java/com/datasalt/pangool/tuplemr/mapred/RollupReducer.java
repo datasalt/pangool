@@ -46,13 +46,13 @@ import com.datasalt.pangool.utils.DCUtils;
 public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	private boolean firstRun=true;
-	private TupleMRConfig grouperConfig;
+	private TupleMRConfig tupleMRConfig;
 	private SerializationInfo serInfo;
 	private TupleMRContext context;
 	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	private int minDepth, maxDepth;
 	private ViewTuple groupTuple;
-	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
+	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> tupleIterator;
 	private TupleRollupReducer<OUTPUT_KEY, OUTPUT_VALUE> handler;
 	private boolean isMultipleSources;
 	private Schema groupSchema;
@@ -61,24 +61,21 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
   @Override
 	public void setup(Context context) throws IOException, InterruptedException {
 		try {
-			this.grouperConfig = TupleMRConfig.get(context.getConfiguration());
-			this.isMultipleSources = this.grouperConfig.getNumIntermediateSchemas() >=2;
-			this.serInfo = grouperConfig.getSerializationInfo();
+			this.tupleMRConfig = TupleMRConfig.get(context.getConfiguration());
+			this.isMultipleSources = this.tupleMRConfig.getNumIntermediateSchemas() >=2;
+			this.serInfo = tupleMRConfig.getSerializationInfo();
 			this.groupSchema = this.serInfo.getGroupSchema();
 			if (!isMultipleSources){
 				this.groupTuple = new ViewTuple(groupSchema,this.serInfo.getGroupSchemaIndexTranslation(0)); //by default translation for 0
 			} else {
 				this.groupTuple = new ViewTuple(groupSchema); 
 			}
-			List<String> groupFields = grouperConfig.getGroupByFields();
+			List<String> groupFields = tupleMRConfig.getGroupByFields();
 			this.maxDepth = groupFields.size() - 1;
-			this.minDepth = grouperConfig.calculateRollupBaseFields().size() - 1;
-			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
-
+			this.minDepth = tupleMRConfig.calculateRollupBaseFields().size() - 1;
+			this.tupleIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 			initHandlerContextAndCollector(context);
-			
 			initComparators();
-			
 		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
@@ -89,12 +86,10 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	 * Creates a quick access array for the custom comparators.
 	 */
 	private void initComparators () {
-		// Initializing the custom comparators 
-		TupleMRConfigBuilder.initializeComparators(context.getHadoopContext().getConfiguration(), grouperConfig);
-		
+		TupleMRConfigBuilder.initializeComparators(context.getHadoopContext().getConfiguration(), tupleMRConfig);
 		customComparators = new RawComparator<?>[maxDepth+1];
 		for (int i=minDepth; i<=maxDepth; i++) {
-			SortElement element = grouperConfig.getCommonCriteria().getElements().get(i);
+			SortElement element = tupleMRConfig.getCommonCriteria().getElements().get(i);
 			if (element.getCustomComparator() != null) {
 				customComparators[i] = element.getCustomComparator();
 			}
@@ -106,9 +101,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
       TupleMRException {
 	  String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
 	  handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleRollupReducer.class, fileName, true);
-
 	  collector = handler.new Collector((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context);
-	  this.context = new TupleMRContext((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context, grouperConfig);
+	  this.context = new TupleMRContext((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context, tupleMRConfig);
 	  handler.setup(this.context, collector);
   }
 
@@ -148,7 +142,7 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 		
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
-			grouperIterator.setIterator(iterator);
+			tupleIterator.setIterator(iterator);
 			ITuple currentTuple = key.datum();
 			ITuple previousKey = key.previousDatum();
 			int indexMismatch;
@@ -171,14 +165,14 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 
 			// We set a view over the group fields to the method.
 			if (isMultipleSources){ 
-				int schemaId = grouperConfig.getSchemaIdByName(currentTuple.getSchema().getName());
+				int schemaId = tupleMRConfig.getSchemaIdByName(currentTuple.getSchema().getName());
 				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(schemaId);
 				groupTuple.setContained(currentTuple,indexTranslation);
 			} else {
 				groupTuple.setContained(currentTuple);
 			}
 
-			handler.reduce(groupTuple, grouperIterator, this.context, collector);
+			handler.reduce(groupTuple, tupleIterator, this.context, collector);
 
 			// This loop consumes the remaining elements that reduce didn't consume
 			// The goal of this is to correctly set the last element in the next onCloseGroup() call
@@ -199,8 +193,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	 * @return
 	 */
 	private int indexMismatch(ITuple tuple1, ITuple tuple2, int minFieldIndex, int maxFieldIndex) {		
-		int schemaId1 = grouperConfig.getSchemaIdByName(tuple1.getSchema().getName());
-		int schemaId2 = grouperConfig.getSchemaIdByName(tuple2.getSchema().getName());
+		int schemaId1 = tupleMRConfig.getSchemaIdByName(tuple1.getSchema().getName());
+		int schemaId2 = tupleMRConfig.getSchemaIdByName(tuple2.getSchema().getName());
 		int[] translationTuple1 = serInfo.getGroupSchemaIndexTranslation(schemaId1);
 		int[] translationTuple2 = serInfo.getGroupSchemaIndexTranslation(schemaId2);
 		

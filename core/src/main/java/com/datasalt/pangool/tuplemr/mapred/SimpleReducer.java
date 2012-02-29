@@ -48,11 +48,11 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	private final static Logger log = LoggerFactory.getLogger(SimpleReducer.class);
 	
 	// Following variables protected to be shared by Combiners
-	private TupleMRConfig grouperConfig;
+	private TupleMRConfig tupleMRConfig;
 	private SerializationInfo serInfo;
 	private boolean isMultipleSources;
 	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
-	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
+	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> tupleIterator;
 	private ViewTuple groupTuple; // Tuple view over the group
 	private TupleMRContext context;
 	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> handler;
@@ -61,25 +61,23 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
   public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
-			log.info("Getting CoGrouper grouperConf.");
-			this.grouperConfig = TupleMRConfig.get(context.getConfiguration());
-			this.isMultipleSources = grouperConfig.getNumIntermediateSchemas() >= 2;
-			this.serInfo = grouperConfig.getSerializationInfo();
-			log.info("Getting CoGrouper grouperConf done.");
+			this.tupleMRConfig = TupleMRConfig.get(context.getConfiguration());
+			this.isMultipleSources = tupleMRConfig.getNumIntermediateSchemas() >= 2;
+			this.serInfo = tupleMRConfig.getSerializationInfo();
 			if (!isMultipleSources){
 				this.groupTuple = new ViewTuple(serInfo.getGroupSchema(),this.serInfo.getGroupSchemaIndexTranslation(0)); //by default translation for 0
 			} else {
 				this.groupTuple = new ViewTuple(serInfo.getGroupSchema());
 			}
 			 
-			this.grouperIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
+			this.tupleIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
 			
 			// setting handler
 			String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
 			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleReducer.class, fileName, true);
 
 			this.collector = handler.new Collector((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context);
-			this.context = new TupleMRContext((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context, grouperConfig);
+			this.context = new TupleMRContext((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context, tupleMRConfig);
 			handler.setup(this.context, collector);		
 			
 		} catch(TupleMRException e) {
@@ -104,20 +102,20 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	    InterruptedException {
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
-			grouperIterator.setIterator(iterator);
+			tupleIterator.setIterator(iterator);
 	
 			// We get the firts tuple, to create the groupTuple view
 			ITuple firstTupleGroup = key.datum();
 	
 			// A view is created over the first tuple to give the user the group fields
 			if (isMultipleSources){
-				int schemaId = grouperConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
+				int schemaId = tupleMRConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
 				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(schemaId);
 				groupTuple.setContained(firstTupleGroup,indexTranslation);
 			} else {
 				groupTuple.setContained(firstTupleGroup);
 			}
-			handler.reduce(groupTuple, grouperIterator, this.context, collector);
+			handler.reduce(groupTuple, tupleIterator, this.context, collector);
 		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}

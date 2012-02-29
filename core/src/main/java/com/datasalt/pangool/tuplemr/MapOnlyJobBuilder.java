@@ -27,12 +27,12 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import com.datasalt.pangool.tuplemr.mapred.MapOnlyTupleMapper;
+import com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.PangoolMultipleInputs;
 
 /**
- * The MapOnlyJobBuilder is a simple Pangool primitive that executes map-only Jobs. You can implement {@link MapOnlyTupleMapper} for using it.
- * See {@link Grep} for an example. You can instantiate your handler with Serializable state.
+ * The MapOnlyJobBuilder is a simple Pangool primitive that executes map-only Jobs. You can implement {@link MapOnlyMapper} for using it.
+ * You can instantiate your handler with Serializable state.
  * 
  */
 @SuppressWarnings("rawtypes")
@@ -44,7 +44,7 @@ public class MapOnlyJobBuilder {
 	private Class<?> outputKeyClass;
 	private Class<?> outputValueClass;
 	private Class<? extends OutputFormat> outputFormat;
-	private MapOnlyTupleMapper mapOnlyTupleMapper;
+	private MapOnlyMapper mapOnlyMapper;
 	
 	private static final class Input {
 
@@ -79,8 +79,8 @@ public class MapOnlyJobBuilder {
 		return this;
 	}
 	
-	public MapOnlyJobBuilder setHandler(MapOnlyTupleMapper mapOnlyTupleMapper) {
-		this.mapOnlyTupleMapper = mapOnlyTupleMapper;
+	public MapOnlyJobBuilder setMapper(MapOnlyMapper mapOnlyMapper) {
+		this.mapOnlyMapper = mapOnlyMapper;
 		return this;
 	}
 
@@ -92,14 +92,14 @@ public class MapOnlyJobBuilder {
 		Job job = new Job(conf);
 		job.setNumReduceTasks(0);
 
-		job.setJarByClass((jarByClass != null) ? jarByClass : mapOnlyTupleMapper.getClass());
+		job.setJarByClass((jarByClass != null) ? jarByClass : mapOnlyMapper.getClass());
 		job.setOutputFormatClass(outputFormat);
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);
 		
 		for(Input input : multiInputs) {
-			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat, mapOnlyTupleMapper);
+			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat, mapOnlyMapper);
 		}
 		return job;
 	}
