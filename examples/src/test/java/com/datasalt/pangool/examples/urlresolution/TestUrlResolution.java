@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.examples.secondarysort;
+package com.datasalt.pangool.examples.urlresolution;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,18 +26,20 @@ import org.junit.Test;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
 
-public class TestSecondarySort extends AbstractHadoopTestLibrary {
+public class TestUrlResolution extends AbstractHadoopTestLibrary {
 
-	private final static String TEST_FILE = "src/test/resources/secondarysort/test-data.txt";
-	private final static String EXPECTED_OUTPUT = "src/test/resources/secondarysort/expected-output.txt";
-	private final static String OUT_PANGOOL = "out-secondary-sort";
+	private final static String TEST_FILE_URL_MAP = "src/test/resources/urlresolution/url-map.txt";
+	private final static String TEST_FILE_URL_REG = "src/test/resources/urlresolution/url-reg.txt";
+	private final static String EXPECTED_OUTPUT   = "src/test/resources/urlresolution/expected-output.txt";
+	
+	private final static String OUT_PANGOOL = "out-cogroup-pangool-co";
 	
 	@Test
 	public void testPangool() throws Exception {
-		SecondarySort.main(new String[] { TEST_FILE, OUT_PANGOOL });
+		UrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_PANGOOL });
 		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
 		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
-		assertEquals(expectedOutput, outPangool);
+		assertEquals(expectedOutput,outPangool);
 		trash(OUT_PANGOOL);
 	}
 	

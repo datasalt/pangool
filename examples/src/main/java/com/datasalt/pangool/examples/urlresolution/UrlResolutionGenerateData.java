@@ -21,10 +21,7 @@ import java.io.IOException;
 import java.util.Random;
 
 /**
- * Generates data that can be used as input for ...
- * <p>
- * The generated output will be two tabulated text files: one containing a URL mapping in the form of: {url
- * cannnonicalUrl} and the other one containing a register of URLs in the form of: {url timestamp ip}.
+ * Input data generator for the {@link UrlResolution} example.
  */
 public class UrlResolutionGenerateData {
 

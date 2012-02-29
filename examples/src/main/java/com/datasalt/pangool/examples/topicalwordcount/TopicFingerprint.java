@@ -1,3 +1,18 @@
+/**
+ * Copyright [2012] [Datasalt Systems S.L.]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.datasalt.pangool.examples.topicalwordcount;
 
 import java.io.IOException;
@@ -22,6 +37,11 @@ import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 
+/**
+ * This example uses the output of {@link TopicalWordcount} for calculating the "top n" words per each topic.
+ * It also outputs the total appearances of these words together into an extra (named) output. This example
+ * show how easy it is to perform secondary sort in Pangool as well as the use of "named outputs".
+ */
 public class TopicFingerprint extends BaseExampleJob {
 
 	public final static String OUTPUT_TOTALCOUNT = "totalcount";

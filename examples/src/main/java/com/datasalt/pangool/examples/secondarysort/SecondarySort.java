@@ -43,12 +43,9 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 
 /**
- * Code for solving a secondary sort problem with Pangool.
- * <p>
- * The secondary sort problem is: We have a file with sales registers: {departmentId nameId timestamp saleValue}. We
- * want to obtain meaningful statistics grouping by all people who perform sales (departmentId+nameId). We want to
- * obtain total sales value for certain periods of time, therefore we need to registers in each group to come sorted by
- * "timestamp".
+ * We have a file with sales registers: ["departmentId", "nameId", "timestamp", "saleValue"]. We want to obtain
+ * meaningful statistics grouping by all people who perform sales (departmentId, nameId). We want to obtain total sales
+ * value for certain periods of time, therefore we need the registers in each group to come sorted by "timestamp".
  */
 public class SecondarySort extends BaseExampleJob {
 
@@ -57,8 +54,8 @@ public class SecondarySort extends BaseExampleJob {
 		private Tuple tuple;
 
 		@Override
-		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
-		    throws IOException, InterruptedException {
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			if(tuple == null) {
 				tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
 			}
@@ -78,12 +75,12 @@ public class SecondarySort extends BaseExampleJob {
 		private Text outputKey;
 		private DoubleWritable outputValue;
 
-		public void setup(TupleMRContext coGrouperContext, Collector collector)
-    throws IOException, InterruptedException, TupleMRException {
-			outputKey  = new Text();
+		public void setup(TupleMRContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
+		    TupleMRException {
+			outputKey = new Text();
 			outputValue = new DoubleWritable();
 		}
-		
+
 		@Override
 		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException, TupleMRException {
@@ -93,6 +90,9 @@ public class SecondarySort extends BaseExampleJob {
 			for(ITuple tuple : tuples) {
 				accumPayments += (Double) tuple.get("doubleField");
 			}
+			/*
+			 * Extra business logic would go here -> moving average, total values in certain periods, etc...
+			 */
 			outputValue.set(accumPayments);
 			outputKey.set(groupStr);
 			collector.write(outputKey, outputValue);
@@ -102,7 +102,7 @@ public class SecondarySort extends BaseExampleJob {
 	public SecondarySort() {
 		super("Needed arguments: [input] [output]");
 	}
-	
+
 	@Override
 	public int run(String[] args) throws Exception {
 		if(args.length != 2) {
@@ -113,27 +113,27 @@ public class SecondarySort extends BaseExampleJob {
 		String output = args[1];
 
 		deleteOutput(output);
-		
+
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(Field.create("intField",Type.INT));
-		fields.add(Field.create("strField",Type.STRING));
-		fields.add(Field.create("longField",Type.LONG));
-		fields.add(Field.create("doubleField",Type.DOUBLE));
+		fields.add(Field.create("intField", Type.INT));
+		fields.add(Field.create("strField", Type.STRING));
+		fields.add(Field.create("longField", Type.LONG));
+		fields.add(Field.create("doubleField", Type.DOUBLE));
 		Schema schema = new Schema("schema", fields);
 
-		TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Secondary Sort");
+		TupleMRBuilder grouper = new TupleMRBuilder(conf, "Pangool Secondary Sort");
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("intField", "strField");
-		grouper.setOrderBy(new OrderBy().add("intField", Order.ASC).add("strField", Order.ASC)
-		    .add("longField", Order.ASC));
+		grouper.setOrderBy(new OrderBy().add("intField", Order.ASC).add("strField", Order.ASC).add("longField", Order.ASC));
 		grouper.setTupleReducer(new Handler());
 		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new IProcessor());
-		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, DoubleWritable.class);
+		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
+		    DoubleWritable.class);
 		grouper.createJob().waitForCompletion(true);
-	  return 1;
+		return 1;
 	}
 
 	public static void main(String[] args) throws Exception {
-		ToolRunner.run( new SecondarySort(), args);
+		ToolRunner.run(new SecondarySort(), args);
 	}
 }

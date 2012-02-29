@@ -1,3 +1,18 @@
+/**
+ * Copyright [2012] [Datasalt Systems S.L.]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.datasalt.pangool.examples.topnhashtags;
 
 import java.io.BufferedWriter;
@@ -10,12 +25,15 @@ import java.util.List;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.datasalt.pangool.examples.TestUtils;
+import com.datasalt.pangool.examples.Utils;
 import com.datasalt.pangool.examples.topnhashtags.Beans.Entities;
 import com.datasalt.pangool.examples.topnhashtags.Beans.HashTag;
 import com.datasalt.pangool.examples.topnhashtags.Beans.SimpleTweet;
 import com.datasalt.pangool.examples.topnhashtags.Beans.UserInfo;
 
+/**
+ * Input data generator for the {@link TopNHashTags} example.
+ */
 public class TopNHashTagsGenerateData {
 
 	public static void main(String[] args) throws IOException, ParseException {
@@ -41,11 +59,11 @@ public class TopNHashTagsGenerateData {
 		// Pregenerate data that will be used to generate tweets
 		
 		for(int i = 0; i < nHashTags; i++) {
-			hashTags.add("hashtag" + TestUtils.randomString(10));
+			hashTags.add("hashtag" + Utils.randomString(10));
 		}
 		
 		for(int i = 0; i < nLocations; i++) {
-			locations.add("location" + TestUtils.randomString(10));
+			locations.add("location" + Utils.randomString(10));
 		}
 
 		long currDate = System.currentTimeMillis();

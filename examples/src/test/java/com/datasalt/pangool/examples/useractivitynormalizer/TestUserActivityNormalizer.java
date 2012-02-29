@@ -15,21 +15,17 @@
  */
 package com.datasalt.pangool.examples.useractivitynormalizer;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.text.ParseException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.util.ToolRunner;
 import org.junit.Test;
 
-import com.datasalt.pangool.examples.useractivitynormalizer.UserActivityNormalizer;
-import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.google.common.io.Files;
 
@@ -39,8 +35,7 @@ public class TestUserActivityNormalizer {
 	private final static String OUTPUT = "test-output-" + TestUserActivityNormalizer.class.getName();
 	
 	@Test
-	public void test() throws IOException, TupleMRException, InterruptedException,
-	    ClassNotFoundException, URISyntaxException, ParseException {
+	public void test() throws Exception {
 
 		Configuration conf = new Configuration();
 		FileSystem fS = FileSystem.get(conf);
@@ -54,8 +49,7 @@ public class TestUserActivityNormalizer {
 				"user2" + "\t" + "feat3" + "\t" + "10" + "\n"
 		, new File(INPUT), Charset.forName("UTF-8"));
 
-		UserActivityNormalizer normalizer = new UserActivityNormalizer();
-		normalizer.getJob(conf, INPUT, OUTPUT).waitForCompletion(true);
+		ToolRunner.run(new UserActivityNormalizer(), new String[] { INPUT, OUTPUT });
 		
 		int validatedOutputLines = 0;
 		
