@@ -41,7 +41,8 @@ import com.datasalt.pangool.utils.AvroUtils;
  * 
  */
 @SuppressWarnings("serial")
-public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> implements Serializable {
+public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> implements
+    Serializable {
 
 	public final static String FILE_PREFIX = "tuple";
 
@@ -56,7 +57,7 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 	public TupleOutputFormat(String pangoolOutputSchema) {
 		this.pangoolOutputSchema = pangoolOutputSchema;
 	}
-	
+
 	public static class TupleRecordWriter extends RecordWriter<ITuple, NullWritable> {
 
 		Record record;
@@ -65,8 +66,9 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 		org.apache.avro.Schema avroSchema;
 		private final HadoopSerialization ser;
 		private final DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
-		
-		public TupleRecordWriter(org.apache.avro.Schema schema, Schema pangoolSchema, DataFileWriter<Record> writer,  HadoopSerialization ser) {
+
+		public TupleRecordWriter(org.apache.avro.Schema schema, Schema pangoolSchema,
+		    DataFileWriter<Record> writer, HadoopSerialization ser) {
 			record = new Record(schema);
 			this.ser = ser;
 			this.avroSchema = schema;
@@ -80,35 +82,41 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 		}
 
 		@Override
-		public void write(ITuple tuple, NullWritable ignore) throws IOException, InterruptedException {
+		public void write(ITuple tuple, NullWritable ignore) throws IOException,
+		    InterruptedException {
 			AvroUtils.toRecord(tuple, record, tmpOutputBuffer, ser);
 			writer.append(record);
 		}
 	}
 
 	@Override
-	public RecordWriter<ITuple, NullWritable> getRecordWriter(TaskAttemptContext context) throws IOException,
-	    InterruptedException {		
+	public RecordWriter<ITuple, NullWritable> getRecordWriter(TaskAttemptContext context)
+	    throws IOException, InterruptedException {
 
 		Schema pangoolOutputSchema = Schema.parse(this.pangoolOutputSchema);
 		org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(pangoolOutputSchema);
-		DataFileWriter<Record> writer = new DataFileWriter<Record>(new ReflectDatumWriter<Record>());
+		DataFileWriter<Record> writer = new DataFileWriter<Record>(
+		    new ReflectDatumWriter<Record>());
 
 		// Compression etc - use Avro codecs
 
 		Configuration conf = context.getConfiguration();
 		if(conf.getBoolean("mapred.output.compress", false)) {
 			String codec = conf.get("mapred.output.compression");
-			int level = conf.getInt(AvroOutputFormat.DEFLATE_LEVEL_KEY, AvroOutputFormat.DEFAULT_DEFLATE_LEVEL);
-			CodecFactory factory = codec.equals(DEFLATE_CODEC) ? CodecFactory.deflateCodec(level) : CodecFactory
-			    .fromString(codec);
+			int level = conf.getInt(AvroOutputFormat.DEFLATE_LEVEL_KEY,
+			    AvroOutputFormat.DEFAULT_DEFLATE_LEVEL);
+			CodecFactory factory = codec.equals(DEFLATE_CODEC) ? CodecFactory
+			    .deflateCodec(level) : CodecFactory.fromString(codec);
 			writer.setCodec(factory);
 		}
-		writer.setSyncInterval(conf.getInt(AvroOutputFormat.SYNC_INTERVAL_KEY, DEFAULT_SYNC_INTERVAL));
+		writer.setSyncInterval(conf.getInt(AvroOutputFormat.SYNC_INTERVAL_KEY,
+		    DEFAULT_SYNC_INTERVAL));
 
 		Path file = getDefaultWorkFile(context, "");
-		writer.create(avroSchema, file.getFileSystem(context.getConfiguration()).create(file));
+		writer
+		    .create(avroSchema, file.getFileSystem(context.getConfiguration()).create(file));
 
-		return new TupleRecordWriter(avroSchema, pangoolOutputSchema, writer, new HadoopSerialization(conf));
+		return new TupleRecordWriter(avroSchema, pangoolOutputSchema, writer,
+		    new HadoopSerialization(conf));
 	}
 }

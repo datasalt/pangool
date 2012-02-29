@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.WritableUtils;
@@ -31,9 +30,9 @@ import org.apache.hadoop.util.ReflectionUtils;
 import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Utf8;
-import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
@@ -47,7 +46,6 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		private List<ITuple> specificTuples=new ArrayList<ITuple>();
 		private List<ITuple> resultTuples=new ArrayList<ITuple>();
 	}
-	
 	
 	private final TupleMRConfig tupleMRConf;
 	private final Configuration conf;
@@ -109,7 +107,8 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			this.cachedTuples.swapInstances();
 		}
 
-		ITuple tuple = (multipleSources) ? deserializeMultipleSources() : deserializeOneSource(t.datum());
+		ITuple tuple = (multipleSources) ? 
+				deserializeMultipleSources() : deserializeOneSource(t.datum());
 		t.datum(tuple);
 		
 		return t;

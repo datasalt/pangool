@@ -28,24 +28,24 @@ import com.datasalt.pangool.utils.DCUtils;
 /**
  * An {@link Mapper} that delegates behavior of paths to multiple other mappers.
  * 
- * @see PangoolMultipleInputs#addInputPath(Job, Path, org.apache.hadoop.mapreduce.InputFormat, Mapper)
+ * @see PangoolMultipleInputs#addInputPath(Job, Path,
+ *      org.apache.hadoop.mapreduce.InputFormat, Mapper)
  */
-@SuppressWarnings({"rawtypes","unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class DelegatingMapper extends Mapper {
 
-	
 	protected Mapper delegate; // The delegate
 
 	private static Logger log = LoggerFactory.getLogger(DelegatingMapper.class);
-	
+
 	@Override
 	public void run(Context context) throws IOException, InterruptedException {
 		// Find the InputProcessor from the TaggedInputSplit.
 		if(delegate == null) {
 			TaggedInputSplit inputSplit = (TaggedInputSplit) context.getInputSplit();
 			log.info("[profile] Got input split. Going to look at DC.");
-			delegate = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), Mapper.class,
-			    inputSplit.getInputProcessorFile(), true);
+			delegate = DCUtils.loadSerializedObjectInDC(context.getConfiguration(),
+			    Mapper.class, inputSplit.getInputProcessorFile(), true);
 			log.info("[profile] Finished. Calling run() on delegate.");
 		}
 		delegate.run(context);

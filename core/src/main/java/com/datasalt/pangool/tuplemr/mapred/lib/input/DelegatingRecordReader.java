@@ -25,8 +25,8 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
- * This is a delegating RecordReader, which delegates the functionality to the underlying record reader in
- * {@link TaggedInputSplit}
+ * This is a delegating RecordReader, which delegates the functionality to the
+ * underlying record reader in {@link TaggedInputSplit}
  */
 public class DelegatingRecordReader<K, V> extends RecordReader<K, V> {
 	RecordReader<K, V> originalRR;
@@ -43,13 +43,16 @@ public class DelegatingRecordReader<K, V> extends RecordReader<K, V> {
 	 * @throws InterruptedException
 	 */
 	@SuppressWarnings("unchecked")
-	public DelegatingRecordReader(InputSplit split, TaskAttemptContext context) throws IOException, InterruptedException {
+	public DelegatingRecordReader(InputSplit split, TaskAttemptContext context)
+	    throws IOException, InterruptedException {
 		// Find the InputFormat and then the RecordReader from the
 		// TaggedInputSplit.
 		TaggedInputSplit taggedInputSplit = (TaggedInputSplit) split;
-		InputFormat<K, V> inputFormat = (InputFormat<K, V>) DCUtils.loadSerializedObjectInDC(context.getConfiguration(),
-		    InputFormat.class, taggedInputSplit.getInputFormatFile(), true);
-		originalRR = inputFormat.createRecordReader(taggedInputSplit.getInputSplit(), context);
+		InputFormat<K, V> inputFormat = (InputFormat<K, V>) DCUtils.loadSerializedObjectInDC(
+		    context.getConfiguration(), InputFormat.class,
+		    taggedInputSplit.getInputFormatFile(), true);
+		originalRR = inputFormat
+		    .createRecordReader(taggedInputSplit.getInputSplit(), context);
 	}
 
 	@Override
@@ -73,7 +76,8 @@ public class DelegatingRecordReader<K, V> extends RecordReader<K, V> {
 	}
 
 	@Override
-	public void initialize(InputSplit split, TaskAttemptContext context) throws IOException, InterruptedException {
+	public void initialize(InputSplit split, TaskAttemptContext context)
+	    throws IOException, InterruptedException {
 		originalRR.initialize(((TaggedInputSplit) split).getInputSplit(), context);
 	}
 

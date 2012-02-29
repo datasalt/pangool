@@ -173,12 +173,16 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 		WritableUtils.writeVInt(output, e.ordinal());
 	}
 	
-	private void raiseClassCastException(ClassCastException cause,Field field,Object element) throws IOException {
-		throw new IOException("Field '" + field.getName() + "' with type: '" + field.getType() + "' can't contain '" + element + "' which is "
+	private void raiseClassCastException(ClassCastException cause,Field field,Object element)
+	throws IOException {
+		throw new IOException("Field '" + field.getName() + "' with type: '" + 
+				field.getType() + "' can't contain '" + element + "' which is "
 		    + element.getClass().getName(),cause);
 	}
 	
-	private void raiseNullInstanceException(NullPointerException cause, Field field,Object element) throws IOException {
-		throw new IOException("Field '" + field.getName() + "' with type " + field.getType() +" can't contain null value",cause);
+	private void raiseNullInstanceException(NullPointerException cause, Field field,Object element) 
+	throws IOException {
+		throw new IOException("Field '" + field.getName() + "' with type " + 
+				field.getType() +" can't contain null value",cause);
 	}	
 }

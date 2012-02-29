@@ -52,31 +52,32 @@ import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
 	@SuppressWarnings("serial")
-  public static class FirstInputProcessor extends TupleMapper<LongWritable, Text> {
+	public static class FirstInputProcessor extends TupleMapper<LongWritable, Text> {
 
-		private Tuple user,country;
-		
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		private Tuple user, country;
+
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			Schema peopleSchema = context.getTupleMRConfig().getIntermediateSchema("user");
 			Schema countrySchema = context.getTupleMRConfig().getIntermediateSchema("country");
 			user = new Tuple(peopleSchema);
 			country = new Tuple(countrySchema);
 		}
-		
-		
+
 		@Override
-		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		public void map(LongWritable key, Text value, TupleMRContext context,
+		    Collector collector) throws IOException, InterruptedException {
 			user.set("name", "Pere");
 			user.set("money", 100);
 			user.set("country", "ES");
 			collector.write(user);
 
 			user.set("name", "Iván");
-			user.set("country","ES");
+			user.set("country", "ES");
 			user.set("money", 50);
 			collector.write(user);
 
-			user.set("country","FR");
+			user.set("country", "FR");
 			user.set("money", 150);
 			user.set("name", "Eric");
 			collector.write(user);
@@ -92,16 +93,16 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 	}
 
 	@SuppressWarnings("serial")
-  public static class MyGroupHandler extends TupleReducer<Object, Object> {
+	public static class MyGroupHandler extends TupleReducer<Object, Object> {
 
 		private boolean FR_PRESENT = false;
 		private boolean ES_PRESENT = false;
 		private Map<String, List<String>> records = new HashMap<String, List<String>>();
-		
+
 		@Override
-		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, 
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
 		    Collector collector) throws IOException, InterruptedException, TupleMRException {
-			
+
 			String groupString = group.get(0).toString();
 			if(groupString.equals("FR")) {
 				FR_PRESENT = true;
@@ -120,8 +121,9 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 				savedTuples.add(tuple.toString());
 			}
 		}
-		
-		public void cleanup(TupleMRContext tupleMRContext, Collector collector) throws IOException ,InterruptedException ,TupleMRException {
+
+		public void cleanup(TupleMRContext tupleMRContext, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 			/*
 			 * Validate test conditions
 			 */
@@ -133,10 +135,13 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 			}
 			List<String> frTuples = records.get("FR");
 			List<String> esTuples = records.get("ES");
-			Assert.assertTrue(frTuples.get(0).contains("Eric") && frTuples.get(0).contains("150"));
+			Assert.assertTrue(frTuples.get(0).contains("Eric")
+			    && frTuples.get(0).contains("150"));
 			Assert.assertTrue(frTuples.get(1).contains("1500"));
-			Assert.assertTrue(esTuples.get(0).contains("Iván") && esTuples.get(0).contains("50"));
-			Assert.assertTrue(esTuples.get(1).contains("Pere") && esTuples.get(1).contains("100"));
+			Assert.assertTrue(esTuples.get(0).contains("Iván")
+			    && esTuples.get(0).contains("50"));
+			Assert.assertTrue(esTuples.get(1).contains("Pere")
+			    && esTuples.get(1).contains("100"));
 			Assert.assertTrue(esTuples.get(2).contains("1000"));
 		};
 	}
@@ -148,17 +153,22 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 
 		TupleMRBuilder builder = new TupleMRBuilder(new Configuration());
-		builder.addIntermediateSchema(new Schema("country",Fields.parse("country:string, averageSalary:int")));
-		builder.addIntermediateSchema(new Schema("user",Fields.parse("name:string, money:int, country:string")));
-		
+		builder.addIntermediateSchema(new Schema("country", Fields
+		    .parse("country:string, averageSalary:int")));
+		builder.addIntermediateSchema(new Schema("user", Fields
+		    .parse("name:string, money:int, country:string")));
+
 		builder.setGroupByFields("country");
-		builder.setOrderBy(new OrderBy().add("country",Order.ASC).addSourceOrder(Order.DESC));
-		builder.setSpecificOrderBy("user", new OrderBy().add("money",Order.ASC));
-		
-		builder.addInput(new Path("test-input"), new HadoopInputFormat(TextInputFormat.class), new FirstInputProcessor());
+		builder
+		    .setOrderBy(new OrderBy().add("country", Order.ASC).addSourceOrder(Order.DESC));
+		builder.setSpecificOrderBy("user", new OrderBy().add("money", Order.ASC));
+
+		builder.addInput(new Path("test-input"),
+		    new HadoopInputFormat(TextInputFormat.class), new FirstInputProcessor());
 		builder.setTupleReducer(new MyGroupHandler());
-		builder.setOutput(new Path("test-output"), new HadoopOutputFormat(TextOutputFormat.class), NullWritable.class, NullWritable.class);
-		
+		builder.setOutput(new Path("test-output"), new HadoopOutputFormat(
+		    TextOutputFormat.class), NullWritable.class, NullWritable.class);
+
 		Job job = builder.createJob();
 		assertRun(job);
 
