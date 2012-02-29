@@ -19,8 +19,8 @@ package com.datasalt.pangool.tuplemr.mapred;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +29,18 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.ViewTuple;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
+import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
+import com.datasalt.pangool.tuplemr.TupleReducer.TupleMRContext;
 import com.datasalt.pangool.utils.DCUtils;
 
+/**
+ * This is a proxy {@link Reducer} implementation that delegates its funcionality to a {@link TupleReducer}
+ * instance configured by {@link TupleMRBuilder#setTupleReducer(TupleReducer)} 
+ * 
+ */
 public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
 	public final static String CONF_REDUCER_HANDLER = SimpleReducer.class.getName() + ".reducer.handler";
@@ -47,7 +54,7 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE>.Collector collector;
 	private TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> grouperIterator;
 	private ViewTuple groupTuple; // Tuple view over the group
-	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE>.TupleMRContext context;
+	private TupleMRContext context;
 	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
 	@SuppressWarnings("unchecked")
@@ -71,8 +78,8 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 			String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
 			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleReducer.class, fileName, true);
 
-			this.collector = handler.new Collector(context);
-			this.context = handler.new TupleMRContext(context, grouperConfig);
+			this.collector = handler.new Collector((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context);
+			this.context = new TupleMRContext((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context, grouperConfig);
 			handler.setup(this.context, collector);		
 			
 		} catch(TupleMRException e) {

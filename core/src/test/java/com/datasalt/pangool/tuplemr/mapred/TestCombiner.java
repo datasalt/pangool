@@ -40,7 +40,6 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.tuplemr.OrderBy;
-import com.datasalt.pangool.tuplemr.TupleCombiner;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
@@ -76,7 +75,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 	}
 
 	@SuppressWarnings("serial")
-	public static class CountCombiner extends TupleCombiner {
+	public static class CountCombiner extends TupleReducer<ITuple, NullWritable> {
 
 		private Tuple tuple;
 		
@@ -86,7 +85,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		}
 
 		@Override
-		public void onGroupElements(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException, TupleMRException {
 			int count = 0;
 			tuple.set("word", group.get("word"));
@@ -94,7 +93,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 				count += (Integer) tuple.get(1);
 			}
 			tuple.set("count", count);
-			collector.write(this.tuple);
+			collector.write(this.tuple, NullWritable.get());
 		}
 	}
 

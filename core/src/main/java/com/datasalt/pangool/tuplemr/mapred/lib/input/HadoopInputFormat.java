@@ -11,9 +11,9 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.ReflectionUtils;
 
+@SuppressWarnings({ "serial", "rawtypes" })
 public class HadoopInputFormat extends InputFormat implements Serializable, Configurable {
 
 	private Class<? extends InputFormat> clazz;
@@ -30,8 +30,9 @@ public class HadoopInputFormat extends InputFormat implements Serializable, Conf
 		}
 	}
 	
-	@Override
-  public List getSplits(JobContext context) throws IOException, InterruptedException {
+	@SuppressWarnings("unchecked")
+  @Override
+  public List<InputSplit> getSplits(JobContext context) throws IOException, InterruptedException {
 		instantiateWhenNeeded();
 		return instance.getSplits(context);
   }

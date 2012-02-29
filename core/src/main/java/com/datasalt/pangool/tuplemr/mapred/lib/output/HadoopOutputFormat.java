@@ -12,9 +12,10 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.util.ReflectionUtils;
 
+@SuppressWarnings({"serial","rawtypes"})
 public class HadoopOutputFormat extends OutputFormat implements Configurable, Serializable {
 
-	private Class<? extends OutputFormat>  clazz;
+  private Class<? extends OutputFormat>  clazz;
 	private OutputFormat instance;
 	private Configuration conf;
 	

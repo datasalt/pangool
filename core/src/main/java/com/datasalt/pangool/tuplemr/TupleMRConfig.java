@@ -45,8 +45,17 @@ import com.datasalt.pangool.tuplemr.mapred.SortComparator;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
- * 
- * TODO doc
+ * TupleMRConfig contains the entire configuration parameters from a Tuple-based job. 
+ * The main information that it contains :
+ * <ul> 
+ *  <li>Intermediate schemas</li>
+ *  <li>Group-by fields</li>
+ *  <li>Order-by common criteria</li>
+ *  <li>Schemas order</li>
+ *  <li>Specific schema-related order-by criteria</li>
+ *  <li>Rollup</li>
+ *  <li>Custom hash partitioning fields</li>
+ * </ul> 
  *
  */
 public class TupleMRConfig {
@@ -74,7 +83,7 @@ public class TupleMRConfig {
 	 * These criterias are used in {@link SortComparator} to sort specific fields from two
 	 * tuples with the same schema, after the commonCriteria and schemaOrder
 	 */
-	private List<Criteria> secondaryCriterias = new ArrayList<Criteria>();
+	private List<Criteria> specificCriterias = new ArrayList<Criteria>();
 	
 	/** 
 	 * Defines the order in which the different intermediate schemas 
@@ -143,8 +152,8 @@ public class TupleMRConfig {
 	 * being compared by commonOrder and schemaOrder
 	 * 
 	 */
-	public List<Criteria> getSecondarySortBys() {
-		return secondaryCriterias;
+	public List<Criteria> getSpecificOrderBys() {
+		return specificCriterias;
 	}
 
 	/**
@@ -258,11 +267,11 @@ public class TupleMRConfig {
 	}
 	
 	void setSecondarySortBy(String sourceName,Criteria criteria) throws TupleMRException {
-		if (this.secondaryCriterias.isEmpty()){
+		if (this.specificCriterias.isEmpty()){
 			initSecondaryCriteriasWithNull();
 		}
 		Integer pos = getSchemaIdByName(sourceName);
-		secondaryCriterias.set(pos, criteria);
+		specificCriterias.set(pos, criteria);
 	}
 
 	private void initSecondaryCriteriasWithNull() {
@@ -270,7 +279,7 @@ public class TupleMRConfig {
 		for(int i = 0; i < schemas.size(); i++) {
 			r.add(null);
 		}
-		this.secondaryCriterias = r;
+		this.specificCriterias = r;
 	}
 
 	public static TupleMRConfig get(Configuration conf) throws TupleMRException {
@@ -304,7 +313,7 @@ public class TupleMRConfig {
 	 * serialization. Two config properties are used. The first for storing the
 	 * reference. For example "common|address" refers to the sort comparator for
 	 * address in the common order. "1|postalCode" refers to the sort comparator
-	 * for the secondary sort on field1 for the schema with schemaId = 1. The
+	 * for the specific sort on field1 for the schema with schemaId = 1. The
 	 * other config property stores the instance file paths where the instances
 	 * are stored in the distributed cache.
 	 */
@@ -315,10 +324,10 @@ public class TupleMRConfig {
 		// We use "common" as the prefix for the common criteria
 		serializeComparators(grouperConfig.getCommonCriteria(), conf, comparatorRefs, comparatorInstanceFiles, COMMON);
 
-		List<Criteria> secondaryCriterias = grouperConfig.getSecondarySortBys();
-		// We use the schemaId as prefix for the secondary sorting.
-		for(int i = 0; i < secondaryCriterias.size(); i++) {
-			serializeComparators(secondaryCriterias.get(i), conf, comparatorRefs, comparatorInstanceFiles, i + "");
+		List<Criteria> specificCriterias = grouperConfig.getSpecificOrderBys();
+		// We use the schemaId as prefix for the specific sorting.
+		for(int i = 0; i < specificCriterias.size(); i++) {
+			serializeComparators(specificCriterias.get(i), conf, comparatorRefs, comparatorInstanceFiles, i + "");
 		}
 
 		if(comparatorRefs.size() > 0) {
@@ -376,7 +385,7 @@ public class TupleMRConfig {
 				if(ref[0].equals(COMMON)) {
 					setComparator(grouperConfig.getCommonCriteria(), ref[1], comparator);
 				} else {
-					setComparator(grouperConfig.getSecondarySortBys().get(new Integer(ref[0])), ref[1], comparator);
+					setComparator(grouperConfig.getSpecificOrderBys().get(new Integer(ref[0])), ref[1], comparator);
 				}
 			}
 		} catch(IOException e) {
@@ -421,15 +430,15 @@ public class TupleMRConfig {
 				result.customPartitionFields = partitionFields;
 			}
 			
-			JsonNode commonSortByNode = node.get("commonSortBy");
+			JsonNode commonSortByNode = node.get("commonOrderBy");
 			result.commonCriteria = Criteria.parse(commonSortByNode);
 			result.schemasOrder = Order.valueOf(node.get("schemasOrder").getTextValue());
 
-			Iterator<JsonNode> secondaryNode = node.get("secondarySortBys").getElements();
-			result.secondaryCriterias = new ArrayList<Criteria>();
-			while(secondaryNode.hasNext()) {
-				JsonNode n = secondaryNode.next();
-				result.secondaryCriterias.add(n.isNull() ? null : Criteria.parse(n));
+			Iterator<JsonNode> specificNode = node.get("specificOrderBys").getElements();
+			result.specificCriterias = new ArrayList<Criteria>();
+			while(specificNode.hasNext()) {
+				JsonNode n = specificNode.next();
+				result.specificCriterias.add(n.isNull() ? null : Criteria.parse(n));
 			}
 
 			return result;
@@ -465,17 +474,17 @@ public class TupleMRConfig {
 			gen.writeString(rollupFrom);
 		}
 
-		gen.writeFieldName("commonSortBy");
+		gen.writeFieldName("commonOrderBy");
 		commonCriteria.toJson(gen);
 
 		gen.writeStringField("schemasOrder", schemasOrder.toString());
 
 		// TODO this code should write a map with sourceName
-		if(secondaryCriterias == null || secondaryCriterias.isEmpty()) {
+		if(specificCriterias == null || specificCriterias.isEmpty()) {
 			initSecondaryCriteriasWithNull();
 		}
-		gen.writeArrayFieldStart("secondarySortBys");
-		for(Criteria c : secondaryCriterias) {
+		gen.writeArrayFieldStart("specificOrderBys");
+		for(Criteria c : specificCriterias) {
 			if(c == null) {
 				gen.writeNull();
 			} else {
@@ -533,8 +542,8 @@ public class TupleMRConfig {
 		this.getSchemasOrder() == that.getSchemasOrder()
 		    && this.getCommonCriteria().equals(that.getCommonCriteria())
 		    && this.getGroupByFields().equals(that.getGroupByFields())
-		    && this.getIntermediateSchemas().equals(that.getIntermediateSchemas()) && this.getSecondarySortBys().equals(
-		    that.getSecondarySortBys());
+		    && this.getIntermediateSchemas().equals(that.getIntermediateSchemas()) && this.getSpecificOrderBys().equals(
+		    that.getSpecificOrderBys());
 		if (e){
 			if (this.getCustomPartitionFields() == null){
 				return that.getCustomPartitionFields() == null;
