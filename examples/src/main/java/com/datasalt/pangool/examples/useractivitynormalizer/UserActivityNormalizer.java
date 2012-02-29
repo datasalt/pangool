@@ -188,7 +188,7 @@ public class UserActivityNormalizer {
 		grouper.addIntermediateSchema(schema);
 		grouper.setGroupByFields("user", "all", "feature");
 		grouper.setOrderBy(new OrderBy().add("user", Order.ASC).add("all", Order.DESC).add("feature", Order.ASC));
-		// By partitioning by "user" field we assure that all features go to the same Reducer
+		// Rollup from "user" - all features from same user will go to the same Reducer
 		grouper.setRollupFrom("user");
 		// Input / output and such
 		grouper.setTupleCombiner(new CountCombinerHandler());
