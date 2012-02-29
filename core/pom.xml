@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.datasalt.pangool</groupId>
     <artifactId>pangool</artifactId>
-    <version>0.40-SNAPSHOT</version>
+    <version>0.40</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -22,17 +22,17 @@ h
   </properties>
 
   <dependencies>
-  	<dependency>
-		<groupId>colt</groupId>
-		<artifactId>colt</artifactId>
-		<version>1.2.0</version>
-	</dependency>
+    <dependency>
+	<groupId>colt</groupId>
+	<artifactId>colt</artifactId>
+	<version>1.2.0</version>
+    </dependency>
             
     <dependency>
-		<groupId>net.sf.trove4j</groupId>
-		<artifactId>trove4j</artifactId>
-		<version>3.0.2</version>
-	</dependency>
+ 	<groupId>net.sf.trove4j</groupId>
+	<artifactId>trove4j</artifactId>
+	<version>3.0.2</version>
+    </dependency>
             
     <dependency>
       <groupId>junit</groupId>
@@ -44,28 +44,20 @@ h
     <dependency>
 	<groupId>org.apache.avro</groupId>
 	<artifactId>avro</artifactId>
-	<version>1.6.1</version>
+	<version>1.6.2</version>
     </dependency>
                 
     <dependency>
 	<groupId>org.apache.avro</groupId>
 	<artifactId>avro-mapred</artifactId>
-	<version>1.6.1</version>
+	<version>1.6.2</version>
     </dependency>
     <dependency>
 	<groupId>org.apache.avro</groupId>
 	<artifactId>avro-thrift</artifactId>
-	<version>1.6.1</version>
+	<version>1.6.2</version>
     </dependency>
    
-    <!-- Mockito for mocking in unit testing -->
-<!--
-   <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>1.8.5</version>
-    </dependency>
--->
    <!-- Very usefull Google's guava - Nice collections API -->
    <dependency>
       <groupId>com.google.guava</groupId>
@@ -183,8 +175,8 @@ h
     </dependency>
   </dependencies>
   
-  <repositories>
-   <repository>
+  <!--repositories-->
+   <!--repository>
       <id>cloudera</id>
       <name>Cloudera Releases</name>
       <url>https://repository.cloudera.com/content/repositories/releases</url>
@@ -195,7 +187,7 @@ h
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-    </repository>
+    </repository-->
     
     <!-- 
     <repository>
@@ -211,7 +203,7 @@ h
     </repository>
     -->
 
-  </repositories>
+  <!--/repositories-->
   
   
   <build>
@@ -226,29 +218,6 @@ h
     </configuration>
    </plugin>
    
-    <!--plugin>
-      <artifactId>maven-assembly-plugin</artifactId>
-      <version>2.2.1</version>
-      <configuration>
-        <descriptors>
-          <descriptor>src/main/assembly/hadoop-job.xml</descriptor>
-        </descriptors>
-        <archive>
-          <manifest>
-            <mainClass>com.datasalt.pangool.grouper.Test</mainClass>
-          </manifest>
-        </archive>
-      </configuration>
-      <executions>
-        <execution>
-          <id>make-assembly</id>
-          <phase>package</phase>
-          <goals>
-            <goal>single</goal>
-          </goals>
-        </execution>
-      </executions>
-    </plugin-->
      <!-- In order to add aditional source folders -->
    <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -302,8 +271,6 @@ h
                       <arg value="target/test/generated-thrift/java/"/>
                       <arg value="src/test/resources/pangool-test.thrift"/>
                     </exec>
-                    
-                    
                   </tasks>
                 </configuration>
                 <goals>
