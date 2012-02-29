@@ -28,7 +28,6 @@ import org.apache.avro.mapred.AvroSerialization;
 import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.PangoolRuntimeException;
@@ -57,6 +56,7 @@ public class AvroUtils {
 			org.apache.avro.Schema.Type type = field.schema().getType();
 			switch(type){
 			case INT: fields.add(Field.create(field.name(),Type.INT)); break;
+			case LONG: fields.add(Field.create(field.name(),Type.LONG)); break;
 			case FLOAT: fields.add(Field.create(field.name(),Type.FLOAT)); break;
 			case DOUBLE: fields.add(Field.create(field.name(),Type.DOUBLE)); break;
 			case BOOLEAN: fields.add(Field.create(field.name(),Type.BOOLEAN)); break;
@@ -68,7 +68,15 @@ public class AvroUtils {
 				} catch(ClassNotFoundException e){
 					throw new PangoolRuntimeException(e);
 				}
-			case ENUM: //TODO 
+				break;
+			case ENUM:
+				clazz = avroSchema.getProp(field.name());
+				try{
+					fields.add(Field.createEnum(field.name(),Class.forName(clazz)));
+					} catch(ClassNotFoundException e){
+						throw new PangoolRuntimeException(e);
+					}
+				break;
 			default:
 				throw new PangoolRuntimeException("Avro type:" + type + " can't be converted to Pangool Schema type");
 			}
@@ -80,7 +88,7 @@ public class AvroUtils {
 	/**
 	 * Converts from one Pangool schema to one Avro schema for serializing it
 	 */
-	public static org.apache.avro.Schema toAvroSchema(Schema pangoolSchema) {
+  public static org.apache.avro.Schema toAvroSchema(Schema pangoolSchema) {
 		List<org.apache.avro.Schema.Field> avroFields = new ArrayList<org.apache.avro.Schema.Field>();
 		Map<String, String> complexTypesMetadata = new HashMap<String, String>();
 		for(Field field : pangoolSchema.getFields()) {
@@ -96,12 +104,26 @@ public class AvroUtils {
 					avroFieldType = org.apache.avro.Schema.Type.BYTES; 
 					complexTypesMetadata.put(field.getName(), field.getObjectClass().getName());
 				break;
-				case ENUM: //TODO
+				case ENUM: 
+					avroFieldType = org.apache.avro.Schema.Type.ENUM;
+					complexTypesMetadata.put(field.getName(),field.getObjectClass().getName());
+					break;
 				default:
 					throw new PangoolRuntimeException("Not avro conversion from Pangool Schema type:" + field.getType());
 				
 			}
-			org.apache.avro.Schema avroFieldSchema = org.apache.avro.Schema.create(avroFieldType);
+			org.apache.avro.Schema avroFieldSchema;
+			if (avroFieldType == org.apache.avro.Schema.Type.ENUM){
+				Object[] enumValues = field.getObjectClass().getEnumConstants();
+				List<String> values=new ArrayList<String>();
+				for (Object e : enumValues){
+					values.add(e.toString());
+				}
+				avroFieldSchema = org.apache.avro.Schema.createEnum(field.getName(),null,null, values);
+			} else {
+				//simple types
+				avroFieldSchema = org.apache.avro.Schema.create(avroFieldType);
+			}
 			avroFields.add(new org.apache.avro.Schema.Field(field.getName(),avroFieldSchema, null, null));
 		}
 
@@ -116,23 +138,33 @@ public class AvroUtils {
 	/**
 	 * Moves data between a Tuple and an Avro Record
 	 */
-	public static void toRecord(Schema pangoolSchema, org.apache.avro.Schema avroSchema, ITuple tuple, Record record,
-	    DataOutputBuffer tmpOutputBuffer, HadoopSerialization ser) throws IOException {
-		// Convert Tuple to Record
+	public static void toRecord(ITuple tuple, Record record,DataOutputBuffer tmpOutputBuffer, HadoopSerialization ser) throws IOException {
+		Schema pangoolSchema = tuple.getSchema();
 		for(int i = 0; i < pangoolSchema.getFields().size(); i++) {
 			Object obj = tuple.get(i);
-			if(obj instanceof Text) {
-				obj = new Utf8(((Text) obj).toString()).toString();
-			}
 			Field field = pangoolSchema.getField(i);
-			String clazz = avroSchema.getProp(pangoolSchema.getField(i).getName());
-			if(clazz != null) {
+			switch(field.getType()){
+			case INT:
+			case LONG:
+			case FLOAT:
+			case BOOLEAN:
+			case DOUBLE:
+				record.put(i, obj); //optimistic
+				break;
+			case OBJECT:
 				tmpOutputBuffer.reset();
 				ser.ser(obj, tmpOutputBuffer);
 				ByteBuffer buffer = ByteBuffer.wrap(tmpOutputBuffer.getData(), 0, tmpOutputBuffer.getLength());
-				record.put(field.getName(), buffer);
-			} else {
-				record.put(field.getName(), obj);
+				record.put(i, buffer);
+				break;
+			case ENUM:
+				record.put(i,obj.toString());
+				break;
+			case STRING:
+				record.put(i,new Utf8(obj.toString())); //could be directly String ?
+				break;
+			default:
+					throw new IOException("Not correspondence to Avro type from Pangool type " + field.getType());
 			}
 		}
 	}
@@ -141,30 +173,59 @@ public class AvroUtils {
 	 * Moves data between a Record and a Tuple
 	 */
 	public static void toTuple(Record record, ITuple tuple, Configuration conf,
-	    HadoopSerialization ser) throws ClassNotFoundException, IOException {
-		int index = 0;
+	    HadoopSerialization ser) throws IOException {
 		for(org.apache.avro.Schema.Field field : record.getSchema().getFields()) {
-			Object obj = record.get(field.name());
-			if(obj instanceof Utf8) {
-				Utf8 utf8 = (Utf8) obj;
-				if(tuple.get(index) == null) {
-					tuple.set(index, new com.datasalt.pangool.io.Utf8());
+			int pos = field.pos();
+			Object obj = record.get(pos);
+			switch(field.schema().getType()){
+			case INT:
+			case LONG:
+			case BOOLEAN:
+			case FLOAT:
+			case DOUBLE:
+				tuple.set(pos,obj); //very optimistic
+				break;
+			case STRING:
+				if (!(tuple.get(pos) instanceof Utf8)){
+					tuple.set(pos,new com.datasalt.pangool.io.Utf8());
 				}
-				((com.datasalt.pangool.io.Utf8) tuple.get(index)).set(utf8.getBytes(), 0, utf8.getByteLength());
-			} else if(obj instanceof ByteBuffer) {
-				String clazz = record.getSchema().getProp(field.name());
-				if(clazz != null) {
-					if(tuple.get(index) == null) {
-						tuple.set(index, ReflectionUtils.newInstance(Class.forName(clazz), conf));
+				com.datasalt.pangool.io.Utf8 utf8=(com.datasalt.pangool.io.Utf8)tuple.get(pos);
+				if (obj instanceof String){
+					utf8.set((String)obj);
+				} else if (obj instanceof Utf8){
+					Utf8 avroUtf8 = (Utf8)obj;
+					utf8.set(avroUtf8.getBytes(),0,avroUtf8.getByteLength());
+				} else {
+					throw new IOException("Not supported avro field " + org.apache.avro.Schema.Type.STRING + " with instance " + obj.getClass().getName());
+				}
+				break;
+			case ENUM:
+				String clazzName = record.getSchema().getProp(field.name());
+				try{
+					Class clazz = Class.forName(clazzName);
+					Enum e = Enum.valueOf(clazz,obj.toString());
+					tuple.set(pos,e);
+				} catch(ClassNotFoundException e){
+					throw new IOException(e);
+				}
+				break;
+			case BYTES:
+				clazzName = record.getSchema().getProp(field.name());
+				try{
+					Class clazz = Class.forName(clazzName);
+					if(tuple.get(pos) == null || tuple.get(pos).getClass() != clazz) {
+						tuple.set(pos, ReflectionUtils.newInstance(clazz, conf));
 					}
 					ByteBuffer byteBuffer = (ByteBuffer) obj;
 					byte[] bytes = byteBuffer.array();
-					ser.deser(tuple.get(index), bytes, 0, bytes.length);
+					ser.deser(tuple.get(pos), bytes, 0, bytes.length);
+				} catch(ClassNotFoundException e){
+					throw new IOException(e);
 				}
-			} else if(obj instanceof Comparable) {
-				tuple.set(index, obj);
+				break;
+			default:
+				throw new IOException("Not supported avro type : " + field.schema().getType());
 			}
-			index++;
 		}
 	}
 }

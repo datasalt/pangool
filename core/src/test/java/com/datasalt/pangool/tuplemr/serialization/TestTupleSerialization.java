@@ -18,6 +18,9 @@ package com.datasalt.pangool.tuplemr.serialization;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.DataOutputBuffer;
+import org.eclipse.jdt.internal.core.util.RecordedParsingInformation;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,6 +41,8 @@ import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.serialization.TupleDeserializer;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerializer;
+import com.datasalt.pangool.utils.AvroUtils;
+import org.apache.avro.generic.GenericData.Record;
 
 
 public class TestTupleSerialization extends BaseTest{
@@ -83,5 +88,29 @@ public class TestTupleSerialization extends BaseTest{
 		}
 		
 	}
+	
+	@Test
+	public void testTupleToRecordConversion() throws Exception {
+		Schema schema = SCHEMA; //TODO add permutations of this schema
+		Tuple tuple = new Tuple(schema);
+		Tuple convertedTuple = new Tuple(schema);
+		Configuration conf = new Configuration();
+		ThriftSerialization.enableThriftSerialization(conf);
+		DataOutputBuffer buffer = new DataOutputBuffer();
+		HadoopSerialization hadoopSer = new HadoopSerialization(conf);
+		int NUM_ITERATIONS=100000;
+		for (int i=0 ; i < NUM_ITERATIONS; i++){
+			fillTuple(true,tuple);
+			org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(schema);
+			Schema convertedSchema = AvroUtils.toPangoolSchema(avroSchema);
+			Assert.assertEquals(schema,convertedSchema);
+			Record r = new Record(avroSchema);
+			AvroUtils.toRecord(tuple, r, buffer, hadoopSer);
+			
+			AvroUtils.toTuple(r, convertedTuple, conf,hadoopSer);
+			Assert.assertEquals(tuple,convertedTuple);
+		}
+	}
+	
 	
 }

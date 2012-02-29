@@ -81,7 +81,7 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 
 		@Override
 		public void write(ITuple tuple, NullWritable ignore) throws IOException, InterruptedException {
-			AvroUtils.toRecord(pangoolSchema, avroSchema, tuple, record, tmpOutputBuffer, ser);
+			AvroUtils.toRecord(tuple, record, tmpOutputBuffer, ser);
 			writer.append(record);
 		}
 	}

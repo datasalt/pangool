@@ -38,7 +38,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 
 /**
- * This example uses the output of {@link TopicalWordcount} for calculating the "top n" words per each topic.
+ * This example uses the output of {@link TopicalWordCount} for calculating the "top n" words per each topic.
  * It also outputs the total appearances of these words together into an extra (named) output. This example
  * show how easy it is to perform secondary sort in Pangool as well as the use of "named outputs".
  */

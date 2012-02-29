@@ -56,7 +56,6 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private final HadoopSerialization ser;
 	private final boolean isRollup;
 	private final boolean multipleSources;
-	private final Map<Class<?>, Enum<?>[]> cachedEnums;
 
 	private final Buffer tmpInputBuffer = new Buffer();
 	private DatumWrapper<CachedTuples> cachedTuples = new DatumWrapper<CachedTuples>();
@@ -66,7 +65,6 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		this.conf = conf;
 		this.serInfo = tupleMRConf.getSerializationInfo();
 		this.ser = ser;
-		this.cachedEnums = TupleSerialization.getEnums(tupleMRConfig);
 		this.isRollup = tupleMRConf.getRollupFrom() != null && !tupleMRConf.getRollupFrom().isEmpty();
 		this.multipleSources = tupleMRConf.getNumIntermediateSchemas() >= 2;
 		this.cachedTuples.datum(createCachedTuples(tupleMRConf));
@@ -181,7 +179,7 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	}
 	
 	protected void readUtf8(DataInput input,ITuple tuple,int index) throws IOException {
-		//this method is safe because tuple is internal, it's not the one received by the Reducer
+		//this method is safe because tuple is internal, the tuple is not the final one
 		Utf8 t = (Utf8)tuple.get(index); 
 		if (t == null){
 			t = new Utf8();
@@ -208,10 +206,7 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	protected void readEnum(DataInput input,ITuple tuple,Class<?> fieldType,int index) throws IOException{
 		int ordinal = WritableUtils.readVInt(input);
 		try {
-			Enum<?>[] enums = cachedEnums.get(fieldType);
-			if(enums == null) {
-				throw new IOException("Field " + fieldType + " is not a enum type");
-			}
+			Object[] enums = fieldType.getEnumConstants();
 			tuple.set(index,enums[ordinal]);
 		} catch(ArrayIndexOutOfBoundsException e) {
 			throw new IOException("Ordinal serialized for ");

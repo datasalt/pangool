@@ -56,27 +56,29 @@ import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * 
- * TupleMRBuilder creates Tuple-based Map-Reduce jobs.
+ * TupleMRBuilder creates Tuple-based Map-Reduce jobs.<p>
  * 
  * One of the key concepts of Tuple-based Map-Reduce is that Hadoop Key-Value pairs are no longer used.Instead,they are
- * replaced by tuples.Tuples(see {link ITuple}) are just an ordered list of elements whose types are defined in a
+ * replaced by tuples.<br>
+ * 
+ * Tuples(see {@link ITuple}) are just an ordered list of elements whose types are defined in a
  * {@link Schema}.TupleMRBuilder contains several methods to define how grouping and sorting among tuples will be
  * performed, avoiding the complex task of defining custom binary {@link SortComparator} ,{@link GroupComparator} and
- * {@link Partitioner} implementations.
+ * {@link Partitioner} implementations.<p>
  * 
- * A Tuple-based Map-Red job, in its simplest form, requires to define :
+ * A Tuple-based Map-Red job, in its simplest form, requires to define :<br>
  * <ul>
  * <li><b>Intermediate schemas:</b><br>
  * An schema specifies the name and types of a Tuple's fields. Several schemas can be defined in order to perform joins
  * among different input data. It's mandatory to specify ,at least,one schema using
- * {@link #addIntermediateSchema(Schema)}</li>
+ * {@link #addIntermediateSchema(Schema)}</li><br>
  * <li><b>Group-by fields:</b><br>
  * Needed to specify how the tuples will be grouped. Several tuples with the same group-by fields will be groupped and
- * reduced together in the Reduce phase.</li>
+ * reduced together in the Reduce phase.</li><br>
  * <li><b>Tuple-based Mapper:</b><br>
  * The job needs to specify a {@link TupleMapper} instance,the Tuple-based implementation of Hadoop's {@link Mapper}.
  * Unlike Hadoop's Mappers, Tuple-based mappers are configured using stateful serializable instances and not static
- * class definitions.</li>
+ * class definitions.</li><br>
  * <li><b>Tuple-based Reducer:</b> Similar to mapper instances,the job needs to specify a {@link TupleReducer}
  * instance,the Tuple-based implementation of Hadoop's {@link Reducer}. <br>
  * </li>
