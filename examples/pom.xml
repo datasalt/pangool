@@ -35,53 +35,32 @@
           <optimize>true</optimize>
         </configuration>
       </plugin>
-      <!--plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-             
-            </configuration>
-          </execution>
-        </executions>
-      </plugin-->
 
       <!-- create examples pangool job jar -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.3</version>
-            <configuration>
-	  <!--descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs-->
-              <descriptors>
-                 <descriptor>src/main/assembly/job2.xml</descriptor>
-              </descriptors>
-	      <archive>
-                <manifest>
-                  <mainClass>com.datasalt.pangool.examples.Driver</mainClass>
-                </manifest>
-              </archive>
-           </configuration>
-	<!--executions>
-          <execution>
-            <id>make-job</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-
-          </execution>
-        </executions-->
-      </plugin>
-    </plugins>
+	  <plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2.1</version>
+				<configuration>
+					<descriptors>
+						<descriptor>src/main/assembly/hadoop-job.xml</descriptor>
+					</descriptors>
+					<archive>
+						<manifest>
+							<mainClass>com.pangool.examples.Driver</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+	    </plugins>
   </build>
     
   <dependencies>
