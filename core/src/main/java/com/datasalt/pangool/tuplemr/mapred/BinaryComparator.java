@@ -28,10 +28,9 @@ import com.datasalt.pangool.serialization.HadoopSerialization;
 
 /**
  * A simple {@link RawComparator} and {@link Serializable} that
- * compares byte by byte. It also implements Comparator<Object>{@link #compare(Object, Object)}
+ * compares in binary. It also implements Comparator<Object>{@link #compare(Object, Object)}
  * by serializing the objects using {@link HadoopSerialization}, 
- * and then comparing the bytes. That is useful for 
- * testing purposes.
+ * and then comparing the bytes. That is useful for testing purposes.
  * <br>
  * This class needs to receive a configuration via {@link #setConf(Configuration)} before
  * being ready to use the {@link #compare(Object, Object)} method.  
@@ -42,8 +41,8 @@ public class BinaryComparator implements RawComparator<Object>, Serializable, Co
 	protected Configuration conf;
 	protected HadoopSerialization ser;
 	
-	private DataOutputBuffer buff1;
-	private DataOutputBuffer buff2;
+	private DataOutputBuffer buf1;
+	private DataOutputBuffer buf2;
 	
 	@Override
   public int compare(Object o1, Object o2) {		
@@ -55,13 +54,13 @@ public class BinaryComparator implements RawComparator<Object>, Serializable, Co
 				return 1;
 			}
 			
-			buff1.reset();
-	    ser.ser(o1, buff1);
+			buf1.reset();
+	    ser.ser(o1, buf1);
 	    
-			buff2.reset();
-	    ser.ser(o2, buff2);
+			buf2.reset();
+	    ser.ser(o2, buf2);
 	    
-	    return compare(buff1.getData(), 0, buff1.getLength(), buff2.getData(), 0, buff2.getLength());
+	    return compare(buf1.getData(), 0, buf1.getLength(), buf2.getData(), 0, buf2.getLength());
     } catch(IOException e) {
     	throw new RuntimeException(e);
     }
@@ -74,8 +73,8 @@ public class BinaryComparator implements RawComparator<Object>, Serializable, Co
 
 	@Override
   public void setConf(Configuration conf) {
-		buff1 = new DataOutputBuffer();
-		buff2 = new DataOutputBuffer();
+		buf1 = new DataOutputBuffer();
+		buf2 = new DataOutputBuffer();
 		
 		try {
 	    ser = new HadoopSerialization(conf);

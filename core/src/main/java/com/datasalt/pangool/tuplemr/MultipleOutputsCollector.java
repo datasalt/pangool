@@ -26,24 +26,26 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.PangoolMultipleOutputs;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MultipleOutputsCollector {
 
-  protected PangoolMultipleOutputs multipleOutputs;
-	
+	protected PangoolMultipleOutputs multipleOutputs;
+
 	public MultipleOutputsCollector(MapContext context) {
 		multipleOutputs = new PangoolMultipleOutputs(context);
 	}
-	
+
 	public MultipleOutputsCollector(ReduceContext context) {
 		multipleOutputs = new PangoolMultipleOutputs(context);
 	}
-	
-	public <K, V> RecordWriter<K, V> getNamedOutput(String namedOutput) throws IOException, InterruptedException {
+
+	public <K, V> RecordWriter<K, V> getNamedOutput(String namedOutput) 
+	throws IOException, InterruptedException {
 		return multipleOutputs.getRecordWriter(namedOutput);
 	}
-	
-	public <K, V>void write(String namedOutput, K key, V value) throws IOException, InterruptedException {
+
+	public <K, V> void write(String namedOutput, K key, V value) 
+	throws IOException, InterruptedException {
 		multipleOutputs.write(namedOutput, key, value);
 	}
-	
+
 	public void close() throws IOException, InterruptedException {
 		multipleOutputs.close();
 	}

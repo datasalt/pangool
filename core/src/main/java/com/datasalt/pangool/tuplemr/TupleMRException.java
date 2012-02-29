@@ -40,19 +40,22 @@ public class TupleMRException extends Exception {
 		}
 	}
 
-	public static void failIfEmpty(Collection<?> ob, String message) throws TupleMRException {
+	public static void failIfEmpty(Collection<?> ob, String message) 
+	throws TupleMRException {
 		if(ob == null || ob.isEmpty()) {
 			throw new TupleMRException(message);
 		}
 	}
 	
-	public static void failIfEmpty(Object[] ob, String message) throws TupleMRException {
+	public static void failIfEmpty(Object[] ob, String message) 
+	throws TupleMRException {
 		if(ob == null || ob.length == 0) {
 			throw new TupleMRException(message);
 		}
 	}
 
-	public static void failIfNotNull(Object ob, String message) throws TupleMRException {
+	public static void failIfNotNull(Object ob, String message) 
+	throws TupleMRException {
 		if(ob != null) {
 			throw new TupleMRException(message);
 		}

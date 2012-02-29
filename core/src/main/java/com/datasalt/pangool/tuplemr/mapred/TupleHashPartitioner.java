@@ -19,6 +19,7 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Partitioner;
 
 import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
@@ -27,29 +28,32 @@ import com.datasalt.pangool.tuplemr.SerializationInfo;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 
-public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWrapper<ITuple>, NullWritable> implements Configurable {
+public class TupleHashPartitioner extends Partitioner<DatumWrapper<ITuple>, NullWritable>
+    implements Configurable {
 
 	private TupleMRConfig tupleMRConfig;
 	private SerializationInfo serInfo;
-	
+
 	private Configuration conf;
-	private final Utf8 HELPER_UTF8 = new Utf8(); //to perform hashCode of strings
-	
+	private final Utf8 HELPER_UTF8 = new Utf8(); // to perform hashCode of strings
+
 	@Override
 	public int getPartition(DatumWrapper<ITuple> key, NullWritable value, int numPartitions) {
 		if(numPartitions == 1) {
-			//in this case the schema is not checked if it's valid
+			// in this case the schema is not checked if it's valid
 			return 0;
 		} else {
 			ITuple tuple = key.datum();
 			String sourceName = tuple.getSchema().getName();
 			Integer schemaId = tupleMRConfig.getSchemaIdByName(sourceName);
 			if(schemaId == null) {
-				throw new RuntimeException("Schema name '" + sourceName + "' is unknown. Known schemas are : "
+				throw new RuntimeException("Schema name '" + sourceName
+				    + "' is unknown. Known schemas are : "
 				    + tupleMRConfig.getIntermediateSchemaNames());
 			}
 			int[] fieldsToPartition = serInfo.getPartitionFieldsIndexes().get(schemaId);
-			return (partialHashCode(tuple, fieldsToPartition) & Integer.MAX_VALUE) % numPartitions;
+			return (partialHashCode(tuple, fieldsToPartition) & Integer.MAX_VALUE)
+			    % numPartitions;
 		}
 	}
 
@@ -65,25 +69,25 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 			try {
 				this.tupleMRConfig = TupleMRConfig.get(conf);
 				this.serInfo = tupleMRConfig.getSerializationInfo();
-			} catch (TupleMRException e) {
+			} catch(TupleMRException e) {
 				throw new RuntimeException(e);
 			}
 		}
 	}
-	
+
 	/**
 	 * Calculates a combinated hashCode using the specified number of fields.
 	 * 
 	 */
-	public int partialHashCode(ITuple tuple,int[] fields) {
+	public int partialHashCode(ITuple tuple, int[] fields) {
 		int result = 0;
 		for(int field : fields) {
 			Object o = tuple.get(field);
 			int hashCode;
-			if (o instanceof Utf8){ //since String.hashCode() != Utf8.hashCode()
-				HELPER_UTF8.set((String)o); 
+			if(o instanceof Utf8) { // since String.hashCode() != Utf8.hashCode()
+				HELPER_UTF8.set((String) o);
 				hashCode = HELPER_UTF8.hashCode();
-			} else if (o instanceof Text){
+			} else if(o instanceof Text) {
 				HELPER_UTF8.set((Text) o);
 				hashCode = HELPER_UTF8.hashCode();
 			} else {
@@ -91,7 +95,7 @@ public class Partitioner extends org.apache.hadoop.mapreduce.Partitioner<DatumWr
 			}
 			result = result * 31 + hashCode;
 		}
-		return result ;
+		return result;
 	}
-	
+
 }
