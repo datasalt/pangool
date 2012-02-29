@@ -25,8 +25,8 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 
 /**
- * Iterator used in {@link Grouper},specially in {@link RollupReducer}. Basically it translates an {@link Iterable} containing 
- * {@link NullWritable} objects to one that contains {@link ITuple} ones. 
+ * Iterator used in {@link SimpleReducer} and {@link RollupReducer}. Basically it translates an {@link Iterable} containing 
+ * {@link NullWritable} objects to one that contains {@link ITuple} objects. 
  * In order to do so it handles the {@link ReduceContext} and uses {@link ReduceContext#getCurrentKey()} to obtain the key in 
  * every iteration.
  * 
