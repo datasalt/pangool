@@ -46,7 +46,7 @@
 					</descriptors>
 					<archive>
 						<manifest>
-							<mainClass>com.pangool.examples.Driver</mainClass>
+							<mainClass>com.datasalt.pangool.examples.Driver</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

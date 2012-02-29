@@ -19,16 +19,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.util.ToolRunner;
 
+import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
@@ -40,14 +39,13 @@ import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
-import com.datasalt.pangool.utils.HadoopUtils;
 
 /**
  * This example shows how to perform reduce-side joins using Pangool. We have one file with URL Registers: ["url", "timestamp", "ip"] and another file with
  * canonical URL mapping: ["url", "canonicalUrl"]. We want to obtain the URL Registers file with the url substituted with the
  * canonical one according to the mapping file: ["canonicalUrl", "timestamp", "ip"].
  */
-public class UrlResolution {
+public class UrlResolution extends BaseExampleJob {
 
 	@SuppressWarnings("serial")
 	public static class UrlProcessor extends TupleMapper<LongWritable, Text> {
@@ -110,8 +108,22 @@ public class UrlResolution {
 		}
 	}
 
-	public Job getJob(Configuration conf, String input1, String input2, String output) throws TupleMRException,
-	    IOException {
+	public UrlResolution() {
+		super("UrlResolution: [input_url_mapping] [input_url_regs] [output]");
+	}
+	
+	@Override
+	public int run(String[] args) throws Exception {
+		if(args.length != 3) {
+			failArguments("Wrong number of arguments");
+			return -1;
+		}
+		String input1 = args[0];
+		String input2 = args[1];
+		String output = args[2];
+		
+		deleteOutput(output);
+		
 		List<Field> urlRegisterFields = new ArrayList<Field>();
 		urlRegisterFields.add(Field.create("url",Type.STRING));
 		urlRegisterFields.add(Field.create("timestamp",Type.LONG));
@@ -129,18 +141,12 @@ public class UrlResolution {
 		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
 		grouper.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
 		grouper.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
-		return grouper.createJob();
+		grouper.createJob().waitForCompletion(true);
+
+		return 1;
 	}
-
-	public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException,
-	    TupleMRException {
-
-		Configuration conf = new Configuration();
-		FileSystem fS = FileSystem.get(conf);
-		String input1 = args[0];
-		String input2 = args[1];
-		String output = args[2];
-		HadoopUtils.deleteIfExists(fS, new Path(output));
-		new UrlResolution().getJob(conf, input1, input2, output).waitForCompletion(true);
+	
+	public static void main(String[] args) throws Exception {
+		ToolRunner.run(new UrlResolution(), args);
 	}
 }

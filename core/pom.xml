@@ -142,9 +142,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <!--version>0.20.203.0</version-->
-      <version>0.20.2-cdh3u1</version>
-     <!--scope>provided</scope-->
+      <version>1.0.0</version>
 	</dependency>   
      
     <dependency>
