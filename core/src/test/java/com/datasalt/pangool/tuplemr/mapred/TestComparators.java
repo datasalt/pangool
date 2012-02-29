@@ -32,21 +32,18 @@ import org.junit.Test;
 import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.Criteria;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.Criteria.Order;
-import com.datasalt.pangool.tuplemr.Criteria.SortElement;
-import com.datasalt.pangool.tuplemr.mapred.BaseComparator;
-import com.datasalt.pangool.tuplemr.mapred.GroupComparator;
-import com.datasalt.pangool.tuplemr.mapred.SortComparator;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
@@ -95,7 +92,6 @@ public class TestComparators extends ComparatorsBaseTest {
 		Configuration conf = getConf();
 
 		int maxIndex = SCHEMA.getFields().size() - 1;
-		boolean firstTime = true;
 
 		for(int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
 			Schema schema = permuteSchema(SCHEMA);
@@ -108,7 +104,7 @@ public class TestComparators extends ComparatorsBaseTest {
 			}
 			
 			for(int minIndex = maxIndex; minIndex >= 0; minIndex--) {
-				DCUtils.cleanupTemporaryInstanceCache(); // Trick for speedup the tests. 
+				DCUtils.cleanupTemporaryInstanceCache(conf, "comparator.dat"); // Trick for speedup the tests. 
 				TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 				builder.addIntermediateSchema(schema);
 				builder.setGroupByFields(groupFields);

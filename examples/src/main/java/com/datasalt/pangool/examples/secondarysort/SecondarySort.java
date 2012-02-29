@@ -121,15 +121,15 @@ public class SecondarySort extends BaseExampleJob {
 		fields.add(Field.create("doubleField", Type.DOUBLE));
 		Schema schema = new Schema("schema", fields);
 
-		TupleMRBuilder grouper = new TupleMRBuilder(conf, "Pangool Secondary Sort");
-		grouper.addIntermediateSchema(schema);
-		grouper.setGroupByFields("intField", "strField");
-		grouper.setOrderBy(new OrderBy().add("intField", Order.ASC).add("strField", Order.ASC).add("longField", Order.ASC));
-		grouper.setTupleReducer(new Handler());
-		grouper.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new IProcessor());
-		grouper.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
+		TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Secondary Sort");
+		mr.addIntermediateSchema(schema);
+		mr.setGroupByFields("intField", "strField");
+		mr.setOrderBy(new OrderBy().add("intField", Order.ASC).add("strField", Order.ASC).add("longField", Order.ASC));
+		mr.setTupleReducer(new Handler());
+		mr.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new IProcessor());
+		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
 		    DoubleWritable.class);
-		grouper.createJob().waitForCompletion(true);
+		mr.createJob().waitForCompletion(true);
 		return 1;
 	}
 
