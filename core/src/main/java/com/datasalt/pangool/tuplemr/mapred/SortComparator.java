@@ -311,8 +311,6 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	/**
 	 * Return the header length and the field length for a field
 	 * of the given type in the given position at the buffer. 
-	 * Length can be {@link TupleSerialization#NULL_LENGTH} in 
-	 * the case of null objects.
 	 */
 	public static int[] getHeaderLengthAndFieldLength(byte[] b1, int offset1, Field.Type type) throws IOException {
 		switch(type){

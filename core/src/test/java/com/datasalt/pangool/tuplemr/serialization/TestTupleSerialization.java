@@ -40,7 +40,7 @@ import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerializer;
 
 
-public class TestPangoolSerialization extends BaseTest{
+public class TestTupleSerialization extends BaseTest{
 
 	protected TupleMRConfig pangoolConf;
 	

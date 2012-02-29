@@ -20,7 +20,14 @@ import java.io.IOException;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.tuplemr.mapred.RollupReducer;
 
+/**
+ * 
+ * Similar to {@link TupleReducer} but added functionality to be used with rollup
+ * @see RollupReducer
+ * 
+ */
 @SuppressWarnings("serial")
 public class TupleRollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> {
 
@@ -29,14 +36,10 @@ public class TupleRollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends TupleReducer<O
 	 * This is the method called any time that a sub-group is opened when rollup is used. Check {@link TupleMRBuilder} doc about
 	 * how roll-up feature works
 	 * 
-	 * @param depth
-	 *          The tuple's field index that is currently being opened.0 when it's the first field
-	 * @param field
-	 *          The tuple's field name that is currently being opened.
-	 * @param firstElement
-	 *          The first tuple from the current group
-	 * @param context
-	 *          The reducer context as in {@link Reducer}
+	 * @param depth The tuple's field index that is currently being opened.0 when it's the first field
+	 * @param field The tuple's field name that is currently being opened.
+	 * @param firstElement The first tuple from the current group
+	 * @param context The reducer context as in {@link Reducer}
 	 * 
 	 */
 	public void onOpenGroup(int depth, String field, ITuple firstElement, TupleMRContext context, Collector collector)
@@ -48,14 +51,10 @@ public class TupleRollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends TupleReducer<O
 	 * This is the method called after every sub-group is being closed when rollup is used. Check {@link TupleMRBuilder} doc
 	 * about how roll-up feature works
 	 * 
-	 * @param depth
-	 *          The tuple's field index that is currently being opened.It's 0 when it's the first field
-	 * @param field
-	 *          The tuple's field name that is currently being opened.
-	 * @param firstElement
-	 *          The last tuple from the current group
-	 * @param context
-	 *          The reducer context as in {@link Reducer}
+	 * @param depth The tuple's field index that is currently being opened.It's 0 when it's the first field
+	 * @param field The tuple's field name that is currently being opened.
+	 * @param lastElement The last tuple from the current group
+	 * @param context The reducer context as in {@link Reducer}
 	 * 
 	 */
 	public void onCloseGroup(int depth, String field, ITuple lastElement,

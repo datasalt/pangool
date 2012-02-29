@@ -40,8 +40,8 @@ import org.slf4j.LoggerFactory;
  * This class contains useful methods for dealing with the Hadoop DistributedCache.
  * <p>
  * You can do things like saving a Java Serializable instance and recovering it afterwards. Check methods
- * {@link #serializeToDC(Serializable, String, String, Configuration)} and
- * {@link #loadSerializedObjectInDC(Configuration, Class, String)} for this purpose.
+ * {@link DCUtils#serializeToDC(Object, String, Configuration)} and
+ * {@link DCUtils#loadSerializedObjectInDC(Configuration, Class, String, boolean)} for this purpose.
  * 
  */
 public class DCUtils {
@@ -62,14 +62,11 @@ public class DCUtils {
 	 * Utility method for serializing an object and saving it in the Distributed Cache.
 	 * <p>
 	 * The file where it has been serialized will be saved into a Hadoop Configuration property so that you can call
-	 * {@link #loadSerializedObjectInDC(Configuration, Class, String)} to re-instantiate the serialized instance.
+	 * {@link DCUtils#loadSerializedObjectInDC(Configuration, Class, String, boolean)} to re-instantiate the serialized instance.
 	 * 
-	 * @param obj
-	 *          The obj instance to serialize using Java serialization.
-	 * @param serializeToLocalFile
-	 *          The local file where the instance will be serialized. It will be copied to the HDFS and removed.
-	 * @param conf
-	 *          The Hadoop Configuration.
+	 * @param obj The obj instance to serialize using Java serialization.
+	 * @param serializeToLocalFile The local file where the instance will be serialized. It will be copied to the HDFS and removed.
+	 * @param conf The Hadoop Configuration.
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws URISyntaxException
@@ -100,19 +97,13 @@ public class DCUtils {
 	/**
 	 * Given a Hadoop Configuration property and an Class, this method can re-instantiate an Object instance that was
 	 * previously serialized and saved in the Distributed Cache like in
-	 * {@link #serializeToDC(Serializable, String, String, Configuration)}.
+	 * {@link DCUtils#serializeToDC(Object, String, Configuration)}.
 	 * 
-	 * @param <T>
-	 *          The object type.
-	 * @param conf
-	 *          The Hadoop Configuration.
-	 * @param objClass
-	 *          The object type class.
-	 * @param fileName
-	 *          The file name to locate in DC
-	 * @param setConf
-	 * 					If true, will call setConf() if deserialized object is Configurable
-	 * @return
+	 * @param <T>  The object type.
+	 * @param conf The Hadoop Configuration.
+	 * @param objClass The object type class.
+	 * @param fileName The file name to locate in DC
+	 * @param callSetConf If true, will call setConf() if deserialized object is Configurable
 	 * @throws IOException
 	 */
 	public static <T> T loadSerializedObjectInDC(Configuration conf, Class<T> objClass, String fileName, boolean callSetConf)
@@ -162,7 +153,6 @@ public class DCUtils {
 	 *          The Hadoop Configuration.
 	 * @param filePostFix
 	 *          The file post-fix.
-	 * @return
 	 * @throws IOException
 	 */
 	public static Path locateFileInDC(Configuration conf, String filePostFix) throws IOException {

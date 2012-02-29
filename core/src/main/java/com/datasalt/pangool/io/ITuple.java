@@ -19,7 +19,7 @@ package com.datasalt.pangool.io;
 /**
  * This is the common interface implemented by tuples.
  * A Tuple is basically an ordered list of objects whose types are defined by a {@link Schema}.
- * @see http://en.wikipedia.org/wiki/Tuple 
+ * @see <a href="http://en.wikipedia.org/wiki/Tuple">Tuple</a> 
  */
 public interface ITuple{
 

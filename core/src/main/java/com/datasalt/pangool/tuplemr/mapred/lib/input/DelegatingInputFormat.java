@@ -36,7 +36,7 @@ import com.datasalt.pangool.utils.DCUtils;
  * An {@link InputFormat} that delegates behavior of paths to multiple other InputFormats.
  * <p>
  * 
- * @see PangoolMultipleInputs#addInputPath(Job, Path, Class, Class)
+ * @see PangoolMultipleInputs#addInputPath(Job, Path, InputFormat, org.apache.hadoop.mapreduce.Mapper)
  */
 @SuppressWarnings("rawtypes")
 public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {

@@ -41,6 +41,7 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.GroupComparator;
+import com.datasalt.pangool.tuplemr.mapred.RollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.SortComparator;
 import com.datasalt.pangool.utils.DCUtils;
 
@@ -207,7 +208,7 @@ public class TupleMRConfig {
 
 	/**
 	 * Returns the fields that are a subset from the groupBy fields and will be used when rollup is needed.
-	 * @see {@link RollupReducer}  
+	 * @see RollupReducer  
 	 */
 	public List<String> calculateRollupBaseFields() {
 		if(rollupFrom == null) {

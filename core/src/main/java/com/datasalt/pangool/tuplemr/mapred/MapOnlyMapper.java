@@ -26,7 +26,7 @@ import com.datasalt.pangool.tuplemr.MapOnlyJobBuilder;
  *
  */
 @SuppressWarnings("serial")
-public abstract class MapOnlyTupleMapper<I1, I2, O1, O2> extends Mapper<I1, I2, O1, O2> implements Serializable {
+public abstract class MapOnlyMapper<I1, I2, O1, O2> extends Mapper<I1, I2, O1, O2> implements Serializable {
 
 	protected void map(I1 key, I2 value, org.apache.hadoop.mapreduce.Mapper<I1,I2,O1,O2>.Context context) throws java.io.IOException ,InterruptedException {
 		

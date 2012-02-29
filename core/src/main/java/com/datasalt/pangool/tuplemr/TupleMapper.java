@@ -58,7 +58,7 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 	    throws IOException, InterruptedException;
 	
 	/**
-	 * Do not override. Override {@link TupleMapper#setup(Collector)} instead.
+	 * Do not override. Override {@link TupleMapper#setup(TupleMRContext, Collector)} instead.
 	 */
 	@Override
 	public final void setup(Mapper<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable>.Context context) throws IOException, InterruptedException {
@@ -75,7 +75,7 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 	}
 
 	/**
-	 * Do not override. Override {@link TupleMapper#cleanup(Collector)} instead.
+	 * Do not override. Override {@link TupleMapper#cleanup(TupleMRContext, Collector)} instead.
 	 */
 	@Override
 	public final void cleanup(Context context) throws IOException, InterruptedException {
@@ -85,7 +85,7 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 	}
 
 	/**
-	 * Do not override! Override {@link TupleMapper#process(Object, Object, Collector)} instead.
+	 * Do not override! Override {@link TupleMapper#map(Object, Object, TupleMRContext, Collector)} instead.
 	 */
 	@Override
 	public final void map(INPUT_KEY key, INPUT_VALUE value, Context context) throws IOException, InterruptedException {

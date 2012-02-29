@@ -50,7 +50,7 @@ public class TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
 	 * @param context
 	 *          The reducer context as in {@link Reducer}
 	 */
-	public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext tupleMRContext, Collector collector) throws IOException, InterruptedException,
+	public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector) throws IOException, InterruptedException,
 	    TupleMRException {
 
 	}
@@ -105,7 +105,7 @@ public class TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> implements Serializable {
 			
 		private NullWritable nullWritable;
 		
-		/*
+		/**
 		 * This non static inner class is created to eliminate the need in
 		 * of the extended GroupHandler methods to specify the generic types
 		 * for the Collector meanwhile keeping generics. 

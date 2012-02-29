@@ -28,7 +28,7 @@ import com.datasalt.pangool.utils.DCUtils;
 /**
  * An {@link Mapper} that delegates behavior of paths to multiple other mappers.
  * 
- * @see PangoolMultipleInputs#addInputPath(Job, Path, Class, Class)
+ * @see PangoolMultipleInputs#addInputPath(Job, Path, org.apache.hadoop.mapreduce.InputFormat, Mapper)
  */
 @SuppressWarnings({"rawtypes","unchecked"})
 public class DelegatingMapper extends Mapper {

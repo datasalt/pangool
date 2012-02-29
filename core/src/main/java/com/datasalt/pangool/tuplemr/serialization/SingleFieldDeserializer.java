@@ -76,22 +76,10 @@ public class SingleFieldDeserializer {
 	/**
 	 * Deserialize an individual field from a byte array position that is encoded with the 
 	 * {@link TupleSerialization}.
-	 * <br>
-	 * Objects of {@link Type#OBJECT} can return null.
 	 * 
-	 * @param instance An instance to be reused in the case of objects following standard 
-	 * 				Hadoop serialization or Utf8. If null, always return a new object. Usually
-	 *        you should call this method first with a new instance, and then reuse this
-	 *        instance in sucessive calls.  
 	 * @param bytes The byte array.
 	 * @param offset The place to start reading.
-	 * @param type The type of the object to read.
-	 * @param ser A Hadoop serialization service for the cases of objects serialized 
-	 *  			with this format
-	 * @param conf A Hadoop configuration
-	 * @param cachedEnums A map with the cached enumerations, for fast lookup. 
-	 * @return A deserialized instance. Null possible if the type is
-	 *         {@link Type#OBJECT} 
+	 * @return A deserialized instance. 
 	 * 				    
 	 */
 	public Object deserialize(byte[] bytes, int offset) throws IOException {

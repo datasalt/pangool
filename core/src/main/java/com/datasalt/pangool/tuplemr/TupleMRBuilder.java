@@ -82,7 +82,10 @@ import com.datasalt.pangool.utils.DCUtils;
  * </li>
  * </ul>
  * 
- * @see {@link ITuple}, {@link Schema}, {@link TupleMapper}, {@link TupleReducer}
+ * @see ITuple
+ * @see Schema
+ * @see TupleMapper
+ * @see TupleReducer
  * 
  */
 @SuppressWarnings("rawtypes")
@@ -162,7 +165,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	/**
 	 * Defines an input as in {@link PangoolMultipleInputs} using {@link TupleInputFormat}
 	 * 
-	 * @see {@link PangoolMultipleInputs}
+	 * @see PangoolMultipleInputs
 	 */
 	public void addTupleInput(Path path, TupleMapper<ITuple, NullWritable> tupleMapper) {
 		this.multiInputs.add(new Input(path, new TupleInputFormat(), tupleMapper));
@@ -173,7 +176,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	/**
 	 * Defines an input as in {@link PangoolMultipleInputs}
 	 * 
-	 * @see {@link PangoolMultipleInputs}
+	 * @see PangoolMultipleInputs
 	 */
 	public void addInput(Path path, InputFormat inputFormat, TupleMapper inputProcessor) {
 		this.multiInputs.add(new Input(path, inputFormat, inputProcessor));
