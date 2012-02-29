@@ -119,8 +119,8 @@ public abstract class CollectionInputFormat<K,V> extends InputFormat<K,V> {
   }
 
 	@Override
-  public RecordReader<K, V> createRecordReader(InputSplit split, TaskAttemptContext context) throws IOException,
-      InterruptedException {
+  public RecordReader<K, V> createRecordReader(InputSplit split, TaskAttemptContext context) 
+  throws IOException, InterruptedException {
 		return new RecordReader<K, V>() {
 			Iterator<Entry<K, V>> it;
 			Entry<K,V> currentEntry;

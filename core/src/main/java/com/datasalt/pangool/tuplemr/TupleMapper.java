@@ -28,40 +28,49 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 
 /**
- * TupleMapper is the Tuple-based Hadoop's {@link Mapper} version. 
+ * TupleMapper is the Tuple-based Hadoop's {@link Mapper} version.
  */
 @SuppressWarnings({ "rawtypes", "serial" })
 public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
-    Mapper<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable> implements Serializable {
-  
+    Mapper<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable> implements
+    Serializable {
+
 	private Collector collector;
 	private TupleMRContext context;
 
 	/**
-	 * Called once at the start of the task. Override it to implement your custom logic.
+	 * Called once at the start of the task. Override it to implement your custom
+	 * logic.
 	 */
-	public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+	public void setup(TupleMRContext context, Collector collector) throws IOException,
+	    InterruptedException {
 
 	}
 
 	/**
-	 * Called once at the end of the task. Override it to implement your custom logic.
+	 * Called once at the end of the task. Override it to implement your custom
+	 * logic.
 	 */
-	public void cleanup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
-		
+	public void cleanup(TupleMRContext context, Collector collector) throws IOException,
+	    InterruptedException {
+
 	}
 
 	/**
-	 * Called once per each input pair of key/values. Override it to implement your custom logic.
+	 * Called once per each input pair of key/values. Override it to implement
+	 * your custom logic.
 	 */
-	public abstract void map(INPUT_KEY key, INPUT_VALUE value, TupleMRContext context, Collector collector)
-	    throws IOException, InterruptedException;
-	
+	public abstract void map(INPUT_KEY key, INPUT_VALUE value, TupleMRContext context,
+	    Collector collector) throws IOException, InterruptedException;
+
 	/**
-	 * Do not override. Override {@link TupleMapper#setup(TupleMRContext, Collector)} instead.
+	 * Do not override. Override
+	 * {@link TupleMapper#setup(TupleMRContext, Collector)} instead.
 	 */
 	@Override
-	public final void setup(Mapper<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable>.Context context) throws IOException, InterruptedException {
+	public final void setup(
+	    Mapper<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable>.Context context)
+	    throws IOException, InterruptedException {
 		try {
 			super.setup(context);
 			Configuration conf = context.getConfiguration();
@@ -75,7 +84,8 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 	}
 
 	/**
-	 * Do not override. Override {@link TupleMapper#cleanup(TupleMRContext, Collector)} instead.
+	 * Do not override. Override
+	 * {@link TupleMapper#cleanup(TupleMRContext, Collector)} instead.
 	 */
 	@Override
 	public final void cleanup(Context context) throws IOException, InterruptedException {
@@ -85,31 +95,31 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 	}
 
 	/**
-	 * Do not override! Override {@link TupleMapper#map(Object, Object, TupleMRContext, Collector)} instead.
+	 * Do not override! Override
+	 * {@link TupleMapper#map(Object, Object, TupleMRContext, Collector)} instead.
 	 */
 	@Override
-	public final void map(INPUT_KEY key, INPUT_VALUE value, Context context) throws IOException, InterruptedException {
+	public final void map(INPUT_KEY key, INPUT_VALUE value, Context context)
+	    throws IOException, InterruptedException {
 		map(key, value, this.context, collector);
-	}	
-	
-	/* ------------ INNER CLASSES ------------ */
-	
+	}
+
 	/**
 	 * Class for collecting data inside a {@link TupleMapper}.
 	 */
 	public static class Collector extends MultipleOutputsCollector {
 
 		private Mapper.Context context;
-		
-		private ThreadLocal<DatumWrapper<ITuple>> cachedDatum = new ThreadLocal<DatumWrapper<ITuple>>(){
+
+		private ThreadLocal<DatumWrapper<ITuple>> cachedDatum = new ThreadLocal<DatumWrapper<ITuple>>() {
 			@Override
-			public DatumWrapper<ITuple> get(){
+			public DatumWrapper<ITuple> get() {
 				return new DatumWrapper<ITuple>();
 			}
 		};
-			
+
 		private NullWritable nullWritable;
-		
+
 		Collector(Mapper.Context context) {
 			super(context);
 			this.context = context;
@@ -117,19 +127,21 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 		}
 
 		@SuppressWarnings("unchecked")
-    public void write(ITuple tuple) throws IOException, InterruptedException {
+		public void write(ITuple tuple) throws IOException, InterruptedException {
 			DatumWrapper<ITuple> outputDatum = cachedDatum.get();
 			outputDatum.datum(tuple);
 			context.write(outputDatum, nullWritable);
 		}
 	}
-	
+
 	public static class StaticTupleMRContext<INPUT_KEY, INPUT_VALUE> {
 
 		private MapContext<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable> context;
 		private TupleMRConfig tupleMRConfig;
 
-		StaticTupleMRContext(MapContext<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable> context, TupleMRConfig tupleMRConfig) {
+		StaticTupleMRContext(
+		    MapContext<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable> context,
+		    TupleMRConfig tupleMRConfig) {
 			this.context = context;
 			this.tupleMRConfig = tupleMRConfig;
 		}
@@ -145,16 +157,17 @@ public abstract class TupleMapper<INPUT_KEY, INPUT_VALUE> extends
 			return tupleMRConfig;
 		}
 	}
-	
+
 	public class TupleMRContext extends StaticTupleMRContext<INPUT_KEY, INPUT_VALUE> {
 		/*
-		 * This non static inner class is created to eliminate the need in
-		 * of the extended GroupHandler methods to specify the generic types
-		 * for the Collector meanwhile keeping generics. 
+		 * This non static inner class is created to eliminate the need in of the
+		 * extended GroupHandler methods to specify the generic types for the
+		 * Collector meanwhile keeping generics.
 		 */
-		TupleMRContext(MapContext<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable> context,
-        TupleMRConfig tupleMRConfig) {
-	    super(context, tupleMRConfig);
-    }		
+		TupleMRContext(
+		    MapContext<INPUT_KEY, INPUT_VALUE, DatumWrapper<ITuple>, NullWritable> context,
+		    TupleMRConfig tupleMRConfig) {
+			super(context, tupleMRConfig);
+		}
 	}
 }

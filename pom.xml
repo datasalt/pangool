@@ -4,7 +4,7 @@
 
   <groupId>com.datasalt.pangool</groupId>
   <artifactId>pangool</artifactId>
-  <version>0.40-SNAPSHOT</version>
+  <version>0.40</version>
   <packaging>pom</packaging>
 
   <name>Pangool</name>
@@ -18,7 +18,19 @@
     <module>core</module>
     <module>examples</module>
   </modules>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
+  <scm>
+   <url>http://pangool.net</url>
+    <connection>git@github.com:datasalt/pangool.git</connection>
+  </scm>
+  
   <build>
     <plugins>
       <plugin>

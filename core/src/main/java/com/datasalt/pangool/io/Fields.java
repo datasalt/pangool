@@ -30,11 +30,13 @@ public class Fields {
 
 	static {
 		strToType.put("int", Type.INT);
-		strToType.put("string", Type.STRING);
-		strToType.put("boolean", Type.BOOLEAN);
-		strToType.put("double", Type.DOUBLE);
-		strToType.put("float", Type.FLOAT);
 		strToType.put("long", Type.LONG);
+		strToType.put("boolean", Type.BOOLEAN);
+		strToType.put("float", Type.FLOAT);
+		strToType.put("double", Type.DOUBLE);
+		
+		strToType.put("string", Type.STRING);
+		strToType.put("utf8",Type.STRING);
 	}
 
 	public static List<Field> parse(String serialized) throws TupleMRException {

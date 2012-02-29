@@ -48,7 +48,7 @@ public abstract class ComparatorsBaseTest extends BaseTest{
 		
 	}
 	
-	protected void setConf(SortComparator comparator) throws TupleMRException, JsonGenerationException, JsonMappingException, IOException {
+	protected void setConf(SortComparator comparator) throws TupleMRException  {
 		
 		Configuration conf = new Configuration();
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();

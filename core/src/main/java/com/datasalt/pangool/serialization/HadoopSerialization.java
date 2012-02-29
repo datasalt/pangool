@@ -29,112 +29,113 @@ import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
 
 /**
- * You can use this utility class to serialize / deserialize anything in the Hadoop context.
- * It is thread safe. Instantiate once, reuse many times. Otherwise it is not
- * efficient.
+ * You can use this utility class to serialize / deserialize anything in the
+ * Hadoop context. It is thread safe. Instantiate once, reuse many times.
+ * Otherwise it is not efficient.
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class HadoopSerialization {
 
 	private SerializationFactory serialization;
-	
+
 	public HadoopSerialization(Configuration conf) throws IOException {
 		serialization = new SerializationFactory(conf);
 	}
-	
-	private ThreadLocal<DataInputBuffer> cachedInputStream = new ThreadLocal<DataInputBuffer>() {
 
+	private ThreadLocal<DataInputBuffer> 
+	cachedInputStream =	new ThreadLocal<DataInputBuffer>() {
 		@Override
-    protected DataInputBuffer initialValue() {
+		protected DataInputBuffer initialValue() {
 			return new DataInputBuffer();
-    }
+		}
 	};
-	
-	private ThreadLocal<Map<Class,Serializer>> cachedSerializers = new ThreadLocal<Map<Class,Serializer>>() {
+
+	private ThreadLocal<Map<Class, Serializer>> 
+	cachedSerializers = new ThreadLocal<Map<Class, Serializer>>() {
 		@Override
-    protected Map<Class,Serializer> initialValue() {
-			return new HashMap<Class,Serializer>();
-    }
+		protected Map<Class, Serializer> initialValue() {
+			return new HashMap<Class, Serializer>();
+		}
 	};
-	
-	private ThreadLocal<Map<Class,Deserializer>> cachedDeserializers = new ThreadLocal<Map<Class,Deserializer>>() {
+
+	private ThreadLocal<Map<Class, Deserializer>> 
+	cachedDeserializers = new ThreadLocal<Map<Class, Deserializer>>() {
 		@Override
-    protected Map<Class,Deserializer> initialValue() {
-			return new HashMap<Class,Deserializer>();
-    }
+		protected Map<Class, Deserializer> initialValue() {
+			return new HashMap<Class, Deserializer>();
+		}
 	};
-	
+
 	/**
-	 * Serializes the given object using the Hadoop 
-	 * serialization system.
+	 * Serializes the given object using the Hadoop serialization system.
 	 */
-	public void ser(Object datum,OutputStream output) throws IOException {
-		Map<Class,Serializer> serializers = cachedSerializers.get();
+	public void ser(Object datum, OutputStream output) throws IOException {
+		Map<Class, Serializer> serializers = cachedSerializers.get();
 		Serializer ser = serializers.get(datum.getClass());
-		if (ser == null){
+		if(ser == null) {
 			ser = serialization.getSerializer(datum.getClass());
-			if (ser == null) {
+			if(ser == null) {
 				throw new IOException("Serializer for class " + datum.getClass() + " not found");
-			}	
+			}
 			serializers.put(datum.getClass(), ser);
 		}
-    ser.open(output);
+		ser.open(output);
 		ser.serialize(datum);
 		ser.close();
 	}
 
 	/**
-	 * Deseerializes into the given object using the Hadoop 
-	 * serialization system. Object cannot be null.
+	 * Deseerializes into the given object using the Hadoop serialization system.
+	 * Object cannot be null.
 	 */
-	public <T> T deser(Object obj,InputStream in) throws IOException {
-		Map<Class,Deserializer> deserializers = cachedDeserializers.get();
+	public <T> T deser(Object obj, InputStream in) throws IOException {
+		Map<Class, Deserializer> deserializers = cachedDeserializers.get();
 		Deserializer deSer = deserializers.get(obj.getClass());
-		if (deSer == null){
+		if(deSer == null) {
 			deSer = serialization.getDeserializer(obj.getClass());
-			deserializers.put(obj.getClass(),deSer);
+			deserializers.put(obj.getClass(), deSer);
 		}
 		deSer.open(in);
 		obj = deSer.deserialize(obj);
 		deSer.close();
-		return (T)obj;
+		return (T) obj;
 	}
-	
-	/** 
-	 * Return a new instance of the given class with the 
-	 * deserialized data from the input stream. 
+
+	/**
+	 * Return a new instance of the given class with the deserialized data from
+	 * the input stream.
 	 */
-	public <T> T deser(Class clazz,InputStream in) throws IOException {
-		Map<Class,Deserializer> deserializers = cachedDeserializers.get();
+	public <T> T deser(Class clazz, InputStream in) throws IOException {
+		Map<Class, Deserializer> deserializers = cachedDeserializers.get();
 		Deserializer deSer = deserializers.get(clazz);
-		if (deSer == null){
+		if(deSer == null) {
 			deSer = serialization.getDeserializer(clazz);
-			deserializers.put(clazz,deSer);
+			deserializers.put(clazz, deSer);
 		}
-		
+
 		deSer.open(in);
 		Object obj = deSer.deserialize(null);
 		deSer.close();
-		return (T)obj;
+		return (T) obj;
 	}
-		
+
 	/**
-	 * Deserialize an object using Hadoop serialization from a byte array. 
-	 * The object cannot be null. 
+	 * Deserialize an object using Hadoop serialization from a byte array. The
+	 * object cannot be null.
 	 */
 	public <T> T deser(Object obj, byte[] array, int offset, int length) throws IOException {
-		Map<Class,Deserializer> deserializers = cachedDeserializers.get();
+		Map<Class, Deserializer> deserializers = cachedDeserializers.get();
 		Deserializer deSer = deserializers.get(obj.getClass());
-		if (deSer == null){
+		if(deSer == null) {
 			deSer = serialization.getDeserializer(obj.getClass());
-			deserializers.put(obj.getClass(),deSer);
+			deserializers.put(obj.getClass(), deSer);
 		}
 		DataInputBuffer baIs = cachedInputStream.get();
-		baIs.reset(array, offset,length);
+		baIs.reset(array, offset, length);
 		deSer.open(baIs);
 		obj = deSer.deserialize(obj);
 		deSer.close();
 		baIs.close();
-    return (T)obj;
+		return (T) obj;
 	}
 }

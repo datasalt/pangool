@@ -34,11 +34,13 @@ import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.TupleReducer.TupleMRContext;
 import com.datasalt.pangool.utils.DCUtils;
 
-public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,DatumWrapper<ITuple>, NullWritable> {
+public class SimpleCombiner extends
+    Reducer<DatumWrapper<ITuple>, NullWritable, DatumWrapper<ITuple>, NullWritable> {
 
-	public final static String CONF_COMBINER_HANDLER = SimpleCombiner.class.getName() + ".combiner.handler";
+	public final static String CONF_COMBINER_HANDLER = SimpleCombiner.class.getName()
+	    + ".combiner.handler";
 	private final static Logger log = LoggerFactory.getLogger(SimpleCombiner.class);
-	
+
 	// Following variables protected to be shared by Combiners
 	private TupleMRConfig tupleMRConfig;
 	private SerializationInfo serInfo;
@@ -50,26 +52,28 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 	private boolean isMultipleSources;
 
 	@SuppressWarnings("unchecked")
-  public void setup(Context context) throws IOException, InterruptedException {
+	public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
 			this.tupleMRConfig = TupleMRConfig.get(context.getConfiguration());
 			this.serInfo = this.tupleMRConfig.getSerializationInfo();
 			this.isMultipleSources = this.tupleMRConfig.getNumIntermediateSchemas() >= 2;
-			if (isMultipleSources){
+			if(isMultipleSources) {
 				this.groupTuple = new ViewTuple(serInfo.getGroupSchema());
 			} else {
-				this.groupTuple = new ViewTuple(serInfo.getGroupSchema(),serInfo.getGroupSchemaIndexTranslation(0));
+				this.groupTuple = new ViewTuple(serInfo.getGroupSchema(),
+				    serInfo.getGroupSchemaIndexTranslation(0));
 			}
 			this.tupleIterator = new TupleIterator<DatumWrapper<ITuple>, NullWritable>(context);
 
-			String fileName = context.getConfiguration().get(SimpleCombiner.CONF_COMBINER_HANDLER);
-			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleReducer.class, fileName, true);
-			
+			String fileName = context.getConfiguration().get(
+			    SimpleCombiner.CONF_COMBINER_HANDLER);
+			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(),
+			    TupleReducer.class, fileName, true);
+
 			@SuppressWarnings("rawtypes")
-      ReduceContext castedContext = context;			
-			this.context = new TupleMRContext( castedContext
-					, tupleMRConfig);
+			ReduceContext castedContext = context;
+			this.context = new TupleMRContext(castedContext, tupleMRConfig);
 			collector = handler.new CombinerCollector(castedContext);
 			handler.setup(this.context, collector);
 		} catch(TupleMRException e) {
@@ -89,8 +93,8 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 	}
 
 	@Override
-	public final void reduce(DatumWrapper<ITuple> key, Iterable<NullWritable> values, Context context) throws IOException,
-	    InterruptedException {
+	public final void reduce(DatumWrapper<ITuple> key, Iterable<NullWritable> values,
+	    Context context) throws IOException, InterruptedException {
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
 			tupleIterator.setIterator(iterator);
@@ -98,11 +102,13 @@ public class SimpleCombiner extends Reducer<DatumWrapper<ITuple>, NullWritable,D
 			// We get the firts tuple, to create the groupTuple view
 			ITuple firstTupleGroup = key.datum();
 
-			// A view is created over the first tuple to give the user the group fields
-			if (isMultipleSources){ 
-				int schemaId = tupleMRConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
+			// A view is created over the first tuple to give the user the group
+			// fields
+			if(isMultipleSources) {
+				int schemaId = tupleMRConfig.getSchemaIdByName(firstTupleGroup.getSchema()
+				    .getName());
 				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(schemaId);
-				groupTuple.setContained(firstTupleGroup,indexTranslation);
+				groupTuple.setContained(firstTupleGroup, indexTranslation);
 			} else {
 				groupTuple.setContained(firstTupleGroup);
 			}

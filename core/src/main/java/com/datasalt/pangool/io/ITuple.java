@@ -15,22 +15,20 @@
  */
 package com.datasalt.pangool.io;
 
-
 /**
- * This is the common interface implemented by tuples.
- * A Tuple is basically an ordered list of objects whose types are defined by a {@link Schema}.
- * @see <a href="http://en.wikipedia.org/wiki/Tuple">Tuple</a> 
+ * This is the common interface implemented by tuples. A Tuple is basically an
+ * ordered list of objects whose types are defined by a {@link Schema}.
+ * 
+ * @see <a href="http://en.wikipedia.org/wiki/Tuple">Tuple</a>
  */
-public interface ITuple{
+public interface ITuple {
 
 	public Schema getSchema();
-	
 	public void clear();
-	
+
 	public Object get(int pos);
-	public void set(int pos, Object object);
-	
-	public void set(String field, Object object);
 	public Object get(String field);
 	
+	public void set(int pos, Object object);
+	public void set(String field, Object object);
 }

@@ -31,9 +31,8 @@ import com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.PangoolMultipleInputs;
 
 /**
- * The MapOnlyJobBuilder is a simple Pangool primitive that executes map-only Jobs. You can implement {@link MapOnlyMapper} for using it.
- * You can instantiate your handler with Serializable state.
- * 
+ * The MapOnlyJobBuilder is a simple Pangool primitive that executes map-only
+ * Jobs. You must implement {@link MapOnlyMapper} for using it.
  */
 @SuppressWarnings("rawtypes")
 public class MapOnlyJobBuilder {
@@ -45,7 +44,7 @@ public class MapOnlyJobBuilder {
 	private Class<?> outputValueClass;
 	private Class<? extends OutputFormat> outputFormat;
 	private MapOnlyMapper mapOnlyMapper;
-	
+
 	private static final class Input {
 
 		Path path;
@@ -70,7 +69,8 @@ public class MapOnlyJobBuilder {
 		return this;
 	}
 
-	public MapOnlyJobBuilder setOutput(Path outputPath, Class<? extends OutputFormat> outputFormat, Class<?> outputKeyClass,
+	public MapOnlyJobBuilder setOutput(Path outputPath,
+	    Class<? extends OutputFormat> outputFormat, Class<?> outputKeyClass,
 	    Class<?> outputValueClass) {
 		this.outputFormat = outputFormat;
 		this.outputKeyClass = outputKeyClass;
@@ -78,7 +78,7 @@ public class MapOnlyJobBuilder {
 		this.outputPath = outputPath;
 		return this;
 	}
-	
+
 	public MapOnlyJobBuilder setMapper(MapOnlyMapper mapOnlyMapper) {
 		this.mapOnlyMapper = mapOnlyMapper;
 		return this;
@@ -97,9 +97,10 @@ public class MapOnlyJobBuilder {
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);
-		
+
 		for(Input input : multiInputs) {
-			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat, mapOnlyMapper);
+			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat,
+			    mapOnlyMapper);
 		}
 		return job;
 	}

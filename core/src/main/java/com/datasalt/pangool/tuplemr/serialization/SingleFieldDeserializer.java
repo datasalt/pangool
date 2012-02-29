@@ -47,7 +47,8 @@ public class SingleFieldDeserializer {
 	private final Object instance;
 	
 	
-  public SingleFieldDeserializer(Configuration conf, TupleMRConfig mrConfig,Type fieldType,Class<?> objectClazz) throws IOException {
+  public SingleFieldDeserializer(Configuration conf, TupleMRConfig mrConfig,
+  		Type fieldType,Class<?> objectClazz) throws IOException {
 		this.ser = new HadoopSerialization(conf);
 		this.fieldType = fieldType;
 		this.objectClazz = objectClazz;

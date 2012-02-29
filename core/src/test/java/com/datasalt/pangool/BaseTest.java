@@ -40,7 +40,6 @@ import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.serialization.TupleDeserializer;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerializer;
-import com.datasalt.pangool.utils.test.AbstractBaseTest;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
 @SuppressWarnings({ "rawtypes" })
@@ -136,13 +135,15 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 		assertEquals(tuple, wrapper2.datum());
 	}
 	
-	protected static void assertSerializable(TupleSerialization serialization,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
+	protected static void assertSerializable(TupleSerialization serialization,
+			DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
 		TupleSerializer ser = (TupleSerializer)serialization.getSerializer(null); 
 		TupleDeserializer deser = (TupleDeserializer)serialization.getDeserializer(null); 
 		assertSerializable(ser,deser,tuple,debug);
 	}
 	
-	protected static void assertSerializable(TupleSerializer ser,TupleDeserializer deser,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
+	protected static void assertSerializable(TupleSerializer ser,
+			TupleDeserializer deser,DatumWrapper<ITuple> tuple,boolean debug) throws IOException {
 		DataOutputBuffer output = new DataOutputBuffer();
 		ser.open(output);
 		ser.serialize(tuple);

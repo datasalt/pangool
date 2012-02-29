@@ -39,7 +39,8 @@ import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.utils.AvroUtils;
 
 @SuppressWarnings("serial")
-public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> implements Serializable {
+public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> implements
+    Serializable {
 
 	public static class TupleInputReader extends RecordReader<ITuple, NullWritable> {
 
@@ -89,7 +90,8 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> impl
 		}
 
 		@Override
-		public void initialize(InputSplit split, TaskAttemptContext arg1) throws IOException, InterruptedException {
+		public void initialize(InputSplit split, TaskAttemptContext arg1) throws IOException,
+		    InterruptedException {
 			FileSplit fileSplit = (FileSplit) split;
 			initialize(fileSplit.getPath(), arg1.getConfiguration());
 			reader.sync(fileSplit.getStart()); // sync to start
@@ -107,7 +109,7 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> impl
 			reader.sync(0);
 			start = reader.tell();
 		}
-		
+
 		/*
 		 * To be used when used externally
 		 */
@@ -117,10 +119,10 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> impl
 			}
 			wrapper.datum(reader.next(wrapper.datum()));
 			if(tuple == null) {
-					// Convert schema from FileReader to pangool Schema
-					tuple = new Tuple(AvroUtils.toPangoolSchema(reader.getSchema()));
+				// Convert schema from FileReader to pangool Schema
+				tuple = new Tuple(AvroUtils.toPangoolSchema(reader.getSchema()));
 			}
-      AvroUtils.toTuple(wrapper.datum(), tuple, conf, ser);
+			AvroUtils.toTuple(wrapper.datum(), tuple, conf, ser);
 			return true;
 		}
 
@@ -134,8 +136,8 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> impl
 	}
 
 	@Override
-	public RecordReader<ITuple, NullWritable> createRecordReader(InputSplit split, TaskAttemptContext context)
-	    throws IOException, InterruptedException {
+	public RecordReader<ITuple, NullWritable> createRecordReader(InputSplit split,
+	    TaskAttemptContext context) throws IOException, InterruptedException {
 
 		return new TupleInputReader(context.getConfiguration());
 	}

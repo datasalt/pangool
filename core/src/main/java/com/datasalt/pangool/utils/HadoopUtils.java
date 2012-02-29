@@ -47,7 +47,8 @@ public class HadoopUtils {
 		}
 	}
 
-	public static void synchronize(FileSystem fS1, Path p1, FileSystem fS2, Path p2) throws IOException {
+	public static void synchronize(FileSystem fS1, Path p1, FileSystem fS2, Path p2)
+	    throws IOException {
 		deleteIfExists(fS2, p2);
 		FileUtil.copy(fS1, p1, fS2, p2, false, false, fS1.getConf());
 	}
@@ -55,7 +56,8 @@ public class HadoopUtils {
 	/**
 	 * Creates a file with the given string, overwritting if needed.
 	 */
-	public static void stringToFile(FileSystem fs, Path path, String string) throws IOException {
+	public static void stringToFile(FileSystem fs, Path path, String string)
+	    throws IOException {
 		OutputStream os = fs.create(path, true);
 		PrintWriter pw = new PrintWriter(os);
 		pw.append(string);
@@ -63,7 +65,8 @@ public class HadoopUtils {
 	}
 
 	/**
-	 * Reads the content of a file into a String. Return null if the file does not exist.
+	 * Reads the content of a file into a String. Return null if the file does not
+	 * exist.
 	 */
 	public static String fileToString(FileSystem fs, Path path) throws IOException {
 		if(!fs.exists(path)) {
@@ -86,7 +89,8 @@ public class HadoopUtils {
 	/**
 	 * Reads maps of integer -> double
 	 */
-	public static HashMap<Integer, Double> readIntDoubleMap(Path path, FileSystem fs) throws IOException {
+	public static HashMap<Integer, Double> readIntDoubleMap(Path path, FileSystem fs)
+	    throws IOException {
 		SequenceFile.Reader reader = new SequenceFile.Reader(fs, path, fs.getConf());
 
 		IntWritable topic = new IntWritable();
@@ -107,7 +111,8 @@ public class HadoopUtils {
 	/**
 	 * Reads maps of integer -> double from glob paths like "folder/part-r*"
 	 */
-	public static HashMap<Integer, Double> readIntDoubleMapFromGlob(Path glob, FileSystem fs) throws IOException {
+	public static HashMap<Integer, Double> readIntDoubleMapFromGlob(Path glob, FileSystem fs)
+	    throws IOException {
 		FileStatus status[] = fs.globStatus(glob);
 		HashMap<Integer, Double> ret = new HashMap<Integer, Double>();
 		for(FileStatus fileS : status) {
@@ -119,7 +124,8 @@ public class HadoopUtils {
 	/**
 	 * Reads maps of integer -> integer
 	 */
-	public static HashMap<Integer, Integer> readIntIntMap(Path path, FileSystem fs) throws IOException {
+	public static HashMap<Integer, Integer> readIntIntMap(Path path, FileSystem fs)
+	    throws IOException {
 		SequenceFile.Reader reader = new SequenceFile.Reader(fs, path, fs.getConf());
 
 		IntWritable topic = new IntWritable();
@@ -140,7 +146,8 @@ public class HadoopUtils {
 	/**
 	 * Reads maps of integer -> integer from glob paths like "folder/part-r*"
 	 */
-	public static HashMap<Integer, Integer> readIntIntMapFromGlob(Path glob, FileSystem fs) throws IOException {
+	public static HashMap<Integer, Integer> readIntIntMapFromGlob(Path glob, FileSystem fs)
+	    throws IOException {
 		FileStatus status[] = fs.globStatus(glob);
 		HashMap<Integer, Integer> ret = new HashMap<Integer, Integer>();
 		for(FileStatus fileS : status) {
@@ -150,7 +157,8 @@ public class HadoopUtils {
 	}
 
 	/**
-	 * Utility for doing ctx.getCounter(groupName, counter.toString()).increment(1);
+	 * Utility for doing ctx.getCounter(groupName,
+	 * counter.toString()).increment(1);
 	 */
 	@SuppressWarnings("rawtypes")
 	public static void incCounter(TaskInputOutputContext ctx, String groupName, Enum counter) {

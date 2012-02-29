@@ -26,7 +26,7 @@ import com.datasalt.pangool.io.Schema.Field;
  * This is the basic implementation of {@link ITuple}.
  */
 @SuppressWarnings("serial")
-public class Tuple implements ITuple,Serializable {
+public class Tuple implements ITuple, Serializable {
 
 	private Object[] array;
 	private Schema schema;
@@ -48,7 +48,7 @@ public class Tuple implements ITuple,Serializable {
 	}
 
 	@Override
-	public String toString(){
+	public String toString() {
 		return toString(this);
 	}
 
@@ -56,13 +56,13 @@ public class Tuple implements ITuple,Serializable {
 		Schema schema = tuple.getSchema();
 		StringBuilder b = new StringBuilder();
 		b.append("{");
-		for (int i = 0 ; i < schema.getFields().size() ; i++){
+		for(int i = 0; i < schema.getFields().size(); i++) {
 			Field f = schema.getField(i);
-			if (i != 0){
+			if(i != 0) {
 				b.append(",");
 			}
 			b.append("\"").append(f.getName()).append("\"").append(":");
-			switch(f.getType()){
+			switch(f.getType()) {
 			case INT:
 			case LONG:
 			case FLOAT:
@@ -86,59 +86,60 @@ public class Tuple implements ITuple,Serializable {
 	}
 
 	@Override
-  public void clear() {
-		for (int i=0 ; i < array.length ; i++){
+	public void clear() {
+		for(int i = 0; i < array.length; i++) {
 			array[i] = null;
 		}
-  }
+	}
 
 	@Override
-  public Schema getSchema() {
-	  return schema;
-  }
-
-		@Override
-  public Object get(String field) {
-	  return get(schema.getFieldPos(field));
-  }
+	public Schema getSchema() {
+		return schema;
+	}
 
 	@Override
-  public void set(String field, Object object) {
-	  set(schema.getFieldPos(field),object);
-  }
-	
-	public boolean equals(Object that){
-		if (!(that instanceof ITuple)){
+	public Object get(String field) {
+		return get(schema.getFieldPos(field));
+	}
+
+	@Override
+	public void set(String field, Object object) {
+		set(schema.getFieldPos(field), object);
+	}
+
+	public boolean equals(Object that) {
+		if(!(that instanceof ITuple)) {
 			return false;
 		}
-		boolean schemaEquals = this.schema.equals(((ITuple)that).getSchema());
-		if (!schemaEquals){
+		boolean schemaEquals = this.schema.equals(((ITuple) that).getSchema());
+		if(!schemaEquals) {
 			return false;
 		}
-		
-		for (int i=0 ; i < array.length; i++){
+
+		for(int i = 0; i < array.length; i++) {
 			Object o1 = get(i);
-			Object o2 = ((ITuple)that).get(i);
-			if (o1 == null){
-				if (o2 != null){
+			Object o2 = ((ITuple) that).get(i);
+			if(o1 == null) {
+				if(o2 != null) {
 					return false;
 				}
 			} else {
-				//TODO this special case shouldn't be treated here.Tuples don't care about Texts or Strings. 
-				//Create a new equals method outside that takes in consideration 
-				//this particular case concerning Serialization/deser
-				if (o1 instanceof Text){
+				// TODO this special case shouldn't be treated here.Tuples don't care
+				// about Texts or Strings.
+				// Create a new equals method outside that takes in consideration
+				// this particular case concerning Serialization/deser
+				if(o1 instanceof Text) {
 					o1 = o1.toString();
 				}
-				if (o2 != null && o2 instanceof Text){
+				if(o2 != null && o2 instanceof Text) {
 					o2 = o2.toString();
 				}
-				if (!o1.equals(o2)){
+				if(!o1.equals(o2)) {
 					return false;
 				}
 			}
 		}
 		return true;
 	}
-	
+
 }

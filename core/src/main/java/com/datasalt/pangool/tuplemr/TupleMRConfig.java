@@ -46,22 +46,23 @@ import com.datasalt.pangool.tuplemr.mapred.SortComparator;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
- * TupleMRConfig contains the entire configuration parameters from a Tuple-based job. 
- * The main information that it contains :
- * <ul> 
- *  <li>Intermediate schemas</li>
- *  <li>Group-by fields</li>
- *  <li>Order-by common criteria</li>
- *  <li>Schemas order</li>
- *  <li>Specific schema-related order-by criteria</li>
- *  <li>Rollup</li>
- *  <li>Custom hash partitioning fields</li>
- * </ul> 
- *
+ * TupleMRConfig contains the entire configuration parameters from a Tuple-based
+ * job. The main information that it contains :
+ * <ul>
+ * <li>Intermediate schemas</li>
+ * <li>Group-by fields</li>
+ * <li>Order-by common criteria</li>
+ * <li>Schemas order</li>
+ * <li>Specific schema-related order-by criteria</li>
+ * <li>Rollup</li>
+ * <li>Custom hash partitioning fields</li>
+ * </ul>
+ * 
  */
 public class TupleMRConfig {
 
-	private final static String CONF_PANGOOL_CONF = TupleMRConfig.class.getName() + ".pangool.conf";
+	private final static String CONF_PANGOOL_CONF = TupleMRConfig.class.getName()
+	    + ".pangool.conf";
 
 	static final JsonFactory FACTORY = new JsonFactory();
 	static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
@@ -75,23 +76,24 @@ public class TupleMRConfig {
 	private Map<String, Integer> schemaNameToId = new HashMap<String, Integer>();
 
 	/**
-	 * Common criteria specifies the order of the fields that are common among schemas
-	 * and will be sorted before reaching the sourceOrder
+	 * Common criteria specifies the order of the fields that are common among
+	 * schemas and will be sorted before reaching the sourceOrder
 	 */
 	private Criteria commonCriteria;
-	
+
 	/**
-	 * These criterias are used in {@link SortComparator} to sort specific fields from two
-	 * tuples with the same schema, after the commonCriteria and schemaOrder
+	 * These criterias are used in {@link SortComparator} to sort specific fields
+	 * from two tuples with the same schema, after the commonCriteria and
+	 * schemaOrder
 	 */
 	private List<Criteria> specificCriterias = new ArrayList<Criteria>();
-	
-	/** 
-	 * Defines the order in which the different intermediate schemas 
-	 * will be sorted in {@link SortComparator}
+
+	/**
+	 * Defines the order in which the different intermediate schemas will be
+	 * sorted in {@link SortComparator}
 	 * 
 	 */
-	private Order schemasOrder; 
+	private Order schemasOrder;
 
 	/**
 	 * Intermediate schemas
@@ -112,45 +114,46 @@ public class TupleMRConfig {
 	}
 
 	/**
-	 * Returns a defined intermediate schema with the specified schemaId. 
-	 * The schemaId follows the order of schema definition in {@link TupleMRConfig#addIntermediateSchema(Schema)}
+	 * Returns a defined intermediate schema with the specified schemaId.<br>
+	 * The schemaId follows the order of schema definition in
+	 * {@link TupleMRConfig#addIntermediateSchema(Schema)}
 	 */
 	public Schema getIntermediateSchema(int schemaId) {
 		return schemas.get(schemaId);
 	}
 
 	/**
-	 * Returns the schemaId from the schema's name. 
+	 * Returns the schemaId from the schema's name.
 	 */
 	public Integer getSchemaIdByName(String name) {
 		return schemaNameToId.get(name);
 	}
 
 	/**
-	 * Returns a list with the names of all the intermediate schemas 
+	 * Returns a list with the names of all the intermediate schemas.
 	 */
 	public List<String> getIntermediateSchemaNames() {
 		return schemasNames;
 	}
 
 	/**
-	 * Returns all the intermediate schemas defined
+	 * Returns all the intermediate schemas defined.
 	 */
 	public List<Schema> getIntermediateSchemas() {
 		return schemas;
 	}
 
 	/**
-	 * Returns the order that will be used to sort tuples with different schemas after 
-	 * being compared by commonOrder 
+	 * Returns the order that will be used to sort tuples with different schemas
+	 * after being compared by commonOrder.
 	 */
 	public Order getSchemasOrder() {
 		return schemasOrder;
 	}
 
 	/**
-	 * Returns the order that will be used to sort tuples with different schemas after 
-	 * being compared by commonOrder and schemaOrder
+	 * Returns the order that will be used to sort tuples with different schemas
+	 * after being compared by commonOrder and schemaOrder.
 	 * 
 	 */
 	public List<Criteria> getSpecificOrderBys() {
@@ -158,19 +161,21 @@ public class TupleMRConfig {
 	}
 
 	/**
-	 * Returns the custom fields used to partition tuples. By default if this list is null then 
-	 * the partition criteria used will match the groupByFields. In case of rollup then the fields 
-	 * used will be a subset of the groupByFields up to the rollupFrom field. 
+	 * Returns the custom fields used to partition tuples. By default if this list
+	 * is null then the partition criteria used will match the groupByFields. In
+	 * case of rollup then the fields used will be a subset of the groupByFields
+	 * up to the rollupFrom field.
 	 */
-	public List<String> getCustomPartitionFields(){
+	public List<String> getCustomPartitionFields() {
 		return customPartitionFields;
 	}
-		
+
 	protected TupleMRConfig() {
 	}
 
 	/**
-	 * Returns the {@link SerializationInfo} instance related to this configuration. 
+	 * Returns the {@link SerializationInfo} instance related to this
+	 * configuration.
 	 */
 	public SerializationInfo getSerializationInfo() {
 		if(serInfo == null) {
@@ -191,24 +196,27 @@ public class TupleMRConfig {
 	}
 
 	/**
-	 * Returns the criteria used to sort fields that are common among the intermediate schemas.
-	 * This criteria is the first used in {@link SortComparator} and in {@link GroupComparator} 
+	 * Returns the criteria used to sort fields that are common among the
+	 * intermediate schemas. This criteria is the first used in
+	 * {@link SortComparator} and in {@link GroupComparator}
 	 */
 	public Criteria getCommonCriteria() {
 		return commonCriteria;
 	}
 
 	/**
-	 * Returns the fields that are common among all the intermediate schemas that will be used to group by 
-	 * the tuples emitted from the {@link TupleMapper}
+	 * Returns the fields that are common among all the intermediate schemas that
+	 * will be used to group by the tuples emitted from the {@link TupleMapper}
 	 */
 	public List<String> getGroupByFields() {
 		return groupByFields;
 	}
 
 	/**
-	 * Returns the fields that are a subset from the groupBy fields and will be used when rollup is needed.
-	 * @see RollupReducer  
+	 * Returns the fields that are a subset from the groupBy fields and will be
+	 * used when rollup is needed.
+	 * 
+	 * @see RollupReducer
 	 */
 	public List<String> calculateRollupBaseFields() {
 		if(rollupFrom == null) {
@@ -233,8 +241,9 @@ public class TupleMRConfig {
 	}
 
 	private void addIntermediateSchema(Schema schema) throws TupleMRException {
-		if (schemasNames.contains(schema.getName())){
-			throw new TupleMRException("There's a schema with that name '" + schema.getName() + "'");
+		if(schemasNames.contains(schema.getName())) {
+			throw new TupleMRException("There's a schema with that name '" + schema.getName()
+			    + "'");
 		}
 		schemaNameToId.put(schema.getName(), schemasNames.size());
 		schemasNames.add(schema.getName());
@@ -242,7 +251,7 @@ public class TupleMRConfig {
 	}
 
 	void setIntermediateSchemas(Collection<Schema> schemas) throws TupleMRException {
-		for (Schema s : schemas){
+		for(Schema s : schemas) {
 			addIntermediateSchema(s);
 		}
 	}
@@ -262,13 +271,13 @@ public class TupleMRConfig {
 	void setSourceOrder(Order order) {
 		this.schemasOrder = order;
 	}
-	
-	void setCustomPartitionFields(List<String> customPartitionFields ){
+
+	void setCustomPartitionFields(List<String> customPartitionFields) {
 		this.customPartitionFields = customPartitionFields;
 	}
-	
-	void setSecondarySortBy(String sourceName,Criteria criteria) throws TupleMRException {
-		if (this.specificCriterias.isEmpty()){
+
+	void setSecondarySortBy(String sourceName, Criteria criteria) throws TupleMRException {
+		if(this.specificCriterias.isEmpty()) {
 			initSecondaryCriteriasWithNull();
 		}
 		Integer pos = getSchemaIdByName(sourceName);
@@ -284,21 +293,22 @@ public class TupleMRConfig {
 	}
 
 	public static TupleMRConfig get(Configuration conf) throws TupleMRException {
-		String serialized =conf.get(TupleMRConfig.CONF_PANGOOL_CONF);
-		if (serialized == null || serialized.isEmpty()) {
+		String serialized = conf.get(TupleMRConfig.CONF_PANGOOL_CONF);
+		if(serialized == null || serialized.isEmpty()) {
 			return null;
-		}		
-		try{
+		}
+		try {
 			TupleMRConfig coConf = TupleMRConfig.parse(serialized);
 			deserializeComparators(conf, coConf);
 			return coConf;
-			
-		} catch(IOException e){
+
+		} catch(IOException e) {
 			throw new TupleMRException(e);
 		}
 	}
 
-	public static void set(TupleMRConfig mrConfig, Configuration conf) throws TupleMRException {
+	public static void set(TupleMRConfig mrConfig, Configuration conf)
+	    throws TupleMRException {
 		conf.set(CONF_PANGOOL_CONF, mrConfig.toString());
 		serializeComparators(mrConfig, conf);
 	}
@@ -311,34 +321,40 @@ public class TupleMRConfig {
 
 	/**
 	 * Serializes the custom compartors. It uses the distributed cache
-	 * serialization. Two config properties are used. The first for storing the
-	 * reference. For example "common|address" refers to the sort comparator for
-	 * address in the common order. "1|postalCode" refers to the sort comparator
-	 * for the specific sort on field1 for the schema with schemaId = 1. The
-	 * other config property stores the instance file paths where the instances
-	 * are stored in the distributed cache.
+	 * serialization.<br>
+	 * Two config properties are used. The first for storing the reference. For
+	 * example "common|address" refers to the sort comparator for address in the
+	 * common order. "1|postalCode" refers to the sort comparator for the specific
+	 * sort on field1 for the schema with schemaId = 1. The other config property
+	 * stores the instance file paths where the instances are stored in the
+	 * distributed cache.
 	 */
-	static void serializeComparators(TupleMRConfig tupleMRConfig, Configuration conf) throws TupleMRException {
-		ArrayList<String> comparatorRefs = new ArrayList<String>();
-		ArrayList<String> comparatorInstanceFiles = new ArrayList<String>();
+	static void serializeComparators(TupleMRConfig tupleMRConfig, Configuration conf)
+	    throws TupleMRException {
+		List<String> comparatorRefs = new ArrayList<String>();
+		List<String> comparatorInstanceFiles = new ArrayList<String>();
 
 		// We use "common" as the prefix for the common criteria
-		serializeComparators(tupleMRConfig.getCommonCriteria(), conf, comparatorRefs, comparatorInstanceFiles, COMMON);
+		serializeComparators(tupleMRConfig.getCommonCriteria(), conf, comparatorRefs,
+		    comparatorInstanceFiles, COMMON);
 
 		List<Criteria> specificCriterias = tupleMRConfig.getSpecificOrderBys();
 		// We use the schemaId as prefix for the specific sorting.
 		for(int i = 0; i < specificCriterias.size(); i++) {
-			serializeComparators(specificCriterias.get(i), conf, comparatorRefs, comparatorInstanceFiles, i + "");
+			serializeComparators(specificCriterias.get(i), conf, comparatorRefs,
+			    comparatorInstanceFiles, i + "");
 		}
 
 		if(comparatorRefs.size() > 0) {
 			conf.setStrings(CONF_COMPARATOR_REFERENCES, comparatorRefs.toArray(new String[] {}));
-			conf.setStrings(CONF_COMPARATOR_INSTANCES, comparatorInstanceFiles.toArray(new String[] {}));
+			conf.setStrings(CONF_COMPARATOR_INSTANCES,
+			    comparatorInstanceFiles.toArray(new String[] {}));
 		}
 	}
 
-	static void serializeComparators(Criteria criteria, Configuration conf, ArrayList<String> comparatorRefs,
-	    ArrayList<String> comparatorInstanceFiles, String prefix) throws TupleMRException {
+	static void serializeComparators(Criteria criteria, Configuration conf,
+	    List<String> comparatorRefs, List<String> comparatorInstanceFiles, String prefix)
+	    throws TupleMRException {
 
 		if(criteria == null) {
 			return;
@@ -349,7 +365,8 @@ public class TupleMRConfig {
 				RawComparator<?> comparator = element.getCustomComparator();
 
 				if(!(comparator instanceof Serializable)) {
-					throw new TupleMRException("The class " + comparator.getClass() + " is not Serializable."
+					throw new TupleMRException("The class " + comparator.getClass()
+					    + " is not Serializable."
 					    + " The customs comparators must implement Serializable.");
 				}
 
@@ -367,7 +384,8 @@ public class TupleMRConfig {
 		}
 	}
 
-	static void deserializeComparators(Configuration conf, TupleMRConfig mrConfig) throws TupleMRException {
+	static void deserializeComparators(Configuration conf, TupleMRConfig mrConfig)
+	    throws TupleMRException {
 		String[] comparatorRefs = conf.getStrings(CONF_COMPARATOR_REFERENCES);
 		String[] comparatorInstanceFiles = conf.getStrings(CONF_COMPARATOR_INSTANCES);
 
@@ -379,14 +397,17 @@ public class TupleMRConfig {
 			for(int i = 0; i < comparatorRefs.length; i++) {
 				String[] ref = comparatorRefs[i].split("\\|");
 				String instanceFile = comparatorInstanceFiles[i];
-				
-				// Here we use "false" as last parameter because otherwise it could be an infinite loop. We will call setConf() later.
-				RawComparator<?> comparator = DCUtils.loadSerializedObjectInDC(conf, RawComparator.class, instanceFile, false);
+
+				// Here we use "false" as last parameter because otherwise it could be
+				// an infinite loop. We will call setConf() later.
+				RawComparator<?> comparator = DCUtils.loadSerializedObjectInDC(conf,
+				    RawComparator.class, instanceFile, false);
 
 				if(ref[0].equals(COMMON)) {
 					setComparator(mrConfig.getCommonCriteria(), ref[1], comparator);
 				} else {
-					setComparator(mrConfig.getSpecificOrderBys().get(new Integer(ref[0])), ref[1], comparator);
+					setComparator(mrConfig.getSpecificOrderBys().get(new Integer(ref[0])), ref[1],
+					    comparator);
 				}
 			}
 		} catch(IOException e) {
@@ -422,15 +443,16 @@ public class TupleMRConfig {
 				result.rollupFrom = node.get("rollupFrom").getTextValue();
 			}
 
-			if (node.get("customPartitionFields") != null){
-				Iterator<JsonNode> partitionNodes = node.get("customPartitionFields").getElements();
+			if(node.get("customPartitionFields") != null) {
+				Iterator<JsonNode> partitionNodes = node.get("customPartitionFields")
+				    .getElements();
 				List<String> partitionFields = new ArrayList<String>();
-				while (partitionNodes.hasNext()){
+				while(partitionNodes.hasNext()) {
 					partitionFields.add(partitionNodes.next().getTextValue());
 				}
 				result.customPartitionFields = partitionFields;
 			}
-			
+
 			JsonNode commonSortByNode = node.get("commonOrderBy");
 			result.commonCriteria = Criteria.parse(commonSortByNode);
 			result.schemasOrder = Order.valueOf(node.get("schemasOrder").getTextValue());
@@ -461,8 +483,8 @@ public class TupleMRConfig {
 			gen.writeString(field);
 		}
 		gen.writeEndArray();
-		
-		if (customPartitionFields != null && !customPartitionFields.isEmpty()){
+
+		if(customPartitionFields != null && !customPartitionFields.isEmpty()) {
 			gen.writeArrayFieldStart("customPartitionFields");
 			for(String field : customPartitionFields) {
 				gen.writeString(field);
@@ -499,7 +521,7 @@ public class TupleMRConfig {
 	@Override
 	public String toString() {
 		// TODO not use toJson as toString()... it is not complete.
-		// Custom comparators does not appears here. 
+		// Custom comparators does not appears here.
 		return toJson(true);
 	}
 
@@ -539,14 +561,13 @@ public class TupleMRConfig {
 		}
 		TupleMRConfig that = (TupleMRConfig) a;
 
-		boolean e = 
-		this.getSchemasOrder() == that.getSchemasOrder()
+		boolean e = this.getSchemasOrder() == that.getSchemasOrder()
 		    && this.getCommonCriteria().equals(that.getCommonCriteria())
 		    && this.getGroupByFields().equals(that.getGroupByFields())
-		    && this.getIntermediateSchemas().equals(that.getIntermediateSchemas()) && this.getSpecificOrderBys().equals(
-		    that.getSpecificOrderBys());
-		if (e){
-			if (this.getCustomPartitionFields() == null){
+		    && this.getIntermediateSchemas().equals(that.getIntermediateSchemas())
+		    && this.getSpecificOrderBys().equals(that.getSpecificOrderBys());
+		if(e) {
+			if(this.getCustomPartitionFields() == null) {
 				return that.getCustomPartitionFields() == null;
 			} else {
 				return this.getCustomPartitionFields().equals(that.getCustomPartitionFields());

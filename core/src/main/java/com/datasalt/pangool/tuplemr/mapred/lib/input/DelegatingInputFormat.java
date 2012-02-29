@@ -33,16 +33,19 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
- * An {@link InputFormat} that delegates behavior of paths to multiple other InputFormats.
+ * An {@link InputFormat} that delegates behavior of paths to multiple other
+ * InputFormats.
  * <p>
  * 
- * @see PangoolMultipleInputs#addInputPath(Job, Path, InputFormat, org.apache.hadoop.mapreduce.Mapper)
+ * @see PangoolMultipleInputs#addInputPath(Job, Path, InputFormat,
+ *      org.apache.hadoop.mapreduce.Mapper)
  */
 @SuppressWarnings("rawtypes")
 public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
 
 	@SuppressWarnings("unchecked")
-	public List<InputSplit> getSplits(JobContext job) throws IOException, InterruptedException {
+	public List<InputSplit> getSplits(JobContext job) throws IOException,
+	    InterruptedException {
 		Configuration conf = job.getConfiguration();
 		Job jobCopy = new Job(conf);
 		List<InputSplit> splits = new ArrayList<InputSplit>();
@@ -52,10 +55,12 @@ public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
 
 		for(Map.Entry<Path, String> entry : formatMap.entrySet()) {
 			FileInputFormat.setInputPaths(jobCopy, entry.getKey());
-			InputFormat inputFormat = DCUtils.loadSerializedObjectInDC(conf, InputFormat.class, entry.getValue(), true);
+			InputFormat inputFormat = DCUtils.loadSerializedObjectInDC(conf, InputFormat.class,
+			    entry.getValue(), true);
 			List<InputSplit> pathSplits = inputFormat.getSplits(jobCopy);
 			for(InputSplit pathSplit : pathSplits) {
-				splits.add(new TaggedInputSplit(pathSplit, conf, entry.getValue(), mapperMap.get(entry.getKey())));
+				splits.add(new TaggedInputSplit(pathSplit, conf, entry.getValue(), mapperMap
+				    .get(entry.getKey())));
 			}
 		}
 
@@ -63,8 +68,8 @@ public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
 	}
 
 	@Override
-	public RecordReader<K, V> createRecordReader(InputSplit split, TaskAttemptContext context) throws IOException,
-	    InterruptedException {
+	public RecordReader<K, V> createRecordReader(InputSplit split,
+	    TaskAttemptContext context) throws IOException, InterruptedException {
 		return new DelegatingRecordReader<K, V>(split, context);
 	}
 }

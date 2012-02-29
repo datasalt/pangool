@@ -42,8 +42,9 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat.ProxyOut
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
- * This class is inspired by the MultipleOutputs class of Hadoop. The difference is that it allows an arbitrary
- * OutputFormat to be written in sub-folders of the output path.
+ * This class is inspired by the MultipleOutputs class of Hadoop. The difference
+ * is that it allows an arbitrary OutputFormat to be written in sub-folders of
+ * the output path.
  **/
 @SuppressWarnings("rawtypes")
 public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
@@ -55,7 +56,9 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	private static final String FORMAT_INSTANCE_FILE = ".format";
 	private static final String KEY = ".key";
 	private static final String VALUE = ".value";
-	private static final String CONF = ".conf"; // Added to allow specific Configuration properties for named outputs
+	private static final String CONF = ".conf"; // Added to allow specific
+																							// Configuration properties for
+																							// named outputs
 
 	private static final String COUNTERS_ENABLED = "pangool.multipleoutputs.counters";
 
@@ -114,19 +117,22 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	 * @throws IllegalArgumentException
 	 *           if the output name is not valid.
 	 */
-	private static void checkNamedOutputName(JobContext job, String namedOutput, boolean alreadyDefined) {
+	private static void checkNamedOutputName(JobContext job, String namedOutput,
+	    boolean alreadyDefined) {
 		validateOutputName(namedOutput);
 		List<String> definedChannels = getNamedOutputsList(job);
 		if(alreadyDefined && definedChannels.contains(namedOutput)) {
-			throw new IllegalArgumentException("Named output '" + namedOutput + "' already alreadyDefined");
+			throw new IllegalArgumentException("Named output '" + namedOutput
+			    + "' already alreadyDefined");
 		} else if(!alreadyDefined && !definedChannels.contains(namedOutput)) {
 			throw new IllegalArgumentException("Named output '" + namedOutput + "' not defined");
 		}
 	}
 
 	/**
-	 * Convenience method for validating output names externally.Will throw InvalidArgumentException if parameter name is
-	 * not a valid output name according to this implementation.
+	 * Convenience method for validating output names externally.Will throw
+	 * InvalidArgumentException if parameter name is not a valid output name
+	 * according to this implementation.
 	 * 
 	 * @param namedOutput
 	 *          the name to validate (e.g. "part" not allowed)
@@ -139,7 +145,8 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	// Returns list of channel names.
 	private static List<String> getNamedOutputsList(JobContext job) {
 		List<String> names = new ArrayList<String>();
-		StringTokenizer st = new StringTokenizer(job.getConfiguration().get(MULTIPLE_OUTPUTS, ""), " ");
+		StringTokenizer st = new StringTokenizer(job.getConfiguration().get(MULTIPLE_OUTPUTS,
+		    ""), " ");
 		while(st.hasMoreTokens()) {
 			names.add(st.nextToken());
 		}
@@ -147,28 +154,34 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	}
 
 	// Returns the named output OutputFormat.
-	private static String getNamedOutputFormatInstanceFile(JobContext job, String namedOutput) {
-		return job.getConfiguration().get(MO_PREFIX + namedOutput + FORMAT_INSTANCE_FILE, null);
+	private static String getNamedOutputFormatInstanceFile(JobContext job,
+	    String namedOutput) {
+		return job.getConfiguration().get(MO_PREFIX + namedOutput + FORMAT_INSTANCE_FILE,
+		    null);
 	}
 
 	// Returns the key class for a named output.
 	private static Class<?> getNamedOutputKeyClass(JobContext job, String namedOutput) {
-		return job.getConfiguration().getClass(MO_PREFIX + namedOutput + KEY, null, Object.class);
+		return job.getConfiguration().getClass(MO_PREFIX + namedOutput + KEY, null,
+		    Object.class);
 	}
 
 	// Returns the value class for a named output.
 	private static Class<?> getNamedOutputValueClass(JobContext job, String namedOutput) {
-		return job.getConfiguration().getClass(MO_PREFIX + namedOutput + VALUE, null, Object.class);
+		return job.getConfiguration().getClass(MO_PREFIX + namedOutput + VALUE, null,
+		    Object.class);
 	}
 
 	/**
 	 * Adds a named output for the job.
-	 * @throws URISyntaxException 
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
+	 * 
+	 * @throws URISyntaxException
+	 * @throws IOException
+	 * @throws FileNotFoundException
 	 */
-	public static void addNamedOutput(Job job, String namedOutput, OutputFormat outputFormat, Class<?> keyClass,
-	    Class<?> valueClass) throws FileNotFoundException, IOException, URISyntaxException {
+	public static void addNamedOutput(Job job, String namedOutput,
+	    OutputFormat outputFormat, Class<?> keyClass, Class<?> valueClass)
+	    throws FileNotFoundException, IOException, URISyntaxException {
 		checkNamedOutputName(job, namedOutput, true);
 		Configuration conf = job.getConfiguration();
 		String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
@@ -180,14 +193,16 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	}
 
 	/**
-	 * Added this method for allowing specific (key, value) configurations for each Output. Some Output Formats read
-	 * specific configuration values and act based on them.
+	 * Added this method for allowing specific (key, value) configurations for
+	 * each Output. Some Output Formats read specific configuration values and act
+	 * based on them.
 	 * 
 	 * @param namedOutput
 	 * @param key
 	 * @param value
 	 */
-	public static void addNamedOutputContext(Job job, String namedOutput, String key, String value) {
+	public static void addNamedOutputContext(Job job, String namedOutput, String key,
+	    String value) {
 		// Check that this named output has been configured before
 		Configuration conf = job.getConfiguration();
 		// Add specific configuration
@@ -195,24 +210,28 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	}
 
 	/**
-	 * Iterates over the Configuration and sets the specific context found for the namedOutput in the Job instance.
-	 * Package-access so it can be unit tested. The specific context is configured in method this.
+	 * Iterates over the Configuration and sets the specific context found for the
+	 * namedOutput in the Job instance. Package-access so it can be unit tested.
+	 * The specific context is configured in method this.
 	 * {@link #addNamedOutputContext(Job, String, String, String)}.
 	 * 
 	 * @param conf
-	 *          The configuration that may contain specific context for the named output
+	 *          The configuration that may contain specific context for the named
+	 *          output
 	 * @param job
 	 *          The Job where we will set the specific context
 	 * @param namedOutput
 	 *          The named output
 	 */
-	public static void setSpecificNamedOutputContext(Configuration conf, Job job, String namedOutput) {
+	public static void setSpecificNamedOutputContext(Configuration conf, Job job,
+	    String namedOutput) {
 		for(Map.Entry<String, String> entries : conf) {
 			String confKey = entries.getKey();
 			String confValue = entries.getValue();
 			if(confKey.startsWith(MO_PREFIX + namedOutput + CONF)) {
 				// Specific context key, value found
-				String contextKey = confKey.substring((MO_PREFIX + namedOutput + CONF + ".").length(), confKey.length());
+				String contextKey = confKey.substring(
+				    (MO_PREFIX + namedOutput + CONF + ".").length(), confKey.length());
 				job.getConfiguration().set(contextKey, confValue);
 			}
 		}
@@ -221,9 +240,10 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	/**
 	 * Enables or disables counters for the named outputs.
 	 * 
-	 * The counters group is the {@link PangoolMultipleOutputs} class name. The names of the counters are the same as the
-	 * named outputs. These counters count the number records written to each output name. By default these counters are
-	 * disabled.
+	 * The counters group is the {@link PangoolMultipleOutputs} class name. The
+	 * names of the counters are the same as the named outputs. These counters
+	 * count the number records written to each output name. By default these
+	 * counters are disabled.
 	 * 
 	 * @param job
 	 *          job to enable counters
@@ -235,7 +255,8 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	}
 
 	/**
-	 * Returns if the counters for the named outputs are enabled or not. By default these counters are disabled.
+	 * Returns if the counters for the named outputs are enabled or not. By
+	 * default these counters are disabled.
 	 * 
 	 * @param job
 	 *          the job
@@ -254,7 +275,8 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 		private String counterName;
 		private TaskInputOutputContext context;
 
-		public RecordWriterWithCounter(RecordWriter writer, String counterName, TaskInputOutputContext context) {
+		public RecordWriterWithCounter(RecordWriter writer, String counterName,
+		    TaskInputOutputContext context) {
 			this.writer = writer;
 			this.counterName = counterName;
 			this.context = context;
@@ -265,7 +287,8 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			writer.write(key, value);
 		}
 
-		public void close(TaskAttemptContext context) throws IOException, InterruptedException {
+		public void close(TaskAttemptContext context) throws IOException,
+		    InterruptedException {
 			writer.close(context);
 		}
 	}
@@ -285,15 +308,16 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	}
 
 	/**
-	 * Creates and initializes multiple outputs support, it should be instantiated in the Mapper/Reducer setup method.
+	 * Creates and initializes multiple outputs support, it should be instantiated
+	 * in the Mapper/Reducer setup method.
 	 * 
 	 * @param context
 	 *          the TaskInputOutputContext object
 	 */
 	public PangoolMultipleOutputs(TaskInputOutputContext<?, ?, KEYOUT, VALUEOUT> context) {
 		this.context = context;
-		namedOutputs = Collections
-		    .unmodifiableSet(new HashSet<String>(PangoolMultipleOutputs.getNamedOutputsList(context)));
+		namedOutputs = Collections.unmodifiableSet(new HashSet<String>(PangoolMultipleOutputs
+		    .getNamedOutputsList(context)));
 		outputContexts = new HashMap<String, OutputContext>();
 		countersEnabled = getCountersEnabled(context);
 	}
@@ -301,7 +325,8 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	/**
 	 * Write key and value to the namedOutput.
 	 * 
-	 * Output path is a unique file generated for the namedOutput. For example, {namedOutput}-(m|r)-{part-number}
+	 * Output path is a unique file generated for the namedOutput. For example,
+	 * {namedOutput}-(m|r)-{part-number}
 	 * 
 	 * @param namedOutput
 	 *          the named output name
@@ -310,7 +335,8 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	 * @param value
 	 *          the value
 	 */
-	public <K, V> void write(String namedOutput, K key, V value) throws IOException, InterruptedException {
+	public <K, V> void write(String namedOutput, K key, V value) throws IOException,
+	    InterruptedException {
 		write(namedOutput, key, value, namedOutput);
 	}
 
@@ -324,12 +350,12 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	 * @param value
 	 *          the value
 	 * @param baseOutputPath
-	 *          base-output path to write the record to. Note: Framework will generate unique filename for the
-	 *          baseOutputPath
+	 *          base-output path to write the record to. Note: Framework will
+	 *          generate unique filename for the baseOutputPath
 	 */
 	@SuppressWarnings("unchecked")
-	public <K, V> void write(String namedOutput, K key, V value, String baseOutputPath) throws IOException,
-	    InterruptedException {
+	public <K, V> void write(String namedOutput, K key, V value, String baseOutputPath)
+	    throws IOException, InterruptedException {
 		checkNamedOutputName(context, namedOutput, false);
 		checkBaseOutputPath(baseOutputPath);
 		if(!namedOutputs.contains(namedOutput)) {
@@ -340,7 +366,8 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 
 	// by being synchronized MultipleOutputTask can be use with a
 	// MultithreadedMapper.
-	public synchronized RecordWriter getRecordWriter(String baseFileName) throws IOException, InterruptedException {
+	public synchronized RecordWriter getRecordWriter(String baseFileName)
+	    throws IOException, InterruptedException {
 
 		// Look for record-writer in the cache
 		OutputContext context = outputContexts.get(baseFileName);
@@ -353,8 +380,8 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			OutputFormat mainOutputFormat;
 
 			try {
-				mainOutputFormat = ((OutputFormat) ReflectionUtils.newInstance(this.context.getOutputFormatClass(),
-				    this.context.getConfiguration()));
+				mainOutputFormat = ((OutputFormat) ReflectionUtils.newInstance(
+				    this.context.getOutputFormatClass(), this.context.getConfiguration()));
 			} catch(ClassNotFoundException e1) {
 				throw new RuntimeException(e1);
 			}
@@ -368,17 +395,25 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			job.setOutputValueClass(getNamedOutputValueClass(this.context, baseFileName));
 			// Check possible specific context for the output
 			setSpecificNamedOutputContext(this.context.getConfiguration(), job, baseFileName);
-			TaskAttemptContext taskContext = new TaskAttemptContext(job.getConfiguration(), this.context.getTaskAttemptID());
+			TaskAttemptContext taskContext = new TaskAttemptContext(job.getConfiguration(),
+			    this.context.getTaskAttemptID());
 
-			// First we change the output dir for the new OutputFormat that we will create
-			// We put it inside the main output work path -> in case the Job fails, everything will be discarded
-			taskContext.getConfiguration().set("mapred.output.dir", baseOutputCommitter.getBaseDir() + "/" + baseFileName);
+			// First we change the output dir for the new OutputFormat that we will
+			// create
+			// We put it inside the main output work path -> in case the Job fails,
+			// everything will be discarded
+			taskContext.getConfiguration().set("mapred.output.dir",
+			    baseOutputCommitter.getBaseDir() + "/" + baseFileName);
 			context.taskAttemptContext = taskContext;
 
 			// Load the OutputFormat instance
-			OutputFormat outputFormat = DCUtils.loadSerializedObjectInDC(context.taskAttemptContext.getConfiguration(), OutputFormat.class, getNamedOutputFormatInstanceFile(this.context, baseFileName), true);
-			// We have to create a JobContext for meeting the contract of the OutputFormat
-			JobContext jobContext = new JobContext(taskContext.getConfiguration(), taskContext.getJobID());
+			OutputFormat outputFormat = DCUtils.loadSerializedObjectInDC(
+			    context.taskAttemptContext.getConfiguration(), OutputFormat.class,
+			    getNamedOutputFormatInstanceFile(this.context, baseFileName), true);
+			// We have to create a JobContext for meeting the contract of the
+			// OutputFormat
+			JobContext jobContext = new JobContext(taskContext.getConfiguration(),
+			    taskContext.getJobID());
 			context.jobContext = jobContext;
 			// The contract of the OutputFormat is to check the output specs
 			outputFormat.checkOutputSpecs(jobContext);
@@ -390,7 +425,8 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			// if counters are enabled, wrap the writer with context
 			// to increment counters
 			if(countersEnabled) {
-				context.recordWriter = new RecordWriterWithCounter(context.recordWriter, baseFileName, this.context);
+				context.recordWriter = new RecordWriterWithCounter(context.recordWriter,
+				    baseFileName, this.context);
 			}
 
 			outputContexts.put(baseFileName, context);
@@ -401,8 +437,9 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	/**
 	 * Closes all the opened outputs.
 	 * 
-	 * This should be called from cleanup method of map/reduce task. If overridden subclasses must invoke
-	 * <code>super.close()</code> at the end of their <code>close()</code>
+	 * This should be called from cleanup method of map/reduce task. If overridden
+	 * subclasses must invoke <code>super.close()</code> at the end of their
+	 * <code>close()</code>
 	 * 
 	 */
 	@SuppressWarnings("deprecation")

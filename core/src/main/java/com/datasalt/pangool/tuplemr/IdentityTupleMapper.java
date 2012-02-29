@@ -25,8 +25,8 @@ import com.datasalt.pangool.io.ITuple;
 public class IdentityTupleMapper extends TupleMapper<ITuple, NullWritable> {
 
 	@Override
-	public void map(ITuple key, NullWritable value, TupleMRContext context, Collector collector)
-	    throws IOException, InterruptedException {
+	public void map(ITuple key, NullWritable value, TupleMRContext context, 
+			Collector collector) throws IOException, InterruptedException {
 		collector.write(key);
 	}
 }

@@ -37,16 +37,19 @@ import com.datasalt.pangool.tuplemr.TupleReducer.TupleMRContext;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**
- * This is a proxy {@link Reducer} implementation that delegates its funcionality to a {@link TupleReducer}
- * instance configured by {@link TupleMRBuilder#setTupleReducer(TupleReducer)} 
+ * This is a proxy {@link Reducer} implementation that delegates its
+ * funcionality to a {@link TupleReducer} instance configured by
+ * {@link TupleMRBuilder#setTupleReducer(TupleReducer)}
  * 
  */
-public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
+public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends
+    Reducer<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> {
 
-	public final static String CONF_REDUCER_HANDLER = SimpleReducer.class.getName() + ".reducer.handler";
+	public final static String CONF_REDUCER_HANDLER = SimpleReducer.class.getName()
+	    + ".reducer.handler";
 
 	private final static Logger log = LoggerFactory.getLogger(SimpleReducer.class);
-	
+
 	// Following variables protected to be shared by Combiners
 	private TupleMRConfig tupleMRConfig;
 	private SerializationInfo serInfo;
@@ -58,60 +61,70 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends Reducer<DatumWrappe
 	private TupleReducer<OUTPUT_KEY, OUTPUT_VALUE> handler;
 
 	@SuppressWarnings("unchecked")
-  public void setup(Context context) throws IOException, InterruptedException {
+	public void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
 		try {
 			this.tupleMRConfig = TupleMRConfig.get(context.getConfiguration());
 			this.isMultipleSources = tupleMRConfig.getNumIntermediateSchemas() >= 2;
 			this.serInfo = tupleMRConfig.getSerializationInfo();
-			if (!isMultipleSources){
-				this.groupTuple = new ViewTuple(serInfo.getGroupSchema(),this.serInfo.getGroupSchemaIndexTranslation(0)); //by default translation for 0
+			if(!isMultipleSources) {
+				this.groupTuple = new ViewTuple(serInfo.getGroupSchema(),
+				    this.serInfo.getGroupSchemaIndexTranslation(0)); // by default
+																														 // translation for
+																														 // 0
 			} else {
 				this.groupTuple = new ViewTuple(serInfo.getGroupSchema());
 			}
-			 
-			this.tupleIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
-			
-			// setting handler
-			String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
-			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(), TupleReducer.class, fileName, true);
 
-			this.collector = handler.new Collector((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context);
-			this.context = new TupleMRContext((ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context, tupleMRConfig);
-			handler.setup(this.context, collector);		
-			
+			this.tupleIterator = new TupleIterator<OUTPUT_KEY, OUTPUT_VALUE>(context);
+
+			// setting handler
+			String fileName = context.getConfiguration()
+			    .get(SimpleReducer.CONF_REDUCER_HANDLER);
+			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(),
+			    TupleReducer.class, fileName, true);
+
+			this.collector = handler.new Collector(
+			    (ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context);
+			this.context = new TupleMRContext(
+			    (ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context,
+			    tupleMRConfig);
+			handler.setup(this.context, collector);
+
 		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	@Override
 	public void cleanup(Context context) throws IOException, InterruptedException {
 		try {
 			handler.cleanup(this.context, collector);
 			collector.close();
 			super.cleanup(context);
-			
+
 		} catch(TupleMRException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	public final void reduce(DatumWrapper<ITuple> key, Iterable<NullWritable> values, Context context) throws IOException,	
-	    InterruptedException {
+	public final void reduce(DatumWrapper<ITuple> key, Iterable<NullWritable> values,
+	    Context context) throws IOException, InterruptedException {
 		try {
 			Iterator<NullWritable> iterator = values.iterator();
 			tupleIterator.setIterator(iterator);
-	
+
 			// We get the firts tuple, to create the groupTuple view
 			ITuple firstTupleGroup = key.datum();
-	
-			// A view is created over the first tuple to give the user the group fields
-			if (isMultipleSources){
-				int schemaId = tupleMRConfig.getSchemaIdByName(firstTupleGroup.getSchema().getName());
+
+			// A view is created over the first tuple to give the user the group
+			// fields
+			if(isMultipleSources) {
+				int schemaId = tupleMRConfig.getSchemaIdByName(firstTupleGroup.getSchema()
+				    .getName());
 				int[] indexTranslation = serInfo.getGroupSchemaIndexTranslation(schemaId);
-				groupTuple.setContained(firstTupleGroup,indexTranslation);
+				groupTuple.setContained(firstTupleGroup, indexTranslation);
 			} else {
 				groupTuple.setContained(firstTupleGroup);
 			}

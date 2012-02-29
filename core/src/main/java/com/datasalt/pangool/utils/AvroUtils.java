@@ -138,7 +138,8 @@ public class AvroUtils {
 	/**
 	 * Moves data between a Tuple and an Avro Record
 	 */
-	public static void toRecord(ITuple tuple, Record record,DataOutputBuffer tmpOutputBuffer, HadoopSerialization ser) throws IOException {
+	public static void toRecord(ITuple tuple, Record record,
+			DataOutputBuffer tmpOutputBuffer, HadoopSerialization ser) throws IOException {
 		Schema pangoolSchema = tuple.getSchema();
 		for(int i = 0; i < pangoolSchema.getFields().size(); i++) {
 			Object obj = tuple.get(i);
@@ -164,7 +165,8 @@ public class AvroUtils {
 				record.put(i,new Utf8(obj.toString())); //could be directly String ?
 				break;
 			default:
-					throw new IOException("Not correspondence to Avro type from Pangool type " + field.getType());
+					throw 
+					new IOException("Not correspondence to Avro type from Pangool type " + field.getType());
 			}
 		}
 	}
@@ -196,7 +198,8 @@ public class AvroUtils {
 					Utf8 avroUtf8 = (Utf8)obj;
 					utf8.set(avroUtf8.getBytes(),0,avroUtf8.getByteLength());
 				} else {
-					throw new IOException("Not supported avro field " + org.apache.avro.Schema.Type.STRING + " with instance " + obj.getClass().getName());
+					throw new IOException("Not supported avro field " + 
+							org.apache.avro.Schema.Type.STRING + " with instance " + obj.getClass().getName());
 				}
 				break;
 			case ENUM:

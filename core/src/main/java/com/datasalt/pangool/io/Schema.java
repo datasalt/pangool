@@ -34,7 +34,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import com.datasalt.pangool.PangoolRuntimeException;
 
 /**
- * Encapsulates one Pangool schame composed of {@link Field} instances.
+ * A list of {@link Field} elements that a {@link ITuple} instance contains.
+ * 
  */
 public class Schema {
 
@@ -46,62 +47,93 @@ public class Schema {
 		FACTORY.setCodec(MAPPER);
 	}
 
+	/**
+	 * A field is an abstract data type that can be one of this:
+	 * <ul>
+	 * <li>A 32-bit signed <i>int</i>;
+	 * <li>A 64-bit signed <i>long</i>;
+	 * <li>A 32-bit IEEE single-<i>float</i>; or
+	 * <li>A 64-bit IEEE <i>double</i>-float; or
+	 * <li>A unicode <i>string</i>;
+	 * <li>A <i>boolean</i>; or
+	 * <li>An <i>enum</i>, containing one of a small set of symbols;
+	 * <li>An arbitrary <i>object</i>, serializable by Hadoop's serialization
+	 * </ul>
+	 * 
+	 * A field can be constructed using one of its static <tt>createXXX</tt>
+	 * methods. A field object is <b>immutable</b>.
+	 */
 	public static class Field {
 		public static enum Type {
-			INT,  
-			LONG,  
-			FLOAT, 
-			DOUBLE, 
-			STRING, 
-			BOOLEAN, 
-			ENUM, 
-			OBJECT;
-//			private Class clazz;
-//			
-//			private Type(Class clazz){
-//				
-//			}
+			INT, LONG, FLOAT, DOUBLE, STRING, BOOLEAN, ENUM, OBJECT;
 		}
-		
+
 		private final String name;
 		private final Type type;
 		private final Class<?> objectClass;
 
-		public static Field create(String name,Type type){
-			return new Field(name,type,null);
+		public static Field create(String name, Type type) {
+			if(type == Type.ENUM) {
+				throw new IllegalArgumentException(
+				    "Not allowed 'ENUM' type. Use 'Field.createEnum' method");
+			} else if(type == Type.OBJECT) {
+				throw new IllegalArgumentException(
+				    "Not allowed 'OBJECT' type. Use 'Field.createObject' method");
+			}
+			return new Field(name, type, null);
 		}
-		public static Field createObject(String name,Class<?> clazz){
-			return new Field(name,Type.OBJECT,clazz);
+
+		/**
+		 * Creates an <i>object</i> field.
+		 * 
+		 * @param name
+		 *          Field's name
+		 * @param clazz
+		 *          Object's instance class
+		 * @return
+		 */
+		public static Field createObject(String name, Class<?> clazz) {
+			return new Field(name, Type.OBJECT, clazz);
 		}
-		public static Field createEnum(String name,Class<?> clazz){
-			return new Field(name,Type.ENUM,clazz);
+
+		/**
+		 * Creates an enum field, based in a enum class
+		 * 
+		 * @param name
+		 *          Field's name
+		 * @param clazz
+		 *          Enum class
+		 * @return
+		 */
+		public static Field createEnum(String name, Class<?> clazz) {
+			return new Field(name, Type.ENUM, clazz);
 		}
-		
-		private Field(String name, Type type,Class<?> clazz) {
+
+		private Field(String name, Type type, Class<?> clazz) {
 			if(name == null) {
 				throw new IllegalArgumentException("Field name can't be null");
 			}
-
 			if(type == null) {
 				throw new IllegalArgumentException("Field type can't be null");
-			} else if (type == Type.OBJECT || type == Type.ENUM){
-				if (clazz == null){
-					throw new IllegalArgumentException("Field with type " + type + " must specify object class");
+			} else if(type == Type.OBJECT || type == Type.ENUM) {
+				if(clazz == null) {
+					throw new IllegalArgumentException("Field with type " + type
+					    + " must specify object class");
 				}
-				
-				if (type == Type.ENUM && !clazz.isEnum()){
-					throw new IllegalArgumentException("Field with type " + type + " must specify an enum class.Use createEnum.");
+
+				if(type == Type.ENUM && !clazz.isEnum()) {
+					throw new IllegalArgumentException("Field with type " + type
+					    + " must specify an enum class.Use createEnum.");
 				}
 				this.objectClass = clazz;
-			}  else {
+			} else {
 				this.objectClass = null;
 			}
 			this.name = name;
 			this.type = type;
-			
+
 		}
-		
-				
+
 		public Type getType() {
 			return type;
 		}
@@ -109,11 +141,11 @@ public class Schema {
 		public String getName() {
 			return name;
 		}
-		
-		public Class<?> getObjectClass(){
+
+		public Class<?> getObjectClass() {
 			return objectClass;
 		}
-		
+
 		public boolean equals(Object a) {
 			if(!(a instanceof Field)) {
 				return false;
@@ -121,8 +153,8 @@ public class Schema {
 			Field that = (Field) a;
 
 			boolean t = name.equals(that.getName()) && type.equals(that.getType());
-			if (type == Type.OBJECT || type == Type.ENUM){
-				return t && objectClass.equals(that.getObjectClass()); 
+			if(type == Type.OBJECT || type == Type.ENUM) {
+				return t && objectClass.equals(that.getObjectClass());
 			} else {
 				return t;
 			}
@@ -145,15 +177,15 @@ public class Schema {
 				String name = node.get("name").getTextValue();
 				String typeStr = node.get("type").getTextValue();
 				Type type = Type.valueOf(typeStr);
-				switch(type){
-					case OBJECT:
-						String clazz = node.get("object_class").getTextValue();
-						return Field.createObject(name,Class.forName(clazz));
-					case ENUM: 
-						clazz = node.get("object_class").getTextValue();
-						return Field.createEnum(name,Class.forName(clazz));
-					default: 
-						return Field.create(name, type);
+				switch(type) {
+				case OBJECT:
+					String clazz = node.get("object_class").getTextValue();
+					return Field.createObject(name, Class.forName(clazz));
+				case ENUM:
+					clazz = node.get("object_class").getTextValue();
+					return Field.createEnum(name, Class.forName(clazz));
+				default:
+					return Field.create(name, type);
 				}
 			} catch(ClassNotFoundException e) {
 				throw new IOException(e);
@@ -164,8 +196,8 @@ public class Schema {
 			gen.writeStartObject();
 			gen.writeStringField("name", getName());
 			gen.writeStringField("type", getType().toString());
-			if (getType() == Type.OBJECT || getType() == Type.ENUM){
-				gen.writeStringField("object_class",getObjectClass().getName());
+			if(getType() == Type.OBJECT || getType() == Type.ENUM) {
+				gen.writeStringField("object_class", getObjectClass().getName());
 			}
 			gen.writeEndObject();
 		}
@@ -234,18 +266,16 @@ public class Schema {
 		}
 	}
 
-	
 	public static Schema parse(String s) {
 		try {
 			return parse(FACTORY.createJsonParser(new StringReader(s)));
 		} catch(IOException e) {
 			throw new SchemaParseException(e);
-		} 
+		}
 	}
 
-	
 	static Schema parse(JsonParser parser) throws IOException {
-			return Schema.parse(MAPPER.readTree(parser));
+		return Schema.parse(MAPPER.readTree(parser));
 	}
 
 	public static Schema parse(JsonNode schema) throws IOException {
@@ -283,11 +313,16 @@ public class Schema {
 		}
 		gen.writeEndArray();
 	}
-	
+
 	@SuppressWarnings("serial")
-  public static class SchemaParseException extends PangoolRuntimeException {
-	  public SchemaParseException(Throwable cause) { super(cause); }
-	  public SchemaParseException(String message) { super(message); }
+	public static class SchemaParseException extends PangoolRuntimeException {
+		public SchemaParseException(Throwable cause) {
+			super(cause);
+		}
+
+		public SchemaParseException(String message) {
+			super(message);
+		}
 	}
-	
+
 }

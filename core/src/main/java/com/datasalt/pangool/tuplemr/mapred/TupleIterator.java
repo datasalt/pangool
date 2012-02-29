@@ -25,42 +25,48 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 
 /**
- * Iterator used in {@link SimpleReducer} and {@link RollupReducer}. Basically it translates an {@link Iterable} containing 
- * {@link NullWritable} objects to one that contains {@link ITuple} objects. 
- * In order to do so it handles the {@link ReduceContext} and uses {@link ReduceContext#getCurrentKey()} to obtain the key in 
- * every iteration.
+ * Iterator used in {@link SimpleReducer} and {@link RollupReducer}.
+ * <p>
  * 
- * See {@link Iterable} and {@link ITuple}
- *  
+ * Basically it translates an {@link Iterable} containing {@link NullWritable}
+ * objects to one that contains {@link ITuple} objects. In order to do so it
+ * handles the {@link ReduceContext} and uses {@link ReduceContext#getCurrentKey()} 
+ * to obtain the key in every iteration.
+ * 
+ * @see Iterable
+ * @see ITuple
+ * 
  */
-public class TupleIterator<OUTPUT_KEY,OUTPUT_VALUE> implements Iterator<ITuple>, Iterable<ITuple>{
+public class TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> implements Iterator<ITuple>,
+    Iterable<ITuple> {
 
 	private Iterator<NullWritable> iterator;
-	private ReduceContext<DatumWrapper<ITuple>,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context;
-		
-	public TupleIterator(ReduceContext<DatumWrapper<ITuple>,NullWritable,OUTPUT_KEY,OUTPUT_VALUE> context){
+	private ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context;
+
+	public TupleIterator(
+	    ReduceContext<DatumWrapper<ITuple>, NullWritable, OUTPUT_KEY, OUTPUT_VALUE> context) {
 		this.context = context;
 	}
-	
-	public void setIterator(Iterator<NullWritable> iterator){
+
+	public void setIterator(Iterator<NullWritable> iterator) {
 		this.iterator = iterator;
-	}	
-		
+	}
+
 	@Override
-  public boolean hasNext() {
+	public boolean hasNext() {
 		return iterator.hasNext();
-  }
+	}
 
 	@Override
-  public ITuple next() {
-			iterator.next(); //advances one key
-			return context.getCurrentKey().datum();
-  }
+	public ITuple next() {
+		iterator.next(); // advances one key
+		return context.getCurrentKey().datum();
+	}
 
 	@Override
-  public void remove() {
-			iterator.remove();
-  }
+	public void remove() {
+		iterator.remove();
+	}
 
 	@Override
 	public Iterator<ITuple> iterator() {
