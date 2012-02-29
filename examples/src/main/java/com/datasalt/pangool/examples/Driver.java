@@ -17,7 +17,6 @@ package com.datasalt.pangool.examples;
 
 import org.apache.hadoop.util.ProgramDriver;
 
-import com.datasalt.pangool.benchmark.wordcount.PangoolWordCount;
 import com.datasalt.pangool.examples.movingaverage.MovingAverage;
 import com.datasalt.pangool.examples.movingaverage.MovingAverageGenerateData;
 import com.datasalt.pangool.examples.secondarysort.SecondarySort;
@@ -39,7 +38,6 @@ public class Driver extends ProgramDriver {
 
 	public Driver() throws Throwable {
 		super();
-		addClass("wordcount", PangoolWordCount.class, "Typical word count in Pangool");
 		addClass("tupleviewer", TupleViewer.class, "A tool for textualizing tuple outputs. You give it a glob or path and it will print the stringified tuples.");
 		addClass("grep", Grep.class, "Map-only job that performs a grep");
 		addClass("simple_secondarysort", SimpleSecondarySort.class, "Typical simple secondary sort (two ints) in Pangool.");
