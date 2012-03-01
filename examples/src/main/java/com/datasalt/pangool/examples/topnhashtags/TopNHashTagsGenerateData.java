@@ -25,11 +25,11 @@ import java.util.List;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.datasalt.pangool.examples.Utils;
 import com.datasalt.pangool.examples.topnhashtags.Beans.Entities;
 import com.datasalt.pangool.examples.topnhashtags.Beans.HashTag;
 import com.datasalt.pangool.examples.topnhashtags.Beans.SimpleTweet;
 import com.datasalt.pangool.examples.topnhashtags.Beans.UserInfo;
+import com.datasalt.pangool.utils.TestUtils;
 
 /**
  * Input data generator for the {@link TopNHashTags} example.
@@ -59,11 +59,11 @@ public class TopNHashTagsGenerateData {
 		// Pregenerate data that will be used to generate tweets
 		
 		for(int i = 0; i < nHashTags; i++) {
-			hashTags.add("hashtag" + Utils.randomString(10));
+			hashTags.add("hashtag" + TestUtils.randomString(10));
 		}
 		
 		for(int i = 0; i < nLocations; i++) {
-			locations.add("location" + Utils.randomString(10));
+			locations.add("location" + TestUtils.randomString(10));
 		}
 
 		long currDate = System.currentTimeMillis();

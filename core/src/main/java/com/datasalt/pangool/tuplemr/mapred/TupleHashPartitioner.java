@@ -15,6 +15,8 @@
  */
 package com.datasalt.pangool.tuplemr.mapred;
 
+import java.util.Arrays;
+
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -52,6 +54,9 @@ public class TupleHashPartitioner extends Partitioner<DatumWrapper<ITuple>, Null
 				    + tupleMRConfig.getIntermediateSchemaNames());
 			}
 			int[] fieldsToPartition = serInfo.getPartitionFieldsIndexes().get(schemaId);
+			if(fieldsToPartition.length == 0) {
+				throw new RuntimeException("Fields to partition is 0. Something has been wrongly configured.");
+			}
 			return (partialHashCode(tuple, fieldsToPartition) & Integer.MAX_VALUE)
 			    % numPartitions;
 		}

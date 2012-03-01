@@ -132,7 +132,7 @@ public class SerializationInfo {
 
 	private void calculatePartitionFields() {
 		List<String> partitionFields;
-		if(mrConfig.getCustomPartitionFields() != null) {
+		if(!mrConfig.getCustomPartitionFields().isEmpty()) {
 			partitionFields = mrConfig.getCustomPartitionFields();
 		} else {
 			partitionFields = mrConfig.calculateRollupBaseFields();

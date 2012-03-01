@@ -20,7 +20,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
 
-import com.datasalt.pangool.examples.Utils;
+import com.datasalt.pangool.utils.TestUtils;
 
 /**
  * Input data generator for the {@link SecondarySort} example.
@@ -52,7 +52,7 @@ public class SecondarySortGenerateData {
 		for(int i = 0; i < nDeps; i++) {
 			int randomDep = (r.nextInt());
 			for(int j = 0; j < nPersonPerDep; j++) {
-				String randomName = "" + Utils.randomChar() + Utils.randomChar();
+				String randomName = "" + TestUtils.randomChar() + TestUtils.randomChar();
 				for(int k = 0; k < nPaymentsPerPerson; k++) {
 					long randomDate = r.nextLong();
 					double randomPrice = r.nextDouble();
