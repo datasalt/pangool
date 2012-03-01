@@ -1,0 +1,43 @@
+---
+layout: default
+title: SenseiDB - Cluster Overview
+---
+<div class="hero-unit">
+	<h2>Pangool User Guide</h2>
+</div>
+
+<h2>8 - Custom Comparators</h2>
+
+<p>
+You can use your own custom RawComparator for comparing a field in a Tuple. This can be specified in the sort by configuration, for example:
+</p>
+
+<pre class="prettyprint" id="java">
+cg.setOrderBy(new SortBy().add("word", Order.DESC, new MyUtf8Comparator()));
+</pre>
+
+<p>
+Example:
+</p>
+
+<pre class="prettyprint" id="java">
+private static class MyUtf8Comparator implements RawComparator<Text>, Serializable {
+	@Override
+	public int compare(Text arg0, Text arg1) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public int compare(byte[] buf1, int off1, int len1, byte[] buf2, int off2, int len2) {
+		if(len1 > len2) {
+			return 1;
+	} else if(len1 < len2) {
+			return -1;
+		} else {
+			return 0;
+		}
+	}
+}
+</pre>
+
+<p><a class="btn primary large" href="userguide9.html">Next: Rollup &raquo;</a></p>

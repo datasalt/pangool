@@ -1,0 +1,62 @@
+---
+layout: default
+title: SenseiDB - Cluster Overview
+---
+<div class="hero-unit">
+	<h2>Pangool User Guide</h2>
+</div>
+
+<h2>1 - Tuples & Schemas</h2>
+
+<p>
+A Pangool Tuple is an ordered list of Objects with an associated Schema.
+Schemas have an associated name and a list of Fields. 
+</p>
+<p>
+We can create an Schema in a strong-typed fashion:
+</p>
+<pre class="prettyprint" id="java">
+	List<Field> fields = new ArrayList<Field>();
+	fields.add(Field.create("number1", Type.INT));
+	fields.add(Field.create("string1", Type.STRING));
+	fields.add(Field.create("string2", Type.STRING));
+	Schema schema1 = new Schema("test1", fields);
+</pre>	
+<p>
+Or we can also create it leveraging the Fields.parse() method:
+</p>
+
+<pre class="prettyprint" id="java">
+	new Schema("schema2", Fields.parse("a:int, b:string, c:string, d:string"));
+</pre>	
+<p>
+
+Although Pangool does not provide a serialization framework by itself, it has some primitive types implemented 
+for convenience:
+</p>
+
+<table>
+<tr><td>Type.INT</td><td>Serialized as an VInt</td></tr> 
+<tr><td>Type.LONG</td><td>Serialized as an VLong</td></tr> 
+<tr><td>Type.FLOAT</td><td>Serialized as 4-bytes float type</td></tr> 
+<tr><td>Type.DOUBLE</td><td>Serialized as 8-bytes double type</td></tr> 
+<tr><td>Type.UTF8</td><td>Serialized like Hadoop’s Text</td></tr> 
+<tr><td>Type.BOOLEAN</td><td>Serialized as 1-byte boolean type</td></tr> 
+<tr><td>Type.ENUM</td><td>Serialized as Vint values</td></tr> 
+</table>
+
+<p>
+For non-primitive types you can use Type.OBJECT and set arbitrary objects. 
+These will be serialized using the Hadoop Serialization library (see <a href='#'>link-goes-here</a> ). 
+So if you are using your own custom data types, you need to configure Hadoop accordingly.
+</p>
+
+<p>Tuples meet the ITuple interface and can be instantiated via the Tuple class. You can set tuple values by field name or field index.</p>
+
+<pre class="prettyprint" id="java">
+	ITuple tuple = new Tuple(schema1);
+	tuple.set("number1", 35);
+	tuple.set("string1", "foo");
+</pre>
+
+<p><a class="btn primary large" href="userguide2.html">Next: Pangool's MapRed API &raquo;</a></p>

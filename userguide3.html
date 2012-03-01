@@ -1,0 +1,45 @@
+---
+layout: default
+title: SenseiDB - Cluster Overview
+---
+<div class="hero-unit">
+	<h2>Pangool User Guide</h2>
+</div>
+
+<h2>3 - Group & Sort by</h2>
+
+<p>
+In the standard Hadoop MapReduce API, the key, value pairs that are emitted as intermediate output are grouped by they key, sorted by a specific Comparator and grouped by another specific Group Comparator. Normally if you change the Group Comparator you also need to change the Partitioner for things to be safe. 
+</p>
+
+<p>
+In Pangool (almost) all of this behavior is greatly simplified and controlled by the group and sort by configuration. The group by specifies which combination of fields is used to from the Reducer groups. The sort by specifies which fields are used to sort the tuples and how are they sorted. 
+</p>
+
+<p>
+By default, sort by fields are the ones that have been specified in the group by. 
+</p>
+
+<p>
+A standard secondary sort can be achieved by sorting by “n” fields and grouping by “m” where m < n. Example:
+</p>
+
+<p>
+<pre class="prettyprint" id="java">
+setGroupByFields(“url”);
+setOrderBy(new SortBy().add("url", Order.ASC).add("timestamp", Order.DESC));
+</pre>
+</p>
+
+<p>
+With this configuration we will have groups in the Reducer that share the same “url” field in the Tuple, and we will sort the Tuples by “url” and “timestamp”. This means that the tuples that share the same “url” will also be sorted by timestamp (DESC). 
+</p>
+
+<p>
+Note that, when specifying a sort by, group by must be coherent with it (as in it must be a prefix of it). E.g. you can’t group by “timestamp” and sort by “url”, “timestamp”.
+</p>
+
+<p>
+The partitioning strategy that Pangool chooses is one which is coherent with the group / sort by configuration. In this case, Pangool will partition by the group by fields (unless we modify the default partitioning strage, which is explained in the “...” section of the guide).
+</p>
+<p><a class="btn primary large" href="userguide4.html">Next: Named outputs &raquo;</a></p>

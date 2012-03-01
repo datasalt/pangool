@@ -1,0 +1,31 @@
+---
+layout: default
+title: SenseiDB - Cluster Overview
+---
+<div class="hero-unit">
+	<h2>Pangool User Guide</h2>
+</div>
+
+<h2>4 - Named outputs</h2>
+
+<p>
+Named outputs in Pangool are somewhat based on “MultipleOutputs” in Hadoop, but they have some differences. We found that “MultipleOutputs” has some incompatibilities, for instance it doesn’t work with output formats that write to arbitrary file names. For that purpose, we made Pangool’s named outputs write to subfolders. This way, output format implementations are free to write to any file name.
+</p>
+
+<p>
+Output formats in Pangool are instances. This allowed us to implement a TupleOutputFormat that takes a Schema as a parameter. But you don't need to care about this. To add a named output that will write a Tuples with a certain Schema, all you need to do is, for instance:
+</p>
+<pre class="prettyprint" id="java">
+	Schema baseSchema = new Schema("schema",Fields.parse("name:string, money:int, country:string"));
+	builder.addNamedTupleOutput(TUPLEOUTPUT, baseSchema);
+</pre>
+
+<p>
+Still, if you want to use classes instead of instances, you can wrap static classes by using the HadoopOutputFormat() class. For example:
+<p>
+<pre class="prettyprint" id="java">
+	builder.setOutput(new Path(OUTPUT), new HadoopOutputFormat(SequenceFileOutputFormat.class), DoubleWritable.class, NullWritable.class);
+</pre>
+</p>
+
+<p><a class="btn primary large" href="userguide5.html">Next: Reduce-side Joins &raquo;</a></p>

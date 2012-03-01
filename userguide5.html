@@ -1,0 +1,91 @@
+---
+layout: default
+title: SenseiDB - Cluster Overview
+---
+<div class="hero-unit">
+	<h2>Pangool User Guide</h2>
+</div>
+
+<h2>5 - Reduce-side Joins</h2>
+
+<p>
+One of the most interesting features of Pangool is its inherent reduce-side join capabilities. In this section we’ll comment one of the examples that can be found in the examples/ sub-project of Pangool - the URL resolution - to illustrate how easy it is to perform arbitrary reduce-side joins with Pangool.
+</p>
+
+<p>
+We have one file with URL Registers: [“url”, “timestamp”, “ip”] and another file with canonical URL mappings: [“url”, “canonicalUrl”]. We want to output the URL Registers file with the url substituted with the canonical one according to the mapping file: [“canonicalUrl”, “timestamp”, “ip”].
+</p>
+
+<p>
+For that, we need to join the URL Registers file with the URL mappings file. We need to join them by the common field “url”. Using a reduce-side join, we could store the “canonicalUrl” for each “url” group and apply the substitution to each of the URL Registers records associated with that “url”. To make the join totally scalable, we need to receive the “canonicalUrl” first in each reduce group so that we only need to stream through the URL Registers afterwards (otherwise it is not feasible to assume that we can store all the URL Registers in a List in memory, for instance).
+</p>
+
+<p>
+We’ll configure a Pangool Job to accept two inputs and two intermediate input schemas. Let’s start by checking each of the Mapper implementations:
+</p>
+
+<pre class="prettyprint" id="java">
+public static class UrlProcessor extends TupleMapper<LongWritable, Text> {
+
+}
+</pre>
+
+<p>
+This Mapper is quite simple. It just parses the input URL Registers file and emits a tuple with the needed data. It uses the context.getTupleMRConfig().getIntermediateSchema() to grab the intermediate schema that was configured for that input source.
+</p>
+
+<pre class="prettyprint" id="java">
+public static class UrlMapProcessor extends TupleMapper<LongWritable, Text> {
+
+}
+</pre>
+
+<p>
+Same thing for this one: just parsing and emitting a Tuple. 
+Let’s now check to see the Reducer that performs the join:
+</p>
+
+<pre class="prettyprint" id="java">
+public static class Handler extends TupleReducer<Text, NullWritable> {
+
+}
+</pre>
+
+<p>
+Let’s comment on this specific part of the code:
+</p>
+
+<pre class="prettyprint" id="java">
+for(ITuple tuple : tuples) {
+	if("urlMap".equals(tuple.getSchema().getName())) {
+		cannonicalUrl = tuple.get("canonicalUrl").toString();
+	} else {
+		...
+		collector.write(result, NullWritable.get());
+	}
+}
+</pre>
+
+<p>
+What happens is that we are iterating over each of the Tuples associated with the same “url” group, but we are keeping a state variable in case that the Tuple belongs to one of the schemas (the one that processed URL Mapping registers). Then, we use this state variable for emitting each of the URL Registers. Note how we are assuming that the URL Mapping comes always before the URL Registers. In other words, there is a specific source sort within the records of the joined Tuple list. We’ll see this in greater detail when we configure the Job.
+</p>
+
+<p>
+Let’s now check the Job configuration:
+</p>
+
+<pre class="prettyprint" id="java">
+	TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Url Resolution");
+	grouper.addIntermediateSchema(new Schema("urlMap", urlMapFields));
+	grouper.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
+	grouper.setGroupByFields("url");
+</pre>
+
+<p>
+And that’s about it! We have just defined two schemas, associated them with each input source and defined the group key. Note that the “url” field must be present in both schemas for the join to work. By default, Pangool will sort by the group by fields and will peform intersource sorting based on the order in which we defined the sources. In this case, for each group, the URL Mapping will come first - and that’s why the code above works. 
+</p>
+
+<p>
+In order to configure a special sorting for the join, you’ll need to use .addSourceOrder() as needed depending on which place you want to put the intersource ordering in your custom sorting.
+</p>
+<p><a class="btn primary large" href="userguide6.html">Next: Map-only Jobs &raquo;</a></p>

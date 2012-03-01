@@ -1,0 +1,22 @@
+---
+layout: default
+title: SenseiDB - Cluster Overview
+---
+<div class="hero-unit">
+	<h2>Pangool User Guide</h2>
+</div>
+
+<h2>6 - Map-only Jobs</h2>
+
+<p>
+Pangool comes with a convenient builder for Map-only jobs that accepts instances of Mappers instead of static classes. It is called MapOnlyJobBuilder. You can see the “Grep” example in the examples/ package. In this example we are creating a convenient map-only job with a Mapper that accepts a regex and we are doing it in only 3 lines:
+</p>
+
+<pre class="prettyprint" id="java">
+	MapOnlyJobBuilder b = new MapOnlyJobBuilder(conf);
+	b.setHandler(new GrepHandler(regex));
+	b.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+	b.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class));
+</pre>
+
+<p><a class="btn primary large" href="userguide7.html">Next: Custom Partitioners &raquo;</a></p>
