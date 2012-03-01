@@ -20,14 +20,14 @@
 
   <parent>
     <groupId>com.datasalt.pangool</groupId>
-    <artifactId>pangool</artifactId>
-    <version>0.40</version>
+    <artifactId>pangool-top-level</artifactId>
+    <version>0.39-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <groupId>com.datasalt.pangool</groupId>
   <artifactId>pangool-core</artifactId>
-  <version>0.40</version>
+  <!--version>0.39</version-->
   <packaging>jar</packaging>
 
   <!-- modules inherit parent's group id and version. -->
