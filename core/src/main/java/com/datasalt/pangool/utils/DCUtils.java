@@ -145,7 +145,7 @@ public class DCUtils {
 			File tmpFolder = new File(conf.get("hadoop.tmp.dir"));
 			for(File file : tmpFolder.listFiles()) {
 				if(file.getName().endsWith(filePostFix)) {
-					locatedFile = new Path(file.toURI());
+					locatedFile = new Path(file.toString());
 					break;
 				}
 			}
