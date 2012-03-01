@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.datasalt.pangool.examples.Utils;
+import com.datasalt.pangool.utils.TestUtils;
 
 /**
  * Input data generator for the {@link TopicalWordCount} and {@link TopicalWordCountWithStopWords} example.
@@ -51,7 +51,7 @@ public class TopicalWordCountGenerateData {
 		Map<String, Object> jsonRecord = new HashMap<String, Object>();
 		for(int i = 0; i < nRegisters; i++) {
 			int randomTopic = (int) (Math.random() * nTopics);
-			String text = Utils.randomString(2) + " " + Utils.randomString(3) + " " + Utils.randomString(4); 
+			String text = TestUtils.randomString(2) + " " + TestUtils.randomString(3) + " " + TestUtils.randomString(4); 
 			jsonRecord.put("topicId", randomTopic);
 			jsonRecord.put("text", text);
 			writer.write(mapper.writeValueAsString(jsonRecord) + "\n");

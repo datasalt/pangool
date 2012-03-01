@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.examples;
+package com.datasalt.pangool.utils;
 
-public class Utils {
+public class TestUtils {
 
 	public static char randomChar() {
 		return (char) (int) (Math.random() * 26.0D + 97.0D);
