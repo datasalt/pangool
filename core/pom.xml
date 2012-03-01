@@ -174,7 +174,8 @@ h
       <version>3.3.0</version>
     </dependency>
   </dependencies>
-  
+
+  <!--  
   <repositories>
    <repository>
       <id>cloudera</id>
@@ -188,8 +189,7 @@ h
         <enabled>false</enabled>
       </snapshots>
     </repository>
-  </repositories>
-    <!-- 
+    
     <repository>
       <id>sonatype-releases</id>
       <name>Sonatype Releases</name>
