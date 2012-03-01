@@ -20,7 +20,6 @@ sed -e "${LINE_NUMBER}s/${CURRENT_VERSION}/0.20.205.0/" $POM > $POMSDIR/pom-0.20
 sed -e "${LINE_NUMBER}s/${CURRENT_VERSION}/0.20.2-cdh3u1/" $POM > $POMSDIR/pom-0.20.2-cdh3u1.xml
 sed -e "${LINE_NUMBER}s/${CURRENT_VERSION}/0.20.2-cdh3u2/" $POM > $POMSDIR/pom-0.20.2-cdh3u2.xml
 sed -e "${LINE_NUMBER}s/${CURRENT_VERSION}/0.20.2-cdh3u3/" $POM > $POMSDIR/pom-0.20.2-cdh3u3.xml
-sed -e "${LINE_NUMBER}s/${CURRENT_VERSION}/0.23.0-mr1-cdh4b1/" $POM > $POMSDIR/pom-0.23.0-mr1-cdh4b1.xml 
 sed -e "${LINE_NUMBER}s/${CURRENT_VERSION}/1.0.0/" $POM > $POMSDIR/pom-1.0.0.xml
 echo "Done. Poms generated in $POMSDIR"
 
