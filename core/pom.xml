@@ -188,7 +188,7 @@ h
         <enabled>false</enabled>
       </snapshots>
     </repository>
-  </repository>
+  </repositories>
     <!-- 
     <repository>
       <id>sonatype-releases</id>
