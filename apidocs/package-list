@@ -1,0 +1,11 @@
+com.datasalt.pangool
+com.datasalt.pangool.io
+com.datasalt.pangool.serialization
+com.datasalt.pangool.thrift.test
+com.datasalt.pangool.tuplemr
+com.datasalt.pangool.tuplemr.mapred
+com.datasalt.pangool.tuplemr.mapred.lib.input
+com.datasalt.pangool.tuplemr.mapred.lib.output
+com.datasalt.pangool.tuplemr.serialization
+com.datasalt.pangool.utils
+com.datasalt.pangool.utils.test
