@@ -7,29 +7,99 @@ name: overview
 	<p>
 		<h2>Overview</h2>
 		<p>
-			Pangool is an open-source implementation of - what we call - Tuple Map/Reduce (see this post in our blog for a reference) based on the Hadoop Java MapReduce API.
+			Pangool is an open-source implementation of - what we call -
+			 <a href="http://www.datasalt.com/2012/02/tuple-mapreduce-beyond-the-classic-mapreduce/">
+			 Tuple Map/Reduce</a> based on the Hadoop Java MapReduce API.
 		</p>
 	</p>	
 </div>
+
 <h2>Introduction</h2>
-Pangool is a Java, low-level MapReduce API. It aims to be a replacement for the Hadoop Java MapReduce API. By implementing an intermediate Tuple-based schema and configuring a Job conveniently, many of the accidental complexities that arise from using the Hadoop Java MapReduce API disappear. Things like secondary sort and reduce-side joins become extremely easy to implement and understand. Pangool’s performance is comparable to that of the Hadoop Java MapReduce API. Pangool also augments Hadoop’s API by making multiple outputs and inputs first-class and allowing instanciable objects.
+Pangool is a <strong>Java, low-level MapReduce API</strong>. It aims to be a <strong>replacement</strong> for the 
+Hadoop Java MapReduce API. By implementing an intermediate Tuple-based schema and 
+configuring a Job conveniently, <strong>many of the accidental complexities that arise from using 
+the Hadoop Java MapReduce API disappear</strong>. Things like secondary sort and reduce-side joins 
+become extremely easy to implement and understand. Pangool’s performance is comparable to that 
+of the Hadoop Java MapReduce API. Pangool also augments Hadoop’s API by making multiple outputs 
+and inputs first-class and allowing instanciable objects.
 
 <h2>Features</h2>
 
-- Intermediate Tuple-based serialization: By using Tuples instead of (key, value) pairs, the user is not forced to write their custom data types (e.g. Writables) or use external serialization libraries when working with more than two fields.
+<div class="row">
+	<div class="span8 well">
+		<h3>Intermediate Tuple-based serialization</h3>
+		<p>
+			By using Tuples instead of (key, value) pairs, the user is not forced to write their 
+			custom data types (e.g. Writables) or use external serialization libraries when working 
+			with more than two fields.		
+		</p>
+		<p>
+		However Pangool’s Tuples may contain arbitrary data types - as long as they are serializable by Hadoop.
+		</p>
+	</div>
+	<div class="span8 well">
+		<h3>Efficient, easy-to-use secondary sorting</h3>
+		<p>
+			In Pangool you can say <code>groupBy(“user”, “country”)</code>, <code>sortBy(“user”, “country”, “name”)</code>. Pangool 
+			will use an intelligent and efficient Partitioner, Sort and Group Comparator underneath just like an 
+			advanced user would do with the plain Hadoop MapReduce API.
+		</p>
+	</div>
+</div> 
+ 
+<div class="row">
+	<div class="span8 well">
+		<h3>Efficient, easy-to-use reduce-side joins</h3>
+		<p>
+			Doing reduce-side joins with Pangool is as simple as it can get. By using 
+			Tuples and configuring your MapReduce jobs properly, you can easily join various 
+			datasets and perform arbitrary business logic on them. Again, Pangool will know how 
+			to partition, sort and group by underneath in an efficient way.		
+		<p>
+	</div>
+	<div class="span8 well">
+		<h3>Instanciable objects</h3>
+		<p>
+			Mapper, Combiner, Reducers, Input / Output Formats and Comparators can be passed 
+			via object instance. Pangool will serialize the instance into the DistributedCache 
+			and reinstantiate the object when needed. This way, boilerplate configuration code is 
+			no longer needed.		
+		</p>
+	</div>
+</div>
 
-However Pangool’s Tuples may contain arbitrary data types - as long as they are serializable by Hadoop.
+<div class="row">
+	<div class="span8 well">
+		<h3>First-class multiple inputs / outputs</h3>
+		<p>
+			Multiple inputs & outputs in Pangool is part of its standard API.		
+		<p>
+	</div>
+	<div class="span8 well">
+		<h3>Input / Output Tuple formats</h3>
+		<p>
+			Tuples may be persisted and used as input to other Jobs by using 
+			TupleOutputFormat / TupleInputFormat which use Avro underneath for serializing.		
+		</p>
+	</div>
+</div>
 
-- Efficient, easy-to-use secondary sorting: In Pangool you can say groupBy(“user”, “country”), sortBy(“user”, “country”, “name”). Pangool will use an intelligent and efficient Partitioner, Sort and Group Comparator underneath just like an advanced user would do with the plain Hadoop MapReduce API.
 
-- Efficient, easy-to-use reduce-side joins: Doing reduce-side joins with Pangool is as simple as it can get. By using Tuples and configuring your MapReduce jobs properly, you can easily join various datasets and perform arbitrary business logic on them. Again, Pangool will know how to partition, sort and group by underneath in an efficient way.
+<div class="row">
+	<div class="span8 well">
+		<h3>Performance and flexibility</h3>
+		<p>
+			Pangool is an alternative to the Java Hadoop MapReduce API. The same things can be 
+			achieved by using one or another. Pangool’s performance is quite close to that of 
+			Hadoop’s MapReduce API (see benchmark with other tools for a reference). Pangool 
+			just makes life easier to those that require the efficiency and flexibility of 
+			the plain Java Hadoop MapReduce API.		
+		<p>
+	</div>
+</div>
 
-- Instanciable objects: Mapper, Combiner, Reducers, Input / Output Formats and Comparators can be passed via object instance. Pangool will serialize the instance into the DistributedCache and reinstantiate the object when needed. This way, boilerplate configuration code is no longer needed.
+<p><a class="btn primary large" href="#">Get started &raquo;</a></p>
+ 
 
-- Rollup: 
 
-- First-class multiple inputs / outputs: Multiple inputs & outputs in Pangool is part of its standard API. 
 
-- Input / Output Tuple formats: Tuples may be persisted and used as input to other Jobs by using TupleOutputFormat / TupleInputFormat which use Avro underneath for serializing.
-
-- Performance and flexibility: Pangool is an alternative to the Java Hadoop MapReduce API. The same things can be achieved by using one or another. Pangool’s performance is quite close to that of Hadoop’s MapReduce API (see benchmark with other tools for a reference). Pangool just makes life easier to those that require the efficiency and flexibility of the plain Java Hadoop MapReduce API.
