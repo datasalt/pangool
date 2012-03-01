@@ -175,8 +175,8 @@ h
     </dependency>
   </dependencies>
   
-  <!--repositories-->
-   <!--repository>
+  <repositories>
+   <repository>
       <id>cloudera</id>
       <name>Cloudera Releases</name>
       <url>https://repository.cloudera.com/content/repositories/releases</url>
@@ -187,8 +187,8 @@ h
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-    </repository-->
-    
+    </repository>
+  </repository>
     <!-- 
     <repository>
       <id>sonatype-releases</id>
