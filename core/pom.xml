@@ -271,7 +271,26 @@
           </execution>
         </executions>
       </plugin-->
- 
+ 	<plugin>
+	    <artifactId>maven-assembly-plugin</artifactId>
+	    <version>2.2.1</version>
+	    <configuration>
+		<descriptors>
+		  <descriptor>src/main/assembly/jar-with-deps.xml</descriptor>
+		</descriptors>
+		<archive>
+		</archive>
+	    </configuration>
+	    <!--executions>
+		<execution>
+       		 <id>make-assembly</id>
+			<phase>package</phase>
+  			<goals>
+  		          <goal>single</goal>
+			</goals>
+		</execution>
+	</executions-->
+	</plugin>
     
   </plugins>
  </build>
@@ -279,7 +298,7 @@
  
  <profiles>
  
- <profile>
+ <!--profile>
       <id>profile-buildthrift</id>
       <activation>
         <file>
@@ -288,7 +307,7 @@
       </activation>
       <build>
         <plugins>
-          <!--plugin>
+          <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
             <executions>
               <execution>
@@ -312,10 +331,10 @@
                 </goals>
               </execution>
             </executions>
-          </plugin-->
+          </plugin>
         </plugins>
       </build>
-    </profile>
+    </profile-->
  
 
   </profiles>

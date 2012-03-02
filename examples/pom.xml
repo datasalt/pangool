@@ -40,14 +40,14 @@
     </license>
   </licenses>
 
-  <scm>
+  <!--scm>
    <url>http://pangool.net</url>
     <connection>https://git@github.com:datasalt/pangool.git</connection>
-  </scm>
+  </scm-->
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <pangool.skip.example>false</pangool.skip.example>
+    <!--pangool.skip.example>false</pangool.skip.example-->
   </properties>
 
   <build>
@@ -65,29 +65,29 @@
 
       <!-- create examples pangool job jar -->
 	  <plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2.1</version>
-				<configuration>
-					<descriptors>
-						<descriptor>src/main/assembly/hadoop-job.xml</descriptor>
-					</descriptors>
-					<archive>
-						<manifest>
-							<mainClass>com.datasalt.pangool.examples.Driver</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-	    </plugins>
+	    <artifactId>maven-assembly-plugin</artifactId>
+	    <version>2.2.1</version>
+	    <configuration>
+		<descriptors>
+		  <descriptor>src/main/assembly/hadoop-job.xml</descriptor>
+		</descriptors>
+		<archive>
+		  <manifest>
+		    <mainClass>com.datasalt.pangool.examples.Driver</mainClass>
+	          </manifest>
+		</archive>
+	    </configuration>
+	    <executions>
+		<execution>
+       		 <id>make-assembly</id>
+			<phase>package</phase>
+  			<goals>
+  		          <goal>single</goal>
+			</goals>
+		</execution>
+	</executions>
+	</plugin>
+   </plugins>
   </build>
     
   <dependencies>
@@ -119,12 +119,12 @@
             
  </dependencies>
 
-  <profiles>
+  <!--profiles>
     <profile>
       <id>release.prepare</id>
       <properties>
         <pangool.skip.example>true</pangool.skip.example>
       </properties>
     </profile>
-  </profiles>
+  </profiles-->
 </project>
