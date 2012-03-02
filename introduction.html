@@ -61,34 +61,31 @@ We’ll start by writing a Mapper. For Pangool Jobs, we need to extend <a href='
 </p>
 
 <pre class="prettyprint" id="java">
-	public static class TokenizeMapper extends TupleMapper<LongWritable, Text> {
+public static class TokenizeMapper extends TupleMapper<LongWritable, Text> {
 
-		protected Tuple tuple;
-		protected ObjectMapper mapper;
+	protected Tuple tuple;
+	protected ObjectMapper mapper; // This is Jackson's JSON Parser that we'll use for parsing the input
 
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
-			this.mapper = new ObjectMapper();
-			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
-		};
+	public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		this.mapper = new ObjectMapper();
+		tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
+	};
 
-		@SuppressWarnings("rawtypes")
-		@Override
-		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException,
-		    InterruptedException {
-			Map document = mapper.readValue(value.toString(), Map.class);
-			tuple.set("topic", (Integer) document.get("topicId"));
-			StringTokenizer itr = new StringTokenizer((String) document.get("text"));
-			tuple.set("count", 1);
-			while(itr.hasMoreTokens()) {
-				tuple.set("word", itr.nextToken());
-				emitTuple(collector); // We are creating a method for this to allow overriding it from subclasses
-			}
-		}
-
-		protected void emitTuple(Collector collector) throws IOException, InterruptedException {
-			collector.write(tuple);
+	public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		Map document = mapper.readValue(value.toString(), Map.class); // Parse JSON
+		tuple.set("topic", (Integer) document.get("topicId"));
+		StringTokenizer itr = new StringTokenizer((String) document.get("text"));
+		tuple.set("count", 1);
+		while(itr.hasMoreTokens()) {
+			tuple.set("word", itr.nextToken());
+			emitTuple(collector); // We are creating a method for this to allow overriding it from subclasses
 		}
 	}
+
+	protected void emitTuple(Collector collector) throws IOException, InterruptedException {
+		collector.write(tuple);
+	}
+}
 </pre>
 
 <p>
@@ -135,22 +132,20 @@ Now, we need to write a Reducer. The Reducer will extend <a href='https://github
 </p>
 
 <pre class="prettyprint" id="java">
-	public static class CountReducer extends TupleReducer<ITuple, NullWritable> {
+public static class CountReducer extends TupleReducer<ITuple, NullWritable> {
 
-		@Override
-		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
-		    throws IOException, InterruptedException, TupleMRException {
+	public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector) throws IOException, InterruptedException, TupleMRException {
 
-			int count = 0;
-			ITuple outputTuple = null;
-			for(ITuple tuple : tuples) {
-				count += (Integer) tuple.get("count");
-				outputTuple = tuple;
-			}
-			outputTuple.set("count", count);
-			collector.write(outputTuple, NullWritable.get());
+		int count = 0;
+		ITuple outputTuple = null;
+		for(ITuple tuple : tuples) {
+			count += (Integer) tuple.get("count");
+			outputTuple = tuple;
 		}
+		outputTuple.set("count", count);
+		collector.write(outputTuple, NullWritable.get());
 	}
+}
 </pre>
 
 <p>
@@ -162,16 +157,16 @@ And now for the most important part of it. Let’s create a Tuple MapReduce!
 </p>
 
 <pre class="prettyprint" id="java">
-	TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Topical Word Count");
-	mr.addIntermediateSchema(getSchema());
-	// We will count each (topicId, word) pair
-	// Note that the order in which we defined the fields of the Schema is not relevant here
-	mr.setGroupByFields("topic", "word");
-	mr.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), new TokenizeMapper());
-	// We'll use a TupleOutputFormat with the same schema than the intermediate schema
-	mr.setTupleOutput(new Path(args[1]), getSchema());
-	mr.setTupleReducer(new CountReducer());
-	mr.setTupleCombiner(new CountReducer());
+TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Topical Word Count");
+mr.addIntermediateSchema(getSchema());
+// We will count each (topicId, word) pair
+// Note that the order in which we defined the fields of the Schema is not relevant here
+mr.setGroupByFields("topic", "word");
+mr.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), new TokenizeMapper());
+// We'll use a TupleOutputFormat with the same schema than the intermediate schema
+mr.setTupleOutput(new Path(args[1]), getSchema());
+mr.setTupleReducer(new CountReducer());
+mr.setTupleCombiner(new CountReducer());
 </pre>
 
 <p>
