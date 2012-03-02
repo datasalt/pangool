@@ -16,18 +16,18 @@ Schemas have an associated name and a list of Fields.
 We can create an <code>Schema</code> in a strong-typed fashion:
 </p>
 <pre class="prettyprint" id="java">
-	List<Field> fields = new ArrayList<Field>();
-	fields.add(Field.create("number1", Type.INT));
-	fields.add(Field.create("string1", Type.STRING));
-	fields.add(Field.create("string2", Type.STRING));
-	Schema schema1 = new Schema("schema1", fields);
+ List<Field> fields = new ArrayList<Field>();
+ fields.add(Field.create("number1", Type.INT));
+ fields.add(Field.create("string1", Type.STRING));
+ fields.add(Field.create("string2", Type.STRING));
+ Schema schema1 = new Schema("schema1", fields);
 </pre>	
 <p>
-Or we can also create it leveraging the Fields.parse() method:
+Or we can also create it leveraging the <code>Fields.parse()</code> method:
 </p>
 
 <pre class="prettyprint" id="java">
-	Schema schema1 = new Schema("schema1", Fields.parse("number1:int, string1:string, string2:string"));
+ Schema schema1 = new Schema("schema1", Fields.parse("number1:int, string1:string, string2:string"));
 </pre>	
 <p>
 
@@ -45,13 +45,13 @@ summarizes the available field types:
 
 <table>
 <tr><th>Field Type</th><th>Accepted java types</th><th>Deserialized java type</th><th>Serialization</th></tr>
-<tr><td>Type.INT</td><td>Integer</td><td>Integer</td><td>Variable length integer</td></tr> 
-<tr><td>Type.LONG</td><td>Long</td><td>Long</td><td>Variable length long</td></tr> 
-<tr><td>Type.FLOAT</td><td>Float</td><td>Float</td><td>4-bytes</td></tr> 
-<tr><td>Type.DOUBLE</td><td>Double</td><td>Double</td><td>8-bytes</td></tr> 
-<tr><td>Type.STRING</td><td>String, Utf8</td><td>Utf8</td><td>Variable length integer (size) + uft8 bytes</td></tr> 
+<tr><td>Type.INT</td><td>Integer</td><td>Integer</td><td>32-bit integer (variable length encoded)</td></tr> 
+<tr><td>Type.LONG</td><td>Long</td><td>Long</td><td>64-bit integer (variable length encoded)</td></tr> 
+<tr><td>Type.FLOAT</td><td>Float</td><td>Float</td><td>32-bit floating number</td></tr> 
+<tr><td>Type.DOUBLE</td><td>Double</td><td>Double</td><td>64-bit floating number</td></tr> 
+<tr><td>Type.STRING</td><td>String, Utf8</td><td>Utf8</td><td>Integer encoded in variable length (size) + uft8 bytes</td></tr> 
 <tr><td>Type.BOOLEAN</td><td>Boolean</td><td>Boolean</td><td>1-byte boolean type</td></tr> 
-<tr><td>Type.ENUM</td><td>Enum</td><td>Enum</td><td>Variable length integer</td></tr> 
+<tr><td>Type.ENUM</td><td>Enum</td><td>Enum</td><td>As Type.INT</td></tr> 
 <tr>
 	<td>Type.OBJECT</td>
 	<td>Any Hadoop serializable object</td>
@@ -81,9 +81,9 @@ The schema should be configured in the following way:
 </p>
 
 <pre class="prettyprint" id="java">
-	List<Field> fields = new ArrayList<Field>();	
-	fields.add(Field.createObject("obj",IntWritable.class));
-	Schema schema1 = new Schema("schema1", fields);
+ List<Field> fields = new ArrayList<Field>();	
+ fields.add(Field.createObject("obj",IntWritable.class));
+ Schema schema1 = new Schema("schema1", fields);
 </pre>
 
 <p>
@@ -100,8 +100,8 @@ You can enable the serialization of Thrift and ProtoStuff objects in Pangool:
 </p>
 
 <pre class="prettyprint" id="java">
-		ThriftSerialization.enableThriftSerialization(conf);
-		ProtoStuffSerialization.enableProtoStuffSerialization(conf);		
+ ThriftSerialization.enableThriftSerialization(conf);
+ ProtoStuffSerialization.enableProtoStuffSerialization(conf);		
 </pre>
 
 <p>
@@ -116,9 +116,9 @@ You can set tuple values by field name or field index.
 </p>
 
 <pre class="prettyprint" id="java">
-	ITuple tuple = new Tuple(schema1);
-	tuple.set("number1", 35);
-	tuple.set("string1", "foo");
+ ITuple tuple = new Tuple(schema1);
+ tuple.set("number1", 35);
+ tuple.set("string1", "foo");
 </pre>
 
 <p>
@@ -139,8 +139,8 @@ in the tuple by the index of the field as it was defined in the schema:
 </p> 
 
 <pre class="prettyprint" id="java">
-	tuple.set(1, "foo");
-	tuple.get(1);
+ tuple.set(1, "foo");
+ tuple.get(1);
 </pre>
 
 <p>
@@ -154,7 +154,7 @@ An alternative way of setting strings is the following:
 </p>
 
 <pre class="prettyprint" id="java">
-	tuple.set("string1", new Utf8("foo"));
+ tuple.set("string1", new Utf8("foo"));
 </pre>
 
 <p>
@@ -162,12 +162,12 @@ The following code is right:
 </p>
 
 <pre class="prettyprint" id="java">
-	Utf8 foo = new Utf8("foo");
-	tuple.set("string1", foo);
-	assertTrue(foo == tuple.get("string1");
+ Utf8 foo = new Utf8("foo");
+ tuple.set("string1", foo);
+ assertTrue(foo == tuple.get("string1");
 	
-	tuple.set("string1", "foo");
-	assertTrue("foo".equals(tuple.get("string1"));
+ tuple.set("string1", "foo");
+ assertTrue("foo".equals(tuple.get("string1"));
 </pre>
 
 <div class="alert-message">
