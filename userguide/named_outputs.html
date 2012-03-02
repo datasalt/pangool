@@ -1,12 +1,12 @@
 ---
-layout: default
-title: Pangool - User guide
+layout: user_guide
+title: Pangool - User guide - Named outputs
 ---
 <div class="hero-unit">
 	<h2>Pangool User Guide</h2>
 </div>
 
-<h2>4 - Named outputs</h2>
+<h2>Named outputs</h2>
 
 <p>
 Named outputs in Pangool are somewhat based on “MultipleOutputs” in Hadoop, but they have some differences. We found that “MultipleOutputs” has some incompatibilities, for instance it doesn’t work with output formats that write to arbitrary file names. For that purpose, we made Pangool’s named outputs write to subfolders. This way, output format implementations are free to write to any file name.

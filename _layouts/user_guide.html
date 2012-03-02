@@ -21,19 +21,19 @@
     <![endif]-->
 
     <!-- Le styles -->
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/prettify.css">
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/prettify.css">
     <style type="text/css">
       body {
         padding-top: 60px;
       }
     </style>
 
-    <script type="text/javascript" src="js/app.js"></script>
-    <script type="text/javascript" src="js/prettify.js"></script>
+    <script type="text/javascript" src="/js/app.js"></script>
+    <script type="text/javascript" src="/js/prettify.js"></script>
 
     <!-- Le fav and touch icons -->
-    <link rel="shortcut icon" href="images/pangool_logo_transparente_100x86.png">
+    <link rel="shortcut icon" href="/images/pangool_logo_transparente_100x86.png">
   </head>
 
   <body onload="prettyPrint()">
@@ -41,7 +41,7 @@
     <div class="topbar">
       <div class="topbar-inner">
         <div class="container-fluid">
-          <a class="brand" href="index.html">Pangool</a>
+          <a class="brand" href="/index.html">Pangool</a>
           <ul class="nav">
           </ul>
         </div>
@@ -51,22 +51,26 @@
     <div class="container-fluid">
       <div class="sidebar">
         <div class="well">
-         <img width="125" height="108" src="images/pangool_logo_transparente_125x108.png" />
+        	<a href="/index.html">
+         		<img width="125" height="108" src="/images/pangool_logo_transparente_125x108.png" />
+         	</a>
 		 <hr/>
-		
+
           <h5>User Guide</h5>
           <ul>
-            <li><a href="#">Tuples & Schemas</a></li>
-            <li><a href="#">Group by / Sort By</a></li>
-            <li><a href="#">Map Red API</a></li>            
-            <li><a href="#">Named Outputs</a></li>
-            <li><a href="#">Joins</a></li>
-            <li><a href="#">Map-only jobs</a></li>
-            <li><a href="#">Custom Partitioners</a></li>
-            <li><a href="#">Custom Comparators</a></li>
-            <li><a href="#">Rollup</a></li>
-          </ul>
+            <li><a href="schemas.html">Tuples, Schemas & Types</a></li>
+            <li><a href="group_and_sort.html">Group by / Sort By</a></li>                        
+            <li><a href="named_outputs.html">Named Outputs</a></li>
+            <li><a href="joins.html">Joins</a></li>
+            <li><a href="map_only_jobs.html">Map-only jobs</a></li>
+            <li><a href="rollup.html">Rollup</a></li>
+            <li><a href="partitioner.html">Custom Partitioners</a></li>
+            <li><a href="comparators.html">Custom Comparators</a></li>
+            <li><a href="mapred_api.html">Map Red API</a></li>
+          </ul>		
 
+        </div>
+      </div>
       <div class="content">
         {{content}}
       
