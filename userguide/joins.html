@@ -146,10 +146,10 @@ Let’s now check the Job configuration:
 </p>
 
 <pre class="prettyprint" id="java">
-	TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Url Resolution");
-	grouper.addIntermediateSchema(new Schema("urlMap", urlMapFields));
-	grouper.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
-	grouper.setGroupByFields("url");
+ TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Url Resolution");
+ grouper.addIntermediateSchema(new Schema("urlMap", urlMapFields));
+ grouper.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
+ grouper.setGroupByFields("url");
 </pre>
 
 <p>
