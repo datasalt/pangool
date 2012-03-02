@@ -27,15 +27,15 @@ import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 /**
  * OrderBy is a convenience builder used by {@link TupleMRConfig} , similar to
  * {@link Criteria}. The main difference is that {@link OrderBy} is mutable
- * using the concatenation pattern and allows to specify sourceOrder.
+ * using the concatenation pattern and allows to specify schemaOrder.
  * 
  * The OrderBy instances are converted to immutable Criteria objects by
  * {@link TupleMRConfig}.
  */
 public class OrderBy {
 
-	private Order sourceOrder;
-	private Integer sourceOrderIndex;
+	private Order schemaOrder;
+	private Integer schemaOrderIndex;
 	private List<SortElement> elements = new ArrayList<SortElement>();
 
 	public OrderBy(List<SortElement> elements) {
@@ -88,7 +88,7 @@ public class OrderBy {
 	 * 
 	 * Example :<br>
 	 * b.addIntermediateSchema(schema1); b.addIntermediateSchema(schema2);<br>
-	 * b.setOrderBy(new OrderBy().add("user_id",Order.ASC).addSourceOrder(Order.DESC));</br>
+	 * b.setOrderBy(new OrderBy().add("user_id",Order.ASC).addSchemaOrder(Order.DESC));</br>
 	 * 
 	 * In the case above, tuples will be first sorted by user_id and then if they
 	 * compare as equals then tuples from schema2 will sort before those from
@@ -98,12 +98,12 @@ public class OrderBy {
 	 * {@link TupleMRConfigBuilder#setSpecificOrderBy(String, OrderBy)}
 	 * 
 	 */
-	public OrderBy addSourceOrder(Order order) {
-		if(this.sourceOrderIndex != null) {
+	public OrderBy addSchemaOrder(Order order) {
+		if(this.schemaOrderIndex != null) {
 			throw new IllegalStateException("The schema order is already set");
 		}
-		this.sourceOrder = order;
-		this.sourceOrderIndex = getElements().size();
+		this.schemaOrder = order;
+		this.schemaOrderIndex = getElements().size();
 		return this;
 	}
 
@@ -117,18 +117,18 @@ public class OrderBy {
 	}
 
 	/**
-	 * Gets the sourceOrder if set.
+	 * Gets the schemaOrder if set.
 	 */
-	public Order getSourceOrder() {
-		return sourceOrder;
+	public Order getSchemaOrder() {
+		return schemaOrder;
 	}
 
 	/**
-	 * Returns the position in the list where sourceOrder was added using
-	 * {@link #addSourceOrder(Order)}
+	 * Returns the position in the list where schemaOrder was added using
+	 * {@link OrderBy#addSchemaOrder(Order)}
 	 */
-	public Integer getSourceOrderIndex() {
-		return sourceOrderIndex;
+	public Integer getSchemaOrderIndex() {
+		return schemaOrderIndex;
 	}
 
 	private void failIfFieldNamePresent(String name) {
@@ -151,13 +151,13 @@ public class OrderBy {
 	}
 
 	/**
-	 * True if field was added before calling {@link #addSourceOrder(Order)}
+	 * True if field was added before calling {@link #addSchemaOrder(Order)}
 	 */
-	public boolean containsBeforeSourceOrder(String field) {
-		if(sourceOrderIndex == null) {
+	public boolean containsBeforeSchemaOrder(String field) {
+		if(schemaOrderIndex == null) {
 			return containsFieldName(field);
 		}
-		for(int i = 0; i < sourceOrderIndex; i++) {
+		for(int i = 0; i < schemaOrderIndex; i++) {
 			if(elements.get(i).getName().equals(field)) {
 				return true;
 			}

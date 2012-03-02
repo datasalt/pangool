@@ -160,7 +160,7 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 
 		builder.setGroupByFields("country");
 		builder
-		    .setOrderBy(new OrderBy().add("country", Order.ASC).addSourceOrder(Order.DESC));
+		    .setOrderBy(new OrderBy().add("country", Order.ASC).addSchemaOrder(Order.DESC));
 		builder.setSpecificOrderBy("user", new OrderBy().add("money", Order.ASC));
 
 		builder.addInput(new Path("test-input"),
