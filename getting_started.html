@@ -1,0 +1,87 @@
+---
+layout: default
+title: Pangool - Overview
+name: overview
+---
+<div class="hero-unit">
+	<p>
+		<h2>Getting started</h2>
+	</p>
+</div>
+
+<h2>Downloading Pangool</h2>
+
+<div class="alert-message">
+Pangool is in the process of being uploaded to a Maven repository. Meanwhile, you can download a release or build from sources. You can download Pangool from the 
+<a href="https://github.com/datasalt/pangool/downloads">download page</a>
+or you can clone the latest version from <a href="https://github.com/datasalt">Github</a>. For more info go to the <a href='build.html'>"Building Pangool" page</a>
+</div>
+
+<p>
+You can download Pangool from the 
+<a href="https://github.com/datasalt/pangool/downloads">download page</a>
+</p>
+
+<h2>Executing an example</h2>
+
+<p>
+In the Pangool release there is a Hadoop-executable JAR with Pangool examples. We'll show how to use it to execute the "Moving average" example.
+</p>
+<p>
+The "Moving average" example calculates the moving average of unique visitors for different URLs for each date in a specific timeframe.
+</p>
+<p>
+In the input file we'll have something like:
+</p>
+<pre>
+url1	2011-10-28	10
+url1	2011-10-29	20
+url1	2011-10-30	30
+url1	2011-10-31	40
+</pre>
+<p>
+For moving averages of 3 days we'll have as output: 
+</p>
+<pre>
+url1	2011-10-28	10.0
+url1	2011-10-29	15.0
+url1	2011-10-30	20.0
+url1	2011-10-31	30.0
+</pre>
+ 
+<h2>Executing it in Hadoop's pseudo-distributed mode</h2>
+
+<p>
+For each Pangool example there as an associated random input data generator. We can execute the Moving average input data generator like:
+</p>
+<pre>
+hadoop jar pangool-examples-0.40-SNAPSHOT.jar moving_average_gen_data url_regs.txt 10000 200
+</pre>
+<p>
+(If you missed the parameters, an meaningful help line will appear to guide you)
+</p>
+<p>
+Now you can execute the example against the fresh "url_regs.txt" file:
+</p>
+<pre>
+hadoop jar pangool-examples-0.40-SNAPSHOT.jar moving_average url_regs.txt out-moving-average 5
+</pre>
+<p>
+After this has finished, you'd have generated 5-day moving averages for your input data file.
+<p>
+
+<h2>Executing it from an IDE</h2>
+
+<p>
+If you are working from an IDE such as Eclipse, you can execute the following code in a new class of your choice:
+</p>
+<pre class="prettyprint" id="java">
+ 	ToolRunner.run(new MovingAverageGenData(), new String[] { "url_regs.txt", "10000", "200" });
+ 	ToolRunner.run(new MovingAverage(), new String[] { "url_regs.txt", "out-moving-average", "5" });
+</pre>
+
+<div class="alert-message">
+Should you encounter any problem, please make sure that both Pangool and Pangool-examples JARs are in the classpath.
+</div>
+
+<p><a class="btn primary large" href="introduction.html">Wanna see a quick and fun introduction? &raquo;</a></p>

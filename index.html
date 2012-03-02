@@ -7,92 +7,68 @@ name: home
   	<!-- Main hero unit for a primary marketing message or call to action -->
     <div class="hero-unit">
       <img src='images/pangool_solo_letras_alpha_400x88.png' width="400" height="88"/>
-      <p><a href="http://www.datasalt.com/2012/02/tuple-mapreduce-beyond-the-classic-mapreduce/">Tuple MapReduce</a> for Hadoop: Hadoop API made easy</p>      
+      <p><a href="http://www.datasalt.com/2012/02/tuple-mapreduce-beyond-the-classic-mapreduce/">Tuple MapReduce</a> for Hadoop: MapReduce made easy</p>      
       <p>Some Features:
 	    <ul>
-		  <li>Easier MapReduce development</li>
-		  <li>Support for tuples instead of just key/value</li>
-		  <li>Easy secondary sorting</li>
-		  <li>Built in joining capabilities</li>
-		  <li>Performance and flexibility</li>
-		  <li>Configuration by instance instead of configuration by class</li>
-		  <li>First-class multiple inputs/outputs</li>
-		  <li>Serialization support for Thrift and ProtoStuff</li>
-		  <li>100% Hadoop compatibility</li>
+		  <li>Easier MapReduce development.</li>
+		  <li>Support for Tuples instead of just Key/Value pairs.</li>
+		  <li>Secondary sorting as easy as it can get.</li>
+		  <li>Built-in reduce-side joining capabilities.</li>
+		  <li>Performance and flexibility.</li>
+		  <li>Configuration by object instance instead of classes.</li>
+		  <li>First-class multiple inputs & outputs.</li>
+		  <li>Built-in serialization support for Thrift and ProtoStuff.</li>
+		  <li>100% Hadoop compatibility. 0.20.2 and all versions further, including CDH3.</li>
 		</ul>
 	  </p>
-      <p><a class="btn primary large" href="#">Get started &raquo;</a></p>
+	  <p><a class="btn primary large" href="overview.html">Overview &raquo;</a></p>
     </div>
 
     <!-- Example row of columns -->
     <div class="row">
       <div class="span5">
-        <h2>Pangool</h2>
+        <h2>Easier Hadoop. Same performance.</h2>
         <p>
-	     		Hadoop has a steep learning curve. Pangool has the goal to simplify Hadoop development
-	     		without loosing the performance and flexibility that the low level Hadoop API provides. 
+	     		Hadoop has a steep learning curve. Pangool aims to simplify Hadoop development
+	     		<a href='benchmark.html'>without loosing the performance</a> and flexibility that the low-level Hadoop API provides. 
 	 			</p>
 				<p>
-					The most common patterns that arises when writing MapReduce jobs are easier to implement
-					with Pangool with similar performance. That is thanfully to implement the new paradigm
-					<a href="http://www.datasalt.com/2012/02/tuple-mapreduce-beyond-the-classic-mapreduce/">Tuple MapReduce</a>				
+				The most common patterns that arise when writing MapReduce jobs are easier to implement
+				with Pangool with similar performance. 
+				</p>				
+				<p><a class="btn" href="overview.html">See more details! &raquo;</a></p>
         </p>
       </div>
 
 		<div class="span5">
-        <h2>Easy secondary sorting</h2>
+        <h2>Secondary sorting.</h2>
         <p>
-	      	Although it is a very common pattern, secondary sorting is a nightmare with Hadoop. 
+	      	Although it is commonly needed in parallel data processing, secondary sorting is a nightmare to accomplish with the standard Java MapReduce Hadoop API. 
         </p>
         <p>
-        	Check it out how easy	it is with Pangool. 
+			Check how easy secondary sorting is with Pangool:	
         </p>
         <pre class="prettyprint" id="java">
 job.setGroupByFields("word");
 job.setOrderBy(new OrderBy()
   .add("word", Order.ASC)
   .add("count", Order.DESC));</pre>
-       <p><a class="btn" href="#">View details &raquo;</a></p>
+       <p><a class="btn" href="introduction.html">More in the Introduction... &raquo;</a></p>
       </div>
 	
 		<div class="span6">
-        <h2>Easy reduce-join</h2>
+        <h2>Joins.</h2>
         <p>
-        	blablabla
+	      	Although it is a common pattern when working with big data, joining heterogeneous data sources is extremely complex to implement with the the standard Java MapReduce Hadoop API. 
         </p>
-        <p><a class="btn" href="#" target="_blank">View details &raquo;</a></p>
-      </div>
-	</div>
-	
-	<div class="row">
-	  <div class="span5">
-        <h2>Performance & Flexibility</h2>
         <p>
-        	blablabl
-        <p><a class="btn" href="#">View details &raquo;</a></p>
-      </div>
-      
-	  <div class="span5">
-        <h2>Compatible with Hadoop distros</h2>
-        <p>
-        	Pangool is just a library that you can add to your project. It has been tested with: 
+			With Pangool it is as easy as it can get:	
         </p>
-        <ul>
-        	<li>Hadoop 0.20.203.0 or higher</li>
-        	<li>...</li>
-        	<li>...</li>
-        </ul>
-        <p><a class="btn" href="#">View details &raquo;</a></p>
+        <pre class="prettyprint" id="java">
+job.addIntermediateSchema(urlMapSchema);
+job.addIntermediateSchema(urlRegisterSchema);
+job.setGroupByFields("url");</pre>
+        <p><a class="btn" href="userguide/schemas.html">Deep details are in the User Guide! &raquo;</a></p>
       </div>
-      <div class="span6">
-        <h2>Other features</h2>
-        	<p>Pangool is full of interesting features:
-           <ul>
-		          <li>Configuration by instance</li>
-		          <li>First-class multiple inputs/outputs</li>
-		          <li>Serialization support for Thrift and ProtoStuff</li> 
-		          <li>Rollup Reducer</li>
-          </ul>
-        <p><a class="btn" href="#">View details &raquo;</a></p>
-      </div>
-	</div>
+	</div>	
+</div>

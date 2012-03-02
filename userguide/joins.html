@@ -9,46 +9,112 @@ title: Pangool - User guide - Reduce-side Joins
 <h2>Reduce-side Joins</h2>
 
 <p>
-One of the most interesting features of Pangool is its inherent reduce-side join capabilities. In this section we’ll comment one of the examples that can be found in the examples/ sub-project of Pangool - the URL resolution - to illustrate how easy it is to perform arbitrary reduce-side joins with Pangool.
+One of the most interesting features of Pangool is its inherent reduce-side join capabilities.
 </p>
 
 <p>
-We have one file with URL Registers: [“url”, “timestamp”, “ip”] and another file with canonical URL mappings: [“url”, “canonicalUrl”]. We want to output the URL Registers file with the url substituted with the canonical one according to the mapping file: [“canonicalUrl”, “timestamp”, “ip”].
+ In this section we’ll comment one of the examples that can be found in the 
+ <a href="https://github.com/datasalt/pangool/tree/master/examples">examples</a> sub-project of Pangool
+  - <a href="https://github.com/datasalt/pangool/tree/master/examples/src/main/java/com/datasalt/pangool/examples/urlresolution/UrlResolution.java">the URL resolution</a> 
+  - to illustrate how easy it is to perform arbitrary reduce-side joins with Pangool.
 </p>
 
 <p>
-For that, we need to join the URL Registers file with the URL mappings file. We need to join them by the common field “url”. Using a reduce-side join, we could store the “canonicalUrl” for each “url” group and apply the substitution to each of the URL Registers records associated with that “url”. To make the join totally scalable, we need to receive the “canonicalUrl” first in each reduce group so that we only need to stream through the URL Registers afterwards (otherwise it is not feasible to assume that we can store all the URL Registers in a List in memory, for instance).
+ We have one file with URL Registers: {<code>url</code>, <code>timestamp</code>, <code>ip</code> } 
+ and another file with canonical URL mappings: {<code>url</code>, <code>canonicalUrl</code>}.<br>
+ We want to output the URL Registers file with the url substituted with the canonical 
+ one according to the mapping file: {<code>canonicalUrl</code>, <code>timestamp</code>, <code>ip</code>}
 </p>
 
 <p>
-We’ll configure a Pangool Job to accept two inputs and two intermediate input schemas. Let’s start by checking each of the Mapper implementations:
+For that, we need to join the URL Registers file with the URL mappings file.<br> 
+We need to join them by the common field <code>url</code>. Using a reduce-side join, we 
+could store the “canonicalUrl” for each <code>url</code> group and apply the substitution 
+to each of the URL Registers records associated with that <code>url</code>.<br> 
+To make the join totally scalable, we need to receive the <code>canonicalUrl</code> first 
+in each reduce group so that we only need to stream through the URL Registers afterwards 
+(otherwise it is not feasible to assume that we can store all the URL Registers in a List in memory, for instance).
+</p>
+
+<p>
+We’ll configure a Pangool Job to accept two inputs and two intermediate input schemas.
+ Let’s start by checking each of the Mapper implementations:
 </p>
 
 <pre class="prettyprint" id="java">
 public static class UrlProcessor extends TupleMapper<LongWritable, Text> {
+    private Tuple tuple;
 
-}
+    @Override
+    public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
+        throws IOException, InterruptedException {
+
+      if(tuple == null) {
+        tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("urlRegister"));
+      }
+      String[] fields = value.toString().split("\t");
+      tuple.set("url", fields[0]);
+      tuple.set("timestamp", Long.parseLong(fields[1]));
+      tuple.set("ip", fields[2]);
+      collector.write(tuple);
+    }
+  }
 </pre>
 
 <p>
-This Mapper is quite simple. It just parses the input URL Registers file and emits a tuple with the needed data. It uses the context.getTupleMRConfig().getIntermediateSchema() to grab the intermediate schema that was configured for that input source.
+This Mapper is quite simple. It just parses the input URL Registers file and emits a tuple
+with the needed data.<br>
+It uses the <code>context.getTupleMRConfig().getIntermediateSchema()</code> to grab 
+the intermediate schema that was configured for that input source.
 </p>
 
 <pre class="prettyprint" id="java">
 public static class UrlMapProcessor extends TupleMapper<LongWritable, Text> {
 
-}
+    private Tuple tuple;
+
+    @Override
+    public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
+        throws IOException, InterruptedException {
+      if(tuple == null) {
+        tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("urlMap"));
+      }
+
+      String[] fields = value.toString().split("\t");
+      tuple.set("url", fields[0]);
+      tuple.set("canonicalUrl", fields[1]);
+      collector.write(tuple);
+    }
+  }
 </pre>
 
 <p>
-Same thing for this one: just parsing and emitting a Tuple. 
+Same thing for this one: just parsing and emitting a Tuple.<br> 
 Let’s now check to see the Reducer that performs the join:
 </p>
 
 <pre class="prettyprint" id="java">
 public static class Handler extends TupleReducer<Text, NullWritable> {
 
-}
+    private Text result;
+
+    @Override
+    public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+        throws IOException, InterruptedException, TupleMRException {
+      if (result == null) {
+        result = new Text();
+      }
+      String cannonicalUrl = null;
+      for(ITuple tuple : tuples) {
+        if("urlMap".equals(tuple.getSchema().getName())) {
+          cannonicalUrl = tuple.get("canonicalUrl").toString();
+        } else {
+          result.set(cannonicalUrl + "\t" + tuple.get("timestamp") + "\t" + tuple.get("ip"));
+          collector.write(result, NullWritable.get());
+        }
+      }
+    }
+  }
 </pre>
 
 <p>
@@ -67,7 +133,12 @@ for(ITuple tuple : tuples) {
 </pre>
 
 <p>
-What happens is that we are iterating over each of the Tuples associated with the same “url” group, but we are keeping a state variable in case that the Tuple belongs to one of the schemas (the one that processed URL Mapping registers). Then, we use this state variable for emitting each of the URL Registers. Note how we are assuming that the URL Mapping comes always before the URL Registers. In other words, there is a specific source sort within the records of the joined Tuple list. We’ll see this in greater detail when we configure the Job.
+What happens is that we are iterating over each of the Tuples associated with the same 
+<code>url</code> group, but we are keeping a state variable in case that the Tuple belongs 
+to one of the schemas (the one that processed <code>URL Mapping</code> registers).<br>
+Then, we use this state variable for emitting each of the <code>URL Registers</code>.<br>
+ Note how we are assuming that the URL Mapping comes always before the <code>URL Registers</code>.<br>
+  In other words, there is a specific source sort within the records of the joined Tuple list. We’ll see this in greater detail when we configure the Job.
 </p>
 
 <p>
@@ -75,17 +146,22 @@ Let’s now check the Job configuration:
 </p>
 
 <pre class="prettyprint" id="java">
-	TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Url Resolution");
-	grouper.addIntermediateSchema(new Schema("urlMap", urlMapFields));
-	grouper.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
-	grouper.setGroupByFields("url");
+ TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Url Resolution");
+ grouper.addIntermediateSchema(new Schema("urlMap", urlMapFields));
+ grouper.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
+ grouper.setGroupByFields("url");
 </pre>
 
 <p>
-And that’s about it! We have just defined two schemas, associated them with each input source and defined the group key. Note that the “url” field must be present in both schemas for the join to work. By default, Pangool will sort by the group by fields and will peform intersource sorting based on the order in which we defined the sources. In this case, for each group, the URL Mapping will come first - and that’s why the code above works. 
+And that’s about it! We have just defined two schemas, associated them with each input 
+source and defined the group key. Note that the <code>url</code> field must be present in both schemas 
+for the join to work. By default, Pangool will sort by the group by fields and will 
+peform intersource sorting based on the order in which we defined the sources. 
+In this case, for each group, the <code>URL Mapping</code> will come first - and that’s why the code above works. 
 </p>
 
 <p>
-In order to configure a special sorting for the join, you’ll need to use .addSourceOrder() as needed depending on which place you want to put the intersource ordering in your custom sorting.
+In order to configure a special sorting for the join, you’ll need to use <code>addSourceOrder()</code>
+as needed depending on which place you want to put the <i>inter-source</i> ordering in your custom sorting.
 </p>
-<p><a class="btn primary large" href="userguide6.html">Next: Map-only Jobs &raquo;</a></p>
+<p><a class="btn primary large" href="map_only_jobs.html">Next: Map-only Jobs &raquo;</a></p>
