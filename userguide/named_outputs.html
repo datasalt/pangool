@@ -9,23 +9,111 @@ title: Pangool - User guide - Named outputs
 <h2>Named outputs</h2>
 
 <p>
-Named outputs in Pangool are somewhat based on “MultipleOutputs” in Hadoop, but they have some differences. We found that “MultipleOutputs” has some incompatibilities, for instance it doesn’t work with output formats that write to arbitrary file names. For that purpose, we made Pangool’s named outputs write to subfolders. This way, output format implementations are free to write to any file name.
+Thanks to the <strong>named outputs</strong>, Pangool offers the ability to have <strong>more than
+one output</strong> per <code>TupleMapper</code> or <code>TupleReducer</code>.
 </p>
 
-<p>
-Output formats in Pangool are instances. This allowed us to implement a TupleOutputFormat that takes a Schema as a parameter. But you don't need to care about this. To add a named output that will write a Tuples with a certain Schema, all you need to do is, for instance:
-</p>
+<h3>Adding named outputs</h3>
+You can add named outputs to a Pangool job in the <code>TupleMRBuilder</code> in the following way:
+
 <pre class="prettyprint" id="java">
-	Schema baseSchema = new Schema("schema",Fields.parse("name:string, money:int, country:string"));
-	builder.addNamedTupleOutput(TUPLEOUTPUT, baseSchema);
+mr.addNamedOutput("urls", new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
+</pre>
+
+<p> 
+You can add as many as you want. Then it is possible to write in the mapper and the reducer in the following way:
+
+<pre class="prettyprint" id="java">
+collector.getNamedOutput("urls").write(new Text("http://www.datasalt.com"), new Text("<html>...</html>"));
+</pre> 
+
+<p>
+If you want to put away the lookup of the named output for every write, you can cache it up in
+the <code>setup()</code> method. 
+<p>
+
+<div class="alert-message">
+<p>
+The wrapper class <code>HadoopOutputFormat</code> is needed to reuse Hadoop output
+formats inside Pangool. For other Pangool based output formats, like <code>TupleOutputFormat</code>,
+ is enough with providing an instance.  
+</p>
+</div>
+
+<h3>Named outputs for tuples<h3>
+<p>
+Pangool allows to persist Tuples in <code>SequenceFile</code> by using 
+<code>TupleOutputFormat</code>. It is easy to add a named output 
+for persisting tuples:
+</p>
+
+<pre class="prettyprint" id="java">
+	Schema urlsSchema = new Schema("schema",Fields.parse("url:string, content:string"));
+	mr.addNamedTupleOutput("urls", urlsSchema);
 </pre>
 
 <p>
-Still, if you want to use classes instead of instances, you can wrap static classes by using the HadoopOutputFormat() class. For example:
-<p>
+Then it is possible to write in the mapper and the reducer in the following way:
+</p>  
+
 <pre class="prettyprint" id="java">
-	builder.setOutput(new Path(OUTPUT), new HadoopOutputFormat(SequenceFileOutputFormat.class), DoubleWritable.class, NullWritable.class);
-</pre>
+Tuple tuple = new Tuple(urlsSchema);
+tuple.set("url", "http://www.datasalt.com");
+tuple.set("content", "<html>...</html>");
+collector.getNamedOutput("urls").write(tuple, NullWritable.get());
+</pre> 
+
+<div class="alert-message">
+<p>
+Note that you have to write <code>NullWritable</code> as the second parameter in 
+the <code>write()</code> method. This is
+because <code>TupleOutputFormat</code> uses Hadoop <code>SequenceFile</code> for
+storing tuples. 
+</p>
+</div>
+
+<h3>Folder structure</h3>
+<p>
+Let's imagine that you have a Pangool job with 2 named outputs:
+</p>
+
+<ul>
+<li>urls</li>
+<li>other_named_output</li>
+</ul>
+
+<p>
+Your job uses the <code>urls</code> named output for writing from the
+mapper and from the reducer, but only writes to the <code>other_named_output</code>
+in the reducer. Let's imagine that our job has 2 map tasks and 3 reduce tasks. 
+Then, the output folder would look like that:
+</p>
+
+<pre>
+ ── job_output
+    ├── urls
+    │   ├── part-r-00000
+    │   ├── part-r-00001
+    │   ├── part-r-00002
+    │   ├── part-m-00000
+    │   └── part-m-00001
+    ├── other_named_output
+    │   ├── part-r-000000
+    │   ├── part-r-000001
+    │   └── part-r-000002
+    ├── part-r-00000
+    ├── part-r-00001
+    └── part-r-00002
+</pre> 
+
+<p>
+<code>part-m</code> files correspond
+to the mapper output. <code>part-r</code> files corresponds to the reducer output.
+</p> 
+
+<p>
+The part-r files in the root correspond to the records emitted with the reducer default output.
+That is, the ones emitted with the call to <code>collector.write()</code>
 </p>
 
 <p><a class="btn primary large" href="userguide5.html">Next: Reduce-side Joins &raquo;</a></p>
