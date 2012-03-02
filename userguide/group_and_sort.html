@@ -6,40 +6,79 @@ title: Pangool - User guide - Group & Sort by
 	<h2>Pangool User Guide</h2>
 </div>
 
-<h2>Group & Sort by</h2>
+<h2>Group-by & Order-by</h2>
 
 <p>
-In the standard Hadoop MapReduce API, the key, value pairs that are emitted as intermediate output are grouped by they key, sorted by a specific Comparator and grouped by another specific Group Comparator. Normally if you change the Group Comparator you also need to change the Partitioner for things to be safe. 
+Pangool's was conceived to solve in a simple way how records emitted in the Map stage
+are grouped and ordered when they reach the Reduce-stage.
 </p>
-
 <p>
-In Pangool (almost) all of this behavior is greatly simplified and controlled by the group and sort by configuration. The group by specifies which combination of fields is used to from the Reducer groups. The sort by specifies which fields are used to sort the tuples and how are they sorted. 
-</p>
-
-<p>
-By default, sort by fields are the ones that have been specified in the group by. 
-</p>
-
-<p>
-A standard secondary sort can be achieved by sorting by “n” fields and grouping by “m” where m < n. Example:
+Pangool allows tuples be grouped by a subset of their fields.For instance:
 </p>
 
 <p>
 <pre class="prettyprint" id="java">
-setGroupByFields(“url”);
-setOrderBy(new SortBy().add("url", Order.ASC).add("timestamp", Order.DESC));
+  TupleMRBuilder b = new TupleMRBuilder();
+  b.addIntermediateSchema(new Schema("my_schema",Fields.parse("url:string, timestamp:long")));
+  b.setGroupByFields(“url”);
 </pre>
 </p>
 
 <p>
-With this configuration we will have groups in the Reducer that share the same “url” field in the Tuple, and we will sort the Tuples by “url” and “timestamp”. This means that the tuples that share the same “url” will also be sorted by timestamp (DESC). 
+In the example above tuples containing a <i>"url"</i> and <i>"timestamp"</i> arrive to the 
+<i>Reduce</i> stage grouped by <i>"url"</i>.<br>
+This is a trivial case, and can be easily achieved in plain Map-Reduce, 
+but let's complicate things a bit more..
 </p>
 
 <p>
-Note that, when specifying a sort by, group by must be coherent with it (as in it must be a prefix of it). E.g. you can’t group by “timestamp” and sort by “url”, “timestamp”.
+Let's say that you want tuples be ordered in descending order. In Pangool this is as easy 
+as adding:
 </p>
 
 <p>
-The partitioning strategy that Pangool chooses is one which is coherent with the group / sort by configuration. In this case, Pangool will partition by the group by fields (unless we modify the default partitioning strage, which is explained in the “...” section of the guide).
+<pre class="prettyprint" id="java">
+  b.setOrderBy(new OrderBy().add("url",Order.DESC))
+</pre>
 </p>
-<p><a class="btn primary large" href="userguide4.html">Next: Named outputs &raquo;</a></p>
+
+<p>
+As shown above,just adding a new line allows to define the criteria used to order tuples.<br>
+Apparently this can look straight-forward but plain Map-Reduce usually forces to 
+specify custom comparators to perform that simple task.
+</p>
+
+<p>
+Let's keep complicating things.Imagine that you still want to group the tuples
+by their <i>"url"</i> but in addition tuples need to be ordered by their <i>"timestamp"</i>
+in descending order, in every group.<br> 
+In this case the ordering criteria covers the fields <i>url</i> and <i>timestamp</i> that
+exceed the fields defined in group-by (just <i>url</i>).
+</p>
+<p>
+This way of ordering is called <b>Secondary Order</b> and it's achieved easily in Pangool adding:
+</p>
+
+<p>
+<pre class="prettyprint" id="java">
+  b.setGroupByFields("url");
+  b.setOrderBy(new OrderBy().add("url",Order.DESC).add("timestamp",Order.DESC))
+</pre>
+</p>
+
+<p>
+As shown in the snippet above,the fields defined in Order-by include those in Group-by. This is a restriction 
+of Pangool, where <i>Group-By</i> <b>must be a prefix</b> of <i>Order-By</i>.
+</p>
+Contrarily to what it looks, this is tough in plain Map-Reduce, especially when  
+several fields are involved in grouping and ordering. <br>Usually programming in plain 
+Map-Reduce forces you to define custom logic for binary comparison,grouping, and partitioning.<br> 
+Pangool excels in this task , removing all this burden and offering it to you with no pain.
+</p>
+
+<p><b>Note:</b>
+The partitioning strategy that Pangool chooses is coherent with the group-by / sort by criterias.<br>
+In this case, Pangool will partition by the group by fields ,unless we modify the default 
+partitioning straegy,that is explained in the <a href="partitioner.html">partitioner</a> section of the guide.
+</p>
+<p><a class="btn primary large" href="named_outputs.html">Next: Named outputs &raquo;</a></p>
