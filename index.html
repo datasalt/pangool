@@ -21,7 +21,6 @@ name: home
 		  <li>100% Hadoop compatibility. 0.20.2 and all versions prior to it, including CDH3 and MapR.</li>
 		</ul>
 	  </p>
-      <p><a class="btn primary large" href="getting_started.html">Get started &raquo;</a></p>
     </div>
 
     <!-- Example row of columns -->
@@ -57,7 +56,7 @@ job.setOrderBy(new OrderBy()
       </div>
 	
 		<div class="span6">
-        <h2>Joins</h2>
+        <h2>Joins.</h2>
         <p>
 	      	Although it is a common pattern when working with big data, joining heterogeneous data sources is extremely complex to implement with the the standard Java MapReduce Hadoop API. 
         </p>
@@ -67,8 +66,7 @@ job.setOrderBy(new OrderBy()
         <pre class="prettyprint" id="java">
 job.addIntermediateSchema(urlMapSchema);
 job.addIntermediateSchema(urlRegisterSchema);
-job.setGroupByFields("url");
-		</pre>
+job.setGroupByFields("url");</pre>
         <p><a class="btn" href="userguide/schemas.html">Deep details are in the User Guide! &raquo;</a></p>
       </div>
 	</div>	
