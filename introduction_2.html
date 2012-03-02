@@ -1,0 +1,91 @@
+---
+layout: default
+title: Pangool - Introduction
+name: overview
+---
+<div class="hero-unit">
+	<h2>Introduction to Pangool: Topical Word Count (2/3)</h2>
+	</p>
+	<p>This introduction guides you into the basics of Pangool through a Word-Count-like example.<p>
+	<p>Now, you'll see how to leverage Pangool <strong>instance-based configuration for managing trivial state information</strong>.</p>
+</div>
+
+<p>
+We’ll modify the previous example slightly in order to show another of Pangool's key feature: 
+augmented Hadoop API by accepting instances instead of static classes.
+</p>
+
+<p>
+A common use case when dealing with textual content is stop-word filtering. Let's modify the previous example slightly for being able to filter according to a stop word list. See the code below:
+</p>
+
+<p>
+You can check the full code of this example on github <a href='https://github.com/datasalt/pangool/blob/master/examples/src/main/java/com/datasalt/pangool/examples/topicalwordcount/TopicalWordCountWithStopWords.java'>by clicking here</a>.
+</p>
+
+<pre class="prettyprint" id="java">
+public static class StopWordMapper extends TokenizeMapper {
+
+	private Set<String> stopWords = new HashSet<String>();
+		
+	public StopWordMapper(List<String> stopWords) {
+		this.stopWords.addAll(stopWords);
+		this.stopWords = Collections.unmodifiableSet(this.stopWords);
+	}
+
+	@Override
+	protected void emitTuple(Collector collector) throws IOException, InterruptedException {
+	    if(stopWords.contains(tuple.get("word"))) {
+	    	return;
+	    }
+	    super.emitTuple(collector);
+	}
+}
+</pre>
+
+<p>
+As you can see, this Mapper extends the one we created <a href='introduction.html'>in the first part of the introduction</a> 
+and adds a List of stop words by constructor.
+</p>
+
+<p> 
+It then uses this list to filter words before writing the tuples to the intermediate output. 
+</p>
+
+<p>
+Let’s see how we can use this Mapper when creating a Pangool Job:
+</p>
+
+<pre class="prettyprint" id="java">
+	List<String> stopWords = Files.readLines(new File(args[2]), Charset.forName("UTF-8"));
+	
+	TupleMRBuilder cg = new TupleMRBuilder(conf, "Pangool Topical Word Count With Stop Words");
+	cg.addIntermediateSchema(TopicalWordCount.getSchema());
+	cg.setGroupByFields("topic", "word");
+	StopWordMapper mapper = new StopWordMapper(stopWords);
+	cg.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), mapper);
+</pre>
+
+<p>
+That’s it! Pangool will serialize the instance to the Hadoop's Distributed Cache and recover it when needed. 
+Remember that all state in your classes must be Serializable. If some of your class fields are not Serializable, 
+remember to instantiate them in the setup() method instead of instantiating them directly in the class definition. 
+</p>
+
+<p>
+You can run this example by doing:
+</p>
+
+<pre class="prettyprint" id="java">
+	hadoop jar $PANGOOL_EXAMPLES_JAR topical_word_count_with_stop_words [input] [output]
+</pre>
+
+<p>
+You can also use an input data generator for generating random input for this example:
+</p>
+
+<pre class="prettyprint" id="java">
+	hadoop jar $PANGOOL_EXAMPLES_JAR topical_word_count_gen_data [out-file] [nRegisters] [nTopics]
+</pre>
+
+<p><a class="btn primary large" href="introduction_3.html">What's next? Secondary sort & Named outputs!</a></p>

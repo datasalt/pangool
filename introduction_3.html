@@ -1,0 +1,147 @@
+---
+layout: default
+title: Pangool - Introduction
+name: overview
+---
+<div class="hero-unit">
+	<h2>Introduction to Pangool: Topical Word Count (3/3)</h2>
+	</p>
+	<p>This introduction guides you into the basics of Pangool through a Word-Count-like example.<p>
+	<p>Finally, you'll learn how to use Pangool's <strong>easy secondary sort</strong> and how to <strong>write to different outputs</strong> from a Tuple MapReduce Job!</p>
+</div>
+
+<p>
+Now we'll expand the "topical word count" example to compute a "fingerprint" for each topic.
+</p>
+
+<p> 
+The fingerprint will be formed by the "top n" words for each topic. 
+Each word and topic pair has an associated count that we have calculated in <a href='introduction.html'>the first Job we did</a>. 
+We will do two things:
+<p>
+
+<ul>
+
+	<li>Use secondary sort to emit the “top n” words for each topic.</li>
+	<li>Use an extra output to emit the total count per each topic.</li>
+
+</ul>
+
+<p>
+You can check the full code of this example in github <a href='https://github.com/datasalt/pangool/blob/master/examples/src/main/java/com/datasalt/pangool/examples/topicalwordcount/TopicFingerprint.java'>by clicking here</a>.
+</p>
+
+<p>
+For that, we will create a new Tuple Reducer that will look like:
+</p>
+
+<pre class="prettyprint" id="java">
+public static class TopNWords extends TupleReducer<ITuple, NullWritable> {
+
+	int n; // We will emit as many words as this parameter (at maximum) for each group
+	Tuple outputCountTuple;
+
+	public TopNWords(int n) {
+		this.n = n;
+	}
+
+	public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException, TupleMRException {
+		outputCountTuple = new Tuple(getOutputCountSchema());
+	}
+
+	public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector) throws java.io.IOException, InterruptedException, TupleMRException {
+
+		int totalCount = 0;
+		Iterator<ITuple> iterator = tuples.iterator();
+		for(int i = 0; i < n && iterator.hasNext(); i++) {
+			ITuple tuple = iterator.next();
+			collector.write(tuple, NullWritable.get());
+			totalCount += (Integer) tuple.get("count");
+		}
+			
+		outputCountTuple.set("topic", group.get("topic"));
+		outputCountTuple.set("totalcount", totalCount);
+		collector.getNamedOutput(OUTPUT_TOTALCOUNT).write(outputCountTuple, NullWritable.get());
+	}
+}
+</pre>
+
+<p>
+(Note how we used the ability of using instances for storing the "n" parameter by passing it via constructor.)
+</p>
+
+<p> 
+Let’s analyze the lines above:
+</p>
+
+<pre class="prettyprint" id="java">
+for(int i = 0; i < n && iterator.hasNext(); i++) {
+	ITuple tuple = iterator.next();
+	collector.write(tuple, NullWritable.get());
+</pre>
+
+<p>
+That’s quite simple. 
+We are just emitting "n" tuples at maximum, per each group. 
+Note that we are doing this because we are assuming that tuples will be sorted by their count within each group - We'll see later how we can accomplish this.
+</p>
+
+<p>
+We wanted to use an extra output for storing the total count per each topic, right? This output will be a Tuple, but it will have a different Schema. We define the schema like:
+</p>
+
+<pre class="prettyprint" id="java">
+public static Schema getOutputCountSchema() {
+	List<Field> fields = new ArrayList<Field>();
+	fields.add(Field.create("topic", Type.INT));
+	fields.add(Field.create("totalcount", Type.INT));
+	return new Schema("outputcount", fields);
+}
+</pre>
+
+<p>
+We use a Tuple with this schema and emit it to a "named output":
+</p>
+
+<pre class="prettyprint" id="java">
+outputCountTuple.set("topic", group.get("topic"));
+outputCountTuple.set("totalcount", totalCount);
+collector.getNamedOutput(OUTPUT_TOTALCOUNT).write(outputCountTuple, NullWritable.get());
+</pre>
+
+<p>
+The same collector that we use for writing to the Job’s main output is the one that we’ll use for writing to extra, named output. That is why we say that Pangool has built-in, first-class multiple outputs (and inputs!). They are part of its standard API.
+</p>
+
+<p>
+Finally, let's see how the Job configuration looks like:
+</p>
+
+<pre class="prettyprint" id="java">
+cg.setGroupByFields("topic");
+cg.setOrderBy(new SortBy().add("topic", Order.ASC).add("count", Order.DESC));
+</pre>
+
+<p>
+This is a quite important part. We'll ellaborate more on it. 
+We want to emit the "top n" words per each topic, therefore we need to group by topic. 
+But we also want to receive words already sorted so we'll just emit the first "n". 
+For that, we configure the Job by to sort by topic AND count. 
+</p>
+
+<div class="alert-message">
+For more information on grouping and sorting, check the <a href='#'>"Group & Sort by"</a> page in the user guide.
+</div>
+
+<p>
+And, last but not least, let's see how we can declare a “named output”:
+</p>
+
+<pre class="prettyprint" id="java">
+cg.addNamedTupleOutput(OUTPUT_TOTALCOUNT, getOutputCountSchema());
+</pre>
+
+<p>
+For more information on outputs, check the <a href='#'>"Named outputs"</a> page in the user guide.
+</p>
+
