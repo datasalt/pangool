@@ -25,8 +25,8 @@ Pangool allows tuples be grouped by a subset of their fields.For instance:
 </p>
 
 <p>
-In the example above tuples containing a <i>"url"</i> and <i>"timestamp"</i> arrive to the 
-<i>Reduce</i> stage grouped by <i>"url"</i>.<br>
+In the example above tuples containing a <code>url</code> and <code>timestamp</code> arrive to the 
+<i>Reduce</i> stage grouped by <code>url</code>.<br>
 This is a trivial case, and can be easily achieved in plain Map-Reduce, 
 but let's complicate things a bit more..
 </p>
@@ -50,10 +50,10 @@ specify custom comparators to perform that simple task.
 
 <p>
 Let's keep complicating things.Imagine that you still want to group the tuples
-by their <i>"url"</i> but in addition tuples need to be ordered by their <i>"timestamp"</i>
+by their <code>url</code> but in addition tuples need to be ordered by their <code>timestamp</code>
 in descending order, in every group.<br> 
-In this case the ordering criteria covers the fields <i>url</i> and <i>timestamp</i> that
-exceed the fields defined in group-by (just <i>url</i>).
+In this case the ordering criteria covers the fields <code>url</code> and <code>timestamp</code> that
+exceed the fields defined in group-by (just <code>url</code>).
 </p>
 <p>
 This way of ordering is called <b>Secondary Order</b> and it's achieved easily in Pangool adding:
@@ -68,17 +68,150 @@ This way of ordering is called <b>Secondary Order</b> and it's achieved easily i
 
 <p>
 As shown in the snippet above,the fields defined in Order-by include those in Group-by. This is a restriction 
-of Pangool, where <i>Group-By</i> <b>must be a prefix</b> of <i>Order-By</i>.
+in Pangool, where <i>Group-By</i> <b>must be a prefix</b> of <i>Order-By</i>.
 </p>
-Contrarily to what it looks, this is tough in plain Map-Reduce, especially when  
+Contrary to what it looks, this is tough in plain Map-Reduce, especially when  
 several fields are involved in grouping and ordering. <br>Usually programming in plain 
 Map-Reduce forces you to define custom logic for binary comparison,grouping, and partitioning.<br> 
 Pangool excels in this task , removing all this burden and offering it to you with no pain.
 </p>
 
+
+<div class="alert-message">
 <p><b>Note:</b>
 The partitioning strategy that Pangool chooses is coherent with the group-by / sort by criterias.<br>
-In this case, Pangool will partition by the group by fields ,unless we modify the default 
-partitioning straegy,that is explained in the <a href="partitioner.html">partitioner</a> section of the guide.
+In this case, Pangool will partition by the Group-by fields ,unless we modify the default 
+partitioning strategy.See <a href="partitioner.html">partitioner</a> section for more about this.
 </p>
+
+</div>
+
+<h2>Multi-schema Sort-By</h2>
+
+<p>
+When multiple intermediate schemas are defined and Reduce-Join is performed 
+(see <a href="joins.html">joins</a> section) then Sort-By presents more options and advanced 
+features.<br>Let's see the next example:
+</p>
+
+<p>
+<pre class="prettyprint" id="java">
+  TupleMRBuilder b = new TupleMRBuilder();
+  b.addIntermediateSchema(new Schema("urls_register",Fields.parse("url:string,timestamp:long")));
+  b.addIntermediateSchema(new Schema("urls_map",Fields.parse("url:string,canonical_url:string")));
+  b.setGroupByFields(“url”);
+</pre>
+</p>
+
+<p>
+Usually when performing Joins the desired behaviour is to receive one data type before the 
+other.<br>
+This eases programming and avoids to keep data in memory before performing the actual
+join business logic.(For instance Cross-Product)<br>
+In Pangool this is achieved adding this:
+</p>
+
+<pre class="prettyprint" id="java">
+  b.setGroupByFields(“url”);
+  b.setOrderBy(new OrderBy().add("url",Order.ASC).addSchemaOrder(Order.DESC)));
+</pre>
+
+<p>
+The special method <code>addSchemaOrder</code> in <code>OrderBy</code> indicates that 
+tuples , after being ordered by <code>url</code>, they will be ordered according to the schema they belong.<br>
+That is , given the dataset below: 
+</p>
+<p>
+<pre class="prettyprint" id="java">
+ URLS_REGISTERS:
+ { "url1.com", 10000 }
+ { "url2.com", 20000 } 
+ { "url1.com", 30000 } 
+ { "url2.com", 40000 }
+ { "url1.com", 20000 }  
+ 
+ URLS_MAPS:
+ { "url1.com", "http://canonical_url1.com" }
+ { "url2.com", "http://canonical_url2.com" } 
+ </pre>
+</p>
+
+<p>
+According to the definition above :
+<pre class="prettyprint" id="java">
+  TupleMRBuilder b = new TupleMRBuilder();
+  b.addIntermediateSchema(new Schema("urls_register",Fields.parse("url:string,timestamp:long")));
+  b.addIntermediateSchema(new Schema("urls_map",Fields.parse("url:string,canonical_url:string")));
+  b.setGroupByFields(“url”);
+  b.setOrderBy(new OrderBy().add("url",Order.ASC).addSchemaOrder(Order.DESC)));
+</pre>
+
+Tuples will be received in the Reduce phase this way:
+</p>
+
+<pre class="prettyprint" id="java">
+ 
+ REDUCE_GROUP_1 ("url1.com"):
+ { "url1.com", "http://canonical_url1.com" }
+ { "url1.com", 10000 }
+ { "url1.com", 30000 }
+ { "url1.com", 20000 } 
+
+ REDUCE_GROUP_2 ("url2.com"):   
+ { "url2.com", "http://canonical_url2.com" }
+ { "url2.com", 20000 }
+ { "url2.com", 40000 }
+ </pre>
+ 
+<p>
+This is the desired behaviour. Receiving the <code>canonical_url</code> first allows to process
+the remaining urls with no need of keeping them in memory.  
+</p>
+
+<div class="alert-message">
+<p><b>Note:</b>
+Any field used in <code>setOrderBy</code> must be present in every intermediate schema defined.
+</p>
+
+</div>
+
+ 
+<h2>Specific Order-By</h2>
+
+<p>
+In the example above we could be interested in ordering tuples from a particular schema in
+a defined criteria.<br> This is achieved with method <code>setSpecificOrderBy</code>.<br>
+We can reuse the previous example to specify a particular ordering for the tuples from <code>urls_register</code>.Let's say the example below:
+</p>
+
+<pre class="prettyprint" id="java">
+  TupleMRBuilder b = new TupleMRBuilder();
+  b.addIntermediateSchema(new Schema("urls_register",Fields.parse("url:string,timestamp:long")));
+  b.addIntermediateSchema(new Schema("urls_map",Fields.parse("url:string,canonical_url:string")));
+  b.setGroupByFields(“url”);
+  b.setOrderBy(new OrderBy().add("url",Order.ASC).addSchemaOrder(Order.DESC)));
+  b.setSpecificOrderBy("urls_register",new OrderBy().add("timestamp",Order.DESC));
+</pre>
+ 
+<p>
+Given the previous input dataset, the output would be :
+</p> 
+
+<pre class="prettyprint" id="java">
+ 
+ REDUCE_GROUP_1 ("url1.com"):
+ { "url1.com", "http://canonical_url1.com" }
+ { "url1.com", 30000 }
+ { "url1.com", 20000 }
+ { "url1.com", 10000 } 
+
+ REDUCE_GROUP_2 ("url2.com"):   
+ { "url2.com", "http://canonical_url2.com" }
+ { "url2.com", 40000 }
+ { "url2.com", 20000 }
+ </pre>
+
+
+
+
 <p><a class="btn primary large" href="named_outputs.html">Next: Named outputs &raquo;</a></p>
