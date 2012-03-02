@@ -42,12 +42,16 @@
     </license>
   </licenses>
 
-  <scm>
+  <!--scm>
    <url>http://pangool.net</url>
     <connection>https://git@github.com:datasalt/pangool.git</connection>
-  </scm>
+  </scm-->
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    
+
+    <hadoop.version>0.20.2</hadoop.version>
+    <jackson.version>1.7.9</jackson.version>
   </properties>
 
   <dependencies>
@@ -133,37 +137,37 @@
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-asl</artifactId>
-      <version>1.7.3</version>
+      <version>${jackson.version}</version>
     </dependency>          
      
      <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-lgpl</artifactId>
-      <version>1.7.3</version>
+      <version>${jackson.version}</version>
     </dependency> 
     
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-jaxrs</artifactId>
-      <version>1.7.3</version>
+      <version>${jackson.version}</version>
     </dependency> 
      
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
-      <version>1.7.3</version>
+      <version>${jackson.version}</version>
     </dependency> 
     
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-lgpl</artifactId>
-      <version>1.7.3</version>
+      <version>${jackson.version}</version>
     </dependency>  
     
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <version>0.20.2</version>
+      <version>${hadoop.version}</version>
     </dependency>   
      
     <dependency>
@@ -248,16 +252,16 @@
    </plugin>
    
      <!-- In order to add aditional source folders -->
-   <plugin>
+   <!--plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.1</version>
+       
         <executions>
           <execution>
             <id>add-source</id>
-            <phase>generate-sources</phase>
+            <phase>generate-test-sources</phase>
             <goals>
-              <goal>add-source</goal>
+              <goal>add-test-source</goal>
             </goals>
             <configuration>
               <sources>
@@ -266,7 +270,7 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin-->
  
     
   </plugins>
@@ -284,18 +288,19 @@
       </activation>
       <build>
         <plugins>
-          <plugin>
+          <!--plugin>
             <artifactId>maven-antrun-plugin</artifactId>
             <executions>
               <execution>
                 <id>generate-thrift</id>
-                <phase>generate-sources</phase>
+                <phase>generate-test-sources</phase>
                 <configuration>
                   <tasks>
                     <mkdir dir="target/test/generated-thrift/java/" />
                     <exec executable="/usr/local/bin/thrift">
-                      <arg value="--gen" />
-                      <arg value="java:beans"/>
+			--><!-- change this for double minus -->
+                      <!-- <arg value="- -gen" /> ]]>-->
+                      <!--arg value="java:beans"/>
                       <arg value="-o"/>
                       <arg value="target/test/generated-thrift/java/"/>
                       <arg value="src/test/resources/pangool-test.thrift"/>
@@ -307,7 +312,7 @@
                 </goals>
               </execution>
             </executions>
-          </plugin>
+          </plugin-->
         </plugins>
       </build>
     </profile>
@@ -319,8 +324,12 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.8</version>
+        <!--version>2.8</version-->
         <configuration>
+	   <links>
+              <link>http://jackson.codehaus.org/${jackson.version}/javadoc/</link>
+              <link>http://hadoop.apache.org/common/docs/r${hadoop.version}/api/</link>
+            </links>
         </configuration>
       </plugin>
     </plugins>
