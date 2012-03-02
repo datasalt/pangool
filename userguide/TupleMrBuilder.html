@@ -16,15 +16,15 @@ URL resolution example</a>:
 </p>
 
 <pre class="prettyprint" id="java">
-	TupleMRBuilder mr = new TupleMRBuilder(conf,"Pangool Url Resolution");
-	mr.addIntermediateSchema(new Schema("urlMap", urlMapFields));
-	mr.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
-	mr.setGroupByFields("url");
-	mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
-	mr.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
-	mr.setTupleReducer(new Handler());
-	mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-	mr.createJob().waitForCompletion(true);
+ TupleMRBuilder mr = new TupleMRBuilder(conf,"Pangool Url Resolution");
+ mr.addIntermediateSchema(new Schema("urlMap", urlMapFields));
+ mr.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
+ mr.setGroupByFields("url");
+ mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
+ mr.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
+ mr.setTupleReducer(new Handler());
+ mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+ mr.createJob().waitForCompletion(true);
 </pre>
 
 <p>
@@ -34,7 +34,7 @@ The parameters are a Hadoop <code>Configuration</code> (Usually is enough with
 </p>
 
 <pre class="prettyprint" id="java">
-	TupleMRBuilder mr = new TupleMRBuilder(conf,"Pangool Url Resolution");
+ TupleMRBuilder mr = new TupleMRBuilder(conf,"Pangool Url Resolution");
 </pre>
 
 <h3>Schemas</h3>
@@ -45,8 +45,8 @@ Now we can define which schemas will be allowed for <code>TupleMapper</code> out
 </p>
 
 <pre class="prettyprint" id="java">
-	mr.addIntermediateSchema(new Schema("urlMap", urlMapFields));
-	mr.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
+ mr.addIntermediateSchema(new Schema("urlMap", urlMapFields));
+ mr.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
 </pre>
 
 <div class="alert-message">
@@ -68,7 +68,7 @@ tuples are grouped by <code>url</code>. Sorting is not specified.
 </p> 
 
 <pre class="prettyprint" id="java">
-	mr.setGroupByFields("url");
+ mr.setGroupByFields("url");
 </pre>
 
 <p>
@@ -89,8 +89,8 @@ For this particular example, we are configuring two inputs paths (input1 and inp
 to be processed by <code>UrlProcessor</code> tuple mapper:
 
 <pre class="prettyprint" id="java">
-	mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
-	mr.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
+ mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
+ mr.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
 </pre>
 
 <p>
@@ -125,7 +125,7 @@ extends the class <code>TupleReducer</code>:
 </p>
 
 <pre class="prettyprint" id="java">
-	mr.setTupleReducer(new Handler());
+ mr.setTupleReducer(new Handler());
 </pre>
 
 <p>
@@ -150,7 +150,7 @@ Hadoop synonym for <code>null</code>) as value.
 </p>
 
 <pre class="prettyprint" id="java">
-	mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+ mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
 </pre>
 
 <div class="alert-message">
@@ -173,7 +173,7 @@ Pangool has its own output format for tuples. You can configure your job to use
 it by using the method <code>setTupleOutput()</code> instead of <code>setOutput()</code>
 </p>
 
-<h3>An finally... build and launch your job!</h3>
+<h3>And finally... build and launch your job!</h3>
 
 <p>
 The following code retrieves builds a Hadoop job, executes it, and waits until the completion. 
@@ -181,7 +181,7 @@ That's all!
 </p>
 
 <pre class="prettyprint" id="java">
-	mr.createJob().waitForCompletion(true);
+ mr.createJob().waitForCompletion(true);
 </pre>
 
 <p><a class="btn primary large" href="group_and_sort.html">Next: Group by / Sort by &raquo;</a></p>
