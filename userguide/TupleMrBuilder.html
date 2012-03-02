@@ -8,3 +8,178 @@ title: Pangool - User guide - Creating Pangool Jobs
 
 <h2>Creating Pangool Jobs</h2>
 
+<p>
+The class <code>TupleMRBuilder</code> is the one responsible to build Pangool jobs. Here
+you have an example extracted from the 
+<a href="https://github.com/datasalt/pangool/blob/master/examples/src/main/java/com/datasalt/pangool/examples/urlresolution/UrlResolution.java">
+URL resolution example</a>:
+</p>
+
+<pre class="prettyprint" id="java">
+	TupleMRBuilder mr = new TupleMRBuilder(conf,"Pangool Url Resolution");
+	mr.addIntermediateSchema(new Schema("urlMap", urlMapFields));
+	mr.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
+	mr.setGroupByFields("url");
+	mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
+	mr.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
+	mr.setTupleReducer(new Handler());
+	mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+	mr.createJob().waitForCompletion(true);
+</pre>
+
+<p>
+Let's analyze the code line by line. The following line creates the <code>TupleMRBuilder</code>.
+The parameters are a Hadoop <code>Configuration</code> (Usually is enough with 
+<code>new Configuration()</code>), and the name of the generated job:
+</p>
+
+<pre class="prettyprint" id="java">
+	TupleMRBuilder mr = new TupleMRBuilder(conf,"Pangool Url Resolution");
+</pre>
+
+<h3>Schemas</h3>
+
+<p>
+Now we can define which schemas will be allowed for <code>TupleMapper</code> output and 
+<code>TupleReducer</code> input. 
+</p>
+
+<pre class="prettyprint" id="java">
+	mr.addIntermediateSchema(new Schema("urlMap", urlMapFields));
+	mr.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
+</pre>
+
+<div class="alert-message">
+<p>
+<strong>Important:</strong> The order in which schemas are provided to the 
+<code>TupelMRBuilder</code> is important. It will have impact in the
+order in which tuples of different schemas will be received in the 
+<code>TupleReducer</code>. See <a href="joins.html">Reduce-side joins</a> for 
+more information.
+</p>
+</div>
+
+<h3>Grouping and Sorting</h3>
+
+<p>
+An important configuration parameter is how tuples must be grouped
+and sorted before reaching the <code>TupleReducer</code>. For this particular case, 
+tuples are grouped by <code>url</code>. Sorting is not specified. 
+</p> 
+
+<pre class="prettyprint" id="java">
+	mr.setGroupByFields("url");
+</pre>
+
+<p>
+See <a href="group_and_sort.html">Grouping and Sorting</a> for see more possibilities.
+</p>
+
+<p>
+You can also configure the job to be a rollup job. See 
+<a href="rollup.html">the rollup page</a> for more information.
+
+<h3>Setting the job input and TupleMapper's</h3>
+
+<p>
+You can configure your own <code>TupleMapper</code> per each input path. 
+That is, you can use several inputs, and you can process each one differently.
+For this particular example, we are configuring two inputs paths (input1 and input2)
+, one to be processed by the <code>UrlMapProcessor</code> tuple mapper, and the other
+to be processed by <code>UrlProcessor</code> tuple mapper:
+
+<pre class="prettyprint" id="java">
+	mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
+	mr.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
+</pre>
+
+<p>
+We use <code>TextInputFormat</code> because the input is a text file.  
+</p>
+
+<div class="alert-message">
+<p>
+The wrapper class <code>HadoopInputFormat</code> is needed to reuse Hadoop input
+formats inside Pangool. For other Pangool based input formats, like 
+<code>TupleInputFormat</code>, is enough with providing an instance.   
+</p>
+</div>
+
+<h4 class="small">Using Pangool TupleInputFormat</h4>
+
+<p>
+Pangool has its own input format for tuples. You can configure your job to use
+it by using the method <code>addTupleInput()</code> instead of <code>addInput()</code>
+</p>
+
+<p>
+Pangool serializes the tuples in binary format with <code>TupleInputFormat</code> and
+<code>TupleOutputFormat</code>.
+</p>
+
+<h3>Setting the reducer</h3>
+
+<p>
+The reducer is configured with the method <code>setTupleReducer()</code>. It must 
+extends the class <code>TupleReducer</code>:
+</p>
+
+<pre class="prettyprint" id="java">
+	mr.setTupleReducer(new Handler());
+</pre>
+
+<p>
+A combiner class can be provided by using the method <code>setTupleCombiner()</code>. You 
+can see an example of its use in the  
+<a href="https://github.com/datasalt/pangool/blob/master/examples/src/main/java/com/datasalt/pangool/examples/topicalwordcount/TopicalWordCount.java">
+topical word count</a> example. 
+</p>
+
+<p>If you are using <a href="rollup.html">rollup</a>, your reducer must extends
+<code>TupleRollupReducer</code>.
+</p> 
+
+
+<h3>Setting the job output</h3>
+
+<p>
+The next step is to set the job output. We want to store the output into
+the folder <code>output</code>, using the Hadoop output format <code>TextOutputFormat</code>.
+The output will have rows with <code>Text</code> as key and <code>NullWritable</code> (the 
+Hadoop synonym for <code>null</code>) as value.
+</p>
+
+<pre class="prettyprint" id="java">
+	mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+</pre>
+
+<div class="alert-message">
+<p>
+The wrapper class <code>HadoopOutputFormat</code> is needed to reuse Hadoop output
+formats inside Pangool. For other Pangool based output formats, like <code>TupleOutputFormat</code>,
+ is enough with providing an instance.  
+</p>
+</div>
+
+<p>
+<code>TupleMapper</code> and <code>TupleReducer</code> can have more than one output by using
+<a href="named_outputs.html">named outputs</a>
+</p>
+
+<h4>Using Pangool TupleOutputFormat</h4>
+
+<p>
+Pangool has its own output format for tuples. You can configure your job to use
+it by using the method <code>setTupleOutput()</code> instead of <code>setOutput()</code>
+</p>
+
+<h3>An finally... build and launch your job!</h3>
+
+<p>
+The following code retrieves builds a Hadoop job, executes it, and waits until the completion. 
+That's all!
+</p>
+
+<pre class="prettyprint" id="java">
+	mr.createJob().waitForCompletion(true);
+</pre>
