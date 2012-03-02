@@ -13,45 +13,107 @@ A Pangool Tuple is an ordered list of Objects with an associated Schema.
 Schemas have an associated name and a list of Fields. 
 </p>
 <p>
-We can create an Schema in a strong-typed fashion:
+We can create an <code>Schema</code> in a strong-typed fashion:
 </p>
 <pre class="prettyprint" id="java">
 	List<Field> fields = new ArrayList<Field>();
 	fields.add(Field.create("number1", Type.INT));
 	fields.add(Field.create("string1", Type.STRING));
 	fields.add(Field.create("string2", Type.STRING));
-	Schema schema1 = new Schema("test1", fields);
+	Schema schema1 = new Schema("schema1", fields);
 </pre>	
 <p>
 Or we can also create it leveraging the Fields.parse() method:
 </p>
 
 <pre class="prettyprint" id="java">
-	new Schema("schema2", Fields.parse("a:int, b:string, c:string, d:string"));
+	Schema schema1 = new Schema("schema1", Fields.parse("number1:int, string1:string, string2:string"));
 </pre>	
 <p>
 
-Although Pangool does not provide a serialization framework by itself, it has some primitive types implemented 
-for convenience:
+<h3>Types</h3>
+<p>
+Pangool supports any data type that is "Hadoop serializable" (<code>Writables</code>, 
+<a href="http://thrift.apache.org/">Thrift</a>, <a href="http://code.google.com/p/protostuff/">
+ProtoStuff</a>, etc), but it also supports natively some primitive types.
+</p>
+ 
+ <p>
+The following table
+summarizes the available field types:
 </p>
 
 <table>
-<tr><td>Type.INT</td><td>Serialized as an VInt</td></tr> 
-<tr><td>Type.LONG</td><td>Serialized as an VLong</td></tr> 
-<tr><td>Type.FLOAT</td><td>Serialized as 4-bytes float type</td></tr> 
-<tr><td>Type.DOUBLE</td><td>Serialized as 8-bytes double type</td></tr> 
-<tr><td>Type.UTF8</td><td>Serialized like Hadoop’s Text</td></tr> 
-<tr><td>Type.BOOLEAN</td><td>Serialized as 1-byte boolean type</td></tr> 
-<tr><td>Type.ENUM</td><td>Serialized as Vint values</td></tr> 
+<tr><th>Field Type</th><th>Accepted java types</th><th>Deserialized java type</th><th>Serialization</th></tr>
+<tr><td>Type.INT</td><td>Integer</td><td>Integer</td><td>Variable length integer</td></tr> 
+<tr><td>Type.LONG</td><td>Long</td><td>Long</td><td>Variable length long</td></tr> 
+<tr><td>Type.FLOAT</td><td>Float</td><td>Float</td><td>4-bytes</td></tr> 
+<tr><td>Type.DOUBLE</td><td>Double</td><td>Double</td><td>8-bytes</td></tr> 
+<tr><td>Type.STRING</td><td>String, Utf8</td><td>Utf8</td><td>Variable length integer (size) + uft8 bytes</td></tr> 
+<tr><td>Type.BOOLEAN</td><td>Boolean</td><td>Boolean</td><td>1-byte boolean type</td></tr> 
+<tr><td>Type.ENUM</td><td>Enum</td><td>Enum</td><td>Variable length integer</td></tr> 
+<tr>
+	<td>Type.OBJECT</td>
+	<td>Any Hadoop serializable object</td>
+	<td>Same as input</td>
+	<td>
+		Variable length integer (size) + the bytes of the object serialized with the
+		Hadoop serialization.
+	</td>
+</tr>
 </table>
 
 <p>
-For non-primitive types you can use Type.OBJECT and set arbitrary objects. 
-These will be serialized using the Hadoop Serialization library (see <a href='#'>link-goes-here</a> ). 
+<strong>Variable length integers and longs</strong> are encoded in a way that uses less bytes for 
+smaller numbers than for bigger ones. The smallest numbers can fit in just one byte.  
+</p>
+
+<h4>Objects</h4>
+
+<p>
+For non-primitive types you can use <code>Type.OBJECT</code> and set arbitrary objects. 
+These will be serialized using the Hadoop Serialization library. 
 So if you are using your own custom data types, you need to configure Hadoop accordingly.
 </p>
 
-<p>Tuples meet the ITuple interface and can be instantiated via the Tuple class. You can set tuple values by field name or field index.</p>
+<p>
+The schema should be configured in the following way:
+</p>
+
+<pre class="prettyprint" id="java">
+	List<Field> fields = new ArrayList<Field>();	
+	fields.add(Field.createObject("obj",IntWritable.class));
+	Schema schema1 = new Schema("schema1", fields);
+</pre>
+
+<p>
+These object are serialized internally by Pangool with a variable length integer
+for saving the size of the serialized bytes as header.  
+</p>
+
+<p>
+<strong>Thrift and ProtoStuff</strong>
+</p>
+
+<p>
+You can enable the serialization of Thrift and ProtoStuff objects in Pangool:
+</p>
+
+<pre class="prettyprint" id="java">
+		ThriftSerialization.enableThriftSerialization(conf);
+		ProtoStuffSerialization.enableProtoStuffSerialization(conf);		
+</pre>
+
+<p>
+Where <code>conf</code> is the Hadoop job configuration. 
+</p>
+
+<h3>Tuples</h3>
+
+<p>
+Tuples meet the ITuple interface and can be instantiated via the Tuple class. 
+You can set tuple values by field name or field index.
+</p>
 
 <pre class="prettyprint" id="java">
 	ITuple tuple = new Tuple(schema1);
@@ -59,4 +121,61 @@ So if you are using your own custom data types, you need to configure Hadoop acc
 	tuple.set("string1", "foo");
 </pre>
 
-<p><a class="btn primary large" href="userguide2.html">Next: Pangool's MapRed API &raquo;</a></p>
+<p>
+
+</p>
+
+<div class="alert-message">
+<p>
+Important: Pangool <strong>does not support null values for fields</strong>.
+</p>
+</div>
+
+<h4>Access by index</h4>
+
+<p>
+Tuples are just an order list of object. You can access the elements
+in the tuple by the index of the field as it was defined in the schema:
+</p> 
+
+<pre class="prettyprint" id="java">
+	tuple.set(1, "foo");
+	tuple.get(1);
+</pre>
+
+<p>
+That is, if the first field of you schema is "name", then you can get/set name
+by accessing the position 0.
+</p>
+
+<h4>Strings</h4>
+<p>
+An alternative way of setting strings is the following:
+</p>
+
+<pre class="prettyprint" id="java">
+	tuple.set("string1", new Utf8("foo"));
+</pre>
+
+<p>
+The following code is right: 
+</p>
+
+<pre class="prettyprint" id="java">
+	Utf8 foo = new Utf8("foo");
+	tuple.set("string1", foo);
+	assertTrue(foo == tuple.get("string1");
+	
+	tuple.set("string1", "foo");
+	assertTrue("foo".equals(tuple.get("string1"));
+</pre>
+
+<div class="alert-message">
+<p>
+When the tuple is coming as an input in the 
+<code>TupleMapper</code> or <code>TupleReducer</code>, strings will
+always be present in tuples as an <code>Utf8</code> object. 
+</p>
+</div>
+
+<p><a class="btn primary large" href="TupleMrBuilder.html">Next: Creating Pangool Jobs &raquo;</a></p>
