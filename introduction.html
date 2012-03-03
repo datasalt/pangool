@@ -11,6 +11,8 @@ name: overview
 	<p>First of all, you'll quickly see how to use <strong>Tuples</strong>, <strong>Schemas</strong> and build a simple <strong>Tuple MapReduce Job</strong> that <strong>groups by</strong> some fields.</p>
 </div>
 
+<h2>Topical Word Count</h2>
+
 <p>
 We’re sure you’ve seen several times the "typical word count". 
 We have extended the problem for showing the advantages of using Pangool. <i>We like extending things - Pangool is an implementation of an "extended model of MapReduce" <a href='http://www.datasalt.com/2012/02/tuple-mapreduce-beyond-the-classic-mapreduce/'>we like to call Tuple MapReduce.</a></i>
@@ -123,7 +125,7 @@ Finally, we see how we use the Pangool collector for emitting Tuples:
 (Apart from the Pangool Collector, we also have the TupleMRContext. This class wraps the information that we setup in the Tuple MapReduce Job + the standard Hadoop Context. You can use it to access the Hadoop Counters, for instance. 
 </p>
 
-<div class="alert-message">
+<div class="alert alert-info">
 For more information, check the <a href='userguide/TupleMrBuilder.html'>"Creating Pangool Jobs"</a> user guide page.
 </div>
 
@@ -197,7 +199,7 @@ There are several things to note here:
 	<li>Note that the order in which we define the fields is not important.</li> 
 </ul>
 	
-<div class="alert-message">
+<div class="alert alert-info">
 For more information, you can go to the <a href='userguide/schemas.html'>"Tuples & Schemas & Types"</a> user guide page.
 </div>
 
@@ -240,4 +242,4 @@ You can also use an input data generator for generating random input for this ex
 	hadoop jar $PANGOOL_EXAMPLES_JAR topical_word_count_gen_data [out-file] [nRegisters] [nTopics]
 </pre>
 
-<p><a class="btn primary large" href="introduction_2.html">What's next? Leveraging instances!</a></p>
+<p><a class="btn btn-primary btn-large" href="introduction_2.html">What's next? Leveraging instances!</a></p>

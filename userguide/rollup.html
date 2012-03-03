@@ -3,10 +3,10 @@ layout: user_guide
 title: Pangool - User guide - Rollup
 ---
 <div class="hero-unit">
-	<h2>Pangool User Guide</h2>
+	<h1>Pangool User Guide</h1>
 </div>
 
-<h2>Rollup</h2>
+<h1>Rollup</h1>
 
 <p>
 An interesting, advanced feature of Pangool is its “rollup” capability. There are some cases where it is interesting to perform aggregate sub-groupings within a Reducer. Let’s pose an example. 
@@ -92,3 +92,5 @@ You can see this example in : …
 <p>
 Note that when using rollup, the default partitioning strategy is changed. To keep things coherent, Pangool will need to partition by the fields that fall left to the rollupFrom field (including it). In the example, Pangool will partition by “location”, “date”. If we rollupFrom from “location” then Pangool would just partition by “location”. The wider the subgroups we create with rollup, the worse the partition function will be. So, rollup has to be used with care in order not to create too-wide groups that could make reducer completion time deviate too much from one another.
 </p> 
+
+<p><a class="btn btn-primary btn-large" href="partitioner.html">Next: Custom partitioner &raquo;</a></p>

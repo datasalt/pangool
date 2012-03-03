@@ -10,6 +10,8 @@ name: overview
 	<p>Finally, you'll learn how to use Pangool's <strong>easy secondary sort</strong> and how to <strong>write to different outputs</strong> from a Tuple MapReduce Job!</p>
 </div>
 
+<h2>Top words</h2>
+
 <p>
 Now we'll expand the "topical word count" example to compute a "fingerprint" for each topic.
 </p>
@@ -129,7 +131,7 @@ But we also want to receive words already sorted so we'll just emit the first "n
 For that, we configure the Job by to sort by topic AND count. 
 </p>
 
-<div class="alert-message">
+<div class="alert alert-info">
 For more information on grouping and sorting, check the <a href='userguide/group_and_sort.html'>"Group & Sort by"</a> page in the user guide.
 </div>
 
@@ -141,7 +143,7 @@ And, last but not least, let's see how we can declare a “named output”:
 cg.addNamedTupleOutput(OUTPUT_TOTALCOUNT, getOutputCountSchema());
 </pre>
 
-<div class="alert-message">
+<div class="alert alert-info">
 For more information on outputs, check the <a href='userguide/named_outputs.html'>"Named outputs"</a> page in the user guide.
 </div>
 
@@ -155,8 +157,8 @@ and use multiple (named) outputs.
 </p>
 
 <p>
-<div class="alert-message">
+<div class="alert alert-info">
 You can now go to the <a href='userguide/schemas.html'>User Guide</a> where you’ll find all this in more detail + more advanced topics like <a href='userguide/joins.html'>"Reduce-side Joins"</a>, <a href='map_only_jobs.html'>"Map-only jobs"</a> and <a href='userguide/rollup.html'>"Rollup"</a>.
 </div>
 
-<p><a class="btn primary large" href="userguide/schemas.html">Take me to the user guide! &raquo;</a></p>
+<p><a class="btn btn-primary btn-large" href="userguide/schemas.html">Take me to the user guide! &raquo;</a></p>

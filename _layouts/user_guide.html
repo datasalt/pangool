@@ -26,9 +26,14 @@
     <style type="text/css">
       body {
         padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      .sidebar-nav {
+        padding: 9px 0;
       }
     </style>
-
+    
+		<!-- <script type="text/javascript" src="/js/bootstrap.min.js"></script> -->
     <script type="text/javascript" src="/js/app.js"></script>
     <script type="text/javascript" src="/js/prettify.js"></script>
 
@@ -38,8 +43,8 @@
 
   <body onload="prettyPrint()">
 
-    <div class="topbar">
-      <div class="topbar-inner">
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
         <div class="container-fluid">
           <a class="brand" href="/index.html">Pangool</a>
           <ul class="nav">
@@ -49,36 +54,40 @@
     </div>
 
     <div class="container-fluid">
-      <div class="sidebar">
-        <div class="well">
-        	<a href="/index.html">
-         		<img width="125" height="108" src="/images/pangool_logo_transparente_125x108.png" />
-         	</a>
-		 <hr/>
-
-          <h5>User Guide</h5>
-          <ul>
-            <li><a href="schemas.html">Tuples, Schemas & Types</a></li>
-            <li><a href="TupleMrBuilder.html">Creating Pangool Jobs</a></li>            
-            <li><a href="group_and_sort.html">Group by / Sort By</a></li>                        
-            <li><a href="named_outputs.html">Named Outputs</a></li>
-            <li><a href="joins.html">Joins</a></li>
-            <li><a href="map_only_jobs.html">Map-only jobs</a></li>
-            <li><a href="rollup.html">Rollup</a></li>
-            <li><a href="partitioner.html">Custom Partitioners</a></li>
-            <li><a href="comparators.html">Custom Comparators</a></li>
-            <li><a href="mapred_api.html">Map Red API</a></li>
-          </ul>		
-
+      <div class="row-fluid">
+        <div class="span2">
+	        <div class="well sidebar-nav">
+	        				 						
+	          <ul class="nav nav-list">
+	          	<li>		        	
+		          	<a href="/index.html">
+			         		<img width="125" height="108" src="/images/pangool_logo_transparente_125x108.png" />
+			         	</a>
+	          	</li>	          
+	          	<li class="nav-header">User Guide</li>
+	            <li><a href="schemas.html">Tuples, Schemas & Types</a></li>
+	            <li><a href="TupleMrBuilder.html">Creating Pangool Jobs</a></li>            
+	            <li><a href="group_and_sort.html">Group by / Sort By</a></li>                        
+	            <li><a href="named_outputs.html">Named Outputs</a></li>
+	            <li><a href="joins.html">Joins</a></li>
+	            <li><a href="map_only_jobs.html">Map-only jobs</a></li>
+	            <li><a href="rollup.html">Rollup</a></li>
+	            <li><a href="partitioner.html">Custom Partitioners</a></li>
+	            <li><a href="comparators.html">Custom Comparators</a></li>
+	            <li><a href="mapred_api.html">Map Red API</a></li>	          	
+	          </ul>
+	
+	        </div>
         </div>
-      </div>
-      <div class="content">
-        {{content}}
       
+	      <div class="span10">
+	        {{content}}	
+	      </div>
 
+				<hr>
         <footer>
-          <p>&copy; pangool.net 2012</p>
-        </footer>
+	          <p>&copy; pangool.net 2012</p>
+        </footer>	      
       </div>
     </div>
 	<script type="text/javascript">

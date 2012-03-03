@@ -21,12 +21,12 @@ name: home
 		  <li>100% Hadoop compatibility. 0.20.2 and all versions further, including CDH3.</li>
 		</ul>
 	  </p>
-	  <p><a class="btn primary large" href="overview.html">Overview &raquo;</a></p>
+	  <p><a class="btn btn-primary btn-large" href="overview.html">Overview &raquo;</a></p>
     </div>
 
     <!-- Example row of columns -->
-    <div class="row">
-      <div class="span5">
+    <div class="row-fluid">
+      <div class="span4">
         <h2>Easier Hadoop. Same performance.</h2>
         <p>
 	     		Hadoop has a steep learning curve. Pangool aims to simplify Hadoop development
@@ -36,11 +36,11 @@ name: home
 				The most common patterns that arise when writing MapReduce jobs are easier to implement
 				with Pangool with similar performance. 
 				</p>				
-				<p><a class="btn" href="overview.html">See more details! &raquo;</a></p>
+				<p><a class="btn btn-primary" href="overview.html">See more details! &raquo;</a></p>
         </p>
       </div>
 
-		<div class="span5">
+		<div class="span4">
         <h2>Secondary sorting.</h2>
         <p>
 	      	Although it is commonly needed in parallel data processing, secondary sorting is a nightmare to accomplish with the standard Java MapReduce Hadoop API. 
@@ -53,10 +53,10 @@ job.setGroupByFields("word");
 job.setOrderBy(new OrderBy()
   .add("word", Order.ASC)
   .add("count", Order.DESC));</pre>
-       <p><a class="btn" href="introduction.html">More in the Introduction... &raquo;</a></p>
+       <p><a class="btn btn-primary" href="introduction.html">More in the Introduction... &raquo;</a></p>
       </div>
 	
-		<div class="span6">
+		<div class="span4">
         <h2>Joins.</h2>
         <p>
 	      	Although it is a common pattern when working with big data, joining heterogeneous data sources is extremely complex to implement with the the standard Java MapReduce Hadoop API. 
@@ -68,7 +68,7 @@ job.setOrderBy(new OrderBy()
 job.addIntermediateSchema(urlMapSchema);
 job.addIntermediateSchema(urlRegisterSchema);
 job.setGroupByFields("url");</pre>
-        <p><a class="btn" href="userguide/schemas.html">Deep details are in the User Guide! &raquo;</a></p>
+        <p><a class="btn btn-primary" href="userguide/schemas.html">Deep details are in the User Guide! &raquo;</a></p>
       </div>
 	</div>	
 </div>

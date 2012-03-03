@@ -25,16 +25,14 @@ of the Hadoop Java MapReduce API. Pangool also augments Hadoop's API by making m
 and inputs first-class and allowing instance-based configuration.
 </p>
 
-<hr>
-<div class="alert-message">
+<div class="alert alert-success">
 Pangool is compatible with Hadoop 0.20.2 and all versions further, including <a href='https://ccp.cloudera.com/display/CDHDOC/CDH3+Quick+Start+Guide'>Cloudera's CDH3</a>.
 </div>
-<hr>
 
 <h2>Features</h2>
 <p>
-<div class="row">
-	<div class="span8 well">
+<div class="row-fluid">
+	<div class="span5 well">
 		<h3>Intermediate Tuple-based serialization</h3>
 		<p>
 			By using Tuples instead of (key, value) pairs, the user is not forced to write their 
@@ -45,7 +43,7 @@ Pangool is compatible with Hadoop 0.20.2 and all versions further, including <a 
 		However Pangool’s Tuples may contain arbitrary data types - as long as they are serializable by Hadoop.
 		</p>
 	</div>
-	<div class="span8 well">
+	<div class="span5 well">
 		<h3>Efficient, easy-to-use secondary sorting</h3>
 		<p>
 			In Pangool you can say <code>groupBy(“user”, “country”)</code>, <code>sortBy(“user”, “country”, “name”)</code>. Pangool 
@@ -55,8 +53,8 @@ Pangool is compatible with Hadoop 0.20.2 and all versions further, including <a 
 	</div>
 </div> 
  
-<div class="row">
-	<div class="span8 well">
+<div class="row-fluid">
+	<div class="span5 well">
 		<h3>Efficient, easy-to-use reduce-side joins</h3>
 		<p>
 			Doing reduce-side joins with Pangool is as simple as it can get. By using 
@@ -65,7 +63,7 @@ Pangool is compatible with Hadoop 0.20.2 and all versions further, including <a 
 			to partition, sort and group by underneath in an efficient way.		
 		<p>
 	</div>
-	<div class="span8 well">
+	<div class="span5 well">
 		<h3>Instance-based configuration</h3>
 		<p>
 			Mapper, Combiner, Reducers, Input / Output Formats and Comparators can be passed 
@@ -76,14 +74,14 @@ Pangool is compatible with Hadoop 0.20.2 and all versions further, including <a 
 	</div>
 </div>
 
-<div class="row">
-	<div class="span8 well">
+<div class="row-fluid">
+	<div class="span5 well">
 		<h3>First-class multiple inputs / outputs</h3>
 		<p>
 			Multiple inputs & outputs in Pangool is part of its standard API.		
 		<p>
 	</div>
-	<div class="span8 well">
+	<div class="span5 well">
 		<h3>Input / Output Tuple formats</h3>
 		<p>
 			Tuples may be persisted and used as input to other Jobs by using 
@@ -93,8 +91,8 @@ Pangool is compatible with Hadoop 0.20.2 and all versions further, including <a 
 </div>
 
 
-<div class="row">
-	<div class="span8 well">
+<div class="row-fluid">
+	<div class="span5 well">
 		<h3>Performance and flexibility</h3>
 		<p>
 			Pangool is an alternative to the Java Hadoop MapReduce API. The same things can be 
@@ -107,8 +105,4 @@ Pangool is compatible with Hadoop 0.20.2 and all versions further, including <a 
 </div>
 </p>
 
-<p><a class="btn primary large" href="getting_started.html">Get started &raquo;</a></p>
- 
-
-
-
+<p><a class="btn btn-primary btn-large" href="getting_started.html">Get started &raquo;</a></p>

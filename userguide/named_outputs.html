@@ -3,10 +3,10 @@ layout: user_guide
 title: Pangool - User guide - Named outputs
 ---
 <div class="hero-unit">
-	<h2>Pangool User Guide</h2>
+	<h1>Pangool User Guide</h1>
 </div>
 
-<h2>Named outputs</h2>
+<h1>Named outputs</h1>
 
 <p>
 Thanks to the <strong>named outputs</strong>, Pangool offers the ability to have <strong>more than
@@ -32,15 +32,13 @@ If you want to put away the lookup of the named output for every write, you can 
 the <code>setup()</code> method. 
 <p>
 
-<div class="alert-message">
-<p>
+<div class="alert alert-info">
 The wrapper class <code>HadoopOutputFormat</code> is needed to reuse Hadoop output
 formats inside Pangool. For other Pangool based output formats, like <code>TupleOutputFormat</code>,
  is enough with providing an instance.  
-</p>
 </div>
 
-<h3>Named outputs for tuples<h3>
+<h3>Named outputs for tuples</h3>
 <p>
 Pangool allows to persist Tuples in <code>SequenceFile</code> by using 
 <code>TupleOutputFormat</code>. It is easy to add a named output 
@@ -63,13 +61,11 @@ tuple.set("content", "<html>...</html>");
 collector.getNamedOutput("urls").write(tuple, NullWritable.get());
 </pre> 
 
-<div class="alert-message">
-<p>
+<div class="alert alert-info">
 Note that you have to write <code>NullWritable</code> as the second parameter in 
 the <code>write()</code> method. This is
 because <code>TupleOutputFormat</code> uses Hadoop <code>SequenceFile</code> for
 storing tuples. 
-</p>
 </div>
 
 <h3>Folder structure</h3>
@@ -116,4 +112,4 @@ The part-r files in the root correspond to the records emitted with the reducer 
 That is, the ones emitted with the call to <code>collector.write()</code>
 </p>
 
-<p><a class="btn primary large" href="userguide5.html">Next: Reduce-side Joins &raquo;</a></p>
+<p><a class="btn btn-primary btn-large" href="joins.html">Next: Reduce-side Joins &raquo;</a></p>

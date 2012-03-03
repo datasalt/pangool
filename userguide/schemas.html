@@ -3,10 +3,10 @@ layout: user_guide
 title: Pangool - User guide - Tuples & Schemas
 ---
 <div class="hero-unit">
-	<h2>Pangool User Guide</h2>
+	<h1>Pangool User Guide</h1>
 </div>
 
-<h2>Tuples & Schemas & Types</h2>
+<h1>Tuples & Schemas & Types</h1>
 
 <p>
 A Pangool Tuple is an ordered list of Objects with an associated Schema.
@@ -43,24 +43,28 @@ The following table
 summarizes the available field types:
 </p>
 
-<table>
-<tr><th>Field Type</th><th>Accepted java types</th><th>Deserialized java type</th><th>Serialization</th></tr>
-<tr><td>Type.INT</td><td>Integer</td><td>Integer</td><td>32-bit integer (variable length encoded)</td></tr> 
-<tr><td>Type.LONG</td><td>Long</td><td>Long</td><td>64-bit integer (variable length encoded)</td></tr> 
-<tr><td>Type.FLOAT</td><td>Float</td><td>Float</td><td>32-bit floating number</td></tr> 
-<tr><td>Type.DOUBLE</td><td>Double</td><td>Double</td><td>64-bit floating number</td></tr> 
-<tr><td>Type.STRING</td><td>String, Utf8</td><td>Utf8</td><td>Integer encoded in variable length (size) + uft8 bytes</td></tr> 
-<tr><td>Type.BOOLEAN</td><td>Boolean</td><td>Boolean</td><td>1-byte boolean type</td></tr> 
-<tr><td>Type.ENUM</td><td>Enum</td><td>Enum</td><td>As Type.INT</td></tr> 
-<tr>
-	<td>Type.OBJECT</td>
-	<td>Any Hadoop serializable object</td>
-	<td>Same as input</td>
-	<td>
-		Variable length integer (size) + the bytes of the object serialized with the
-		Hadoop serialization.
-	</td>
-</tr>
+<table class="table table-striped">
+<thead>
+	<tr><th>Field Type</th><th>Accepted java types</th><th>Deserialized java type</th><th>Serialization</th></tr>
+</thead>
+<tbody>
+	<tr><td>Type.INT</td><td>Integer</td><td>Integer</td><td>32-bit integer (variable length encoded)</td></tr> 
+	<tr><td>Type.LONG</td><td>Long</td><td>Long</td><td>64-bit integer (variable length encoded)</td></tr> 
+	<tr><td>Type.FLOAT</td><td>Float</td><td>Float</td><td>32-bit floating number</td></tr> 
+	<tr><td>Type.DOUBLE</td><td>Double</td><td>Double</td><td>64-bit floating number</td></tr> 
+	<tr><td>Type.STRING</td><td>String, Utf8</td><td>Utf8</td><td>Integer encoded in variable length (size) + uft8 bytes</td></tr> 
+	<tr><td>Type.BOOLEAN</td><td>Boolean</td><td>Boolean</td><td>1-byte boolean type</td></tr> 
+	<tr><td>Type.ENUM</td><td>Enum</td><td>Enum</td><td>As Type.INT</td></tr> 
+	<tr>
+		<td>Type.OBJECT</td>
+		<td>Any Hadoop serializable object</td>
+		<td>Same as input</td>
+		<td>
+			Variable length integer (size) + the bytes of the object serialized with the
+			Hadoop serialization.
+		</td>
+	</tr>
+</body>
 </table>
 
 <p>
@@ -125,10 +129,8 @@ You can set tuple values by field name or field index.
 
 </p>
 
-<div class="alert-message">
-<p>
-Important: Pangool <strong>does not support null values for fields</strong>.
-</p>
+<div class="alert">
+<strong>Important</strong>: Pangool <strong>does not support null values for fields</strong>.
 </div>
 
 <h4>Access by index</h4>
@@ -170,12 +172,10 @@ The following code is right:
  assertTrue("foo".equals(tuple.get("string1"));
 </pre>
 
-<div class="alert-message">
-<p>
-When the tuple is coming as an input in the 
+<div class="alert alert">
+<strong>Important:</strong>When the tuple is coming as an input in the 
 <code>TupleMapper</code> or <code>TupleReducer</code>, strings will
 always be present in tuples as an <code>Utf8</code> object. 
-</p>
 </div>
 
-<p><a class="btn primary large" href="TupleMrBuilder.html">Next: Creating Pangool Jobs &raquo;</a></p>
+<p><a class="btn btn-primary btn-large" href="TupleMrBuilder.html">Next: Creating Pangool Jobs &raquo;</a></p>
