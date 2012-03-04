@@ -1,88 +1,175 @@
 ---
 layout: default
-title: Pangool - Overview
-name: overview
+title: Pangool - Getting Started
+name: getting_started
 ---
 <div class="hero-unit">
 	<p>
-		<h2>Getting started</h2>
+		<h2>Getting Started</h2>
+	</p>
+	<p>
+	Download the <a href="https://github.com/datasalt/pangool-bootstrap">Pangool bootstrap</a> project, 
+	and start coding with Pangool.
 	</p>
 </div>
 
-<h2>Downloading Pangool</h2>
+<h2>Developing with Pangool</h2>
 
-<div class="alert">
-Pangool is in the process of being uploaded to a Maven repository. Meanwhile, you can download a release or build from sources. You can download Pangool from the 
-<a href="https://github.com/datasalt/pangool/downloads">download page</a>
-or you can clone the latest version from <a href="https://github.com/datasalt">Github</a>. For more info go to the <a href='build.html'>"Building Pangool" page</a>
+<p>
+There are two options for starting working with Pangool:
+<p> 
+
+<div class="row-fluid">
+	<div class="span5 well">
+		<h3>
+			Bootstrap project
+		</h3>
+		<p>
+			Download our <a href="https://github.com/datasalt/pangool-bootstrap">bootstrap project</a>, a
+			<a href="http://maven.apache.org/">Maven</a> project ready to be used as the base for your project.  
+		</p>
+	</div>
+
+	<div class="span5 well">
+		<h3>
+			Maven artifact
+		</h3>	
+		<div class="alert">
+			Pangool is in the process of being uploaded to a Maven repository. Meanwhile, you can download a release or build from sources. You can download Pangool from the 
+			<a href="https://github.com/datasalt/pangool/downloads">download page</a>.
+		</div>
+	</div>
 </div>
 
-<p>
-You can download Pangool from the 
-<a href="https://github.com/datasalt/pangool/downloads">download page</a>
-</p>
-
-<h2>Executing an example</h2>
+<h2>Using Pangool Bootstrap</h2>
 
 <p>
-In the Pangool release there is a Hadoop-executable JAR with Pangool examples. We'll show how to use it to execute the "Moving average" example.
+The Pangool bootstrap project contains everything that is needed for starting working with Pangool. 
+It is ready to build, execute and manage dependencies. Using the project from Eclipse is really easy.
 </p>
-<p>
-The "Moving average" example calculates the moving average of unique visitors for different URLs for each date in a specific timeframe.
-</p>
-<p>
-In the input file we'll have something like:
-</p>
-<pre>
-url1	2011-10-28	10
-url1	2011-10-29	20
-url1	2011-10-30	30
-url1	2011-10-31	40
+
+<hr>
+
+<div class="row-fluid">
+	<div class="span3">
+		<p>
+			<strong>Requirements:</strong>
+		</p>
+	</div>
+	
+	<div class="span9">
+		<ul>
+			<li>Java 1.6+</li>
+			<li><a href="http://maven.apache.org/">Maven 2+</a></li>
+		</ul>
+	</div>
+</div> <!-- end row-fluid -->
+
+<hr>
+
+<div class="row-fluid">
+	<div class="span3">
+		<p>
+			<strong>Download bootstrap project</strong>
+		</p>
+	</div>
+	
+	<div class="span9">
+		<p>
+			Download the boostrap project from <a href="https://github.com/datasalt/pangool-bootstrap/downloads">here</a>.
+			Decompress it in a folder.
+		</p>
+	</div>
+</div> <!-- end row-fluid -->
+
+<hr>
+
+<div class="row-fluid">
+	<div class="span3">
+		<p>
+			<strong>Compiling & testing</strong>
+		</p>
+	</div>
+	
+	<div class="span9">
+		<p>
+			Run the following for compiling and running your tests:		
+		</p>		
+<pre class="prettyprint">mvn install</pre>		
+	</div>
+</div> <!-- end row-fluid -->
+
+<hr>
+
+<div class="row-fluid">
+	<div class="span3">
+		<p>
+			<strong>Executing sort example</strong>
+		</p>
+	</div>
+	
+	<div class="span9">
+		<p>
+			The bootstrap project contains a simple Pangool example that simply sorts
+			its input. The following command executes this examples in local mode 
+			(not cluster is needed):		
+		</p>		
+<pre class="prettyprint">
+cd app-module
+mvn exec:java -Dexec.mainClass="com.datasalt.pangool.bootstrap.Driver" -Dexec.args="sort pom.xml pom.xml.copy"
+</pre>		
+	</div>
+</div> <!-- end row-fluid -->
+
+<hr>
+
+<div class="row-fluid">
+	<div class="span3">
+		<p>
+			<strong>Executing with Hadoop</strong>
+		</p>
+	</div>
+	
+	<div class="span9">
+		<p>
+			After executing <code>mvn install</code> successfully, you will have a jar
+			file ready to be executed in a Hadoop cluster. This jar file will
+			be present in the folder <code>app-module/target</code>. You can
+			use it from Hadoop in the following way:		
+		</p>		
+<pre class="prettyprint">
+mvn install
+cd app-module/target
+hadoop jar pangool-bootstrap-*-job.jar sort ../pom.xml pomout
 </pre>
-<p>
-For moving averages of 3 days we'll have as output: 
-</p>
-<pre>
-url1	2011-10-28	10.0
-url1	2011-10-29	15.0
-url1	2011-10-30	20.0
-url1	2011-10-31	30.0
-</pre>
- 
-<h2>Executing it in Hadoop's pseudo-distributed mode</h2>
+		<div class="alert">
+			<i class="icon-warning-sign"></i>
+			This is currently not working in local mode because of Jackson version incompatibility
+			between Pangool and Apache Hadoop
+		</div>			
+	</div>
+</div> <!-- end row-fluid -->
 
-<p>
-For each Pangool example there as an associated random input data generator. We can execute the Moving average input data generator like:
-</p>
-<pre>
-hadoop jar pangool-examples-0.40-SNAPSHOT.jar moving_average_gen_data url_regs.txt 10000 200
-</pre>
-<p>
-(If you missed the parameters, an meaningful help line will appear to guide you)
-</p>
-<p>
-Now you can execute the example against the fresh "url_regs.txt" file:
-</p>
-<pre>
-hadoop jar pangool-examples-0.40-SNAPSHOT.jar moving_average url_regs.txt out-moving-average 5
-</pre>
-<p>
-After this has finished, you'd have generated 5-day moving averages for your input data file.
-<p>
+<hr>
 
-<h2>Executing it from an IDE</h2>
+<div class="row-fluid">
+	<div class="span3">
+		<p>
+			<strong>Importing into Eclipse</strong>
+		</p>
+	</div>
+	
+	<div class="span9">
+		<p>
+			Execute the following to generate a Eclipse project from the project folder:
+		</p>		
+<pre class="prettyprint">mvn eclipse:eclipse -DdownloadSources=true -DdownloadJavadocs=true</pre>
+		<p>
+			Then import the project from eclipse in the <code>File > Import...</code> menu.
+		</p>		
+	</div>	
+</div> <!-- end row-fluid -->
 
-<p>
-If you are working from an IDE such as Eclipse, you can execute the following code in a new class of your choice:
-</p>
-<pre class="prettyprint" id="java">
- 	ToolRunner.run(new MovingAverageGenData(), new String[] { "url_regs.txt", "10000", "200" });
- 	ToolRunner.run(new MovingAverage(), new String[] { "url_regs.txt", "out-moving-average", "5" });
-</pre>
 
-<div class="alert alert-info">
-<i class="icon-warning-sign"></i>
-Should you encounter any problem, please make sure that both Pangool and Pangool-examples JARs are in the classpath.
-</div>
 
-<p><a class="btn primary large" href="introduction.html">Wanna see a quick and fun introduction? &raquo;</a></p>
+<p><a class="btn btn-primary btn-large" href="introduction.html">Wanna see a quick and fun introduction? »</a></p>
