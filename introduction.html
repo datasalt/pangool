@@ -29,7 +29,7 @@ This example record has a text "foo bar2" labelled as topic = 1.
 </p>
 
 <pre class="prettyprint" id="java">
-	{ text: "foo bar", topic: 1 }
+ { text: "foo bar", topic: 1 }
 </pre>
 
 <p>
@@ -37,10 +37,10 @@ We want to count the appearances of each word within a topic. That is, if we hav
 </p>
 
 <pre class="prettyprint" id="java">
-	{ text: "foo bar", topic: 1 }
-	{ text: "foo", topic: 1 }
-	{ text: "bar bar", topic: 2 }
-	{ text: "foo", topic: 2 }
+ { text: "foo bar", topic: 1 }
+ { text: "foo", topic: 1 }
+ { text: "bar bar", topic: 2 }
+ { text: "foo", topic: 2 }
 </pre>
 
 <p>
@@ -48,10 +48,10 @@ And considering an output schema like (topic, word, count), we want to have as o
 </p>
 
 <pre class="prettyprint" id="java">
-	(1, "foo", 2)
-	(1, "bar", 1)
-	(2, "bar", 2)
-	(2, "foo", 1)
+ (1, "foo", 2)
+ (1, "bar", 1)
+ (2, "bar", 2)
+ (2, "foo", 1)
 </pre>
 
 <p>
@@ -63,41 +63,41 @@ We’ll start by writing a Mapper. For Pangool Jobs, we need to extend <a href='
 </p>
 
 <pre class="prettyprint" id="java">
-public static class TokenizeMapper extends TupleMapper<LongWritable, Text> {
+public static class TokenizeMapper extends TupleMapper&lt;LongWritable, Text&gt; {
 
-	protected Tuple tuple;
-	protected ObjectMapper mapper; // This is Jackson's JSON Parser that we'll use for parsing the input
+  protected Tuple tuple;
+  protected ObjectMapper mapper; // This is Jackson's JSON Parser that we'll use for parsing the input
 
-	public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
-		this.mapper = new ObjectMapper();
-		tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
-	};
+  public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+    this.mapper = new ObjectMapper();
+    tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
+  };
 
-	public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException, InterruptedException {
-		Map document = mapper.readValue(value.toString(), Map.class); // Parse JSON
-		tuple.set("topic", (Integer) document.get("topicId"));
-		StringTokenizer itr = new StringTokenizer((String) document.get("text"));
-		tuple.set("count", 1);
-		while(itr.hasMoreTokens()) {
-			tuple.set("word", itr.nextToken());
-			emitTuple(collector); // We are creating a method for this to allow overriding it from subclasses
-		}
-	}
+  public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+    Map document = mapper.readValue(value.toString(), Map.class); // Parse JSON
+    tuple.set("topic", (Integer) document.get("topicId"));
+    StringTokenizer itr = new StringTokenizer((String) document.get("text"));
+    tuple.set("count", 1);
+    while(itr.hasMoreTokens()) {
+      tuple.set("word", itr.nextToken());
+      emitTuple(collector); // We are creating a method for this to allow overriding it from subclasses
+  }
+ }
 
-	protected void emitTuple(Collector collector) throws IOException, InterruptedException {
-		collector.write(tuple);
-	}
+ protected void emitTuple(Collector collector) throws IOException, InterruptedException {
+   collector.write(tuple);
+ }
 }
 </pre>
 
 <p>
-TupleMappers have three methods available: setup(), map() and cleanup(). 
-As in Hadoop, setup() is called beginning of each Map task, cleanup() end of each task and map() for each input record. 
+TupleMappers have three methods available: <code>setup()</code>, <code>map()</code> and <code>cleanup()</code>.<br> 
+As in Hadoop, <code>setup()</code> is called beginning of each Map task, cleanup() end of each task and map() for each input record. 
 We see how it is possible to cache a Tuple for avoiding excessive object creation:
 </p>
 
 <pre class="prettyprint" id="java">
-	tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
+ tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
 </pre>
 
 <p>
@@ -110,7 +110,7 @@ When working with tuples, we can set fields using the name of the field defined 
 </p>
 
 <pre class="prettyprint" id="java">
-	tuple.set("word", itr.nextToken());
+  tuple.set("word", itr.nextToken());
 </pre>
 
 <p>
@@ -118,7 +118,7 @@ Finally, we see how we use the Pangool collector for emitting Tuples:
 </p>
 
 <pre class="prettyprint" id="java">
-	collector.write(tuple);
+  collector.write(tuple);
 </pre>
 
 <p>
@@ -134,19 +134,17 @@ Now, we need to write a Reducer. The Reducer will extend <a href='https://github
 </p>
 
 <pre class="prettyprint" id="java">
-public static class CountReducer extends TupleReducer<ITuple, NullWritable> {
-
-	public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector) throws IOException, InterruptedException, TupleMRException {
-
-		int count = 0;
-		ITuple outputTuple = null;
-		for(ITuple tuple : tuples) {
-			count += (Integer) tuple.get("count");
-			outputTuple = tuple;
-		}
-		outputTuple.set("count", count);
-		collector.write(outputTuple, NullWritable.get());
-	}
+public static class CountReducer extends TupleReducer&lt;ITuple, NullWritable&gt; {
+  public void reduce(ITuple group, Iterable&lt;ITuple&gt; tuples, TupleMRContext context, Collector collector) throws IOException, InterruptedException, TupleMRException {
+    int count = 0;
+    ITuple outputTuple = null;
+    for(ITuple tuple : tuples) {
+      count += (Integer) tuple.get("count");
+      outputTuple = tuple;
+    }
+    outputTuple.set("count", count);
+    collector.write(outputTuple, NullWritable.get());
+  }
 }
 </pre>
 
@@ -159,16 +157,16 @@ And now for the most important part of it. Let’s create a Tuple MapReduce!
 </p>
 
 <pre class="prettyprint" id="java">
-TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Topical Word Count");
-mr.addIntermediateSchema(getSchema());
-// We will count each (topicId, word) pair
-// Note that the order in which we defined the fields of the Schema is not relevant here
-mr.setGroupByFields("topic", "word");
-mr.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), new TokenizeMapper());
-// We'll use a TupleOutputFormat with the same schema than the intermediate schema
-mr.setTupleOutput(new Path(args[1]), getSchema());
-mr.setTupleReducer(new CountReducer());
-mr.setTupleCombiner(new CountReducer());
+ TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Topical Word Count");
+ mr.addIntermediateSchema(getSchema());
+ // We will count each (topicId, word) pair
+ // Note that the order in which we defined the fields of the Schema is not relevant here
+ mr.setGroupByFields("topic", "word");
+ mr.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), new TokenizeMapper());
+ // We'll use a TupleOutputFormat with the same schema than the intermediate schema
+ mr.setTupleOutput(new Path(args[1]), getSchema());
+ mr.setTupleReducer(new CountReducer());
+ mr.setTupleCombiner(new CountReducer());
 </pre>
 
 <p>
@@ -176,7 +174,7 @@ There are several things to note here:
 </p>
 
 <pre class="prettyprint" id="java">
-	cg.addIntermediateSchema(getSchema());
+ cg.addIntermediateSchema(getSchema());
 </pre>
 
 <ul>
@@ -187,12 +185,12 @@ There are several things to note here:
 </ul>
 
 <pre class="prettyprint" id="java">
-	List<Field> fields = new ArrayList<Field>();
-	// The schema has 3 fields: word, topicId and count
-	fields.add(Field.create("word", Type.STRING));
-	fields.add(Field.create("topic", Type.INT));
-	fields.add(Field.create("count", Type.INT));
-	return new Schema("schema", fields);
+ List<Field> fields = new ArrayList<Field>();
+ // The schema has 3 fields: word, topicId and count
+ fields.add(Field.create("word", Type.STRING));
+ fields.add(Field.create("topic", Type.INT));
+ fields.add(Field.create("count", Type.INT));
+ return new Schema("schema", fields);
 </pre>
 
 <ul>
@@ -210,11 +208,11 @@ With this setting, we are saying that we want to group by these two fields
 </p>
 
 <pre class="prettyprint" id="java">
-	cg.setGroupByFields("topic", "word");
+ cg.setGroupByFields("topic", "word");
 </pre>
 
 <pre class="prettyprint" id="java">
-	cg.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), new TokenizeMapper());
+ cg.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), new TokenizeMapper());
 </pre>
 
 <p>
@@ -231,7 +229,7 @@ You can run this example by doing:
 </p>
 
 <pre class="prettyprint" id="java">
-	hadoop jar $PANGOOL_EXAMPLES_JAR topical_word_count [input] [output]
+ hadoop jar $PANGOOL_EXAMPLES_JAR topical_word_count [input] [output]
 </pre>
 
 <p>
@@ -239,7 +237,7 @@ You can also use an input data generator for generating random input for this ex
 </p>
 
 <pre class="prettyprint" id="java">
-	hadoop jar $PANGOOL_EXAMPLES_JAR topical_word_count_gen_data [out-file] [nRegisters] [nTopics]
+ hadoop jar $PANGOOL_EXAMPLES_JAR topical_word_count_gen_data [out-file] [nRegisters] [nTopics]
 </pre>
 
 <p><a class="btn btn-primary btn-large" href="introduction_2.html">What's next? Leveraging instances!</a></p>
