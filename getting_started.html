@@ -26,7 +26,7 @@ There are two options for starting working with Pangool:
 		</h3>
 		<p>
 			Download our <a href="https://github.com/datasalt/pangool-bootstrap">bootstrap project</a>, a
-			<a href="http://maven.apache.org/">Maven</a> project ready to be used as the base for your project.  
+			<a href="http://maven.apache.org/">Maven</a> project ready to be used as the basis of your project.  
 		</p>
 	</div>
 
@@ -93,7 +93,7 @@ It is ready to build, execute and manage dependencies. Using the project from Ec
 	
 	<div class="span9">
 		<p>
-			Run the following for compiling and running your tests:		
+			Run the following line for compiling and running your tests:		
 		</p>		
 <pre class="prettyprint">mvn install</pre>		
 	</div>
@@ -111,8 +111,8 @@ It is ready to build, execute and manage dependencies. Using the project from Ec
 	<div class="span9">
 		<p>
 			The bootstrap project contains a simple Pangool example that simply sorts
-			its input. The following command executes this examples in local mode 
-			(not cluster is needed):		
+			its input. The following command executes this example in local mode 
+			(no Hadoop cluster is needed):		
 		</p>		
 <pre class="prettyprint">
 cd app-module
@@ -142,11 +142,6 @@ mvn install
 cd app-module/target
 hadoop jar pangool-bootstrap-*-job.jar sort ../pom.xml pomout
 </pre>
-		<div class="alert">
-			<i class="icon-warning-sign"></i>
-			This is currently not working in local mode because of Jackson version incompatibility
-			between Pangool and Apache Hadoop
-		</div>			
 	</div>
 </div> <!-- end row-fluid -->
 
@@ -161,7 +156,7 @@ hadoop jar pangool-bootstrap-*-job.jar sort ../pom.xml pomout
 	
 	<div class="span9">
 		<p>
-			Execute the following to generate a Eclipse project from the project folder:
+			Execute the following line to generate a Eclipse project from the project folder:
 		</p>		
 <pre class="prettyprint">mvn eclipse:eclipse -DdownloadSources=true -DdownloadJavadocs=true</pre>
 		<p>
