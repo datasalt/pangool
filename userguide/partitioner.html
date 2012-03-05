@@ -9,23 +9,67 @@ title: Pangool - User guide - Custom Partitioners
 <h1>Custom Partitioners</h1>
 
 <p>
-Usually the way Pangool partitions will be sufficient for almost all the cases. For Jobs that don’t use rollup, Pangool will partition by a combined hash of the group by fields. For information on how Rollup is handled, check the rollup section of the guide.
+Usually the way Pangool partitions will be sufficient for almost all the cases. <br>
+For Jobs that don’t use <i>rollup</i>, Pangool will partition by a combined hash of the group by fields.<br> 
+For information on how Rollup is handled, check the <a href="rollup.html">rollup</a> section of the guide.
 </p>
 
 <p>
-However, there are some cases where you’d want to partition by other fields (For instance, cases where you want to make your Job more parallelizable by shuffling the data and aggregating partial results in a second Job afterwards). In this cases you can use the convenience method:
+However, there are some cases where you’d want to partition by other fields.<br>
+For instance, cases where you want to make your Job more parallelizable by shuffling the 
+data and aggregating partial results in a second Job afterwards).<br>
+In this cases you can use the convenience method:
 </p>
 
 <pre class="prettyprint" id="java">
-	grouper.setCustomPartitionFields(fields)
+ grouper.setCustomPartitionFields(fields)
 </pre>
 
 <p>
-This method will use a combined hash of the fields that you’ll pass. These fields must be present in the intermediate schema.
+This method will use a combined hash of the fields that you’ll pass. These fields must be 
+present in all the intermediate schemas defined.
 </p>
 
 <p>
-However if you wanted to create a custom, other than combined hash strategy, you’ll need to implement your own org.apache.hadoop.mapreduce.Partitioner&lt;DatumWrapper&lt;ITuple&gt;, NullWritable&gt;  and assign it to the Job that you create out of the TupleMRBuilder. Check the current Partitioner implementation in the Pangool source for a reference implementation.
+However if you wanted to create a custom, other than combined hash strategy, 
+you’ll need to implement your own  org.apache.hadoop.mapreduce.Partitioner.<br>
+You can mimic the implementation of <a href="https://github.com/datasalt/pangool/blob/master/core/src/main/java/com/datasalt/pangool/tuplemr/mapred/TupleHashPartitioner.java">TupleHashPartitioner</a>.
+For instance: 
 </p>
+
+<pre class="prettyprint" id="java">
+public class MyRangePartitioner extends Partitioner&lt;DatumWrapper&lt;ITuple&gt;, NullWritable&gt;
+    implements Configurable {
+
+  public int getPartition(DatumWrapper&lt;ITuple&gt; key, NullWritable value, int numPartitions) {
+      ITuple tuple = key.datum();
+      int year = (Integer)tuple.get("year");
+      if (year < 1900){
+       return 0;
+      } else if (year < 2000){
+       return 1;
+      } else {
+       return ((year-2000) % (numPartitions-2)) + 2;
+      }
+    }
+  }
+</pre>
+
+<p>
+And then assign it to your job.
+</p>
+
+<pre class="prettyprint" id="java">
+ TupleMRBuilder builder = new TupleMRBuilder("my_job");
+ /*
+   .. configure it here
+  builder.addIntermediateSchema(..);
+  builder.setGroupByFields(..)
+   ...
+ */
+ 
+ Job job = builder.createJob();
+ job.setPartitionerClass(MyRangePartitioner.class);
+</pre>
 
 <p><a class="btn btn-primary btn-large" href="comparators.html">Next: Custom Comparators &raquo;</a></p>
