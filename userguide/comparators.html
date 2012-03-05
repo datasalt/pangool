@@ -21,21 +21,21 @@ Example:
 </p>
 
 <pre class="prettyprint" id="java">
-private static class MyUtf8Comparator implements RawComparator&lt;Text&gt;, Serializable {
- public int compare(Text arg0, Text arg1) {
-  throw new NotImplementedException();
- }
+ private static class MyUtf8Comparator implements RawComparator&lt;Text&gt;, Serializable {
+   public int compare(Text arg0, Text arg1) {
+     throw new NotImplementedException();
+   }
 
- public int compare(byte[] buf1, int off1, int len1, byte[] buf2, int off2, int len2) {
-  if(len1 > len2) {
-    return 1;
-  } else if(len1 < len2) {
-    return -1;
-  } else {
-    return 0;
-  }
+   public int compare(byte[] buf1, int off1, int len1, byte[] buf2, int off2, int len2) {
+     if(len1 > len2) {
+       return 1;
+     } else if(len1 < len2) {
+       return -1;
+     } else {
+       return 0;
+     }
+   }
  }
-}
 </pre>
 
 <p>
@@ -46,10 +46,10 @@ For instance, let's define a <i>Thrift</i> object whose definition is :
 </p>
 
 <pre class="prettyprint" id="java">
-  struct MyThriftObject {
-    1: string userName,
-    2: int age
-  }
+ struct MyThriftObject {
+   1: string userName,
+   2: int age
+ }
 </pre>
 
 
@@ -57,16 +57,16 @@ For instance, let's define a <i>Thrift</i> object whose definition is :
 Then your custom comparator could look like this:
 </p>
 <pre class="prettyprint" id="java">
-public class MyThriftComparator extends BaseComparator&lt;MyThriftObject&gt; {
+ public class MyThriftComparator extends BaseComparator&lt;MyThriftObject&gt; {
 
-  public MyThriftComparator(){
-    super(Type.OBJECT,MyThriftObject.class);   
-  }
+   public MyThriftComparator(){
+     super(Type.OBJECT,MyThriftObject.class);   
+   }
   
-  public int compare(MyThriftObject a, MyThriftObject b){
-   return a.getUserName().compareTo(b.getUserName());
-  }
-}
+   public int compare(MyThriftObject a, MyThriftObject b){
+     return a.getUserName().compareTo(b.getUserName());
+   }
+ }
 </pre>
 
 <div class="alert">
@@ -74,7 +74,5 @@ public class MyThriftComparator extends BaseComparator&lt;MyThriftObject&gt; {
 we don't recommend using custom comparators.<br>Due to efficiency concerns it's more desirable 
 to duplicate fields out of the serialized object and then perform the comparison using basic types.
 </div>
-
-
 
 <p><a class="btn btn-primary btn-large" href="mapred_api.html">Next: Tuple MapReduce API &raquo;</a></p>
