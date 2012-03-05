@@ -65,7 +65,7 @@ public static class UrlProcessor extends TupleMapper<LongWritable, Text> {
 This Mapper is quite simple. It just parses the input URL Registers file and emits a tuple
 with the needed data.<br>
 It uses the <code>context.getTupleMRConfig().getIntermediateSchema()</code> to grab 
-the intermediate schema that was configured for that input source.
+the intermediate schema that was configured.
 </p>
 
 <pre class="prettyprint" id="java">
@@ -138,7 +138,8 @@ What happens is that we are iterating over each of the Tuples associated with th
 to one of the schemas (the one that processed <code>URL Mapping</code> registers).<br>
 Then, we use this state variable for emitting each of the <code>URL Registers</code>.<br>
  Note how we are assuming that the URL Mapping comes always before the <code>URL Registers</code>.<br>
-  In other words, there is a specific source sort within the records of the joined Tuple list. We’ll see this in greater detail when we configure the Job.
+ In other words, there is a specific source sort within the records of the joined Tuple list. 
+ We’ll see this in greater detail when we configure the Job.
 </p>
 
 <p>
@@ -161,7 +162,8 @@ In this case, for each group, the <code>URL Mapping</code> will come first - and
 </p>
 
 <p>
-In order to configure a special sorting for the join, you’ll need to use <code>addSourceOrder()</code>
+In order to configure a special sorting for the join, you’ll need to use <code>addSchemaOrder()</code>
 as needed depending on which place you want to put the <i>inter-source</i> ordering in your custom sorting.
+<br>More info in <a href="group_and_sort.html">Group-By & Sort-By</a> section.
 </p>
 <p><a class="btn btn-primary btn-large" href="map_only_jobs.html">Next: Map-only Jobs &raquo;</a></p>

@@ -17,14 +17,14 @@ one output</strong> per <code>TupleMapper</code> or <code>TupleReducer</code>.
 You can add named outputs to a Pangool job in the <code>TupleMRBuilder</code> in the following way:
 
 <pre class="prettyprint" id="java">
-mr.addNamedOutput("urls", new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
+ mr.addNamedOutput("urls", new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
 </pre>
 
 <p> 
 You can add as many as you want. Then it is possible to write in the mapper and the reducer in the following way:
 
 <pre class="prettyprint" id="java">
-collector.getNamedOutput("urls").write(new Text("http://www.datasalt.com"), new Text("<html>...</html>"));
+ collector.getNamedOutput("urls").write(new Text("http://www.datasalt.com"), new Text("<html>...</html>"));
 </pre> 
 
 <p>
@@ -46,8 +46,8 @@ for persisting tuples:
 </p>
 
 <pre class="prettyprint" id="java">
-	Schema urlsSchema = new Schema("schema",Fields.parse("url:string, content:string"));
-	mr.addNamedTupleOutput("urls", urlsSchema);
+ Schema urlsSchema = new Schema("schema",Fields.parse("url:string, content:string"));
+ mr.addNamedTupleOutput("urls", urlsSchema);
 </pre>
 
 <p>
@@ -55,10 +55,10 @@ Then it is possible to write in the mapper and the reducer in the following way:
 </p>  
 
 <pre class="prettyprint" id="java">
-Tuple tuple = new Tuple(urlsSchema);
-tuple.set("url", "http://www.datasalt.com");
-tuple.set("content", "<html>...</html>");
-collector.getNamedOutput("urls").write(tuple, NullWritable.get());
+ Tuple tuple = new Tuple(urlsSchema);
+ tuple.set("url", "http://www.datasalt.com");
+ tuple.set("content", "<html>...</html>");
+ collector.getNamedOutput("urls").write(tuple, NullWritable.get());
 </pre> 
 
 <div class="alert alert-info">

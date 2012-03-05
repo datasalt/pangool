@@ -9,15 +9,20 @@ title: Pangool - User guide - Rollup
 <h1>Rollup</h1>
 
 <p>
-An interesting, advanced feature of Pangool is its “rollup” capability. There are some cases where it is interesting to perform aggregate sub-groupings within a Reducer. Let’s pose an example. 
+An interesting, advanced feature of Pangool is its <b>rollup</b> capability. <br>
+There are some cases where it is interesting to perform aggregate sub-groupings within a Reducer. 
+Let’s pose an example. 
 </p>
 
 <p>
-Let’s imagine we want to process a set of Tweets and calculate the top N hashtags for each location and date. We could write a job that groups all tweets by (location, date, hashtag) and counts each hashtag. Then, we could write a second job that performs the top N selection grouping by (location, date). 
+Let’s imagine we want to process a set of Tweets and calculate the top N hashtags for each 
+location and date.<br>
+ We could write a job that groups all tweets by (<code>location</code>, <code>date</code>, <code>hashtag</code>) and counts each hashtag.<br> 
+ Then, we could write a second job that performs the top N selection grouping by (location, date). 
 </p>
 
 <p>
-However, using rollup, we can merge both things easily in a single Job.
+However, using <i>rollup</i>, we can merge both things easily in a single Job.
 </p>
 
 <p>
@@ -25,35 +30,43 @@ Let’s visualize the intermediate schema that we will have in such a Job - and 
 </p>
 
 <pre class="prettyprint" id="java">
-[location, date, hashtag, count]
-"L1"	"d1"	"h1"	5
-"L1"	"d1"	"h2"	5
-"L1"	"d2"	"h1"	1
-"L1"	"d2"	"h1"	1
-"L1"	"d1"	"h1"	3
-"L1"	"d1"	"h2"	7
+ [location, date, hashtag, count]
+ "L1"	"d1"	"h1"	5
+ "L1"	"d1"	"h2"	5
+ "L1"	"d2"	"h1"	1
+ "L1"	"d2"	"h1"	1
+ "L1"	"d1"	"h1"	3
+ "L1"	"d1"	"h2"	7
 </pre>
 
 <p>
-We want to group by (location, date, hashtag) to be able to aggregate all the counts per each (location, date, hashtag) group. Therefore tuples will also be sorted by (location, date, hashtag). At the end of each reduce() method we’ll output the total count:
+ We want to group by (<code>location</code>, <code>date</code>, <code>hashtag</code>) to be able 
+ to aggregate all the counts per each (<code>location</code>, <code>date</code>, <code>hashtag</code>) group.<br> 
+ Therefore tuples will also be sorted by (<code>location</code>, <code>date</code>, <code>hashtag</code>).<br>
+ At the end of each <code>reduce()</code> method we’ll output the total count:
 </p>
 
 <pre class="prettyprint" id="java">
-[location, date, hashtag, count]
-"L1"	"d1"	"h1"	5
-"L1"	"d1"	"h1"	3		output("L1", "d1", "h1", 8)
-"L1"	"d1"	"h2"	5
-"L1"	"d1"	"h2"	7		output("L1", "d1", "h2", 12)
-"L1"	"d2"	"h1"	1
-"L1"	"d2"	"h1"	1		output("L1", "d2", "h1", 2)
+ [location, date, hashtag, count]
+ "L1"	"d1"	"h1"	5
+ "L1"	"d1"	"h1"	3		output("L1", "d1", "h1", 8)
+ "L1"	"d1"	"h2"	5
+ "L1"	"d1"	"h2"	7		output("L1", "d1", "h2", 12)
+ "L1"	"d2"	"h1"	1
+ "L1"	"d2"	"h1"	1		output("L1", "d2", "h1", 2)
 </pre>
 
 <p>
-However, we can leverage the fact that we are sorting by all the fields in the (location, date, hashtag) group to add business logic every time that some of these fields change its value - in other words, adding “subgroups”. This way, apart from having one reduce() method, we can also have onClose()/onOpen()-like methods for other fields of the group. 
+However, we can leverage the fact that we are sorting by all the fields in the (<code>location</code>, <code>date</code>, <code>hashtag</code>) 
+group to add business logic every time that some of these fields change its value - in other words, adding <b><i>subgroups</i></b>.<br> 
+This way, apart from having one reduce() method, we can also have <code>onClose()</code>/<code>onOpen()</code>-like methods for other fields of the group. 
 </p>
 
 <p>
-So we could modify our Job to save each (location, date, hashtag) total count in a n-sized heap in memory. Then, in the onClose() of the “date” field, we could simply flush the top n hashtags to the output (which would be the ones that remain in the heap).
+So we could modify our Job to save each (<code>location</code>, <code>date</code>, <code>hashtag</code>) 
+total count in a n-sized heap in memory.<br> 
+Then, in the <code>onClose()</code> of the <code>date</code> field, we could simply flush 
+the top n hashtags to the output, which would be the ones that remain in the heap.
 </p>
 
 <p>
@@ -61,36 +74,49 @@ Let’s imagine we want to get the “top 1” hashtag for each location, date. 
 </p>
 
 <pre class="prettyprint" id="java">
-[location, date, hashtag, count]
-"L1"	"d1"	"h1"	5
-"L1"	"d1"	"h1"	3		reduce("L1", "d1", "h1") : "Add to a 1-sized heap: (h1, 8)"
-"L1"	"d1"	"h2"	5
-"L1"	"d1"	"h2"	7		reduce("L1", "d1", "h2") : "Add to a 1-sized heap: (h2, 12)"
+ [location, date, hashtag, count]
+ "L1"	"d1"	"h1"	5
+ "L1"	"d1"	"h1"	3		reduce("L1", "d1", "h1") : "Add to a 1-sized heap: (h1, 8)"
+ "L1"	"d1"	"h2"	5
+ "L1"	"d1"	"h2"	7		reduce("L1", "d1", "h2") : "Add to a 1-sized heap: (h2, 12)"
 					onClose("d1") : output("h2", 12)
-"L1"	"d2"	"h1"	1
-"L1"	"d2"	"h1"	1		reduce("L1", "d2", "h1") : "Add to a 1-sized heap: (h1, 2)"
+ "L1"	"d2"	"h1"	1
+ "L1"	"d2"	"h1"	1		reduce("L1", "d2", "h1") : "Add to a 1-sized heap: (h1, 2)"
 					onClose("d2") : output("h1", 2)
 </pre>
 
 <p>
-Got the idea? The idea is that, by leveraging the way we are sorting the Tuples, we can “inject” business logic everytime a wider group opens or closes. For this example, we would configure the Job as:
+Got the idea? The idea is that, by leveraging the way we are sorting the Tuples, we can <i>inject</i> 
+business logic everytime a wider group opens or closes.<br> 
+For this example, we would configure the Job as:
 </p>
 
 <pre class="prettyprint" id="java">
-	grouper.setGroupByFields("location", "date", "hashtag");
-	grouper.setRollupFrom("date");
+ grouper.setGroupByFields("location", "date", "hashtag");
+ grouper.setRollupFrom("date");
 </pre>
 
 <p>
-We would then need to use a special reducer that extends TupleRollupReducer. This Reducer will have extra methods: onOpen() and onClose() where we’ll be able to add arbitrary business logic when any of the fields configured in “rollup from” change. In this example, we’ll be notified of fields “date” and “hashtag”. We’ll still be able to use the reduce() method for the “location”, “date”, “hashtag” groups. 
+We would then need to use a special reducer that extends <a href="https://github.com/datasalt/pangool/blob/master/core/src/main/java/com/datasalt/pangool/tuplemr/TupleRollupReducer.java">TupleRollupReducer</a>.<br> 
+This Reducer will have extra methods: <code>onOpen()</code> and <code>onClose()</code> where 
+we’ll be able to add arbitrary business logic when any of the fields configured in <i>rollup from</i> change.
+ In this example, we’ll be notified of fields <code>date</code> and <code>hashtag</code>.<br>
+  We’ll still be able to use the <code>reduce()</code> method for the <code>location</code>, <code>date</code>, <code>hashtag</code> groups. 
 </p>
 
 <p>
-You can see this example in : …
+You can see this example in : 
+<a href="https://github.com/datasalt/pangool/blob/master/examples/src/main/java/com/datasalt/pangool/examples/topnhashtags/TopNHashTags.java">TopNHashTags.java</a>
 </p>
 
 <p>
-Note that when using rollup, the default partitioning strategy is changed. To keep things coherent, Pangool will need to partition by the fields that fall left to the rollupFrom field (including it). In the example, Pangool will partition by “location”, “date”. If we rollupFrom from “location” then Pangool would just partition by “location”. The wider the subgroups we create with rollup, the worse the partition function will be. So, rollup has to be used with care in order not to create too-wide groups that could make reducer completion time deviate too much from one another.
+Note that when using rollup, the default partitioning strategy is changed.<br>
+ To keep things coherent, Pangool will need to partition by the fields that fall left to the <code>rollupFrom</code> 
+ field (including it).<br> 
+ In the example, Pangool will partition by <code>location</code>, <code>date</code>.<br>
+ If we rollupFrom from <code>location</code> then Pangool would just partition by <code>location</code>.<br>
+ The wider the subgroups we create with <i>rollup</i>, the worse the partition function will be.<br>
+ So, rollup has to be used with care in order not to create too-wide groups that could make reducer completion time deviate too much from one another.
 </p> 
 
 <p><a class="btn btn-primary btn-large" href="partitioner.html">Next: Custom partitioner &raquo;</a></p>
