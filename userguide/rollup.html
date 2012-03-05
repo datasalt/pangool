@@ -22,11 +22,11 @@ location and date.<br>
 </p>
 
 <p>
-However, using <i>rollup</i>, we can merge both things easily in a single Job.
+However, using <i>rollup</i>, we can merge both things easily in a single job.
 </p>
 
 <p>
-Let’s visualize the intermediate schema that we will have in such a Job - and some data, in no particular order:
+Let’s visualize the intermediate schema that we will have in such a job - and some data, in no particular order:
 </p>
 
 <pre class="prettyprint" id="java">
@@ -63,7 +63,7 @@ This way, apart from having one reduce() method, we can also have <code>onClose(
 </p>
 
 <p>
-So we could modify our Job to save each (<code>location</code>, <code>date</code>, <code>hashtag</code>) 
+So we could modify our job to save each (<code>location</code>, <code>date</code>, <code>hashtag</code>) 
 total count in a n-sized heap in memory.<br> 
 Then, in the <code>onClose()</code> of the <code>date</code> field, we could simply flush 
 the top n hashtags to the output, which would be the ones that remain in the heap.
@@ -88,7 +88,7 @@ Let’s imagine we want to get the “top 1” hashtag for each location, date. 
 <p>
 Got the idea? The idea is that, by leveraging the way we are sorting the Tuples, we can <i>inject</i> 
 business logic everytime a wider group opens or closes.<br> 
-For this example, we would configure the Job as:
+For this example, we would configure the job as:
 </p>
 
 <pre class="prettyprint" id="java">
