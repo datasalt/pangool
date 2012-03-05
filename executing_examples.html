@@ -34,19 +34,19 @@ The "Moving average" example calculates the moving average of unique visitors fo
 In the input file we'll have something like:
 </p>
 <pre>
-url1	2011-10-28	10
-url1	2011-10-29	20
-url1	2011-10-30	30
-url1	2011-10-31	40
+ url1	2011-10-28	10
+ url1	2011-10-29	20
+ url1	2011-10-30	30
+ url1	2011-10-31	40
 </pre>
 <p>
 For moving averages of 3 days we'll have as output: 
 </p>
 <pre>
-url1	2011-10-28	10.0
-url1	2011-10-29	15.0
-url1	2011-10-30	20.0
-url1	2011-10-31	30.0
+ url1	2011-10-28	10.0
+ url1	2011-10-29	15.0
+ url1	2011-10-30	20.0
+ url1	2011-10-31	30.0
 </pre>
  
 <h2>Executing it in Hadoop's pseudo-distributed mode</h2>
@@ -58,8 +58,14 @@ For each Pangool example there as an associated random input data generator. We 
 hadoop jar pangool-examples-*.jar moving_average_gen_data url_regs.txt 10000 200
 </pre>
 <p>
-(If you missed the parameters, an meaningful help line will appear to guide you)
+(If you missed the parameters, an meaningful help line will appear to guide you).
 </p>
+<p>
+The generated file will be in the local filesystem. You can copy it to the HDFS:
+</p>
+<pre>
+hadoop fs -put url_regs.txt .
+</pre>
 <p>
 Now you can execute the example against the fresh "url_regs.txt" file:
 </p>
@@ -76,8 +82,8 @@ After this has finished, you'd have generated 5-day moving averages for your inp
 If you are working from an IDE such as Eclipse, you can execute the following code in a new class of your choice:
 </p>
 <pre class="prettyprint" id="java">
- 	ToolRunner.run(new MovingAverageGenData(), new String[] { "url_regs.txt", "10000", "200" });
- 	ToolRunner.run(new MovingAverage(), new String[] { "url_regs.txt", "out-moving-average", "5" });
+ ToolRunner.run(new MovingAverageGenData(), new String[] { "url_regs.txt", "10000", "200" });
+ ToolRunner.run(new MovingAverage(), new String[] { "url_regs.txt", "out-moving-average", "5" });
 </pre>
 
 <div class="alert alert-info">
