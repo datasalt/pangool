@@ -25,8 +25,16 @@ of the Hadoop Java MapReduce API. Pangool also augments Hadoop's API by making m
 and inputs first-class and allowing instance-based configuration.
 </p>
 
+<h2>Compatibility</h2>
 <div class="alert alert-success">
-Pangool is compatible with Hadoop 0.20.2 and all versions further, including <a href='https://ccp.cloudera.com/display/CDHDOC/CDH3+Quick+Start+Guide'>Cloudera's CDH3</a> and <a href="http://aws.amazon.com/elasticmapreduce/">Amazon Elastic Map Reduce</a>.
+Pangool is API-compatible with Hadoop 0.20.2 and all versions further, including 
+<a href='https://ccp.cloudera.com/display/CDHDOC/CDH3+Quick+Start+Guide'>Cloudera's CDH3</a>. 
+Pangool has been tested to run properly on <a href='http://aws.amazon.com/elasticmapreduce/'>EMR</a> 
+and CDH3 clusters. For clusters that use the community Hadoop distribution, adjustments must 
+be made to Hadoop's classpath for including a newer version of Jackson (1.7.6). 
+The version of Jackson that Hadoop depends on is quite old (1.0.1) and clashes with 
+the one that Avro uses. This is a well-known problem (see <a href='https://issues.apache.org/jira/browse/MAPREDUCE-1700'>MAPREDUCE-1700</a> and <a href='https://issues.apache.org/jira/browse/MAPREDUCE-1938'>MAPREDUCE-1938</a>). 
+One workaround is to copy to hadoop/lib the newer JARs of Jackson, removing older ones. 
 </div>
 
 <h2>Features</h2>
