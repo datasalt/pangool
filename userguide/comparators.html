@@ -69,4 +69,12 @@ public class MyThriftComparator extends BaseComparator&lt;MyThriftObject&gt; {
 }
 </pre>
 
+<div class="alert">
+<strong>Important</strong>: For cases like above, where just one field needs to be compared,
+we don't recommend using custom comparators.<br>Due to efficiency concerns it's more desirable 
+to duplicate fields out of the serialized object and then perform the comparison using basic types.
+</div>
+
+
+
 <p><a class="btn btn-primary btn-large" href="mapred_api.html">Next: Tuple MapReduce API &raquo;</a></p>
