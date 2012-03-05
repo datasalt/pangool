@@ -139,8 +139,9 @@ mvn exec:java -Dexec.mainClass="com.datasalt.pangool.bootstrap.Driver" -Dexec.ar
 		</p>		
 <pre class="prettyprint">
 mvn install
+hadoop dfs -put pom.xml pom.xml
 cd app-module/target
-hadoop jar pangool-bootstrap-*-job.jar sort ../pom.xml pomout
+hadoop jar pangool-bootstrap-*-job.jar sort pom.xml pomout
 </pre>
 		<div class="alert">
 			<i class="icon-warning-sign"></i>
