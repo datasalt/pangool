@@ -65,7 +65,7 @@ public class Schema implements Serializable {
 	 * A field can be constructed using one of its static <tt>createXXX</tt>
 	 * methods. A field object is <b>immutable</b>.
 	 */
-	public static class Field implements Serializable {
+	public static class Field implements Serializable{
 		public static enum Type {
 			INT, LONG, FLOAT, DOUBLE, STRING, BOOLEAN, ENUM, OBJECT;
 		}
