@@ -3,10 +3,9 @@ Pangool
 
 Pangool is a framework on top of Hadoop that implements Tuple MapReduce.
 
-More info in :
+More info in:
 http://pangool.net
 http://www.datasalt.com/2012/02/tuple-mapreduce-beyond-the-classic-mapreduce/
-
 
 This distribution contains the following files:
 
@@ -19,7 +18,7 @@ It compiles with Maven2:
 
 mvn clean install
 
-To execute examples in Hadoop :
+To execute examples in Hadoop:
 
-hadoop jar pangool-examples-0.40.jar 
+hadoop jar pangool-examples-0.40-with-deps.jar 
 
