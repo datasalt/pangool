@@ -38,34 +38,34 @@ For that, we will create a new Tuple Reducer that will look like:
 </p>
 
 <pre class="prettyprint" id="java">
-public static class TopNWords extends TupleReducer<ITuple, NullWritable> {
+ public static class TopNWords extends TupleReducer<ITuple, NullWritable> {
 
-	int n; // We will emit as many words as this parameter (at maximum) for each group
-	Tuple outputCountTuple;
+   int n; // We will emit as many words as this parameter (at maximum) for each group
+   Tuple outputCountTuple;
 
-	public TopNWords(int n) {
-		this.n = n;
-	}
+   public TopNWords(int n) {
+     this.n = n;
+   }
 
-	public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException, TupleMRException {
-		outputCountTuple = new Tuple(getOutputCountSchema());
-	}
+   public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException, TupleMRException {
+     outputCountTuple = new Tuple(getOutputCountSchema());
+   }
 
-	public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector) throws java.io.IOException, InterruptedException, TupleMRException {
+   public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector) throws java.io.IOException, InterruptedException, TupleMRException {
 
-		int totalCount = 0;
-		Iterator<ITuple> iterator = tuples.iterator();
-		for(int i = 0; i < n && iterator.hasNext(); i++) {
-			ITuple tuple = iterator.next();
-			collector.write(tuple, NullWritable.get());
-			totalCount += (Integer) tuple.get("count");
-		}
+     int totalCount = 0;
+     Iterator<ITuple> iterator = tuples.iterator();
+     for(int i = 0; i < n && iterator.hasNext(); i++) {
+       ITuple tuple = iterator.next();
+       collector.write(tuple, NullWritable.get());
+       totalCount += (Integer) tuple.get("count");
+     }
 			
-		outputCountTuple.set("topic", group.get("topic"));
-		outputCountTuple.set("totalcount", totalCount);
-		collector.getNamedOutput(OUTPUT_TOTALCOUNT).write(outputCountTuple, NullWritable.get());
-	}
-}
+     outputCountTuple.set("topic", group.get("topic"));
+     outputCountTuple.set("totalcount", totalCount);
+     collector.getNamedOutput(OUTPUT_TOTALCOUNT).write(outputCountTuple, NullWritable.get());
+   }
+ }
 </pre>
 
 <p>
@@ -77,9 +77,9 @@ Let’s analyze the lines above:
 </p>
 
 <pre class="prettyprint" id="java">
-for(int i = 0; i < n && iterator.hasNext(); i++) {
-	ITuple tuple = iterator.next();
-	collector.write(tuple, NullWritable.get());
+ for(int i = 0; i < n && iterator.hasNext(); i++) {
+   ITuple tuple = iterator.next();
+   collector.write(tuple, NullWritable.get());
 </pre>
 
 <p>
@@ -93,12 +93,12 @@ We wanted to use an extra output for storing the total count per each topic, rig
 </p>
 
 <pre class="prettyprint" id="java">
-public static Schema getOutputCountSchema() {
-	List<Field> fields = new ArrayList<Field>();
-	fields.add(Field.create("topic", Type.INT));
-	fields.add(Field.create("totalcount", Type.INT));
-	return new Schema("outputcount", fields);
-}
+ public static Schema getOutputCountSchema() {
+   List<Field> fields = new ArrayList<Field>();
+   fields.add(Field.create("topic", Type.INT));
+   fields.add(Field.create("totalcount", Type.INT));
+   return new Schema("outputcount", fields);
+ }
 </pre>
 
 <p>
@@ -106,9 +106,9 @@ We use a Tuple with this schema and emit it to a "named output":
 </p>
 
 <pre class="prettyprint" id="java">
-outputCountTuple.set("topic", group.get("topic"));
-outputCountTuple.set("totalcount", totalCount);
-collector.getNamedOutput(OUTPUT_TOTALCOUNT).write(outputCountTuple, NullWritable.get());
+ outputCountTuple.set("topic", group.get("topic"));
+ outputCountTuple.set("totalcount", totalCount);
+ collector.getNamedOutput(OUTPUT_TOTALCOUNT).write(outputCountTuple, NullWritable.get());
 </pre>
 
 <p>
@@ -120,8 +120,8 @@ Finally, let's see how the Job configuration looks like:
 </p>
 
 <pre class="prettyprint" id="java">
-cg.setGroupByFields("topic");
-cg.setOrderBy(new SortBy().add("topic", Order.ASC).add("count", Order.DESC));
+ cg.setGroupByFields("topic");
+ cg.setOrderBy(new SortBy().add("topic", Order.ASC).add("count", Order.DESC));
 </pre>
 
 <p>
@@ -140,7 +140,7 @@ And, last but not least, let's see how we can declare a “named output”:
 </p>
 
 <pre class="prettyprint" id="java">
-cg.addNamedTupleOutput(OUTPUT_TOTALCOUNT, getOutputCountSchema());
+ cg.addNamedTupleOutput(OUTPUT_TOTALCOUNT, getOutputCountSchema());
 </pre>
 
 <div class="alert alert-info">
@@ -158,7 +158,7 @@ and use multiple (named) outputs.
 
 <p>
 <div class="alert alert-info">
-You can now go to the <a href='userguide/schemas.html'>User Guide</a> where you’ll find all this in more detail + more advanced topics like <a href='userguide/joins.html'>"Reduce-side Joins"</a>, <a href='map_only_jobs.html'>"Map-only jobs"</a> and <a href='userguide/rollup.html'>"Rollup"</a>.
+You can now go to the <a href='userguide/schemas.html'>User Guide</a> where you’ll find all this in more detail + more advanced topics like <a href='userguide/joins.html'>"Reduce-side Joins"</a>, <a href='userguide/map_only_jobs.html'>"Map-only jobs"</a> and <a href='userguide/rollup.html'>"Rollup"</a>.
 </div>
 
 <p><a class="btn btn-primary btn-large" href="userguide/schemas.html">Take me to the user guide! &raquo;</a></p>

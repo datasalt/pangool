@@ -9,8 +9,8 @@ title: Pangool - User guide - Named outputs
 <h1>Named outputs</h1>
 
 <p>
-Thanks to the <strong>named outputs</strong>, Pangool offers the ability to have <strong>more than
-one output</strong> per <code>TupleMapper</code> or <code>TupleReducer</code>.
+Thanks to the <strong>"named outputs"</strong> feature, Pangool offers the ability of having <strong>more than
+one output</strong> per <code>TupleMapper</code> or <code>TupleReducer</code>. Note that named outputs don't replace the main job output. They are extra outputs added to the job.
 </p>
 
 <h3>Adding named outputs</h3>
@@ -21,7 +21,7 @@ You can add named outputs to a Pangool job in the <code>TupleMRBuilder</code> in
 </pre>
 
 <p> 
-You can add as many as you want. Then it is possible to write in the mapper and the reducer in the following way:
+You can add as many as you want. It will then be possible to write to each of the named outputs from the mapper or the reducer in the following way:
 
 <pre class="prettyprint" id="java">
  collector.getNamedOutput("urls").write(new Text("http://www.datasalt.com"), new Text("<html>...</html>"));
@@ -32,26 +32,20 @@ If you want to put away the lookup of the named output for every write, you can 
 the <code>setup()</code> method. 
 <p>
 
-<div class="alert alert-info">
-The wrapper class <code>HadoopOutputFormat</code> is needed to reuse Hadoop output
-formats inside Pangool. For other Pangool based output formats, like <code>TupleOutputFormat</code>,
- is enough with providing an instance.  
-</div>
-
 <h3>Named outputs for tuples</h3>
 <p>
-Pangool allows to persist Tuples in <code>SequenceFile</code> by using 
-<code>TupleOutputFormat</code>. It is easy to add a named output 
+Pangool allows us to persist Tuples in binary format by using 
+<code>TupleOutputFormat</code>. The code below shows how easy it is to add a named output 
 for persisting tuples:
 </p>
 
 <pre class="prettyprint" id="java">
- Schema urlsSchema = new Schema("schema",Fields.parse("url:string, content:string"));
+ Schema urlsSchema = new Schema("schema", Fields.parse("url:string, content:string"));
  mr.addNamedTupleOutput("urls", urlsSchema);
 </pre>
 
 <p>
-Then it is possible to write in the mapper and the reducer in the following way:
+Then it is possible to write tuples from the mapper or the reducer in the following way:
 </p>  
 
 <pre class="prettyprint" id="java">
@@ -62,10 +56,8 @@ Then it is possible to write in the mapper and the reducer in the following way:
 </pre> 
 
 <div class="alert alert-info">
-Note that you have to write <code>NullWritable</code> as the second parameter in 
-the <code>write()</code> method. This is
-because <code>TupleOutputFormat</code> uses Hadoop <code>SequenceFile</code> for
-storing tuples. 
+Note that you have to use <code>NullWritable</code> as a second parameter in 
+the <code>write()</code> method. This is a small bureaucracy needed in order to be compatible with the Hadoop "key, value" API.
 </div>
 
 <h3>Folder structure</h3>
@@ -80,9 +72,9 @@ Let's imagine that you have a Pangool job with 2 named outputs:
 
 <p>
 Your job uses the <code>urls</code> named output for writing from the
-mapper and from the reducer, but only writes to the <code>other_named_output</code>
-in the reducer. Let's imagine that our job has 2 map tasks and 3 reduce tasks. 
-Then, the output folder would look like that:
+mapper and from the reducer, but it only writes to the <code>other_named_output</code>
+from the reducer. Let's imagine that our job has 2 map tasks and 3 reduce tasks. 
+Then, the output folder will look like that:
 </p>
 
 <pre>
@@ -108,8 +100,8 @@ to the mapper output. <code>part-r</code> files corresponds to the reducer outpu
 </p> 
 
 <p>
-The part-r files in the root correspond to the records emitted with the reducer default output.
-That is, the ones emitted with the call to <code>collector.write()</code>
+The part-r files in the root correspond to the records emitted from the main job's output.
+That is, the ones emitted by calling to <code>collector.write()</code>
 </p>
 
 <p><a class="btn btn-primary btn-large" href="joins.html">Next: Reduce-side Joins &raquo;</a></p>

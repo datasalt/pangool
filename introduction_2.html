@@ -26,23 +26,22 @@ You can check the full code of this example on github <a href='https://github.co
 </p>
 
 <pre class="prettyprint" id="java">
-public static class StopWordMapper extends TokenizeMapper {
+ public static class StopWordMapper extends TokenizeMapper {
 
-	private Set<String> stopWords = new HashSet<String>();
+   private Set<String> stopWords = new HashSet<String>();
 		
-	public StopWordMapper(List<String> stopWords) {
-		this.stopWords.addAll(stopWords);
-		this.stopWords = Collections.unmodifiableSet(this.stopWords);
-	}
+   public StopWordMapper(List<String> stopWords) {
+     this.stopWords.addAll(stopWords);
+	 this.stopWords = Collections.unmodifiableSet(this.stopWords);
+   }
 
-	@Override
-	protected void emitTuple(Collector collector) throws IOException, InterruptedException {
-	    if(stopWords.contains(tuple.get("word"))) {
-	    	return;
-	    }
-	    super.emitTuple(collector);
-	}
-}
+   protected void emitTuple(Collector collector) throws IOException, InterruptedException {
+     if(stopWords.contains(tuple.get("word"))) {
+	   return;
+     }
+	 super.emitTuple(collector);
+   }
+ }
 </pre>
 
 <p>
@@ -59,19 +58,19 @@ Let’s see how we can use this Mapper when creating a Pangool Job:
 </p>
 
 <pre class="prettyprint" id="java">
-	List<String> stopWords = Files.readLines(new File(args[2]), Charset.forName("UTF-8"));
+ List<String> stopWords = Files.readLines(new File(args[2]), Charset.forName("UTF-8"));
 	
-	TupleMRBuilder cg = new TupleMRBuilder(conf, "Pangool Topical Word Count With Stop Words");
-	cg.addIntermediateSchema(TopicalWordCount.getSchema());
-	cg.setGroupByFields("topic", "word");
-	StopWordMapper mapper = new StopWordMapper(stopWords);
-	cg.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), mapper);
+ TupleMRBuilder cg = new TupleMRBuilder(conf, "Pangool Topical Word Count With Stop Words");
+ cg.addIntermediateSchema(TopicalWordCount.getSchema());
+ cg.setGroupByFields("topic", "word");
+ StopWordMapper mapper = new StopWordMapper(stopWords);
+ cg.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), mapper);
 </pre>
 
 <p>
-That’s it! Pangool will serialize the instance to the Hadoop's Distributed Cache and recover it when needed. 
-Remember that all state in your classes must be Serializable. If some of your class fields are not Serializable, 
-remember to instantiate them in the setup() method instead of instantiating them directly in the class definition. 
+That’s it! Pangool will serialize the instance and recover it when needed. 
+Remember that all state in your classes must be Serializable. If some of your class fields are not <i>Serializable</i>, 
+remember to instantiate them in the <code>setup()</code> method instead of instantiating them directly in the class definition. 
 </p>
 
 <p>
@@ -79,7 +78,7 @@ You can run this example by doing:
 </p>
 
 <pre class="prettyprint" id="java">
-	hadoop jar $PANGOOL_EXAMPLES_JAR topical_word_count_with_stop_words [input] [output]
+ hadoop jar $PANGOOL_EXAMPLES_JAR topical_word_count_with_stop_words [input] [output]
 </pre>
 
 <p>
@@ -87,7 +86,7 @@ You can also use an input data generator for generating random input for this ex
 </p>
 
 <pre class="prettyprint" id="java">
-	hadoop jar $PANGOOL_EXAMPLES_JAR topical_word_count_gen_data [out-file] [nRegisters] [nTopics]
+ hadoop jar $PANGOOL_EXAMPLES_JAR topical_word_count_gen_data [out-file] [nRegisters] [nTopics]
 </pre>
 
 <p><a class="btn btn-primary btn-large" href="introduction_3.html">What's next? Secondary sort & Named outputs!</a></p>

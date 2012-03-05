@@ -53,6 +53,7 @@ serializable by Hadoop’s serialization API.
 
 <p>
 On the other hand, it is true that Pangool uses <a href='http://avro.apache.org/'>Avro</a> for persisting Tuples and reading them back into new Jobs. We did so for convenience - we didn't want to reinvent the wheel here.
+We were also considering using Avro for all the intermediate serialization. We have <a href='https://github.com/datasalt/pangool/tree/avrool2'>a branch in our repo</a> with it.
 </p>
 
 <h2>4 - How does using Pangool compare to using the plain Hadoop Java MapRed API? Is there a performance penalty?</h2>
