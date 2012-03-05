@@ -13,7 +13,7 @@ A Pangool Tuple is an ordered list of Objects with an associated Schema.
 Schemas have an associated name and a list of Fields. 
 </p>
 <p>
-We can create an <code>Schema</code> in a strong-typed fashion:
+We can create an <code>Schema</code> in a strongly-typed fashion:
 </p>
 <pre class="prettyprint" id="java">
  List<Field> fields = new ArrayList<Field>();
@@ -33,9 +33,9 @@ Or we can also create it leveraging the <code>Fields.parse()</code> method:
 
 <h3>Types</h3>
 <p>
-Pangool supports any data type that is "Hadoop serializable" (<code>Writables</code>, 
+Pangool supports any data type which is "Hadoop serializable" (<code>Writables</code>, 
 <a href="http://thrift.apache.org/">Thrift</a>, <a href="http://code.google.com/p/protostuff/">
-ProtoStuff</a>, etc), but it also supports natively some primitive types.
+ProtoStuff</a>, etc). It natively supports some primitive types as well.
 </p>
  
  <p>
@@ -68,7 +68,7 @@ summarizes the available field types:
 </table>
 
 <p>
-<strong>Variable length integers and longs</strong> are encoded in a way that uses less bytes for 
+<strong>Variable length integers and longs</strong> are encoded using less bytes for 
 smaller numbers than for bigger ones. The smallest numbers can fit in just one byte.  
 </p>
 
@@ -86,21 +86,21 @@ The schema should be configured in the following way:
 
 <pre class="prettyprint" id="java">
  List<Field> fields = new ArrayList<Field>();	
- fields.add(Field.createObject("obj",IntWritable.class));
+ fields.add(Field.createObject("obj", IntWritable.class));
  Schema schema1 = new Schema("schema1", fields);
 </pre>
 
 <p>
-These object are serialized internally by Pangool with a variable length integer
-for saving the size of the serialized bytes as header.  
+Objects are serialized internally by Pangool with a variable length integer
+that stores the number of bytes of the serialized object as header.  
 </p>
 
 <p>
-<strong>Thrift and ProtoStuff</strong>
+<strong>Thrift / ProtoStuff</strong>
 </p>
 
 <p>
-You can enable the serialization of Thrift and ProtoStuff objects in Pangool:
+You can enable Thrift / ProtoStuff object serialization in Pangool with:
 </p>
 
 <pre class="prettyprint" id="java">
@@ -136,13 +136,13 @@ You can set tuple values by field name or field index.
 <h4>Access by index</h4>
 
 <p>
-Tuples are just an order list of object. You can access the elements
+Tuples are just an ordered list of objects. You can access the elements
 in the tuple by the index of the field as it was defined in the schema:
 </p> 
 
 <pre class="prettyprint" id="java">
  tuple.set(1, "foo");
- tuple.get(1);
+ tuple.get(1); // Will return "foo"
 </pre>
 
 <p>
@@ -173,9 +173,9 @@ The following code is right:
 </pre>
 
 <div class="alert alert">
-<strong>Important:</strong>When the tuple is coming as an input in the 
+<strong>Important:</strong> When Tuples come as an input of  
 <code>TupleMapper</code> or <code>TupleReducer</code>, strings will
-always be present in tuples as an <code>Utf8</code> object. 
+always be wrapped by an <code>Utf8</code> object. 
 </div>
 
 <p><a class="btn btn-primary btn-large" href="TupleMrBuilder.html">Next: Creating Pangool Jobs &raquo;</a></p>

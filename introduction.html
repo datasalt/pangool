@@ -91,8 +91,8 @@ public static class TokenizeMapper extends TupleMapper<LongWritable, Text> {
 </pre>
 
 <p>
-TupleMappers have the usual methods available: setup(), map() and cleanup(). 
-The main difference is that we will always emit Tuples when working with them. 
+TupleMappers have three methods available: setup(), map() and cleanup(). 
+As in Hadoop, setup() is called beginning of each Map task, cleanup() end of each task and map() for each input record. 
 We see how it is possible to cache a Tuple for avoiding excessive object creation:
 </p>
 
@@ -101,7 +101,7 @@ We see how it is possible to cache a Tuple for avoiding excessive object creatio
 </pre>
 
 <p>
-Tuples need to be created with an <a href='https://github.com/datasalt/pangool/blob/master/core/src/main/java/com/datasalt/pangool/io/Schema.java'>Schema</a>. We can grab the Schema we define by index or by name. 
+Tuples need to be created with an <a href='userguide/schemas.html'>Schema</a>. We can grab the Schema we define by index or by name. 
 (We’ll show how to define this Schema later). 
 </p>
 
@@ -130,7 +130,7 @@ For more information, check the <a href='userguide/TupleMrBuilder.html'>"Creatin
 </div>
 
 <p>
-Now, we need to write a Reducer. The Reducer will extend <a href='https://github.com/datasalt/pangool/blob/master/core/src/main/java/com/datasalt/pangool/tuplemr/TupleReducer.java'>TupleReducer</a>. (Again, this Reducer only has two types. It always receives ITuple, NullWritable from the Mapper, so we need to specify the two types of the output. In this case we’ll also output ITuple, NullWritable)
+Now, we need to write a Reducer. The Reducer will extend <a href='https://github.com/datasalt/pangool/blob/master/core/src/main/java/com/datasalt/pangool/tuplemr/TupleReducer.java'>TupleReducer</a>. (Again, this Reducer only has two types. It always receives Tuples from the Mapper, so we need to specify the two types of the output. In this case we’ll also output ITuple, NullWritable)
 </p>
 
 <pre class="prettyprint" id="java">
@@ -203,15 +203,15 @@ There are several things to note here:
 For more information, you can go to the <a href='userguide/schemas.html'>"Tuples & Schemas & Types"</a> user guide page.
 </div>
 
+<p>
+This is one of the key Pangool’s features. 
+With this setting, we are saying that we want to group by these two fields 
+(that need to be present in the intermediate schema): 
+</p>
+
 <pre class="prettyprint" id="java">
 	cg.setGroupByFields("topic", "word");
 </pre>
-
-<p>
-This is one of the key Pangool’s feature. 
-With this setting, we are saying that we want to group by these two fields 
-(that need to be present in the intermediate schema). 
-</p>
 
 <pre class="prettyprint" id="java">
 	cg.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), new TokenizeMapper());
