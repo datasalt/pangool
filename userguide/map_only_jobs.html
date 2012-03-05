@@ -9,14 +9,14 @@ title: Pangool - User guide - Map-only Jobs
 <h1>Map-only Jobs</h1>
 
 <p>
-Pangool comes with a convenient builder for Map-only jobs that accepts instances of Mappers instead of static classes. It is called MapOnlyJobBuilder. You can see the “Grep” example in the examples/ package. In this example we are creating a convenient map-only job with a Mapper that accepts a regex and we are doing it in only 3 lines:
+Pangool comes with a convenient builder for Map-only jobs that accepts instances of Mappers instead of static classes. It is called MapOnlyJobBuilder. You can see the <a href='https://github.com/datasalt/pangool/blob/master/examples/src/main/java/com/datasalt/pangool/examples/Grep.java'>“Grep” example</a> in the examples/ package. In this example we are creating a convenient map-only job with a Mapper that accepts a regex and we are doing it in only 3 lines:
 </p>
 
 <pre class="prettyprint" id="java">
-	MapOnlyJobBuilder b = new MapOnlyJobBuilder(conf);
-	b.setHandler(new GrepHandler(regex));
-	b.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-	b.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class));
+  MapOnlyJobBuilder b = new MapOnlyJobBuilder(conf);
+  b.setHandler(new GrepHandler(regex));
+  b.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+  b.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class));
 </pre>
 
 <p><a class="btn btn-primary btn-large" href="rollup.html">Next: Rollup &raquo;</a></p>

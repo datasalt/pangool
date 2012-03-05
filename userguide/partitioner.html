@@ -16,8 +16,8 @@ For information on how Rollup is handled, check the <a href="rollup.html">rollup
 
 <p>
 However, there are some cases where you’d want to partition by other fields.<br>
-For instance, cases where you want to make your Job more parallelizable by shuffling the 
-data and aggregating partial results in a second Job afterwards).<br>
+For instance, cases where you want to make your job more parallelizable by shuffling the 
+data and aggregating partial results in a second job afterwards).<br>
 In this cases you can use the convenience method:
 </p>
 
@@ -38,21 +38,21 @@ For instance:
 </p>
 
 <pre class="prettyprint" id="java">
-public class MyRangePartitioner extends Partitioner&lt;DatumWrapper&lt;ITuple&gt;, NullWritable&gt;
-    implements Configurable {
+ public class MyRangePartitioner extends Partitioner&lt;DatumWrapper&lt;ITuple&gt;, NullWritable&gt;
+   implements Configurable {
 
-  public int getPartition(DatumWrapper&lt;ITuple&gt; key, NullWritable value, int numPartitions) {
-      ITuple tuple = key.datum();
-      int year = (Integer)tuple.get("year");
-      if (year < 1900){
-       return 0;
-      } else if (year < 2000){
-       return 1;
-      } else {
-       return ((year-2000) % (numPartitions-2)) + 2;
-      }
-    }
-  }
+   public int getPartition(DatumWrapper&lt;ITuple&gt; key, NullWritable value, int numPartitions) {
+     ITuple tuple = key.datum();
+     int year = (Integer)tuple.get("year");
+     if (year < 1900){
+      return 0;
+     } else if (year < 2000){
+      return 1;
+     } else {
+      return ((year-2000) % (numPartitions-2)) + 2;
+     }
+   }
+ }
 </pre>
 
 <p>
