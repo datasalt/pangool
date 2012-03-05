@@ -44,8 +44,8 @@ public class Driver extends ProgramDriver {
 		addClass("simple_secondarysort_gen_data", SimpleSecondarySortGenerateData.class, "Input data generator for the simple secondary sort.");
 		addClass("secondarysort", SecondarySort.class, "A more advanced secondary sort example.");
 		addClass("secondarysort_gen_data", SecondarySortGenerateData.class, "Input data generator for the secondary sort example.");
-		addClass("topical_word_count", TopicalWordCountGenerateData.class, "Input data generator for the topical word count example.");
-		addClass("topical_word_count_gen_data", TopicalWordCount.class, "The topical word count example from Pangool's introduction.");
+		addClass("topical_word_count_gen_data", TopicalWordCountGenerateData.class, "Input data generator for the topical word count example.");
+		addClass("topical_word_count", TopicalWordCount.class, "The topical word count example from Pangool's introduction.");
 		addClass("topical_word_count_with_stop_words", TopicalWordCountWithStopWords.class, "The topical word count example from Pangool's introduction extended to accept a list of stop words.");
 		addClass("topical_word_count_topic_fingerprint", TopicFingerprint.class, "The topic fingerprint Job from the topical word count example in Pangool's introduction.");
 		addClass("top_n_hashtags", TopNHashTags.class, "Rollup example that calculates the top N hashtags in each (location, date) from a tweets dataset.");
