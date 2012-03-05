@@ -87,8 +87,8 @@ We’ll start by writing a Mapper. For Pangool Jobs, we need to extend <a href='
 </pre>
 
 <p>
-TupleMappers have three methods available: setup(), map() and cleanup(). 
-As in Hadoop, setup() is called beginning of each Map task, cleanup() end of each task and map() for each input record. 
+TupleMappers have three methods available: <code>setup()</code>, <code>map()</code> and <code>cleanup()</code>.<br> 
+As in Hadoop, <code>setup()</code> is called beginning of each Map task, cleanup() end of each task and map() for each input record. 
 We see how it is possible to cache a Tuple for avoiding excessive object creation:
 </p>
 
@@ -133,7 +133,6 @@ Now, we need to write a Reducer. The Reducer will extend <a href='https://github
  public static class CountReducer extends TupleReducer<ITuple, NullWritable> {
 
    public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector) throws IOException, InterruptedException, TupleMRException {
-
      int count = 0;
      ITuple outputTuple = null;
      for(ITuple tuple : tuples) {

@@ -42,11 +42,11 @@ private static class MyUtf8Comparator implements RawComparator&lt;Text&gt;, Seri
 In case that you need to deserialize your object in order to compare it, you can subclass
 <a href="https://github.com/datasalt/pangool/blob/master/core/src/main/java/com/datasalt/pangool/tuplemr/mapred/BaseComparator.java">BaseComparator</a>
 and then just compare objects.<br>
-For instance, let's define a <i>Thrift</i> object whose IDL is : 
+For instance, let's define a <i>Thrift</i> object whose definition is : 
 </p>
 
 <pre class="prettyprint" id="java">
-  struct B {
+  struct MyThriftObject {
     1: string userName,
     2: int age
   }
@@ -68,5 +68,13 @@ public class MyThriftComparator extends BaseComparator&lt;MyThriftObject&gt; {
   }
 }
 </pre>
+
+<div class="alert">
+<strong>Important</strong>: For cases like above, where just one field needs to be compared,
+we don't recommend using custom comparators.<br>Due to efficiency concerns it's more desirable 
+to duplicate fields out of the serialized object and then perform the comparison using basic types.
+</div>
+
+
 
 <p><a class="btn btn-primary btn-large" href="mapred_api.html">Next: Tuple MapReduce API &raquo;</a></p>
