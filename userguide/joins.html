@@ -21,16 +21,18 @@ One of the most interesting features of Pangool is its inherent reduce-side join
 
 <p>
  We have one file with URL registers: [<code>url</code>, <code>timestamp</code>, <code>ip</code>] 
- and another file with canonical URL mappings: [<code>url</code>, <code>canonicalUrl</code>].<br>
+ and another file with canonical URL mappings: [<code>url</code>, <code>canonicalUrl</code>].
  We want to output the URL registers file and have the url be substituted with the canonical 
  one according to the mapping file. In other words, we want the output to be like: [<code>canonicalUrl</code>, <code>timestamp</code>, <code>ip</code>]
 </p>
 
 <p>
-For that, we need to join the URL registers file with the URL mappings one.<br> 
+For that, we need to join the URL registers file with the URL mappings one. 
 We need to join them by the common field <code>url</code>. Using a reduce-side join, we 
 could store the “canonicalUrl” for each <code>url</code> group and apply the substitution 
-to each of the URL registers records associated with that <code>url</code>.<br> 
+to each of the URL registers records associated with that <code>url</code>. 
+</p>
+<p>
 To make the join totally scalable, we need to receive the <code>canonicalUrl</code> first 
 in each reduce group so that we only need to stream through the URL registers afterwards.
 </p>
@@ -60,8 +62,7 @@ We’ll configure a Pangool Job to accept two inputs and two intermediate schema
 
 <p>
 This Mapper is quite simple. It just parses the input URL registers file and emits a tuple
-with the needed data.<br>
-It uses the <code>context.getTupleMRConfig().getIntermediateSchema()</code> to grab 
+with the needed data. It uses the <code>context.getTupleMRConfig().getIntermediateSchema()</code> to grab 
 the intermediate schema that was configured.
 </p>
 
@@ -85,7 +86,7 @@ the intermediate schema that was configured.
 </pre>
 
 <p>
-Same thing for this one: just parsing and emitting a Tuple.<br> 
+Same thing for this one: just parsing and emitting a Tuple. 
 Let’s now check to see the Reducer that performs the join:
 </p>
 
@@ -130,9 +131,9 @@ Let’s comment on this specific part of the code:
 <p>
 What happens is that we are iterating over each of the Tuples associated with the same 
 <code>url</code> group, but we are keeping a state variable in case that the Tuple belongs 
-to one of the schemas (the one that processed URL mapping registers).<br>
-Then, we use this state variable for emitting each of the URL registers.<br>
- Note how we are assuming that the URL mapping comes always before the URL registers.<br>
+to one of the schemas (the one that processed URL mapping registers).
+Then, we use this state variable for emitting each of the URL registers.
+ Note how we are assuming that the URL mapping comes always before the URL registers.
  In other words, there is a specific source sort within the records of the joined Tuple list. 
  We’ll see this in greater detail when we configure the job.
 </p>
@@ -159,6 +160,8 @@ In this case, for each group, the URL mapping will come first - and that’s why
 <p>
 In order to configure a special sorting for the join, you’ll need to use <code>addSchemaOrder()</code>
 as needed depending on which place you want to put the <i>inter-source</i> ordering in your custom sorting.
-<br>More info in <a href="group_and_sort.html">Group-By & Sort-By</a> section.
+</p>
+<p>
+More info in <a href="group_and_sort.html">Group-By & Sort-By</a> section.
 </p>
 <p><a class="btn btn-primary btn-large" href="map_only_jobs.html">Next: Map-only Jobs &raquo;</a></p>
