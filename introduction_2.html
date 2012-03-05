@@ -69,7 +69,7 @@ Let’s see how we can use this Mapper when creating a Pangool Job:
 </pre>
 
 <p>
-That’s it! Pangool will serialize the instance to the Hadoop's Distributed Cache and recover it when needed. 
+That’s it! Pangool will serialize the instance and recover it when needed. 
 Remember that all state in your classes must be Serializable. If some of your class fields are not Serializable, 
 remember to instantiate them in the setup() method instead of instantiating them directly in the class definition. 
 </p>
