@@ -162,10 +162,29 @@ hadoop jar pangool-bootstrap-*-job.jar sort pom.xml pomout
 <pre class="prettyprint">mvn eclipse:eclipse -DdownloadSources=true -DdownloadJavadocs=true</pre>
 		<p>
 			Then import the project from eclipse in the <code>File > Import...</code> menu.
-		</p>		
+		</p><br>		
 	</div>	
 </div> <!-- end row-fluid -->
 
-
+<div class="row-fluid">
+  <div class="span3">
+    <p>
+      <strong>Maven repository</strong>
+    </p>
+  </div>
+  
+  <div class="span9">
+    <p>
+      Configure your pom.xml to use pangool as dependency:
+    </p>  
+    <pre class="prettyprint">
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.datasalt.pangool&lt;/groupId&gt;
+    &lt;artifactId&gt;pangool-core&lt;/artifactId&gt;
+    &lt;version&gt;0.40&lt;/version&gt;
+  &lt;/dependency&gt; 
+   </pre>   
+  </div>  
+</div> <!-- end row-fluid -->
 
 <p><a class="btn btn-primary btn-large" href="introduction.html">Wanna see a quick and fun introduction? »</a></p>
