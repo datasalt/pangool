@@ -1,0 +1,5 @@
+Pangool 
+Copyright 2012 Datasalt S.L
+
+This product includes software developed at Datasalt S.L (http://www.datasalt.com/).
+
