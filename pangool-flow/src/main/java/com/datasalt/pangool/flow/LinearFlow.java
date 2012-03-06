@@ -144,7 +144,13 @@ public abstract class LinearFlow {
 				args.add(bindings.get(inputName));
 			}
 			args.add("--output");
-			args.add(job.getOutputName());
+			// Output = outputName if it's not binded
+			String bindedTo = bindings.get(job.getOutputName());
+			if(bindedTo == null) {
+				args.add(job.getOutputName());
+			} else {
+				args.add(bindedTo);
+			}
 			if(mode.equals(EXECUTION_MODE.OVERWRITE)) {
 				HadoopUtils.deleteIfExists(FileSystem.get(new Configuration()), new Path(job.getOutputName()));
 			}
