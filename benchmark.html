@@ -6,20 +6,33 @@ title: Pangool Benchmark
 	<h1>Pangool Benchmark</h1>
 </div>
 
-<h2>Pangool efficiency</h2>
 <p>
 In order to demonstrate that Pangool performs comparable to Hadoop, we have designed a benchmark and executed it in EC2.
-The machines used were of type m1.large. We used Cloudera's CDH3 with its default Hadoop configuration.
+This benchmark has been updated as of <strong>8th of March of 2012</strong>.
 </p>
+<div class="alert">
+We take this benchmark seriously. We have made all its details publicly available so if you find something wrong or have any comment you can just tell us or submit a pull request. You can run this benchmark anytime by following its instructions and if you find something weird, please tell us. 
+</div>
 <p>
-We have executed three different examples with three different input sizes. Each of the examples were launched in a comparable
-implementation in Hadoop, Crunch and Cascading. You can see the implementations in the <a href='https://github.com/datasalt/pangool-benchmark'>pangool-benchmark project</a>. 
-If you find something wrong, please send us your feedback. You are free to suggest alternative implementations that could perform better.
+We have used <a href='http://whirr.apache.org/'>Whirr 0.7.1</a> to instantiate a CDH3 cluster with 4 m1.large slave nodes and 1 master node. We used the following properties:
 </p>
+<pre>
+whirr.cluster-name=cdh-cluster
+whirr.instance-templates=1 hadoop-jobtracker+hadoop-namenode+ganglia-monitor+ganglia-metad,4 hadoop-datanode+hadoop-tasktracker+ganglia-monitor
+whirr.provider=aws-ec2
+whirr.hadoop.install-function=install_cdh_hadoop
+whirr.hadoop.configure-function=configure_cdh_hadoop
+whirr.hardware-id=m1.large
+</pre>
 <p>
+We have executed three different examples with three different input sizes. Each of the examples were launched in a <strong>comparable
+implementation in Hadoop, Crunch and Cascading</strong>. You can see the implementations in the <a href='https://github.com/datasalt/pangool-benchmark'>pangool-benchmark project</a>. 
+If you find <strong>something wrong, please send us your feedback. You are free to suggest alternative implementations that could perform better</strong>.
+</p>
+<div class="alert">
 We have considered <a href='https://github.com/cloudera/crunch'>Crunch</a> and <a href='http://www.cascading.org/'>Cascading</a> for this benchmark in order to have more data points. 
 They are, however, different APIs that were conceived with other requirements in mind. Pangool aims to be a replacament of the low-level MapReduce Hadoop Java API, whereas both Crunch and Cascading abstract the user from MapReduce - which allows them to implement easier flow management, something that Pangool doesn't (yet) aim for.
-</p>
+</div>
 <p>
 For Cascading, we used the 1.2.5 stable release. For Crunch, we built the 0.2.0 version in 2012-02 and used Avro serialization
 because we found it to be much more efficient than TupleWritables.
@@ -39,9 +52,9 @@ in <a href='https://github.com/datasalt/pangool-benchmark/blob/master/src/main/j
 For generating the input datasets, we used the following commands (you'll find them in the launch-benchmark.sh script we mentioned above):
 </p>
 <pre>
-	hadoop jar $PANGOOL_EXAMPLES_JAR url_resolution_gen_data url-map-1.txt url-reg-1.txt 1000 10 1000
-	hadoop jar $PANGOOL_EXAMPLES_JAR url_resolution_gen_data url-map-2.txt url-reg-2.txt 5000 10 1000
-	hadoop jar $PANGOOL_EXAMPLES_JAR url_resolution_gen_data url-map-3.txt url-reg-3.txt 10000 10 1000
+hadoop jar $PANGOOL_EXAMPLES_JAR url_resolution_gen_data url-map-1.txt url-reg-1.txt 1000 10 1000
+hadoop jar $PANGOOL_EXAMPLES_JAR url_resolution_gen_data url-map-2.txt url-reg-2.txt 5000 10 1000
+hadoop jar $PANGOOL_EXAMPLES_JAR url_resolution_gen_data url-map-3.txt url-reg-3.txt 5000 50 1000
 </pre>
 <p>
 These are the results that we obtained in time (seconds) and IO (bytes):
@@ -51,9 +64,8 @@ These are the results that we obtained in time (seconds) and IO (bytes):
 <img src='images/benchmark/ur_io.png'/>
 </p>
 <p>
-We can see that all implementations had a comparable IO footprint. However, we clearly see that Pangool and Hadoop are much closer in efficiency than Crunch or Avro. In this case Pangool performed 8% worse than Hadoop, Crunch 27% and Cascading 65%.
+We can see that all implementations had a comparable IO footprint. However, we clearly see that Pangool and Hadoop are much closer in efficiency than Crunch or Avro. In this case Pangool performed 8% worse than Hadoop, Crunch 27% and Cascading 53%.
 </p>
-
 <h2>Secondary sort</h2>
 
 <p>
@@ -64,9 +76,9 @@ example in <a href='https://github.com/datasalt/pangool-benchmark/blob/master/sr
 For generating the input datasets, we used the following commands (you'll find them in the launch-benchmark.sh script we mentioned above):
 </p>
 <pre>
-	hadoop jar $PANGOOL_BENCHMARK_JAR wordcount_gen_data wordcount-1.txt 1000000 50 4
-	hadoop jar $PANGOOL_BENCHMARK_JAR wordcount_gen_data wordcount-2.txt 5000000 50 4
-	hadoop jar $PANGOOL_BENCHMARK_JAR wordcount_gen_data wordcount-3.txt 10000000 50 4
+hadoop jar $PANGOOL_EXAMPLES_JAR secondarysort_gen_data secondarysort-1.txt 100 100 1000
+hadoop jar $PANGOOL_EXAMPLES_JAR secondarysort_gen_data secondarysort-2.txt 200 200 2000
+hadoop jar $PANGOOL_EXAMPLES_JAR secondarysort_gen_data secondarysort-3.txt 300 300 3000
 </pre>
 <p>
 These are the results that we obtained in time (seconds) and IO (bytes):
@@ -76,7 +88,7 @@ These are the results that we obtained in time (seconds) and IO (bytes):
 <img src='images/benchmark/ss_io.png'/>
 </p>
 <p>
-In this example Hadoop and Pangool are both close in efficiency and IO footprint. However, Cascading deviates considerably in both aspects. Pangool performed 5% worse than Hadoop, Crunch 28% and Cascading 243%.
+In this example Hadoop and Pangool are both close in efficiency and IO footprint. However, Cascading deviates considerably in both aspects. Pangool performed 5% worse than Hadoop, Crunch 28% and Cascading 205%.
 </p>
 
 <h2>Standard Word Count</h2>
@@ -89,9 +101,9 @@ Click to see the implementations for <a href='https://github.com/datasalt/pangoo
 For generating the input datasets, we used the following commands (you'll find them in the launch-benchmark.sh script we mentioned above):
 </p>
 <pre>
-	hadoop jar $PANGOOL_BENCHMARK_JAR wordcount_gen_data wordcount-1.txt 1000000 50 4
-	hadoop jar $PANGOOL_BENCHMARK_JAR wordcount_gen_data wordcount-2.txt 5000000 50 4
-	hadoop jar $PANGOOL_BENCHMARK_JAR wordcount_gen_data wordcount-3.txt 10000000 50 4
+hadoop jar $PANGOOL_BENCHMARK_JAR wordcount_gen_data wordcount-1.txt 1000000 50 4
+hadoop jar $PANGOOL_BENCHMARK_JAR wordcount_gen_data wordcount-2.txt 5000000 50 4
+hadoop jar $PANGOOL_BENCHMARK_JAR wordcount_gen_data wordcount-3.txt 10000000 50 4
 </pre>
 <p>
 These are the results that we obtained in time (seconds) and IO (bytes):
@@ -110,14 +122,14 @@ In this case, Cascading's overhead (257%) is not very meaningful because its def
 <h1>Conclusions</h1>
 
 <p>
-We have seen how Pangool performs comparable to Hadoop in three different cases, performing between 5 and 8% worse 
+We have seen how <strong>Pangool performs comparable to Hadoop</strong> in three different cases, performing <strong>between only 5 and 8% worse</strong> 
 according to this benchmark. Except for the word count example - where Pangool code is larger than Hadoop's word count 
-becase we can't reuse the Combiner as we are not writing Tuples as output - the implementations in Pangool are much 
-more concise and easy than those of Hadoop, which are extremely complex because of the use of custom Comparators, 
+becase we can't reuse the Combiner as we are not writing Tuples as output - the implementations in Pangool <strong>are much 
+more concise and easy than those of Hadoop</strong>, which are extremely complex because of the use of custom Comparators, 
 custom data types and other boilerplate code.
 </p> 
 <p>
-Overall, in code conciseness, Cascading wins in all of the examples, but its performance is in other orders of magnitude. This is understandable, since Cascading is a higher-level API that solves a lot of problems that neither Hadoop or Pangool solve.
+Overall, <strong>in code conciseness, Cascading wins in all of the examples, but its performance is in other orders of magnitude. This is understandable, since Cascading is a higher-level API that solves a lot of problems that neither Hadoop or Pangool solve</strong>.
 </p>
 <p> 
 On the other hand, we have found Crunch to perform very good when used in conjunction with Avro. It is an interesting API because it solves higher-level problems like flow management while retaining a decent performance. However, we found the resulting code for both the Url Resolution and Secondary Sort example to be extremely complex and hard to maintain. 
