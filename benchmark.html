@@ -8,7 +8,7 @@ title: Pangool Benchmark
 
 <p>
 In order to demonstrate that Pangool performs comparable to Hadoop, we have designed a benchmark and executed it in EC2.
-This benchmark has been updated as of <strong>8th of March of 2012</strong>.
+This benchmark has been updated as of <strong>9th of March of 2012</strong>.
 </p>
 <div class="alert">
 We take this benchmark seriously. We have made all its details publicly available so if you find something wrong or have any comment you can just tell us or submit a pull request. You can run this benchmark anytime by following its instructions and if you find something weird, please tell us. 
@@ -64,7 +64,7 @@ These are the results that we obtained in time (seconds) and IO (bytes):
 <img src='images/benchmark/ur_io.png'/>
 </p>
 <p>
-We can see that all implementations had a comparable IO footprint. However, we clearly see that Pangool and Hadoop are much closer in efficiency than Crunch or Avro. In this case Pangool performed 8% worse than Hadoop, Crunch 27% and Cascading 53%.
+We can see that all implementations had a comparable IO footprint. However, we clearly see that Pangool and Hadoop are much closer in efficiency than Crunch or Avro. In this case Pangool performed 8% worse than Hadoop, Crunch 27% and Cascading 181%.
 </p>
 <h2>Secondary sort</h2>
 
@@ -88,7 +88,7 @@ These are the results that we obtained in time (seconds) and IO (bytes):
 <img src='images/benchmark/ss_io.png'/>
 </p>
 <p>
-In this example Hadoop and Pangool are both close in efficiency and IO footprint. However, Cascading deviates considerably in both aspects. Pangool performed 5% worse than Hadoop, Crunch 28% and Cascading 205%.
+In this example Hadoop and Pangool are both close in efficiency and IO footprint. However, Cascading deviates considerably in both aspects. Pangool performed 5% worse than Hadoop, Crunch 28% and Cascading 185%.
 </p>
 
 <h2>Standard Word Count</h2>
