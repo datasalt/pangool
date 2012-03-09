@@ -129,7 +129,7 @@ more concise and easy than those of Hadoop</strong>, which are extremely complex
 custom data types and other boilerplate code.
 </p> 
 <p>
-Overall, <strong>in code conciseness, Cascading wins in all of the examples, but its performance is in other orders of magnitude. This is understandable, since Cascading is a higher-level API that solves a lot of problems that neither Hadoop or Pangool solve</strong>.
+Overall, <strong>in code conciseness, Cascading wins in all of the examples, but its performance is much worse than that of Hadoop, Pangool or Crunch. This is understandable, since Cascading is a higher-level API that solves a lot of problems that neither Hadoop or Pangool solve</strong>.
 </p>
 <p> 
 On the other hand, we have found Crunch to perform very good when used in conjunction with Avro. It is an interesting API because it solves higher-level problems like flow management while retaining a decent performance. However, we found the resulting code for both the Url Resolution and Secondary Sort example to be extremely complex and hard to maintain. 
