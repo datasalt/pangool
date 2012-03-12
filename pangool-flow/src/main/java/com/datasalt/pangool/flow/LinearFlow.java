@@ -72,7 +72,7 @@ public abstract class LinearFlow {
 	
 	public PangoolJob findInOutputs(String output) {
 		for(PangoolJob job: jobContext.values()) {
-			if(job.getOutputName().equals(output)) {
+			if(output.startsWith(job.getOutputName())) {
 				return job;
 			}
 			for(String namedOutput: job.getNamedOutputs()) {
