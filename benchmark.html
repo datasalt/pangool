@@ -113,11 +113,8 @@ These are the results that we obtained in time (seconds) and IO (bytes):
 <img src='images/benchmark/wc_io.png'/>
 </p>
 <p>
-We can see that in this case Hadoop, Pangool (5% worse) and Crunch (9% worse) performed similarly.
+We can see that in this case Hadoop, Pangool (5% worse) and Crunch (9% worse) performed similarly. All three implementations are using Combiners. Cascading had 241% overhead even with the use of its in-memory combiners.
 </p>
-<p>
-In this case, Cascading's overhead (257%) is not very meaningful because its default Word Count implementation doesn't include the use of its in-memory combiners whereas the other implementations (Pangool, Hadoop, Crunch) are already using Combiners.
-<p>
 
 <h1>Conclusions</h1>
 
