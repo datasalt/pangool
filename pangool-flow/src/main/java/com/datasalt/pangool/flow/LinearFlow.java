@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.mortbay.log.Log;
@@ -50,6 +49,8 @@ public abstract class LinearFlow {
 	List<String> inputs = new ArrayList<String>();
 	
 	Map<String, String> bindings = new HashMap<String, String>();
+	Map<String, String> extensions = new HashMap<String, String>();
+	
 	Map<String, PangoolJob> jobContext = new HashMap<String, PangoolJob>();
 	
 	public void add(PangoolJob job) {
@@ -70,9 +71,14 @@ public abstract class LinearFlow {
 		bindings.put(name, bind.toString());
 	}
 	
+	public void bind(String name, Object bind, String extension) {
+		bind(name, bind);
+		extensions.put(name, extension);
+	}
+			
 	public PangoolJob findInOutputs(String output) {
 		for(PangoolJob job: jobContext.values()) {
-			if(output.startsWith(job.getOutputName())) {
+			if(output.equals(job.getOutputName())) {
 				return job;
 			}
 			for(String namedOutput: job.getNamedOutputs()) {
@@ -88,16 +94,20 @@ public abstract class LinearFlow {
 		OVERWRITE, POLITE
 	}
 	
-	public void execute(String output, EXECUTION_MODE mode) throws Exception {
+	public void execute(EXECUTION_MODE mode, Configuration conf, String... outputs) throws Exception {
 		List<PangoolJob> toExecute = new ArrayList<PangoolJob>();
 		List<PangoolJob> toResolve = new ArrayList<PangoolJob>();
 		
-		PangoolJob orig = findInOutputs(output);
-		if(orig == null) {
-			throw new IllegalArgumentException("Unknown output: " + output + " not found in flow context.");
+		for(String output: outputs) {
+			PangoolJob orig = findInOutputs(output);
+			if(orig == null) {
+				throw new IllegalArgumentException("Unknown output: " + output + " not found in flow context.");
+			}
+			
+			toResolve.add(orig);
 		}
 		
-		toResolve.add(orig);
+		PangoolJob orig ;
 		
 		while(toResolve.size() > 0) {
 			Iterator<PangoolJob> it = toResolve.iterator();
@@ -141,21 +151,26 @@ public abstract class LinearFlow {
 			for(String input: job.getInputs()) {
 				String inputName = job.getName() + "." + input;
 				args.add("--" + input);
-				args.add(bindings.get(inputName));
+				String bindedTo = bindings.get(inputName);
+				String extension = extensions.get(inputName);
+				if(extension != null) {
+					bindedTo += extension;
+				}
+				args.add(bindedTo);
 			}
 			args.add("--output");
 			// Output = outputName if it's not binded
 			String bindedTo = bindings.get(job.getOutputName());
 			if(bindedTo == null) {
-				args.add(job.getOutputName());
-			} else {
-				args.add(bindedTo);
-			}
+				bindedTo = job.getOutputName();
+			} 
+			args.add(bindedTo);
 			if(mode.equals(EXECUTION_MODE.OVERWRITE)) {
-				HadoopUtils.deleteIfExists(FileSystem.get(new Configuration()), new Path(job.getOutputName()));
+				Path p = new Path(bindedTo);
+				HadoopUtils.deleteIfExists(p.getFileSystem(conf), p);
 			}
 			Log.info("Executing [" + job.getName() + "], args: " + args);
-			ToolRunner.run(job, args.toArray(new String[0]));
+			ToolRunner.run(conf, job, args.toArray(new String[0]));
 		}
 	}
 }

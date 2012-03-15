@@ -51,6 +51,7 @@ public abstract class BaseComparator<T> implements RawComparator<T>, Serializabl
 	@Override
 	public void setConf(Configuration conf) {
 		try {
+			this.conf = conf;
 			TupleMRConfig mrConfig = TupleMRConfig.get(conf);
 	    fieldDeser1 = new SingleFieldDeserializer(conf,mrConfig, type,objectClazz);
 	    fieldDeser2 = new SingleFieldDeserializer(conf,mrConfig, type,objectClazz);

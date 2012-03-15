@@ -171,8 +171,8 @@ public class TestComparators extends ComparatorsBaseTest {
 			    + "\nTUPLE2:" + tuple2 + "\nCONFIG:" + comparator.getConfig();
 			if(DEBUG) {
 				System.err.println(error);
-				compObjects = comparator.compare(tuple1, tuple2);
-				compBinary = compareInBinary1(comparator, tuple1, tuple2);
+				comparator.compare(tuple1, tuple2);
+				compareInBinary1(comparator, tuple1, tuple2);
 			}
 
 			Assert.fail(error);

@@ -120,7 +120,7 @@ public class TupleMRConfigBuilder {
 	public void setGroupByFields(String... groupByFields) throws TupleMRException {
 		failIfEmpty(groupByFields, "GroupBy fields can't be null or empty");
 		failIfEmpty(schemas, "No eschemas defined");
-		failIfNotNull(this.groupByFields, "GroupBy fields already set : " + groupByFields);
+		failIfNotNull(this.groupByFields, "GroupBy fields already set : " + Arrays.toString(groupByFields));
 		for(String field : groupByFields) {
 			if(!fieldPresentInAllSchemas(field)) {
 				throw new TupleMRException("Can't group by field '" + field

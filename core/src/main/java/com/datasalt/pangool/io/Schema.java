@@ -162,6 +162,11 @@ public class Schema implements Serializable {
 			}
 		}
 
+		@Override
+		public int hashCode() {
+			return name.hashCode();
+		}
+		
 		public String toString() {
 			try {
 				StringWriter writer = new StringWriter();
@@ -300,6 +305,11 @@ public class Schema implements Serializable {
 		return false;
 	}
 
+	@Override
+	public int hashCode() {
+		return toString().hashCode();
+	}
+	
 	public void toJson(JsonGenerator gen) throws IOException {
 		gen.writeStartObject();
 		gen.writeStringField("name", name);

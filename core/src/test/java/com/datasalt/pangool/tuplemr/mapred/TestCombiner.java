@@ -100,7 +100,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 	@SuppressWarnings("serial")
 	public static class Count extends TupleReducer<Utf8, IntWritable> {
 
-		private IntWritable countToEmit;
+		private transient IntWritable countToEmit;
 		
 		public void setup(TupleMRContext tupleMRContext, Collector collector) throws IOException, InterruptedException,
 		    TupleMRException {

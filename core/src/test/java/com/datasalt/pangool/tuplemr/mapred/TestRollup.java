@@ -82,8 +82,8 @@ public class TestRollup extends AbstractHadoopTestLibrary {
      */
 		private static final long serialVersionUID = 1L;
 
-		private Text outputKey;
-		private Text outputValue;
+		private transient Text outputKey;
+		private transient Text outputValue;
 
 		@Override
 		public void setup(TupleMRContext context, Collector collector) throws IOException,
