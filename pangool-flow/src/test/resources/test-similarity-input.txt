@@ -1,0 +1,9 @@
+Jon	Greg	0.78
+Jon	Peter	0.45
+Jon	Ivan	0.80
+Jon	Pere	0.33
+Jon	Eric	0.75
+Pere	Ivan	0.65
+Pere	Eric	0.65
+Pere	Silvia	0.76
+Pere	Manning	1.0

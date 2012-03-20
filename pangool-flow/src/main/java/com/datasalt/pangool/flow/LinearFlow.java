@@ -49,8 +49,6 @@ public abstract class LinearFlow {
 	List<String> inputs = new ArrayList<String>();
 	
 	Map<String, String> bindings = new HashMap<String, String>();
-	Map<String, String> extensions = new HashMap<String, String>();
-	
 	Map<String, PangoolJob> jobContext = new HashMap<String, PangoolJob>();
 	
 	public void add(PangoolJob job) {
@@ -71,11 +69,6 @@ public abstract class LinearFlow {
 		bindings.put(name, bind.toString());
 	}
 	
-	public void bind(String name, Object bind, String extension) {
-		bind(name, bind);
-		extensions.put(name, extension);
-	}
-			
 	public PangoolJob findInOutputs(String output) {
 		for(PangoolJob job: jobContext.values()) {
 			if(output.equals(job.getOutputName())) {
@@ -119,8 +112,8 @@ public abstract class LinearFlow {
 			}
 			toExecute.add(orig);
 			
-			for(String input: orig.getInputs()) {
-				String inputName = orig.getName() + "." + input; 
+			for(Input input: orig.getInputs()) {
+				String inputName = orig.getName() + "." + input.name; 
 				String bindedTo = bindings.get(inputName);
 				
 				if(bindedTo == null) {
@@ -133,6 +126,15 @@ public abstract class LinearFlow {
 						throw new IllegalArgumentException("Unknown input: " + bindedTo + " binded to " + inputName + " not found in flow context.");
 					}
 				} else {
+					if(job.getNamedOutputs().size() > 0 && bindedTo.endsWith(".output")) {
+						// Main output from a Job with multiple outputs. Rebind to glob.
+						bindings.put(inputName, bindedTo + "/part*");
+					} else if(!bindedTo.endsWith(".output")) {
+						// Named output. Rebind to corresponding glob.
+						int lastPoint = bindedTo.lastIndexOf(".");
+						String namedOutput = bindedTo.substring(lastPoint + 1, bindedTo.length());
+						bindings.put(inputName, bindedTo.substring(0, lastPoint) + "/" + namedOutput);
+					}
 					toResolve.add(job);
 				}
 			}
@@ -148,14 +150,10 @@ public abstract class LinearFlow {
 				args.add("-D");
 				args.add(paramName + "=" + bindings.get(paramName));
 			}
-			for(String input: job.getInputs()) {
-				String inputName = job.getName() + "." + input;
-				args.add("--" + input);
+			for(Input input: job.getInputs()) {
+				String inputName = job.getName() + "." + input.name;
+				args.add("--" + input.name);
 				String bindedTo = bindings.get(inputName);
-				String extension = extensions.get(inputName);
-				if(extension != null) {
-					bindedTo += extension;
-				}
 				args.add(bindedTo);
 			}
 			args.add("--output");

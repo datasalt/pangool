@@ -16,6 +16,7 @@
 package com.datasalt.pangool.flow;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,30 +44,34 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
  * Jobs execute method {@link #run(Path, Map, Map)}. Parameters / input / output paths are parsed automatically and
  * passed as parameters of this method. Help and parameter error handling is handled transparently.
  */
-public abstract class PangoolJob implements Configurable, Tool {
+public abstract class PangoolJob implements Configurable, Tool, Serializable {
 
-	protected String name;
-	protected String help; // extra explanation on what this Job does
-	protected List<String> inputs;
-	protected List<String> namedOutputs;
-	protected Params parameters;
+	protected transient Output output;
+	protected transient String help; // extra explanation on what this Job does
+	protected transient List<Input> inputs;
+	protected transient List<String> namedOutputs;
+	protected transient Params parameters;
 
-	protected Configuration hadoopConf;
+	protected transient Configuration hadoopConf;
 
 	public PangoolJob(String name, Inputs inputs) {
-		this(name, inputs, Params.NONE, NamedOutputs.NONE, null);
+		this(new Output(name), inputs, Params.NONE, NamedOutputs.NONE, null);
 	}
 
 	public PangoolJob(String name, Inputs inputs, Params parameters) {
-		this(name, inputs, parameters, NamedOutputs.NONE, null);
+		this(new Output(name), inputs, parameters, NamedOutputs.NONE, null);
 	}
 
 	public PangoolJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs) {
-		this(name, inputs, parameters, namedOutputs, null);
+		this(new Output(name), inputs, parameters, namedOutputs, null);
 	}
 
 	public PangoolJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, String help) {
-		this.name = name;
+		this(new Output(name), inputs, parameters, namedOutputs, help);
+	}
+
+	public PangoolJob(Output output, Inputs inputs, Params parameters, NamedOutputs namedOutputs, String help) {
+		this.output = output;
 		this.help = help;
 		this.inputs = inputs;
 		this.namedOutputs = namedOutputs;
@@ -79,7 +84,7 @@ public abstract class PangoolJob implements Configurable, Tool {
 
 	private List<String> help() {
 		List<String> helpLines = new ArrayList<String>();
-		helpLines.add(name + (help == null ? "" : "(" + help + ")") + " - Usage:");
+		helpLines.add(output + (help == null ? "" : "(" + help + ")") + " - Usage:");
 		helpLines.add("");
 		helpLines.add("Parameters:");
 		helpLines.add("");
@@ -89,8 +94,8 @@ public abstract class PangoolJob implements Configurable, Tool {
 		helpLines.add("");
 		helpLines.add("Input paths:");
 		helpLines.add("");
-		for(String input : inputs) {
-			helpLines.add("\t--" + input);
+		for(Input input : inputs) {
+			helpLines.add("\t--" + input.name);
 		}
 		helpLines.add("");
 		return helpLines;
@@ -103,9 +108,9 @@ public abstract class PangoolJob implements Configurable, Tool {
 		Path outputPath = null;
 
 		for(int i = 0; i < args.length; i++) {
-			for(String input : inputs) {
-				if(args[i].equals("-" + input) || args[i].equals("--" + input)) {
-					parsedInputs.put(input, new Path(args[++i]));
+			for(Input input : inputs) {
+				if(args[i].equals("-" + input.name) || args[i].equals("--" + input.name)) {
+					parsedInputs.put(input.name, new Path(args[++i]));
 					continue;
 				}
 			}
@@ -119,9 +124,9 @@ public abstract class PangoolJob implements Configurable, Tool {
 		if(outputPath == null) {
 			errors.add("Output path is mandatory. Use -output or --output for it.");
 		}
-		for(String input : inputs) {
-			if(!parsedInputs.containsKey(input)) {
-				errors.add("Missing required input path: [" + input + "]. Please add it with -" + input + " or --" + input);
+		for(Input input : inputs) {
+			if(!parsedInputs.containsKey(input.name)) {
+				errors.add("Missing required input path: [" + input.name + "]. Please add it with -" + input.name + " or --" + input.name);
 			}
 		}
 
@@ -190,18 +195,18 @@ public abstract class PangoolJob implements Configurable, Tool {
 	}
 
 	public String getOutputName() {
-		return name + "." + NamedOutputs.OUTPUT;
+		return output.name + "." + NamedOutputs.OUTPUT;
 	}
 
 	public String getNamedOutputName(String namedOutput) {
-		return name + "." + namedOutput;
+		return output.name + "." + NamedOutputs.OUTPUT + "." + namedOutput;
 	}
 	
 	public String getName() {
-		return name;
+		return output.name;
 	}
 
-	public List<String> getInputs() {
+	public List<Input> getInputs() {
 		return inputs;
 	}
 
@@ -224,6 +229,6 @@ public abstract class PangoolJob implements Configurable, Tool {
 	}
 
 	public String toString() {
-		return name;
+		return output.name;
 	}
 }

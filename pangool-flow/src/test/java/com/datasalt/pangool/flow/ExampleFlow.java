@@ -20,12 +20,17 @@ import java.util.Map;
 
 import org.apache.hadoop.fs.Path;
 
+/**
+ * This is a very dummy example flow that does nothing but will assure that things are executed in the appropriated order.
+ * It shows the usage of {@link PangoolJob}.
+ */
 public class ExampleFlow extends LinearFlow {
 
 	ArrayList<String> executedJobs = new ArrayList<String>();
 
 	// Job1 has one input file and one integer parameter
-	public class Job1 extends PangoolJob {
+	@SuppressWarnings("serial")
+  public class Job1 extends PangoolJob {
 
 		public Job1() {
 			super("job1", new Inputs("inputFile"), new Params(
@@ -41,6 +46,7 @@ public class ExampleFlow extends LinearFlow {
 	}
 
 	// Job2 has one input file and one named output
+	@SuppressWarnings("serial")
 	public class Job2 extends PangoolJob {
 
 		public Job2() {
@@ -57,6 +63,7 @@ public class ExampleFlow extends LinearFlow {
 	}
 
 	// Job3 has 3 input files
+	@SuppressWarnings("serial")
 	public class Job3 extends PangoolJob {
 
 		public Job3() {
@@ -90,7 +97,7 @@ public class ExampleFlow extends LinearFlow {
 		
 		bind("job3.inputFile1", "job1.output"); // make job1's output be the input1 of job3
 		bind("job3.inputFile2", "job2.output"); // make job2's output be the input2 of job3
-		bind("job3.inputFile3", "job2.secondaryOutput"); // make job2's named output "secondaryOutput" be the input3 of job3
+		bind("job3.inputFile3", "job2.output.secondaryOutput"); // make job2's named output "secondaryOutput" be the input3 of job3
 		
 		// nothing more to define
 	}
