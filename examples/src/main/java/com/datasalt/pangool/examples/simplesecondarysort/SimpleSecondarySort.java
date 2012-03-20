@@ -47,16 +47,21 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
  * sorts by both.
  */
 public class SimpleSecondarySort extends BaseExampleJob {
+	
+	static Schema getSchema() {
+		// Configure schema, sort and group by
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("first",Type.INT));
+		fields.add(Field.create("second",Type.INT));
+		
+		return new Schema("my_schema",fields);		
+	}
 
 	@SuppressWarnings("serial")
   private static class IProcessor extends TupleMapper<LongWritable, Text> {
 
-		private Tuple tuple ;
-		
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
-			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("my_schema"));
-		}
-		
+		private Tuple tuple = new Tuple(getSchema());
+				
 		@Override
 		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
@@ -95,14 +100,8 @@ public class SimpleSecondarySort extends BaseExampleJob {
 		
 		deleteOutput(output);
 		
-		// Configure schema, sort and group by
-		List<Field> fields = new ArrayList<Field>();
-		fields.add(Field.create("first",Type.INT));
-		fields.add(Field.create("second",Type.INT));
-		
-		Schema schema = new Schema("my_schema",fields);
 		TupleMRBuilder builder = new TupleMRBuilder(conf);
-		builder.addIntermediateSchema(schema);
+		builder.addIntermediateSchema(getSchema());
 		builder.setGroupByFields("first");
 		builder.setOrderBy(new OrderBy().add("first",Order.ASC).add("second",Order.ASC));
 		// Input / output and such
