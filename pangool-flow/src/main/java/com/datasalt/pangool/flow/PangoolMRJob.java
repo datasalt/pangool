@@ -5,6 +5,12 @@ import java.util.Map;
 
 import org.apache.hadoop.fs.Path;
 
+import com.datasalt.pangool.flow.io.HadoopInput;
+import com.datasalt.pangool.flow.io.HadoopOutput;
+import com.datasalt.pangool.flow.io.RichInput;
+import com.datasalt.pangool.flow.io.RichOutput;
+import com.datasalt.pangool.flow.io.TupleInput;
+import com.datasalt.pangool.flow.io.TupleOutput;
 import com.datasalt.pangool.tuplemr.IdentityTupleReducer;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
@@ -12,9 +18,10 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 
 @SuppressWarnings("serial")
-public abstract class PangoolGrouperJob extends PangoolJob {
+public abstract class PangoolMRJob extends PangoolJob {
 
-	transient TupleReducer reducer = new IdentityTupleReducer();
+	@SuppressWarnings("rawtypes")
+  transient TupleReducer reducer = new IdentityTupleReducer();
 	transient GroupBy groupBy;
 	transient OrderBy orderBy = null;
 	
@@ -22,15 +29,15 @@ public abstract class PangoolGrouperJob extends PangoolJob {
 	transient RichOutput jobOutput;
 	transient Map<String, RichOutput> bindedOutputs = new HashMap<String, RichOutput>();
 	
-	public PangoolGrouperJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy) {
+	public PangoolMRJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy) {
 		this(name, inputs, parameters, namedOutputs, groupBy, null, null);
 	}
 
-	public PangoolGrouperJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy) {
+	public PangoolMRJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy) {
 		this(name, inputs, parameters, namedOutputs, groupBy, orderBy, null);
 	}
 
-	public PangoolGrouperJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy, String help) {
+	public PangoolMRJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy, String help) {
 	  super(name, inputs, parameters, namedOutputs, help);
 	  this.reducer = new IdentityTupleReducer();
 	  this.groupBy = groupBy;
@@ -39,23 +46,24 @@ public abstract class PangoolGrouperJob extends PangoolJob {
 
 	public abstract void configure(Map<String, Object> parsedParameters) throws TupleMRException;
 	
-	protected void bindInput(String inputName, RichInput inputSpec) {
+	protected void addInput(String inputName, RichInput inputSpec) {
 		bindedInputs.put(inputName, inputSpec);
 	}
 	
-	protected void bindOutput(RichOutput outputSpec) {
+	protected void setOutput(RichOutput outputSpec) {
 		jobOutput = outputSpec;
 	}
 	
-	protected void bindOutput(String name, RichOutput outputSpec) {
+	protected void setOutput(String name, RichOutput outputSpec) {
 		bindedOutputs.put(name, outputSpec);
 	}
 	
-	protected void bindReducer(TupleReducer reducer) {
+	protected void setReducer(@SuppressWarnings("rawtypes") TupleReducer reducer) {
 		this.reducer = reducer;
 	}
 	
-	@Override
+	@SuppressWarnings("unchecked")
+  @Override
   public int run(Path outputPath, Map<String, Path> parsedInputs, Map<String, Object> parsedParameters)
       throws Exception {
 
@@ -67,12 +75,12 @@ public abstract class PangoolGrouperJob extends PangoolJob {
 			String inputName = inputEntry.getKey();
 			if(input instanceof HadoopInput) {
 				HadoopInput hadoopInput = (HadoopInput)input;
-				mr.addInput(parsedInputs.get(inputName), hadoopInput.format, hadoopInput.processor);
-				mr.addIntermediateSchema(hadoopInput.intermediateSchema);
+				mr.addInput(parsedInputs.get(inputName), hadoopInput.getFormat(), hadoopInput.getProcessor());
+				mr.addIntermediateSchema(hadoopInput.getIntermediateSchema());
 			} else if(input instanceof TupleInput) {
 				TupleInput tupleInput = (TupleInput)input;
-				mr.addTupleInput(parsedInputs.get(inputName), tupleInput.processor);
-				mr.addIntermediateSchema(tupleInput.intermediateSchema);
+				mr.addTupleInput(parsedInputs.get(inputName), tupleInput.getProcessor());
+				mr.addIntermediateSchema(tupleInput.getIntermediateSchema());
 			} 
 		}
 		
@@ -80,10 +88,10 @@ public abstract class PangoolGrouperJob extends PangoolJob {
 
 		if(jobOutput instanceof HadoopOutput) {
 			HadoopOutput hadoopOutput = (HadoopOutput)jobOutput;
-			mr.setOutput(outputPath, hadoopOutput.outputFormat, hadoopOutput.key, hadoopOutput.value);			
+			mr.setOutput(outputPath, hadoopOutput.getOutputFormat(), hadoopOutput.getKey(), hadoopOutput.getValue());			
 		} else if(jobOutput instanceof TupleOutput) {
 			TupleOutput tupleOutput = (TupleOutput)jobOutput;
-			mr.setTupleOutput(outputPath, tupleOutput.outputSchema);			
+			mr.setTupleOutput(outputPath, tupleOutput.getOutputSchema());			
 		} 
 
 		for(Map.Entry<String, RichOutput> namedOutputEntry: bindedOutputs.entrySet()) {
@@ -91,10 +99,10 @@ public abstract class PangoolGrouperJob extends PangoolJob {
 			String outputName = namedOutputEntry.getKey();
 			if(output instanceof HadoopOutput) {
 				HadoopOutput hadoopOutput = (HadoopOutput)output;
-				mr.addNamedOutput(outputName, hadoopOutput.outputFormat, hadoopOutput.key, hadoopOutput.value);			
+				mr.addNamedOutput(outputName, hadoopOutput.getOutputFormat(), hadoopOutput.getKey(), hadoopOutput.getValue());			
 			} else if(output instanceof TupleOutput) {
 				TupleOutput tupleOutput = (TupleOutput)output;
-				mr.addNamedTupleOutput(outputName, tupleOutput.outputSchema);			
+				mr.addNamedTupleOutput(outputName, tupleOutput.getOutputSchema());			
 			}			
 		}
 		
