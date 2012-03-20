@@ -1,4 +1,4 @@
-package com.datasalt.pangool.flow;
+package com.datasalt.pangool.flow.io;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;

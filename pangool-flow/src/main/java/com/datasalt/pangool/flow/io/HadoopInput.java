@@ -1,20 +1,32 @@
-package com.datasalt.pangool.flow;
+package com.datasalt.pangool.flow.io;
 
 import org.apache.hadoop.mapreduce.InputFormat;
 
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.TupleMapper;
-import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 
+@SuppressWarnings("rawtypes")
 public class HadoopInput implements RichInput {
 
-	InputFormat format;
-	TupleMapper processor;
-	Schema intermediateSchema;
+  final private InputFormat format;
+  final private TupleMapper processor;
+  final private Schema intermediateSchema;
 	
 	public HadoopInput(InputFormat format, TupleMapper processor, Schema intermediateSchema) {
 		this.format = format;
 	  this.processor = processor;
 	  this.intermediateSchema = intermediateSchema;
 	}
+
+	public InputFormat getFormat() {
+  	return format;
+  }
+
+	public TupleMapper getProcessor() {
+  	return processor;
+  }
+
+	public Schema getIntermediateSchema() {
+  	return intermediateSchema;
+  }
 }

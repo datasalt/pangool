@@ -44,6 +44,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
  * Jobs execute method {@link #run(Path, Map, Map)}. Parameters / input / output paths are parsed automatically and
  * passed as parameters of this method. Help and parameter error handling is handled transparently.
  */
+@SuppressWarnings("serial")
 public abstract class PangoolJob implements Configurable, Tool, Serializable {
 
 	protected transient Output output;
