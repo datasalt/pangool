@@ -32,7 +32,7 @@ import com.datasalt.pangool.utils.HadoopUtils;
 /**
  * This class allows creating classes that define a Flow by defining resources and binding relationships between them. 
  * <p>
- * Use {@link #add(PangoolJob)} for adding Job resources to the Flow. Resources must implement {@link PangoolJob} for declaring
+ * Use {@link #add(FlowJob)} for adding Job resources to the Flow. Resources must implement {@link FlowJob} for declaring
  * its input / output / parameter dependencies.
  * <p>
  * Use {@link #add(String)} for adding Input resources to the Flow (e.g. input files).
@@ -49,9 +49,9 @@ public abstract class LinearFlow {
 	List<String> inputs = new ArrayList<String>();
 	
 	Map<String, String> bindings = new HashMap<String, String>();
-	Map<String, PangoolJob> jobContext = new HashMap<String, PangoolJob>();
+	Map<String, FlowJob> jobContext = new HashMap<String, FlowJob>();
 	
-	public void add(PangoolJob job) {
+	public void add(FlowJob job) {
 		if(jobContext.containsKey(job.getName())) {
 			throw new IllegalArgumentException(job.getName() + " already binded to an instance of " + jobContext.get(job.getName()).getClass().getName());
 		}
@@ -69,8 +69,8 @@ public abstract class LinearFlow {
 		bindings.put(name, bind.toString());
 	}
 	
-	public PangoolJob findInOutputs(String output) {
-		for(PangoolJob job: jobContext.values()) {
+	public FlowJob findInOutputs(String output) {
+		for(FlowJob job: jobContext.values()) {
 			if(output.equals(job.getOutputName())) {
 				return job;
 			}
@@ -88,11 +88,11 @@ public abstract class LinearFlow {
 	}
 	
 	public void execute(EXECUTION_MODE mode, Configuration conf, String... outputs) throws Exception {
-		List<PangoolJob> toExecute = new ArrayList<PangoolJob>();
-		List<PangoolJob> toResolve = new ArrayList<PangoolJob>();
+		List<FlowJob> toExecute = new ArrayList<FlowJob>();
+		List<FlowJob> toResolve = new ArrayList<FlowJob>();
 		
 		for(String output: outputs) {
-			PangoolJob orig = findInOutputs(output);
+			FlowJob orig = findInOutputs(output);
 			if(orig == null) {
 				throw new IllegalArgumentException("Unknown output: " + output + " not found in flow context.");
 			}
@@ -100,10 +100,10 @@ public abstract class LinearFlow {
 			toResolve.add(orig);
 		}
 		
-		PangoolJob orig ;
+		FlowJob orig ;
 		
 		while(toResolve.size() > 0) {
-			Iterator<PangoolJob> it = toResolve.iterator();
+			Iterator<FlowJob> it = toResolve.iterator();
 			orig = it.next();
 			it.remove();
 			Log.info("Resolving dependencies for " + orig.getName());
@@ -120,7 +120,7 @@ public abstract class LinearFlow {
 					throw new IllegalArgumentException("Input " + inputName+ " not binded to anything in current flow context.");
 				}
 				
-				PangoolJob job = findInOutputs(bindedTo);
+				FlowJob job = findInOutputs(bindedTo);
 				if(job == null) {
 					if(!inputs.contains(bindedTo)) {
 						throw new IllegalArgumentException("Unknown input: " + bindedTo + " binded to " + inputName + " not found in flow context.");
@@ -143,7 +143,7 @@ public abstract class LinearFlow {
 		Log.info("Linear execution plan: " + toExecute);
 		
 		for(int i = toExecute.size() - 1; i >= 0; i--) {
-			PangoolJob job = toExecute.get(i);
+			FlowJob job = toExecute.get(i);
 			List<String> args = new ArrayList<String>();
 			for(Param param: job.getParameters()) {
 				String paramName = job.getName() + "." + param.getName();

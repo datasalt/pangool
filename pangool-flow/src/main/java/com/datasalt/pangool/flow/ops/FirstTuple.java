@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.flow.mapred;
-
-import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.tuplemr.TupleReducer;
+package com.datasalt.pangool.flow.ops;
 
 /**
- * This reducer can be used for implementing custom reducers that will emit one Schema type. This way a Tuple instance can
- * be cached and reused.
+ * Operation that selects the first tuple out of an Iterable.
  */
 @SuppressWarnings("serial")
-public abstract class SingleSchemaReducer<T, K> extends TupleReducer<T, K> {
+public class FirstTuple extends TopTuples {
 
-	protected Tuple tuple;
-	
-	public SingleSchemaReducer(Schema schema) {
-		this.tuple = new Tuple(schema);
-	}
+	public FirstTuple() {
+	  super(1);
+  }
 }

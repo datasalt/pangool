@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.flow.mapred;
+package com.datasalt.pangool.flow.ops;
 
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.tuplemr.TupleReducer;
 
 /**
- * This reducer can be used for implementing custom reducers that will emit one Schema type. This way a Tuple instance can
- * be cached and reused.
+ * Operation that copies an input Tuple A with Schema(A) to a Tuple B with Schema(B). Schema(B) must be a subset of
+ * Schema(A). This operation can be used for selecting a subset of the fields of one Tuple.
  */
 @SuppressWarnings("serial")
-public abstract class SingleSchemaReducer<T, K> extends TupleReducer<T, K> {
+public class SubsetCopy extends Copy {
 
-	protected Tuple tuple;
-	
-	public SingleSchemaReducer(Schema schema) {
-		this.tuple = new Tuple(schema);
+	Tuple tuple;
+
+	public SubsetCopy(Schema schema) {
+		super(schema, schema);
+		tuple = new Tuple(schema);
 	}
 }

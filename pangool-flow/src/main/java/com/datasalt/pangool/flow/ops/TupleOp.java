@@ -13,22 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datasalt.pangool.flow.mapred;
+package com.datasalt.pangool.flow.ops;
 
+import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.tuplemr.TupleReducer;
 
 /**
- * This reducer can be used for implementing custom reducers that will emit one Schema type. This way a Tuple instance can
- * be cached and reused.
+ * Base class for implementing {@link Op}s that promote Tuples. This way we can cache the Tuple.
  */
 @SuppressWarnings("serial")
-public abstract class SingleSchemaReducer<T, K> extends TupleReducer<T, K> {
+public abstract class TupleOp<K> extends Op<K, ITuple> {
 
-	protected Tuple tuple;
+	protected final Tuple tuple; // to be used by concrete ops
+	private final Schema schema;
 	
-	public SingleSchemaReducer(Schema schema) {
+	public TupleOp(Schema schema) {
 		this.tuple = new Tuple(schema);
+		this.schema = schema;
+	}
+	
+	// Getters
+	public Tuple getTuple() {
+  	return tuple;
+  }
+
+	public Schema getSchema() {
+  	return schema;
 	}
 }

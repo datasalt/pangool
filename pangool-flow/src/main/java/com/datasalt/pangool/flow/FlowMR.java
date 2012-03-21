@@ -11,6 +11,7 @@ import com.datasalt.pangool.flow.io.RichInput;
 import com.datasalt.pangool.flow.io.RichOutput;
 import com.datasalt.pangool.flow.io.TupleInput;
 import com.datasalt.pangool.flow.io.TupleOutput;
+import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.IdentityTupleReducer;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
@@ -18,7 +19,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 
 @SuppressWarnings("serial")
-public abstract class PangoolMRJob extends PangoolJob {
+public abstract class FlowMR extends FlowJob {
 
 	@SuppressWarnings("rawtypes")
   transient TupleReducer reducer = new IdentityTupleReducer();
@@ -29,15 +30,15 @@ public abstract class PangoolMRJob extends PangoolJob {
 	transient RichOutput jobOutput;
 	transient Map<String, RichOutput> bindedOutputs = new HashMap<String, RichOutput>();
 	
-	public PangoolMRJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy) {
+	public FlowMR(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy) {
 		this(name, inputs, parameters, namedOutputs, groupBy, null, null);
 	}
 
-	public PangoolMRJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy) {
+	public FlowMR(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy) {
 		this(name, inputs, parameters, namedOutputs, groupBy, orderBy, null);
 	}
 
-	public PangoolMRJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy, String help) {
+	public FlowMR(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy, String help) {
 	  super(name, inputs, parameters, namedOutputs, help);
 	  this.reducer = new IdentityTupleReducer();
 	  this.groupBy = groupBy;
@@ -76,11 +77,15 @@ public abstract class PangoolMRJob extends PangoolJob {
 			if(input instanceof HadoopInput) {
 				HadoopInput hadoopInput = (HadoopInput)input;
 				mr.addInput(parsedInputs.get(inputName), hadoopInput.getFormat(), hadoopInput.getProcessor());
-				mr.addIntermediateSchema(hadoopInput.getIntermediateSchema());
+				for(Schema schema: hadoopInput.getIntermediateSchemas()) {
+					mr.addIntermediateSchema(schema);
+				}
 			} else if(input instanceof TupleInput) {
 				TupleInput tupleInput = (TupleInput)input;
 				mr.addTupleInput(parsedInputs.get(inputName), tupleInput.getProcessor());
-				mr.addIntermediateSchema(tupleInput.getIntermediateSchema());
+				for(Schema schema: tupleInput.getIntermediateSchemas()) {
+					mr.addIntermediateSchema(schema);
+				}
 			} 
 		}
 		

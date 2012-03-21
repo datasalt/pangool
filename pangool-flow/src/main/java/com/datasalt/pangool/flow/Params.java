@@ -15,7 +15,6 @@
  */
 package com.datasalt.pangool.flow;
 
-
 import java.util.ArrayList;
 
 @SuppressWarnings("serial")
