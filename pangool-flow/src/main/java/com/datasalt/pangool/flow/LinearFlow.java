@@ -16,6 +16,7 @@
 package com.datasalt.pangool.flow;
 
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,12 +45,12 @@ import com.datasalt.pangool.utils.HadoopUtils;
  * <p>
  * See {@link ExampleFlow} for an example.
  */
-public abstract class LinearFlow {
+@SuppressWarnings("serial")
+public abstract class LinearFlow implements Serializable {
 
-	List<String> inputs = new ArrayList<String>();
-	
-	Map<String, String> bindings = new HashMap<String, String>();
-	Map<String, FlowJob> jobContext = new HashMap<String, FlowJob>();
+	private final transient List<String> inputs = new ArrayList<String>();
+	private final transient Map<String, String> bindings = new HashMap<String, String>();
+	private final transient Map<String, FlowJob> jobContext = new HashMap<String, FlowJob>();
 	
 	public void add(FlowJob job) {
 		if(jobContext.containsKey(job.getName())) {

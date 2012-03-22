@@ -63,14 +63,21 @@ public abstract class FlowMR extends FlowJob {
 		this.reducer = reducer;
 	}
 	
+	protected TupleMRBuilder getMRBuilder() {
+		return mr;
+	}
+	
+	transient TupleMRBuilder mr;
+	
 	@SuppressWarnings("unchecked")
   @Override
   public int run(Path outputPath, Map<String, Path> parsedInputs, Map<String, Object> parsedParameters)
       throws Exception {
 
-		configure(parsedParameters);
+		mr = new TupleMRBuilder(hadoopConf);
 		
-		TupleMRBuilder mr = new TupleMRBuilder(hadoopConf);
+		configure(parsedParameters);
+
 		for(Map.Entry<String, RichInput> inputEntry: bindedInputs.entrySet()) {
 			RichInput input = inputEntry.getValue();
 			String inputName = inputEntry.getKey();
