@@ -19,9 +19,11 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.Text;
 
+import com.datasalt.pangool.flow.ops.Op;
 import com.datasalt.pangool.flow.ops.ReturnCallback;
 import com.datasalt.pangool.flow.ops.TupleOp;
 import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.tuplemr.TupleMapper;
 
 /**
  * Mapper to be used to execute one {@link TupleOp} or {@link ChainOp}. Removes the need of implementing a Mapper.
@@ -29,13 +31,12 @@ import com.datasalt.pangool.io.ITuple;
  * It can be used with {@link TextInput}s or {@link SequenceInput}s with textual content as value.
  */
 @SuppressWarnings("serial")
-public class TextMapper extends SingleSchemaMapper<Object, Text> {
+public class TextMapper extends TupleMapper<Object, Text> {
 
-	TupleOp<String> op;
+	Op<String, ITuple> op;
 	Collector collector;
 	
-	public TextMapper(TupleOp<String> op) {
-		super(op.getSchema());
+	public TextMapper(Op<String, ITuple> op) {
 		this.op = op;
 	}
 

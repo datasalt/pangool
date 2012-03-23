@@ -85,7 +85,7 @@ public abstract class FlowJob implements Configurable, Tool, Serializable {
 
 	private List<String> help() {
 		List<String> helpLines = new ArrayList<String>();
-		helpLines.add(output + (help == null ? "" : "(" + help + ")") + " - Usage:");
+		helpLines.add(output.name + (help == null ? "" : "(" + help + ")") + " - Usage:");
 		helpLines.add("");
 		helpLines.add("Parameters:");
 		helpLines.add("");

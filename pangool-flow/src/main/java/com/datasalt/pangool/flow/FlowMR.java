@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.NullWritable;
 
 import com.datasalt.pangool.flow.io.HadoopInput;
 import com.datasalt.pangool.flow.io.HadoopOutput;
@@ -11,6 +12,7 @@ import com.datasalt.pangool.flow.io.RichInput;
 import com.datasalt.pangool.flow.io.RichOutput;
 import com.datasalt.pangool.flow.io.TupleInput;
 import com.datasalt.pangool.flow.io.TupleOutput;
+import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.IdentityTupleReducer;
 import com.datasalt.pangool.tuplemr.OrderBy;
@@ -23,6 +25,7 @@ public abstract class FlowMR extends FlowJob {
 
 	@SuppressWarnings("rawtypes")
   transient TupleReducer reducer = new IdentityTupleReducer();
+	transient TupleReducer combiner = null;
 	transient GroupBy groupBy;
 	transient OrderBy orderBy = null;
 	
@@ -63,6 +66,10 @@ public abstract class FlowMR extends FlowJob {
 		this.reducer = reducer;
 	}
 	
+	protected void setCombiner(TupleReducer<ITuple, NullWritable> combiner) {
+		this.combiner = combiner;
+	}
+	
 	protected TupleMRBuilder getMRBuilder() {
 		return mr;
 	}
@@ -97,7 +104,10 @@ public abstract class FlowMR extends FlowJob {
 		}
 		
 		mr.setTupleReducer(reducer);
-
+		if(combiner != null) {
+			mr.setTupleCombiner(combiner);
+		}
+		
 		if(jobOutput instanceof HadoopOutput) {
 			HadoopOutput hadoopOutput = (HadoopOutput)jobOutput;
 			mr.setOutput(outputPath, hadoopOutput.getOutputFormat(), hadoopOutput.getKey(), hadoopOutput.getValue());			

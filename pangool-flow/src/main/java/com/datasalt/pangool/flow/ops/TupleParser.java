@@ -15,6 +15,7 @@
  */
 package com.datasalt.pangool.flow.ops;
 
+import java.io.IOException;
 import java.util.regex.Pattern;
 
 import com.datasalt.pangool.io.ITuple;
@@ -23,27 +24,27 @@ import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 
 /**
- * Operation that converts a text line into a Tuple of primitive types. 
+ * Operation that converts a text line into a Tuple of primitive types.
  */
 @SuppressWarnings("serial")
 public class TupleParser extends TupleOp<String> {
 
 	private String splitterRegex;
 	transient private Pattern splitterPattern;
-	
+
 	public TupleParser(Schema schema, String splitterRegex) {
 		super(schema);
 		this.splitterRegex = splitterRegex;
 	}
-	
-	public void process(String input, ReturnCallback<ITuple> callback) {
+
+	public void process(String input, ReturnCallback<ITuple> callback) throws IOException, InterruptedException {
 		if(splitterPattern == null) {
 			splitterPattern = Pattern.compile(splitterRegex);
 		}
 		String[] fields = splitterPattern.split(input);
 		Schema schema = tuple.getSchema();
 		int index = -1;
-		for(Field field: schema.getFields()) {
+		for(Field field : schema.getFields()) {
 			Type type = field.getType();
 			index++;
 			switch(type) {

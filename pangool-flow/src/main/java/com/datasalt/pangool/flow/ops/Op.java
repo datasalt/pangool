@@ -15,6 +15,7 @@
  */
 package com.datasalt.pangool.flow.ops;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -22,7 +23,7 @@ import java.io.Serializable;
  */
 @SuppressWarnings("serial")
 public abstract class Op<K, V> implements Serializable {
-	
+
 	// Method that implements the operation
-	public abstract void process(K input, ReturnCallback<V> callback);
+	public abstract void process(K input, ReturnCallback<V> callback) throws IOException, InterruptedException;
 }

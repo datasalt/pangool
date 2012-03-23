@@ -15,6 +15,7 @@
  */
 package com.datasalt.pangool.flow.ops;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -23,5 +24,5 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public abstract class ReturnCallback<T> implements Serializable {
 
-	public abstract void onReturn(T element);
+	public abstract void onReturn(T element) throws IOException, InterruptedException;
 }

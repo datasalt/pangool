@@ -19,22 +19,25 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
 
+import com.datasalt.pangool.flow.io.TupleInput;
+import com.datasalt.pangool.flow.ops.ChainOp;
+import com.datasalt.pangool.flow.ops.Op;
 import com.datasalt.pangool.flow.ops.ReturnCallback;
 import com.datasalt.pangool.flow.ops.TupleOp;
 import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.tuplemr.TupleMapper;
 
 /**
  * Mapper to be used to execute one {@link TupleOp} or {@link ChainOp}. Removes the need of implementing a Mapper.
  * It can be used with {@link TupleInput}s.
  */
 @SuppressWarnings("serial")
-public class TupleOpMapper extends SingleSchemaMapper<ITuple, NullWritable> {
+public class TupleOpMapper extends TupleMapper<ITuple, NullWritable> {
 
-	TupleOp<ITuple> op;
+	Op<ITuple, ITuple>  op;
 	Collector collector;
 
-	public TupleOpMapper(TupleOp<ITuple> op) {
-		super(op.getSchema());
+	public TupleOpMapper(Op<ITuple, ITuple> op) {
 		this.op = op;
 	}
 	

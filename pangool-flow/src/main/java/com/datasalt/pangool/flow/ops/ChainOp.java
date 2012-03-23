@@ -15,25 +15,24 @@
  */
 package com.datasalt.pangool.flow.ops;
 
-import com.datasalt.pangool.io.ITuple;
+import java.io.IOException;
 
 /**
- * A chain of {@link Op}s. 
- * This class is not thread-safe.
+ * A chain of {@link Op}s. This class is not thread-safe.
  */
 @SuppressWarnings({ "serial", "unchecked", "rawtypes" })
-public class ChainOp<K> extends Op<Iterable<ITuple>, K> {
+public class ChainOp<T, K> extends Op<T, K> {
 
 	Op[] ops;
 	int methodCount = 0;
 	ReturnCallback origCallback;
-	
+
 	public ChainOp(Op... ops) {
 		this.ops = ops;
 	}
-	
+
 	ReturnCallback callback = new ReturnCallback() {
-		public void onReturn(Object element) {
+		public void onReturn(Object element) throws IOException, InterruptedException {
 			if(methodCount < ops.length) {
 				ops[methodCount++].process(element, callback);
 			} else {
@@ -42,10 +41,10 @@ public class ChainOp<K> extends Op<Iterable<ITuple>, K> {
 			}
 		};
 	};
-	
-  @Override
-  public void process(Iterable<ITuple> input, ReturnCallback<K> callback) {
-  	origCallback = callback;
-	  ops[methodCount++].process(input, this.callback);
-  }
+
+	@Override
+	public void process(T input, ReturnCallback<K> callback) throws IOException, InterruptedException {
+		origCallback = callback;
+		ops[methodCount++].process(input, this.callback);
+	}
 }

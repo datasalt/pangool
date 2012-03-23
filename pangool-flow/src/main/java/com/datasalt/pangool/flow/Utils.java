@@ -15,7 +15,6 @@
  */
 package com.datasalt.pangool.flow;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -65,11 +64,9 @@ public class Utils {
 	/*
 	 * Read the Tuples from a TupleOutput using TupleInputReader.
 	 */
-	public static void readTuples(String OUTPUT, TupleVisitor iterator) throws IOException, InterruptedException {
-		File expectedOutputFile = new File(OUTPUT);
-		Configuration configuration = new Configuration();
-		TupleInputReader reader = new TupleInputReader(configuration);
-		reader.initialize(new Path(expectedOutputFile + ""), configuration);
+	public static void readTuples(Path file, Configuration conf, TupleVisitor iterator) throws IOException, InterruptedException {
+		TupleInputReader reader = new TupleInputReader(conf);
+		reader.initialize(new Path(file + ""), conf);
 		while(reader.nextKeyValueNoSync()) {
 			ITuple tuple = reader.getCurrentKey();
 			iterator.onTuple(tuple);

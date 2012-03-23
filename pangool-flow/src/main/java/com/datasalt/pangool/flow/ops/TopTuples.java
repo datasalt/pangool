@@ -15,6 +15,7 @@
  */
 package com.datasalt.pangool.flow.ops;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import com.datasalt.pangool.io.ITuple;
@@ -26,16 +27,16 @@ import com.datasalt.pangool.io.ITuple;
 public class TopTuples extends Op<Iterable<ITuple>, ITuple> {
 
 	int topSize;
-	
+
 	public TopTuples(int topSize) {
 		this.topSize = topSize;
 	}
-	
+
 	@Override
-  public void process(Iterable<ITuple> input, ReturnCallback<ITuple> callback) {
+	public void process(Iterable<ITuple> input, ReturnCallback<ITuple> callback) throws IOException, InterruptedException {
 		Iterator<ITuple> iterator = input.iterator();
 		for(int i = 0; i < topSize && iterator.hasNext(); i++) {
 			callback.onReturn(iterator.next());
 		}
-  }
+	}
 }

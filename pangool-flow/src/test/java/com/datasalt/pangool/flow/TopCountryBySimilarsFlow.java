@@ -47,23 +47,26 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 @SuppressWarnings("serial")
 public class TopCountryBySimilarsFlow extends LinearFlow {
 
-  public TopCountryBySimilarsFlow(String similarityFile, String countryInfoFile, Integer topSize, String output)
+	public TopCountryBySimilarsFlow(String similarityFile, String countryInfoFile, Integer topSize, String output)
 	    throws TupleMRException {
 
 		// Define schemas
 		final Schema similaritySchema = new Schema("similarity", Fields.parse("first:string, second:string, score:double"));
 		final Schema countryInfo = new Schema("countryInfo", Fields.parse("second:string, country:string"));
-		final Schema jointSchema = new Schema("jointSchema", Fields.parse("first:string, second:string, score:double, country:string"));
+		final Schema jointSchema = new Schema("jointSchema",
+		    Fields.parse("first:string, second:string, score:double, country:string"));
 		final Schema outSchema = new Schema("outSchema", Fields.parse("first:string, country:string"));
-		
+
 		// Define the Flow
+
+		// Emit the top "n" user similarities for each user
 		add(new FlowMR("topSimilarities", new Inputs("similarityInput"), new Params(new Param("topSize", Integer.class)),
 		    NamedOutputs.NONE, new GroupBy("first"), new OrderBy().add("first", Order.ASC).add("score", Order.DESC)) {
 
 			@Override
-			public void configure(Map<String, Object> parsedParameters) throws TupleMRException {
+			public void configure(Map<String, Object> parameters) throws TupleMRException {
 				// Read the "n" parameter. This is the size of the top.
-				int topSize = (Integer) parsedParameters.get("topSize");
+				int topSize = (Integer) parameters.get("topSize");
 				// Define input processors (Mappers)
 				addInput("similarityInput", new TextInput(new TextMapper(new TupleParser(similaritySchema, "\t")),
 				    similaritySchema));
@@ -77,7 +80,7 @@ public class TopCountryBySimilarsFlow extends LinearFlow {
 		    "unresolved"), new GroupBy("second")) {
 
 			@Override
-			public void configure(Map<String, Object> parsedParameters) throws TupleMRException {
+			public void configure(Map<String, Object> parameters) throws TupleMRException {
 				// Define the input processors (Mappers)
 				addInput("topSimilarities", new TupleInput(similaritySchema));
 				addInput("countryInfo", new TextInput(new TextMapper(new TupleParser(countryInfo, "\t")), countryInfo));
@@ -109,15 +112,16 @@ public class TopCountryBySimilarsFlow extends LinearFlow {
 				setOutput("unresolved", new TextOutput());
 			}
 		});
-		
+
 		add(new FlowMR("topCountry", new Inputs("topSimilaritiesJoinCountryInfo"), Params.NONE, NamedOutputs.NONE,
 		    new GroupBy("first"), new OrderBy().add("first", Order.ASC).add("score", Order.DESC)) {
 			@Override
-			public void configure(Map<String, Object> parsedParameters) throws TupleMRException {
+			public void configure(Map<String, Object> parameters) throws TupleMRException {
 				// Define input processors (Mappers)
 				addInput("topSimilaritiesJoinCountryInfo", new TupleInput(jointSchema));
 				// Define Reducer
-				setReducer(new TupleOpReducer(new ChainOp<ITuple>(new FirstTuple(), new SubsetCopy(outSchema)), outSchema));
+				setReducer(new TupleOpReducer(
+				    new ChainOp<Iterable<ITuple>, ITuple>(new FirstTuple(), new SubsetCopy(outSchema)), outSchema));
 				setOutput(new TupleOutput(outSchema));
 			}
 		});

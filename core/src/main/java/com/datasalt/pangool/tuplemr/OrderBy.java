@@ -46,6 +46,24 @@ public class OrderBy {
 	}
 
 	/**
+	 * Parse in the form "field1:asc, field2:desc,...,fieldn:asc"
+	 */
+	public static OrderBy parse(String orderBy) {
+		OrderBy toReturn = new OrderBy();
+		String[] orderBys = orderBy.split(",");
+		for(String order: orderBys) {
+			order = order.trim();
+			String[] fields = order.split(":");
+			Order ord = Order.ASC;
+			if(fields.length > 1) {
+				ord = Order.valueOf(fields[1].trim().toUpperCase());
+			}
+			toReturn.add(fields[0].trim(), ord);
+		}
+		return toReturn;
+	}
+	
+	/**
 	 * Adds a new field to order by and its specified order.
 	 * 
 	 * @param name Field's name
