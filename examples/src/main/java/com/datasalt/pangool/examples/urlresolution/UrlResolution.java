@@ -33,6 +33,8 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
@@ -131,13 +133,14 @@ public class UrlResolution extends BaseExampleJob {
 		String input1 = args[0];
 		String input2 = args[1];
 		String output = args[2];
-		
+	
 		deleteOutput(output);
 		
 		TupleMRBuilder mr = new TupleMRBuilder(conf,"Pangool Url Resolution");
 		mr.addIntermediateSchema(getURLMapSchema());
 		mr.addIntermediateSchema(getURLRegisterSchema());
 		mr.setGroupByFields("url");
+		mr.setOrderBy(new OrderBy().add("url", Order.ASC).addSchemaOrder(Order.ASC));
 		mr.setTupleReducer(new Handler());
 		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
 		mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
