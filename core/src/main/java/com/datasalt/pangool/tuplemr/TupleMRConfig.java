@@ -74,6 +74,7 @@ public class TupleMRConfig {
 
 	private List<String> schemasNames = new ArrayList<String>();
 	private Map<String, Integer> schemaNameToId = new HashMap<String, Integer>();
+	private Map<String,Map<String,String>> schemaFieldAliases = new HashMap<String,Map<String,String>>();
 
 	/**
 	 * Common criteria specifies the order of the fields that are common among
@@ -211,6 +212,21 @@ public class TupleMRConfig {
 	public List<String> getGroupByFields() {
 		return groupByFields;
 	}
+	
+	/**
+	 * Returns a map that contains for every schema a list of field aliases. 
+	 * Field aliases are needed to declare common fields to be used in 
+	 * {@link #setGroupByFields(List)} and{@link #setGroupByFields(List)}
+	 * 
+	 */
+	public Map<String,Map<String,String>> getSchemaFieldAliases(){
+		return schemaFieldAliases;
+	}
+	
+	public Map<String,String> getFieldAliases(String schemaName){
+		return schemaFieldAliases.get(schemaName);
+	}
+	
 
 	/**
 	 * Returns the fields that are a subset from the groupBy fields and will be
@@ -283,6 +299,10 @@ public class TupleMRConfig {
 		Integer pos = getSchemaIdByName(sourceName);
 		specificCriterias.set(pos, criteria);
 	}
+	
+	void setSchemaFieldAliases(Map<String,Map<String,String>> schemaAliases) throws TupleMRException {
+		this.schemaFieldAliases = schemaAliases;
+	}
 
 	private void initSecondaryCriteriasWithNull() {
 		List<Criteria> r = new ArrayList<Criteria>(schemas.size());
@@ -298,9 +318,9 @@ public class TupleMRConfig {
 			return null;
 		}
 		try {
-			TupleMRConfig coConf = TupleMRConfig.parse(serialized);
-			deserializeComparators(conf, coConf);
-			return coConf;
+			TupleMRConfig mrConf = TupleMRConfig.parse(serialized);
+			deserializeComparators(conf, mrConf);
+			return mrConf;
 
 		} catch(IOException e) {
 			throw new TupleMRException(e);
@@ -431,7 +451,16 @@ public class TupleMRConfig {
 				JsonNode sourceNode = sources.next();
 				result.addIntermediateSchema(Schema.parse(sourceNode));
 			}
-
+			Iterator<String> schemaNames = node.get("fieldAliases").getFieldNames();
+			while(schemaNames.hasNext()){
+				String schemaName = schemaNames.next();
+				JsonNode aliasNode = node.get("fieldAliases").get(schemaName);
+				Aliases aliases = Aliases.parse(aliasNode);
+				result.schemaFieldAliases.put(schemaName,aliases.getAliases());
+			}
+			
+			result.schemaFieldAliases = Collections.unmodifiableMap(result.schemaFieldAliases);
+			
 			Iterator<JsonNode> groupFieldsNode = node.get("groupByFields").getElements();
 			List<String> groupFields = new ArrayList<String>();
 			while(groupFieldsNode.hasNext()) {
@@ -470,6 +499,12 @@ public class TupleMRConfig {
 		}
 	}
 
+//	private writeMap(Map<String,String> map, JsonGenerator gen){
+//		
+//		
+//	}
+	
+	
 	void toJson(JsonGenerator gen) throws IOException {
 		gen.writeStartObject();
 		gen.writeArrayFieldStart("sourceSchemas");
@@ -477,7 +512,14 @@ public class TupleMRConfig {
 			schema.toJson(gen);
 		}
 		gen.writeEndArray();
-
+		gen.writeObjectFieldStart("fieldAliases");
+		for (Map.Entry<String,Map<String,String>> entry : schemaFieldAliases.entrySet()){
+			String schemaName = entry.getKey();
+			Map<String,String> aliases = entry.getValue();
+			gen.writeObjectField(schemaName, aliases);
+		}
+		gen.writeEndObject();
+		
 		gen.writeArrayFieldStart("groupByFields");
 		for(String field : groupByFields) {
 			gen.writeString(field);
@@ -565,7 +607,9 @@ public class TupleMRConfig {
 		    && this.getCommonCriteria().equals(that.getCommonCriteria())
 		    && this.getGroupByFields().equals(that.getGroupByFields())
 		    && this.getIntermediateSchemas().equals(that.getIntermediateSchemas())
-		    && this.getSpecificOrderBys().equals(that.getSpecificOrderBys());
+		    && this.getSpecificOrderBys().equals(that.getSpecificOrderBys())
+		    && this.getSchemaFieldAliases().equals(that.getSchemaFieldAliases());
+		    
 		if(e) {
 			if(this.getCustomPartitionFields() == null) {
 				return that.getCustomPartitionFields() == null;

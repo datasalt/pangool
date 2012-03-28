@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
@@ -50,6 +51,7 @@ public class TupleMRConfigBuilder {
 	private List<String> groupByFields;
 	private String rollupFrom;
 	private String[] fieldsToPartition;
+	private Map<String,Map<String,String>> fieldAliases = new HashMap<String,Map<String,String>>();
 
 	public TupleMRConfigBuilder() {
 	}
@@ -89,6 +91,10 @@ public class TupleMRConfigBuilder {
 		Type type = null;
 		for(Schema source : schemas) {
 			Field f = source.getField(field);
+			if (f == null){
+				Map<String,String> aliases = fieldAliases.get(source.getName());
+				f = source.getField(aliases.get(field));
+			}
 			if(type == null) {
 				type = f.getType();
 			} else if(type != f.getType()) {
@@ -100,8 +106,11 @@ public class TupleMRConfigBuilder {
 
 	private boolean fieldPresentInAllSchemas(String field) {
 		for(Schema schema : schemas) {
-			if(!schema.containsField(field)) {
-				return false;
+			if(!schema.containsField(field)){
+				Map<String,String> aliases = fieldAliases.get(schema.getName());
+				if (aliases == null || !aliases.containsKey(field)){				
+						return false;
+				}
 			}
 		}
 		return true;
@@ -179,6 +188,37 @@ public class TupleMRConfigBuilder {
 		}
 		this.fieldsToPartition = fields;
 	}
+	
+	public void setFieldAliases(String schemaName,Aliases aliases) throws TupleMRException {
+		failIfNull(schemaName,"Need to specify schema");
+		failIfEmpty(aliases.getAliases().entrySet(),"Aliases empty");
+		
+		Schema schema = getSchemaByName(schemaName);
+		if (schema == null){
+			throw new TupleMRException("Unknown schema : " +schemaName);
+		}
+		
+		if (this.fieldAliases.get(schemaName) != null){
+			throw new TupleMRException("Already aliases set for schema '" + schemaName +"'");
+		}
+		
+		for (Map.Entry<String,String> entry : aliases.getAliases().entrySet()){
+			String alias = entry.getKey();
+			if (schema.containsField(alias)){
+				throw new TupleMRException("Forbidden alias '" + alias + 
+						"'. Schema '" + schema + "' already contains a field with that name");
+			}
+			
+			String referenced = entry.getValue();
+			if (!schema.containsField(referenced)){
+				throw new TupleMRException("Incorrect alias.Schema '" + schemaName +
+						"' doesn't contain field: '" + referenced);
+			}
+		}
+		this.fieldAliases.put(schemaName,aliases.getAliases());
+	}
+	
+	
 
 	/**
 	 * Sets the criteria to sort the tuples by. In a multi-schema scenario all the
@@ -245,8 +285,9 @@ public class TupleMRConfigBuilder {
 			throw new TupleMRException("Not allowed to set source order in specific order");
 		}
 		Schema schema = getSchemaByName(schemaName);
+		Map<String,String> aliases = fieldAliases.get(schema.getName());
 		for(SortElement e : ordering.getElements()) {
-			if(!schema.containsField(e.getName())) {
+			if(!Schema.containsFieldUsingAlias(schema,e.getName(), aliases)){
 				throw new TupleMRException("Source '" + schemaName + "' doesn't contain field '"
 				    + e.getName());
 			}
@@ -271,6 +312,7 @@ public class TupleMRConfigBuilder {
 
 		TupleMRConfig conf = new TupleMRConfig();
 		conf.setIntermediateSchemas(schemas);
+		conf.setSchemaFieldAliases(fieldAliases);
 		conf.setGroupByFields(groupByFields);
 		conf.setRollupFrom(rollupFrom);
 		if(fieldsToPartition != null && fieldsToPartition.length != 0) {
@@ -291,6 +333,9 @@ public class TupleMRConfigBuilder {
 				conf.setSecondarySortBy(entry.getKey(), entry.getValue());
 			}
 		}
+		
+		
+		
 		return conf;
 	}
 

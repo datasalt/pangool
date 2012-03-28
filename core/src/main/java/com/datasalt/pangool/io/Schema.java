@@ -97,6 +97,18 @@ public class Schema implements Serializable {
 		public static Field createObject(String name, Class<?> clazz) {
 			return new Field(name, Type.OBJECT, clazz);
 		}
+		
+		public static Field cloneField(Field field, String newName){
+			switch(field.getType()){
+			case OBJECT:
+				return Field.createObject(newName, field.getObjectClass());
+			case ENUM:
+				return Field.createEnum(newName,field.getObjectClass());
+				default:
+					return Field.create(newName,field.getType());
+			}
+			
+		}
 
 		/**
 		 * Creates an enum field, based in a enum class
@@ -253,7 +265,9 @@ public class Schema implements Serializable {
 	public boolean containsField(String fieldName) {
 		return indexByFieldName.containsKey(fieldName);
 	}
-
+	
+	
+	
 	@Override
 	public String toString() {
 		return toString(true);
@@ -326,7 +340,6 @@ public class Schema implements Serializable {
 		gen.writeEndArray();
 	}
 
-	@SuppressWarnings("serial")
 	public static class SchemaParseException extends PangoolRuntimeException {
 		public SchemaParseException(Throwable cause) {
 			super(cause);
@@ -336,5 +349,39 @@ public class Schema implements Serializable {
 			super(message);
 		}
 	}
+	
+	/*
+	 * Methods to use field aliases
+	 *
+	 * TODO : this could be in a utils class
+	 */ 
+
+	public static boolean containsFieldUsingAlias(Schema schema,String fieldName,Map<String,String> aliases){
+		if (aliases == null){
+			return schema.containsField(fieldName);
+		} else {
+		String ref = aliases.get(fieldName);
+		return ref == null ? schema.containsField(fieldName) : schema.containsField(ref);
+		}
+	}
+	
+	public static Field getFieldUsingAliases(Schema schema,String field,Map<String,String> aliases){
+		if (aliases == null){
+			return schema.getField(field);
+		} else {
+			String ref = aliases.get(field);
+			return ref == null ? schema.getField(field) : schema.getField(ref);
+		}
+	}
+	
+	public static int getFieldPosUsingAliases(Schema schema,String field,Map<String,String> aliases){
+		if (aliases == null){
+			return schema.getFieldPos(field);
+		} else {
+			String ref = aliases.get(field);
+			return ref == null ? schema.getFieldPos(field) : schema.getFieldPos(ref);
+		}
+	}
+	
 
 }

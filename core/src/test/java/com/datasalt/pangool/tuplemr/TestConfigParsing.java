@@ -144,5 +144,38 @@ public class TestConfigParsing {
 		System.out.println(conf);
 		System.out.println(deserConf2);
 	}
+	
+	@Test
+	public void testWithFieldAliases() throws TupleMRException, IOException {
+		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
+		Schema schema1 = new Schema("schema1", Fields.parse("user_id:int,operation:string,age:long,timestamp:int,country:string"));
+		Schema schema2 = new Schema("schema2", Fields.parse("id:int,op:string,another_id:int,time:int"));
+		
+		b.addIntermediateSchema(schema1);
+		b.addIntermediateSchema(schema2);
+		b.setFieldAliases("schema1",new Aliases().addAlias("id","user_id").addAlias("op","operation"));
+		b.setFieldAliases("schema2", new Aliases().addAlias("timestamp","time"));
+		b.setGroupByFields("id", "op");
+		b.setOrderBy(new OrderBy().add("op", Order.ASC).add("id", Order.DESC)
+		    .addSchemaOrder(Order.DESC).add("timestamp", Order.DESC));
+		b.setSpecificOrderBy("schema1", new OrderBy().add("country", Order.DESC));
+		
+		TupleMRConfig conf = b.buildConf();
+		Configuration hconf = new Configuration();
+
+		TupleMRConfig.set(conf, hconf);
+		TupleMRConfig deserConf = TupleMRConfig.get(hconf);
+		System.out.println(conf);
+		System.out.println("------------");
+		System.out.println(deserConf);
+
+		Assert.assertEquals(conf, deserConf);
+		hconf = new Configuration();
+		TupleMRConfig.set(deserConf, hconf);
+		TupleMRConfig deserConf2 = TupleMRConfig.get(hconf);
+		Assert.assertEquals(conf, deserConf2);
+	}
+	
+	
 
 }
