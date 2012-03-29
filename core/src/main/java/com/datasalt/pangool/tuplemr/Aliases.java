@@ -16,7 +16,7 @@ public class Aliases {
 	
 	public Aliases(){	}
   
-	public Aliases addAlias(String alias,String reference){
+	public Aliases add(String alias,String reference){
 		if (aliases.get(alias) == null){
 			aliases.put(alias,reference);
 		} else {

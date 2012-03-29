@@ -17,14 +17,7 @@ public class TestSerializationInfo {
 	public void testOneSource() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
 		b.addIntermediateSchema(new Schema("schema1", Fields
-		    .parse("ax:int,bx:string,c:string,blabla:string,px:string")));
-		{
-			Aliases aliases1 = new Aliases();
-			aliases1.addAlias("a","ax");
-			aliases1.addAlias("b","bx");
-			aliases1.addAlias("p","px");
-			b.setFieldAliases("schema1", aliases1);
-		}
+		    .parse("a:int,b:string,c:string,blabla:string,p:string")));
 		
 		b.setGroupByFields("c", "b");
 		OrderBy commonOrderBy = new OrderBy();
@@ -32,9 +25,10 @@ public class TestSerializationInfo {
 		commonOrderBy.add("c", Order.DESC);
 		commonOrderBy.add("a", Order.DESC);
 		b.setOrderBy(commonOrderBy);
+		b.setRollupFrom("b");
 		b.setCustomPartitionFields("p");
 		TupleMRConfig config = b.buildConf();
-		SerializationInfo serInfo = config.getSerializationInfo();
+		
 		
 		{
 			List<SortElement> expectedCommon = new ArrayList<SortElement>();
@@ -44,27 +38,25 @@ public class TestSerializationInfo {
 			Assert.assertEquals(new Criteria(expectedCommon), config.getCommonCriteria());
 		}
 		
-		
+//		{
+//			//TODO this is fragile. there's ambiguity if fields in common schema must be like 
+//			// original fields or aliases. In fact what matters is thats index translations 
+//      tables are ok.
+//			Schema commonSchema = serInfo.getCommonSchema();
+//			Schema expectedCommonSchema = 
+//				new Schema(commonSchema.getName(),Fields.parse("b:string,c:string,a:int,blabla:string,px:string"));
+//			Assert.assertEquals(expectedCommonSchema,commonSchema);
+//		}
+		SerializationInfo serInfo = config.getSerializationInfo();
 		{
 			Schema groupSchema = serInfo.getGroupSchema();
 			Schema expectedGroupSchema = 
 				new Schema(groupSchema.getName(),Fields.parse("b:string,c:string"));
 			Assert.assertEquals(expectedGroupSchema,groupSchema);
 		}
-		{
-			//TODO this is fragile. there's ambiguity if fields in common schema must be like 
-			// original fields or aliases. 
-			Schema commonSchema = serInfo.getCommonSchema();
-			Schema expectedCommonSchema = 
-				new Schema(commonSchema.getName(),Fields.parse("b:string,c:string,a:int,blabla:string,px:string"));
-			Assert.assertEquals(expectedCommonSchema,commonSchema);
-		}
-		
-		int[] commonToSource1Indexes = serInfo.getCommonSchemaIndexTranslation(0);
-		Assert.assertArrayEquals(new int[]{1,2,0,3,4},commonToSource1Indexes);
-
-		int[] fieldsToPartition = serInfo.getFieldsToPartition(0);
-		Assert.assertArrayEquals(new int[]{4},fieldsToPartition);
+		Assert.assertArrayEquals(new int[]{1,2,0,3,4},serInfo.getCommonSchemaIndexTranslation(0));
+		Assert.assertArrayEquals(new int[]{4},serInfo.getFieldsToPartition(0));
+		Assert.assertArrayEquals(new int[]{1,2},serInfo.getGroupSchemaIndexTranslation(0));
 
 	}
 	
@@ -78,20 +70,20 @@ public class TestSerializationInfo {
 		    .parse("ay:int,cy:string,by:string,p:string,blobloy:string")));
 		{
 			Aliases aliases1 = new Aliases();
-			aliases1.addAlias("a","ax");
-			aliases1.addAlias("b","bx");
-			aliases1.addAlias("c","cx");
-			aliases1.addAlias("blabla","blablax");
-			aliases1.addAlias("p","px");
+			aliases1.add("a","ax");
+			aliases1.add("b","bx");
+			aliases1.add("c","cx");
+			aliases1.add("blabla","blablax");
+			aliases1.add("p","px");
 			b.setFieldAliases("schema1", aliases1);
 		}
 		{
 			Aliases aliases2 = new Aliases();
-			aliases2.addAlias("a","ay");
-			aliases2.addAlias("b","by");
-			aliases2.addAlias("c","cy");
+			aliases2.add("a","ay");
+			aliases2.add("b","by");
+			aliases2.add("c","cy");
 			
-			aliases2.addAlias("bloblo","blobloy");
+			aliases2.add("bloblo","blobloy");
 			b.setFieldAliases("schema2", aliases2);
 		}
 		
@@ -103,11 +95,12 @@ public class TestSerializationInfo {
 		commonOrderBy.addSchemaOrder(Order.DESC);
 		commonOrderBy.add("a", Order.DESC);
 		b.setOrderBy(commonOrderBy);
+		b.setRollupFrom("b");
 		b.setSpecificOrderBy("schema1", new OrderBy().add("blabla", Order.DESC));
+		b.setSpecificOrderBy("schema2", new OrderBy().add("bloblo", Order.DESC));
 		b.setCustomPartitionFields("p");
 		TupleMRConfig config = b.buildConf();
 		SerializationInfo serInfo = config.getSerializationInfo();
-		
 		
 		{
 			List<SortElement> expectedCommon = new ArrayList<SortElement>();
@@ -125,6 +118,7 @@ public class TestSerializationInfo {
 		{
 			List<SortElement> expectedSchema2 = new ArrayList<SortElement>();
 			expectedSchema2.add(new SortElement("a", Order.DESC));
+			expectedSchema2.add(new SortElement("bloblo", Order.DESC));
 			Assert.assertEquals(new Criteria(expectedSchema2), config.getSpecificOrderBys()
 			    .get(1));
 		}
@@ -141,22 +135,31 @@ public class TestSerializationInfo {
 				new Schema(commonSchema.getName(),Fields.parse("b:string,c:string"));
 		Assert.assertEquals(expectedCommonSchema,commonSchema);
 		}
-		{
-		Schema specificSchema1 = serInfo.getSpecificSchema(0);
-		Schema expectedSpecificSchema1 = 
-				new Schema(specificSchema1.getName(),Fields.parse("ax:int,blablax:string,p:string"));
-		Assert.assertEquals(expectedSpecificSchema1,specificSchema1);
-		}
-		{
-		Schema specificSchema2 = serInfo.getSpecificSchema(1);
-		Schema expectedSpecificSchema2 = 
-				new Schema(specificSchema2.getName(),Fields.parse("ay:int,p:string,blobloy:string"));
-		Assert.assertEquals(expectedSpecificSchema2,specificSchema2);
-		}
-		int[] commonToSource1Indexes = serInfo.getCommonSchemaIndexTranslation(0);
+//		{
+//		Schema specificSchema1 = serInfo.getSpecificSchema(0);
+//		Schema expectedSpecificSchema1 = 
+//				new Schema(specificSchema1.getName(),Fields.parse("a:int,blabla:string,px:string"));
+//		Assert.assertEquals(expectedSpecificSchema1,specificSchema1);
+//		}
+//		{
+//		Schema specificSchema2 = serInfo.getSpecificSchema(1);
+//		Schema expectedSpecificSchema2 = 
+//				new Schema(specificSchema2.getName(),Fields.parse("a:int,p:string,blobloy:string"));
+//		Assert.assertEquals(expectedSpecificSchema2,specificSchema2);
+//		}
+		Assert.assertArrayEquals(new int[]{1,2},serInfo.getCommonSchemaIndexTranslation(0));
+		Assert.assertArrayEquals(new int[]{2,1},serInfo.getCommonSchemaIndexTranslation(1));
 		
-		//Assert.assertArrayEquals(new int[]{},new int[]);
-
+		Assert.assertArrayEquals(new int[]{1,2},serInfo.getGroupSchemaIndexTranslation(0));
+		Assert.assertArrayEquals(new int[]{2,1},serInfo.getGroupSchemaIndexTranslation(1));
+		
+		Assert.assertArrayEquals(new int[]{4},serInfo.getFieldsToPartition(0));
+		Assert.assertArrayEquals(new int[]{3},serInfo.getFieldsToPartition(1));
+		
+		Assert.assertArrayEquals(new int[]{0,3,4},serInfo.getSpecificSchemaIndexTranslation(0));
+		Assert.assertArrayEquals(new int[]{0,4,3},serInfo.getSpecificSchemaIndexTranslation(1));
+		
+		
 	}
 	
 }

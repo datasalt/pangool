@@ -153,8 +153,8 @@ public class TestConfigParsing {
 		
 		b.addIntermediateSchema(schema1);
 		b.addIntermediateSchema(schema2);
-		b.setFieldAliases("schema1",new Aliases().addAlias("id","user_id").addAlias("op","operation"));
-		b.setFieldAliases("schema2", new Aliases().addAlias("timestamp","time"));
+		b.setFieldAliases("schema1",new Aliases().add("id","user_id").add("op","operation"));
+		b.setFieldAliases("schema2", new Aliases().add("timestamp","time"));
 		b.setGroupByFields("id", "op");
 		b.setOrderBy(new OrderBy().add("op", Order.ASC).add("id", Order.DESC)
 		    .addSchemaOrder(Order.DESC).add("timestamp", Order.DESC));

@@ -69,15 +69,15 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		    Collector collector) throws IOException, InterruptedException {
 			user.set("name", "Pere");
 			user.set("money", 100);
-			user.set("country", "ES");
+			user.set("my_country", "ES");
 			collector.write(user);
 
 			user.set("name", "Iván");
-			user.set("country", "ES");
+			user.set("my_country", "ES");
 			user.set("money", 50);
 			collector.write(user);
 
-			user.set("country", "FR");
+			user.set("my_country", "FR");
 			user.set("money", 150);
 			user.set("name", "Eric");
 			collector.write(user);
@@ -156,11 +156,11 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		builder.addIntermediateSchema(new Schema("country", Fields
 		    .parse("country:string, averageSalary:int")));
 		builder.addIntermediateSchema(new Schema("user", Fields
-		    .parse("name:string, money:int, country:string")));
+		    .parse("name:string, money:int, my_country:string")));
 
+		builder.setFieldAliases("user",new Aliases().add("country","my_country"));
 		builder.setGroupByFields("country");
-		builder
-		    .setOrderBy(new OrderBy().add("country", Order.ASC).addSchemaOrder(Order.DESC));
+		builder.setOrderBy(new OrderBy().add("country", Order.ASC).addSchemaOrder(Order.DESC));
 		builder.setSpecificOrderBy("user", new OrderBy().add("money", Order.ASC));
 
 		builder.addInput(new Path("test-input"),

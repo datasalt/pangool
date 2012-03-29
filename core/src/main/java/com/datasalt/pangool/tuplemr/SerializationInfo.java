@@ -201,7 +201,6 @@ public class SerializationInfo {
 		for(int i = 0; i < mrConfig.getNumIntermediateSchemas(); i++) {
 			Schema sourceSchema = mrConfig.getIntermediateSchema(i);
 			List<Field> specificFields = specificFieldsBySource.get(i);
-			// TODO FIXME this shouldn't work. Use aliases
 			for(Field field : sourceSchema.getFields()) {
 				Map<String,String> sourceAliases = mrConfig.getFieldAliases(sourceSchema.getName());
 				if(!containsField(field.getName(),commonSchema.getFields(),sourceAliases)

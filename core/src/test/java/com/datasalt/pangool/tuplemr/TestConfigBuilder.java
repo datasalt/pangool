@@ -106,19 +106,19 @@ public class TestConfigBuilder extends BaseTest {
 		    .parse("ay:int,cy:string,by:string,blobloy:string,p:string")));
 		{
 			Aliases aliases1 = new Aliases();
-			aliases1.addAlias("a","ax");
-			aliases1.addAlias("b","bx");
-			aliases1.addAlias("c","cx");
-			aliases1.addAlias("blabla","blablax");
-			aliases1.addAlias("p","p2");
+			aliases1.add("a","ax");
+			aliases1.add("b","bx");
+			aliases1.add("c","cx");
+			aliases1.add("blabla","blablax");
+			aliases1.add("p","p2");
 			b.setFieldAliases("schema1", aliases1);
 		}
 		{
 			Aliases aliases2 = new Aliases();
-			aliases2.addAlias("a","ay");
-			aliases2.addAlias("b","by");
-			aliases2.addAlias("c","cy");
-			aliases2.addAlias("bloblo","blobloy");
+			aliases2.add("a","ay");
+			aliases2.add("b","by");
+			aliases2.add("c","cy");
+			aliases2.add("bloblo","blobloy");
 			b.setFieldAliases("schema2", aliases2);
 		}
 		

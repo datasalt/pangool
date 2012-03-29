@@ -152,8 +152,9 @@ public class TupleMRConfigBuilder {
 		failIfNull(rollupFrom, "Rollup can't be null");
 		failIfNotNull(this.rollupFrom, "Rollup was already set");
 		failIfEmpty(this.groupByFields, "GroupBy fields not set");
+		
 		if(!this.groupByFields.contains(rollupFrom)) {
-			throw new TupleMRException("Rollup field must be present fields to group by '"
+			throw new TupleMRException("Rollup field must be present in groupBy fields '"
 			    + groupByFields + "'");
 		}
 		if(this.commonOrderBy == null) {
@@ -190,6 +191,11 @@ public class TupleMRConfigBuilder {
 	}
 	
 	public void setFieldAliases(String schemaName,Aliases aliases) throws TupleMRException {
+		if (schemas.isEmpty()){
+			throw new TupleMRException("Not able to define field aliases with no schemas defined");
+		} else if (schemas.size() == 1){
+			throw new TupleMRException("Not able to define field aliases with just one schema");
+		}
 		failIfNull(schemaName,"Need to specify schema");
 		failIfEmpty(aliases.getAliases().entrySet(),"Aliases empty");
 		
