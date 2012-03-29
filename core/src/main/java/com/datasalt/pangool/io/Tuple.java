@@ -99,12 +99,20 @@ public class Tuple implements ITuple, Serializable {
 
 	@Override
 	public Object get(String field) {
-		return get(schema.getFieldPos(field));
+		Integer pos = schema.getFieldPos(field);
+		if (pos == null){
+			throw new IllegalArgumentException("Field '" + field +"' not present in schema "+schema);
+		}
+		return get(pos);
 	}
 
 	@Override
 	public void set(String field, Object object) {
-		set(schema.getFieldPos(field), object);
+		Integer pos = schema.getFieldPos(field);
+		if (pos == null){
+			throw new IllegalArgumentException("Field '" + field +"' not present in schema "+schema);
+		}
+		set(pos, object);
 	}
 
 	public boolean equals(Object that) {

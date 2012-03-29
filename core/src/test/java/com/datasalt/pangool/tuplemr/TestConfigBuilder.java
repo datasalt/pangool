@@ -96,6 +96,64 @@ public class TestConfigBuilder extends BaseTest {
 		}
 
 	}
+	
+	@Test
+	public void testAliases1() throws TupleMRException {
+		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
+		b.addIntermediateSchema(new Schema("schema1", Fields
+		    .parse("ax:int,bx:string,cx:string,blablax:string,p2:string")));
+		b.addIntermediateSchema(new Schema("schema2", Fields
+		    .parse("ay:int,cy:string,by:string,blobloy:string,p:string")));
+		{
+			Aliases aliases1 = new Aliases();
+			aliases1.add("a","ax");
+			aliases1.add("b","bx");
+			aliases1.add("c","cx");
+			aliases1.add("blabla","blablax");
+			aliases1.add("p","p2");
+			b.setFieldAliases("schema1", aliases1);
+		}
+		{
+			Aliases aliases2 = new Aliases();
+			aliases2.add("a","ay");
+			aliases2.add("b","by");
+			aliases2.add("c","cy");
+			aliases2.add("bloblo","blobloy");
+			b.setFieldAliases("schema2", aliases2);
+		}
+		
+		b.setGroupByFields("c", "b");
+		b.setOrderBy(new OrderBy().add("b", Order.ASC).add("c", Order.DESC)
+		    .addSchemaOrder(Order.DESC).add("a", Order.DESC));
+		b.setSpecificOrderBy("schema1", new OrderBy().add("blabla", Order.DESC));
+		b.setCustomPartitionFields("p");
+		TupleMRConfig config = b.buildConf();
+		SerializationInfo serInfo = config.getSerializationInfo();
+		System.out.println(serInfo.getCommonSchema());
+		System.out.println(serInfo.getPartitionFieldsIndexes());
+		
+		{
+			List<SortElement> expectedCommon = new ArrayList<SortElement>();
+			expectedCommon.add(new SortElement("b", Order.ASC));
+			expectedCommon.add(new SortElement("c", Order.DESC));
+			Assert.assertEquals(new Criteria(expectedCommon), config.getCommonCriteria());
+		}
+		{
+			List<SortElement> expectedSchema1 = new ArrayList<SortElement>();
+			expectedSchema1.add(new SortElement("a", Order.DESC));
+			expectedSchema1.add(new SortElement("blabla", Order.DESC));
+			Assert.assertEquals(new Criteria(expectedSchema1), config.getSpecificOrderBys()
+			    .get(0));
+		}
+		{
+			List<SortElement> expectedSchema2 = new ArrayList<SortElement>();
+			expectedSchema2.add(new SortElement("a", Order.DESC));
+			Assert.assertEquals(new Criteria(expectedSchema2), config.getSpecificOrderBys()
+			    .get(1));
+		}
+
+	}
+	
 
 	@Test
 	public void testCommonOrderGeneratedImplicitlyFromGroupFields() throws TupleMRException {

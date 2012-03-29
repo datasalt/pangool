@@ -18,14 +18,15 @@ package com.datasalt.pangool.tuplemr;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
-import com.datasalt.pangool.tuplemr.mapred.TupleHashPartitioner;
 import com.datasalt.pangool.tuplemr.mapred.RollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.SimpleReducer;
 import com.datasalt.pangool.tuplemr.mapred.SortComparator;
+import com.datasalt.pangool.tuplemr.mapred.TupleHashPartitioner;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 
 /**
@@ -68,7 +69,7 @@ public class SerializationInfo {
 	}
 
 	private void initializeOneSource() throws TupleMRException {
-		calculateOneSourceCommonSchema();
+		calculateOneIntermediateCommonSchema();
 		calculatePartitionFields();
 		calculateGroupSchema();
 		calculateIndexTranslations();
@@ -130,6 +131,8 @@ public class SerializationInfo {
 		this.groupSchema = new Schema("group", groupFields);
 	}
 
+	
+	
 	private void calculatePartitionFields() {
 		List<String> partitionFields;
 		if(!mrConfig.getCustomPartitionFields().isEmpty()) {
@@ -141,28 +144,28 @@ public class SerializationInfo {
 		for(Schema schema : mrConfig.getIntermediateSchemas()) {
 			int[] posFields = new int[numFields];
 			for(int i = 0; i < partitionFields.size(); i++) {
-				int pos = schema.getFieldPos(partitionFields.get(i));
+				int pos = getFieldPosUsingAliases(schema,partitionFields.get(i));
 				posFields[i] = pos;
 			}
 			fieldsToPartition.add(posFields);
 		}
 	}
 
-	private void calculateOneSourceCommonSchema() throws TupleMRException {
-		Schema sourceSchema = mrConfig.getIntermediateSchemas().get(0);
-
+	private void calculateOneIntermediateCommonSchema() throws TupleMRException {
+		Schema intermediateSchema = mrConfig.getIntermediateSchemas().get(0);
 		Criteria commonSortCriteria = mrConfig.getCommonCriteria();
 		List<Field> commonFields = new ArrayList<Field>();
 		for(SortElement sortElement : commonSortCriteria.getElements()) {
 			String fieldName = sortElement.getName();
 			Field field = checkFieldInAllSchemas(fieldName);
-			commonFields.add(field);
+			commonFields.add(Field.cloneField(field, fieldName));
 		}
 
 		// adding the rest
-		for(Field field : sourceSchema.getFields()) {
-			if(!containsFieldName(field.getName(), commonFields)) {
-				commonFields.add(field);
+		for(Field field : intermediateSchema.getFields()) {
+			Map<String,String> aliases = mrConfig.getFieldAliases(intermediateSchema.getName());
+			if(!containsField(field.getName(),commonFields,aliases))  {
+					commonFields.add(field);
 			}
 		}
 		this.commonSchema = new Schema("common", commonFields);
@@ -174,7 +177,8 @@ public class SerializationInfo {
 		for(SortElement sortElement : commonSortCriteria.getElements()) {
 			String fieldName = sortElement.getName();
 			Field field = checkFieldInAllSchemas(fieldName);
-			commonFields.add(field);
+			
+			commonFields.add(Field.cloneField(field,fieldName));
 		}
 
 		this.commonSchema = new Schema("common", commonFields);
@@ -188,7 +192,7 @@ public class SerializationInfo {
 				for(SortElement sortElement : specificCriteria.getElements()) {
 					String fieldName = sortElement.getName();
 					Field field = checkFieldInSchema(fieldName, schemaId);
-					specificFields.add(field);
+					specificFields.add(Field.cloneField(field,fieldName));
 				}
 			}
 			specificFieldsBySource.add(specificFields);
@@ -198,21 +202,23 @@ public class SerializationInfo {
 			Schema sourceSchema = mrConfig.getIntermediateSchema(i);
 			List<Field> specificFields = specificFieldsBySource.get(i);
 			for(Field field : sourceSchema.getFields()) {
-				if(!commonSchema.containsField(field.getName())
-				    && !containsFieldName(field.getName(), specificFields)) {
+				Map<String,String> sourceAliases = mrConfig.getFieldAliases(sourceSchema.getName());
+				if(!containsField(field.getName(),commonSchema.getFields(),sourceAliases)
+				    && !containsField(field.getName(), specificFields,sourceAliases)) {
 					specificFields.add(field);
 				}
 			}
 			this.specificSchemas.add(new Schema("specific", specificFields));
-
 		}
 		this.specificSchemas = Collections.unmodifiableList(this.specificSchemas);
 	}
 
 	
-	private boolean containsFieldName(String fieldName, List<Field> fields) {
+	private boolean containsField(String fieldName, List<Field> fields,
+				Map<String,String> aliases) {
 		for(Field field : fields) {
-			if(field.getName().equals(fieldName)) {
+			if(fieldName.equals(field.getName()) || 
+					(aliases != null && fieldName.equals(aliases.get(field.getName())))) {
 				return true;
 			}
 		}
@@ -225,7 +231,7 @@ public class SerializationInfo {
 			Field fieldInSource = checkFieldInSchema(name, i);
 			if(field == null) {
 				field = fieldInSource;
-			} else if(!field.equals(fieldInSource)) {
+			} else if(field.getType() != fieldInSource.getType() || field.getObjectClass() != fieldInSource.getObjectClass()) {
 				throw new TupleMRException("The type for field '" + name
 				    + "' is not the same in all the sources");
 			}
@@ -236,7 +242,7 @@ public class SerializationInfo {
 	private Field checkFieldInSchema(String fieldName, int schemaId)
 	    throws TupleMRException {
 		Schema schema = mrConfig.getIntermediateSchema(schemaId);
-		Field field = schema.getField(fieldName);
+		Field field = getFieldUsingAliases(schema,fieldName);
 		if(field == null) {
 			throw new TupleMRException("Field '" + fieldName + "' not present in source '"
 			    + schema.getName() + "' " + schema);
@@ -307,14 +313,25 @@ public class SerializationInfo {
 	 *          schema
 	 * @return The translation index array
 	 */
-	public static final int[] getIndexTranslation(Schema source, Schema dest) {
+	private  int[] getIndexTranslation(Schema source, Schema dest) {
 		int[] result = new int[source.getFields().size()];
 		for(int i = 0; i < result.length; i++) {
 			String fieldName = source.getField(i).getName();
-			int destPos = dest.getFieldPos(fieldName);
+			int destPos = getFieldPosUsingAliases(dest,fieldName);
 			result[i] = destPos;
 		}
 		return result;
 	}
+	
+	private int getFieldPosUsingAliases(Schema schema,String field){
+		Map<String,String> aliases = mrConfig.getFieldAliases(schema.getName());
+		return Schema.getFieldPosUsingAliases(schema, field, aliases);
+	}
+	
+	private Field getFieldUsingAliases(Schema schema,String field){
+		Map<String,String> aliases = mrConfig.getFieldAliases(schema.getName());
+		return Schema.getFieldUsingAliases(schema, field, aliases);
+	}
+	
 
 }

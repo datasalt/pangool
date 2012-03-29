@@ -34,16 +34,16 @@ import org.junit.Test;
 import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.Aliases;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.TupleRollupReducer;
-import com.datasalt.pangool.tuplemr.Criteria.Order;
-import com.datasalt.pangool.tuplemr.mapred.BaseComparator;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
@@ -262,7 +262,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 
 		TupleMRBuilder builder = new TupleMRBuilder(getConf());
 		builder.addIntermediateSchema(schema);
-		builder.setGroupByFields("country","age","name");
+		builder.setGroupByFields("age","name","country");
 		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
 		builder.setRollupFrom("age");
 		builder.setTupleReducer(new IdentityRed());

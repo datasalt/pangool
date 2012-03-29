@@ -82,7 +82,7 @@ public class ViewTuple implements ITuple {
 	public Object get(String field) {
 		Integer pos = schema.getFieldPos(field);
 		if(pos == null) {
-			throw new IllegalArgumentException("Not known field '" + field + "' in schema:"
+			throw new IllegalArgumentException("Field '" + field + "' not present in schema:"
 			    + schema);
 		}
 		return get(pos);
