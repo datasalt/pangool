@@ -14,20 +14,19 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  -->
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>com.datasalt.pangool</groupId>
-    <artifactId>pangool</artifactId>
-    <version>0.40</version>
+    <artifactId>pangool-top-level</artifactId>
+    <version>0.40.2-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>pangool-examples</artifactId>
   <packaging>jar</packaging>
-  <version>0.40</version>
+  <!--version>0.39</version-->
   <!-- modules inherit parent's group id and version. -->
   <name>Pangool Examples</name>
   <url>http://www.datasalt.com</url>
@@ -40,14 +39,14 @@
     </license>
   </licenses>
 
-  <scm>
+  <!--scm>
    <url>http://pangool.net</url>
     <connection>https://git@github.com:datasalt/pangool.git</connection>
-  </scm>
+  </scm-->
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <pangool.skip.example>false</pangool.skip.example>
+    <!--pangool.skip.example>false</pangool.skip.example-->
   </properties>
 
   <build>
@@ -65,29 +64,29 @@
 
       <!-- create examples pangool job jar -->
 	  <plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2.1</version>
-				<configuration>
-					<descriptors>
-						<descriptor>src/main/assembly/hadoop-job.xml</descriptor>
-					</descriptors>
-					<archive>
-						<manifest>
-							<mainClass>com.datasalt.pangool.examples.Driver</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-	    </plugins>
+	    <artifactId>maven-assembly-plugin</artifactId>
+	    <version>2.2.1</version>
+	    <configuration>
+		<descriptors>
+		  <descriptor>src/main/assembly/hadoop-job.xml</descriptor>
+		</descriptors>
+		<archive>
+		  <manifest>
+		    <mainClass>com.datasalt.pangool.examples.Driver</mainClass>
+	          </manifest>
+		</archive>
+	    </configuration>
+	    <!--executions>
+		<execution>
+       		 <id>make-assembly</id>
+			<phase>package</phase>
+  			<goals>
+  		          <goal>single</goal>
+			</goals>
+		</execution>
+	</executions-->
+	</plugin>
+   </plugins>
   </build>
     
   <dependencies>
@@ -119,12 +118,12 @@
             
  </dependencies>
 
-  <profiles>
+  <!--profiles>
     <profile>
       <id>release.prepare</id>
       <properties>
         <pangool.skip.example>true</pangool.skip.example>
       </properties>
     </profile>
-  </profiles>
+  </profiles-->
 </project>

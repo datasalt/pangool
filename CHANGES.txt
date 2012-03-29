@@ -1,0 +1,14 @@
+Pangool Change Log
+
+Pangool 0.41 (unreleased)
+
+  NEW FEATURES
+
+  IMPROVEMENTS
+
+  BUG FIXES
+
+
+Pangool 0.40 (5 march 2012) 
+
+  Initial Release!!

@@ -15,8 +15,6 @@
  */
 package com.datasalt.pangool.tuplemr.mapred;
 
-import java.util.Arrays;
-
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -89,7 +87,7 @@ public class TupleHashPartitioner extends Partitioner<DatumWrapper<ITuple>, Null
 		for(int field : fields) {
 			Object o = tuple.get(field);
 			int hashCode;
-			if(o instanceof Utf8) { // since String.hashCode() != Utf8.hashCode()
+			if(o instanceof String) { // since String.hashCode() != Utf8.hashCode()
 				HELPER_UTF8.set((String) o);
 				hashCode = HELPER_UTF8.hashCode();
 			} else if(o instanceof Text) {

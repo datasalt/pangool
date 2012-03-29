@@ -65,7 +65,7 @@ public class TestTupleSerialization extends BaseTest{
 						"enumField:"+TestEnum.class.getName() + ",thriftField:" + A.class.getName())));
 		
 		b.setGroupByFields("booleanField","intField");
-		b.setOrderBy(new OrderBy().add("booleanField",Order.ASC).add("intField",Order.DESC).addSourceOrder(Order.DESC));
+		b.setOrderBy(new OrderBy().add("booleanField",Order.ASC).add("intField",Order.DESC).addSchemaOrder(Order.DESC));
 		b.setSpecificOrderBy("schema1",new OrderBy().add("strField",Order.DESC));
 		b.setSpecificOrderBy("schema2",new OrderBy().add("longField",Order.ASC));
 		pangoolConf = b.buildConf();

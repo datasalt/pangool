@@ -38,11 +38,11 @@ import com.datasalt.pangool.serialization.HadoopSerialization;
 @SuppressWarnings("serial")
 public class BinaryComparator implements RawComparator<Object>, Serializable, Configurable {
 
-	protected Configuration conf;
-	protected HadoopSerialization ser;
+	protected transient Configuration conf;
+	protected transient HadoopSerialization ser;
 	
-	private DataOutputBuffer buf1;
-	private DataOutputBuffer buf2;
+	private transient DataOutputBuffer buf1;
+	private transient DataOutputBuffer buf2;
 	
 	@Override
   public int compare(Object o1, Object o2) {		

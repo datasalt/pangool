@@ -33,6 +33,8 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
@@ -47,17 +49,30 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
  */
 public class UrlResolution extends BaseExampleJob {
 
+	static Schema getURLRegisterSchema() {
+		List<Field> urlRegisterFields = new ArrayList<Field>();
+		urlRegisterFields.add(Field.create("url",Type.STRING));
+		urlRegisterFields.add(Field.create("timestamp",Type.LONG));
+		urlRegisterFields.add(Field.create("ip",Type.STRING));
+		return new Schema("urlRegister", urlRegisterFields);		
+	}
+
+	static Schema getURLMapSchema() {
+		List<Field> urlMapFields = new ArrayList<Field>();
+		urlMapFields.add(Field.create("url",Type.STRING));
+		urlMapFields.add(Field.create("canonicalUrl",Type.STRING));
+		return new Schema("urlMap", urlMapFields);
+	}
+	
 	@SuppressWarnings("serial")
 	public static class UrlProcessor extends TupleMapper<LongWritable, Text> {
-		private Tuple tuple;
+
+		private Tuple tuple = new Tuple(getURLRegisterSchema());
 
 		@Override
 		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
 
-			if(tuple == null) {
-				tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("urlRegister"));
-			}
 			String[] fields = value.toString().split("\t");
 			tuple.set("url", fields[0]);
 			tuple.set("timestamp", Long.parseLong(fields[1]));
@@ -69,14 +84,11 @@ public class UrlResolution extends BaseExampleJob {
 	@SuppressWarnings("serial")
 	public static class UrlMapProcessor extends TupleMapper<LongWritable, Text> {
 
-		private Tuple tuple;
+		private Tuple tuple = new Tuple(getURLMapSchema());
 
 		@Override
 		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
-			if(tuple == null) {
-				tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("urlMap"));
-			}
 
 			String[] fields = value.toString().split("\t");
 			tuple.set("url", fields[0]);
@@ -121,22 +133,14 @@ public class UrlResolution extends BaseExampleJob {
 		String input1 = args[0];
 		String input2 = args[1];
 		String output = args[2];
-		
+	
 		deleteOutput(output);
 		
-		List<Field> urlRegisterFields = new ArrayList<Field>();
-		urlRegisterFields.add(Field.create("url",Type.STRING));
-		urlRegisterFields.add(Field.create("timestamp",Type.LONG));
-		urlRegisterFields.add(Field.create("ip",Type.STRING));
-
-		List<Field> urlMapFields = new ArrayList<Field>();
-		urlMapFields.add(Field.create("url",Type.STRING));
-		urlMapFields.add(Field.create("canonicalUrl",Type.STRING));
-
 		TupleMRBuilder mr = new TupleMRBuilder(conf,"Pangool Url Resolution");
-		mr.addIntermediateSchema(new Schema("urlMap", urlMapFields));
-		mr.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
+		mr.addIntermediateSchema(getURLMapSchema());
+		mr.addIntermediateSchema(getURLRegisterSchema());
 		mr.setGroupByFields("url");
+		mr.setOrderBy(new OrderBy().add("url", Order.ASC).addSchemaOrder(Order.ASC));
 		mr.setTupleReducer(new Handler());
 		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
 		mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());

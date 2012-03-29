@@ -62,8 +62,6 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 
 		Record record;
 		DataFileWriter<Record> writer;
-		Schema pangoolSchema;
-		org.apache.avro.Schema avroSchema;
 		private final HadoopSerialization ser;
 		private final DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 
@@ -71,9 +69,7 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 		    DataFileWriter<Record> writer, HadoopSerialization ser) {
 			record = new Record(schema);
 			this.ser = ser;
-			this.avroSchema = schema;
 			this.writer = writer;
-			this.pangoolSchema = pangoolSchema;
 		}
 
 		@Override

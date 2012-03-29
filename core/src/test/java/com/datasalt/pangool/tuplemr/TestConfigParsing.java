@@ -100,7 +100,7 @@ public class TestConfigParsing {
 		b.addIntermediateSchema(schema2);
 		b.addIntermediateSchema(schema3);
 		b.setGroupByFields("int_field");
-		b.setOrderBy(new OrderBy().add("int_field", Order.DESC).addSourceOrder(Order.DESC)
+		b.setOrderBy(new OrderBy().add("int_field", Order.DESC).addSchemaOrder(Order.DESC)
 		    .add("boolean_field", Order.DESC, new DummyComparator()));
 		b.setRollupFrom("int_field");
 		b.setSpecificOrderBy(schema3.getName(),
@@ -129,7 +129,7 @@ public class TestConfigParsing {
 		b.addIntermediateSchema(schema2);
 		b.addIntermediateSchema(schema3);
 		b.setGroupByFields("int_field");
-		b.setOrderBy(new OrderBy().add("int_field", Order.DESC).addSourceOrder(Order.DESC)
+		b.setOrderBy(new OrderBy().add("int_field", Order.DESC).addSchemaOrder(Order.DESC)
 		    .add("boolean_field", Order.DESC));
 		b.setRollupFrom("int_field");
 		b.setSpecificOrderBy(schema3.getName(),

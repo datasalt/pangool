@@ -16,6 +16,7 @@
 package com.datasalt.pangool.io;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -37,7 +38,8 @@ import com.datasalt.pangool.PangoolRuntimeException;
  * A list of {@link Field} elements that a {@link ITuple} instance contains.
  * 
  */
-public class Schema {
+@SuppressWarnings("serial")
+public class Schema implements Serializable {
 
 	static final JsonFactory FACTORY = new JsonFactory();
 	static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
@@ -63,7 +65,7 @@ public class Schema {
 	 * A field can be constructed using one of its static <tt>createXXX</tt>
 	 * methods. A field object is <b>immutable</b>.
 	 */
-	public static class Field {
+	public static class Field implements Serializable{
 		public static enum Type {
 			INT, LONG, FLOAT, DOUBLE, STRING, BOOLEAN, ENUM, OBJECT;
 		}
@@ -160,6 +162,11 @@ public class Schema {
 			}
 		}
 
+		@Override
+		public int hashCode() {
+			return name.hashCode();
+		}
+		
 		public String toString() {
 			try {
 				StringWriter writer = new StringWriter();
@@ -298,6 +305,11 @@ public class Schema {
 		return false;
 	}
 
+	@Override
+	public int hashCode() {
+		return toString().hashCode();
+	}
+	
 	public void toJson(JsonGenerator gen) throws IOException {
 		gen.writeStartObject();
 		gen.writeStringField("name", name);

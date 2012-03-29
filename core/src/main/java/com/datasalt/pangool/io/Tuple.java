@@ -142,4 +142,8 @@ public class Tuple implements ITuple, Serializable {
 		return true;
 	}
 
+	public int hashCode() {
+	  assert false : "hashCode not designed";
+	  return 42; // any arbitrary constant will do 
+	}
 }

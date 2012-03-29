@@ -119,8 +119,8 @@ public class TupleMRConfigBuilder {
 	 */
 	public void setGroupByFields(String... groupByFields) throws TupleMRException {
 		failIfEmpty(groupByFields, "GroupBy fields can't be null or empty");
-		failIfEmpty(schemas, "No eschemas defined");
-		failIfNotNull(this.groupByFields, "GroupBy fields already set : " + groupByFields);
+		failIfEmpty(schemas, "No schemas defined");
+		failIfNotNull(this.groupByFields, "GroupBy fields already set : " + Arrays.toString(groupByFields));
 		for(String field : groupByFields) {
 			if(!fieldPresentInAllSchemas(field)) {
 				throw new TupleMRException("Can't group by field '" + field
@@ -193,7 +193,7 @@ public class TupleMRConfigBuilder {
 		failIfEmpty(schemas, "Need to specify source schemas");
 		failIfEmpty(groupByFields, "Need to specify group by fields");
 		if(schemas.size() == 1) {
-			if(ordering.getSourceOrderIndex() != null) {
+			if(ordering.getSchemaOrderIndex() != null) {
 				throw new TupleMRException(
 				    "Not able to use source order when just one source specified");
 			}
@@ -210,7 +210,7 @@ public class TupleMRConfigBuilder {
 		}
 		// group by fields need to be a prefix of sort by fields
 		for(String groupField : groupByFields) {
-			if(!ordering.containsBeforeSourceOrder(groupField)) {
+			if(!ordering.containsBeforeSchemaOrder(groupField)) {
 				throw new TupleMRException("Group by field '" + groupField
 				    + "' is not present in common order by before source order");
 			}
@@ -237,11 +237,11 @@ public class TupleMRConfigBuilder {
 		failIfEmpty(ordering.getElements(), "Can't set empty ordering");
 		failIfNull(commonOrderBy,
 		    "Not able to set specific order with no previous common OrderBy");
-		if(commonOrderBy.getSourceOrderIndex() == null) {
+		if(commonOrderBy.getSchemaOrderIndex() == null) {
 			throw new TupleMRException(
 			    "Need to specify source order in common OrderBy when using specific OrderBy");
 		}
-		if(ordering.getSourceOrderIndex() != null) {
+		if(ordering.getSchemaOrderIndex() != null) {
 			throw new TupleMRException("Not allowed to set source order in specific order");
 		}
 		Schema schema = getSchemaByName(schemaName);
@@ -278,8 +278,8 @@ public class TupleMRConfigBuilder {
 		}
 
 		Criteria convertedCommonOrder = convertCommonSortByToCriteria(commonOrderBy);
-		if(commonOrderBy != null && commonOrderBy.getSourceOrder() != null) {
-			conf.setSourceOrder(commonOrderBy.getSourceOrder());
+		if(commonOrderBy != null && commonOrderBy.getSchemaOrder() != null) {
+			conf.setSourceOrder(commonOrderBy.getSchemaOrder());
 		} else {
 			conf.setSourceOrder(Order.ASC);// by default source order is ASC
 		}
@@ -302,12 +302,12 @@ public class TupleMRConfigBuilder {
 				elements.add(new SortElement(groupField, Order.ASC));
 			}
 			return new Criteria(elements);
-		} else if(orderBy.getSourceOrderIndex() == null
-		    || orderBy.getSourceOrderIndex() == orderBy.getElements().size()) {
+		} else if(orderBy.getSchemaOrderIndex() == null
+		    || orderBy.getSchemaOrderIndex() == orderBy.getElements().size()) {
 			return new Criteria(orderBy.getElements());
 		} else {
 			List<SortElement> sortElements = orderBy.getElements().subList(0,
-			    orderBy.getSourceOrderIndex());
+			    orderBy.getSchemaOrderIndex());
 			return new Criteria(sortElements);
 		}
 	}
@@ -319,8 +319,8 @@ public class TupleMRConfigBuilder {
 		} else if(commonSortBy == null) {
 			throw new IllegalArgumentException(
 			    "Common sort by must not be null if specific sort by is set");
-		} else if(commonSortBy.getSourceOrderIndex() == null
-		    || commonSortBy.getSourceOrderIndex() == commonSortBy.getElements().size()) {
+		} else if(commonSortBy.getSchemaOrderIndex() == null
+		    || commonSortBy.getSchemaOrderIndex() == commonSortBy.getElements().size()) {
 			Map<String, Criteria> result = new HashMap<String, Criteria>();
 			for(Map.Entry<String, OrderBy> entry : specifics.entrySet()) {
 				result.put(entry.getKey(), new Criteria(entry.getValue().getElements()));
@@ -328,7 +328,7 @@ public class TupleMRConfigBuilder {
 			return result;
 		} else {
 			List<SortElement> toPrepend = commonSortBy.getElements().subList(
-			    commonSortBy.getSourceOrderIndex(), commonSortBy.getElements().size());
+			    commonSortBy.getSchemaOrderIndex(), commonSortBy.getElements().size());
 			Map<String, Criteria> result = new HashMap<String, Criteria>();
 			for(Schema sourceSchema : sourceSchemas) {
 				String source = sourceSchema.getName();

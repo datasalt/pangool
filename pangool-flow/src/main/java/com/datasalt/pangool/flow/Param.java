@@ -22,6 +22,10 @@ public class Param {
 	final String help;
   final Class clazz;
 	
+  public Param(String name) {
+  	this(name, String.class, null);
+  }
+  
 	public Param(String name, Class clazz) {
 		this(name, clazz, null);
 	}

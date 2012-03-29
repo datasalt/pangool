@@ -20,12 +20,17 @@ import java.util.Map;
 
 import org.apache.hadoop.fs.Path;
 
+/**
+ * This is a very dummy example flow that does nothing but will assure that things are executed in the appropriated order.
+ * It shows the usage of {@link FlowJob}.
+ */
+@SuppressWarnings("serial")
 public class ExampleFlow extends LinearFlow {
 
 	ArrayList<String> executedJobs = new ArrayList<String>();
 
 	// Job1 has one input file and one integer parameter
-	public class Job1 extends PangoolJob {
+  public class Job1 extends FlowJob {
 
 		public Job1() {
 			super("job1", new Inputs("inputFile"), new Params(
@@ -41,7 +46,7 @@ public class ExampleFlow extends LinearFlow {
 	}
 
 	// Job2 has one input file and one named output
-	public class Job2 extends PangoolJob {
+	public class Job2 extends FlowJob {
 
 		public Job2() {
 			super("job2", new Inputs("inputFile"), Params.NONE, new NamedOutputs("secondaryOutput"),
@@ -57,7 +62,7 @@ public class ExampleFlow extends LinearFlow {
 	}
 
 	// Job3 has 3 input files
-	public class Job3 extends PangoolJob {
+	public class Job3 extends FlowJob {
 
 		public Job3() {
 			super("job3", new Inputs("inputFile1", "inputFile2", "inputFile3"));
@@ -90,7 +95,7 @@ public class ExampleFlow extends LinearFlow {
 		
 		bind("job3.inputFile1", "job1.output"); // make job1's output be the input1 of job3
 		bind("job3.inputFile2", "job2.output"); // make job2's output be the input2 of job3
-		bind("job3.inputFile3", "job2.secondaryOutput"); // make job2's named output "secondaryOutput" be the input3 of job3
+		bind("job3.inputFile3", "job2.output.secondaryOutput"); // make job2's named output "secondaryOutput" be the input3 of job3
 		
 		// nothing more to define
 	}

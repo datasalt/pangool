@@ -18,7 +18,7 @@ public class HadoopOutputFormat extends OutputFormat implements Configurable,
 
 	private Class<? extends OutputFormat> clazz;
 	private OutputFormat instance;
-	private Configuration conf;
+	private transient Configuration conf;
 
 	public HadoopOutputFormat(Class<? extends OutputFormat> wrappedOutputFormat) {
 		this.clazz = wrappedOutputFormat;

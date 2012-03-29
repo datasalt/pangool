@@ -156,7 +156,7 @@ public abstract class CollectionInputFormat<K,V> extends InputFormat<K,V> {
 
 			@Override
       public float getProgress() throws IOException, InterruptedException {
-	      return count/total;
+	      return count/(float)total;
       }
 
 			@Override

@@ -30,6 +30,7 @@ import org.apache.hadoop.util.ToolRunner;
 import com.datasalt.pangool.tuplemr.MapOnlyJobBuilder;
 import com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 
 /**
  * Example of performing a map-only Job with {@link MapOnlyJobBuilder}. You give a regex to GrepHandler and it will emit the
@@ -69,7 +70,7 @@ public class Grep extends BaseExampleJob {
 		
 		MapOnlyJobBuilder b = new MapOnlyJobBuilder(conf);
 		b.setMapper(new GrepHandler(regex));
-		b.setOutput(new Path(output), TextOutputFormat.class, Text.class, NullWritable.class);
+		b.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
 		b.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class));
 		b.createJob().waitForCompletion(true);
 		

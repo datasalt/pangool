@@ -111,6 +111,11 @@ public class Criteria {
 			return this.getName().equals(that.getName())
 			    && this.getOrder().equals(that.getOrder());
 		}
+		
+		@Override
+		public int hashCode() {
+			return getName().hashCode();
+		}
 
 		public SortElement(String name, Order order) {
 			this.name = name;
@@ -185,4 +190,8 @@ public class Criteria {
 		}
 	}
 
+	@Override
+	public int hashCode() {
+		return getElements().hashCode();
+	}
 }

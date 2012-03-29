@@ -32,7 +32,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 public class HadoopInputFormat extends InputFormat implements Serializable, Configurable {
 
 	private Class<? extends InputFormat> clazz;
-	private Configuration conf;
+	private transient Configuration conf;
 	private InputFormat instance;
 	
 	public HadoopInputFormat(Class<? extends InputFormat> clazz) {

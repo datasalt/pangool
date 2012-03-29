@@ -19,16 +19,24 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.PangoolMultipleInputs;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat;
+import com.datasalt.pangool.utils.AvroUtils;
+import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * The MapOnlyJobBuilder is a simple Pangool primitive that executes map-only
@@ -42,7 +50,7 @@ public class MapOnlyJobBuilder {
 	private Class<?> jarByClass;
 	private Class<?> outputKeyClass;
 	private Class<?> outputValueClass;
-	private Class<? extends OutputFormat> outputFormat;
+	private OutputFormat outputFormat;
 	private MapOnlyMapper mapOnlyMapper;
 
 	private static final class Input {
@@ -69,8 +77,17 @@ public class MapOnlyJobBuilder {
 		return this;
 	}
 
+	public MapOnlyJobBuilder setTupleOutput(Path outputPath, Schema schema) {
+		this.outputPath = outputPath;
+		this.outputFormat = new TupleOutputFormat(schema.toString());
+		this.outputKeyClass = ITuple.class;
+		this.outputValueClass = NullWritable.class;
+		AvroUtils.addAvroSerialization(conf);
+		return this;
+	}
+	
 	public MapOnlyJobBuilder setOutput(Path outputPath,
-	    Class<? extends OutputFormat> outputFormat, Class<?> outputKeyClass,
+	    OutputFormat outputFormat, Class<?> outputKeyClass,
 	    Class<?> outputValueClass) {
 		this.outputFormat = outputFormat;
 		this.outputKeyClass = outputKeyClass;
@@ -93,7 +110,15 @@ public class MapOnlyJobBuilder {
 		job.setNumReduceTasks(0);
 
 		job.setJarByClass((jarByClass != null) ? jarByClass : mapOnlyMapper.getClass());
-		job.setOutputFormatClass(outputFormat);
+		String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
+		try {
+			DCUtils.serializeToDC(outputFormat, uniqueName, conf);
+		} catch(URISyntaxException e1) {
+			throw new TupleMRException(e1);
+		}
+		job.getConfiguration().set(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, uniqueName);
+		job.setOutputFormatClass(ProxyOutputFormat.class);
+		
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);

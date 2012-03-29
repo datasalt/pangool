@@ -15,8 +15,9 @@
  */
 package com.datasalt.pangool.flow;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
+import org.apache.hadoop.conf.Configuration;
 import org.junit.Test;
 
 import com.datasalt.pangool.flow.LinearFlow.EXECUTION_MODE;
@@ -26,7 +27,7 @@ public class TestFlow {
 	@Test
 	public void test() throws Exception {
 		ExampleFlow flow = new ExampleFlow();
-		flow.execute("job3.output", EXECUTION_MODE.POLITE);
+		flow.execute(EXECUTION_MODE.POLITE, new Configuration(), "job3.output");
 		assertEquals(3, flow.executedJobs.size());
 		
 		assertEquals("job2", flow.executedJobs.get(0));

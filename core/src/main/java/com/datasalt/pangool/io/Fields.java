@@ -22,7 +22,6 @@ import java.util.Map;
 
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.tuplemr.TupleMRException;
 
 public class Fields {
 
@@ -39,7 +38,7 @@ public class Fields {
 		strToType.put("utf8",Type.STRING);
 	}
 
-	public static List<Field> parse(String serialized) throws TupleMRException {
+	public static List<Field> parse(String serialized) {
 		if(serialized == null || serialized.isEmpty()) {
 			return null;
 		}
@@ -48,7 +47,7 @@ public class Fields {
 		for(String field : fieldsStr) {
 			String[] nameType = field.split(":");
 			if(nameType.length != 2) {
-				throw new TupleMRException("Incorrect fields description " + serialized);
+				throw new RuntimeException("Incorrect fields description " + serialized);
 			}
 			String fieldName = nameType[0].trim();
 			String fieldType = nameType[1].trim();
@@ -65,7 +64,7 @@ public class Fields {
 					}
 				}
 			} catch(ClassNotFoundException e) {
-				throw new TupleMRException("Type " + fieldType
+				throw new RuntimeException("Type " + fieldType
 				    + " not a valid class name ", e);
 			}
 		}
