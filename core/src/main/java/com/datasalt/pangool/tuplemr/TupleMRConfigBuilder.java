@@ -197,17 +197,19 @@ public class TupleMRConfigBuilder {
 	 * Permits to set aliases, or alternate names,to fields that belong to intermediate schema's. 
 	 * This allows to group tuples by fields that are named differently across the schemas.
 	 * For instance:
-	 * <code>
-	 *   b.addIntermediateSchema(new Schema("schema1",Fields.parse("my_url:string,my_id:int")
-	 *   b.addIntermediateSchema(new Schema("schema2",Fields.parse("site:string,visits:int")
-	 *   b.setFieldAliases("schema1",new Aliases().add("url","my_url"));
-	 *   b.setFieldAliases("schema2",new Aliases().add("url","site"));
-	 *   b.setGroupByFields("url");
-	 * </code>
+	 * <pre>
+	 * {@code
+	 * b.addIntermediateSchema(new Schema("schema1",Fields.parse("my_url:string,my_id:int")
+	 * b.addIntermediateSchema(new Schema("schema2",Fields.parse("site:string,visits:int")
+	 * b.setFieldAliases("schema1",new Aliases().add("url","my_url"));
+	 * b.setFieldAliases("schema2",new Aliases().add("url","site"));
+	 * b.setGroupByFields("url");
+	 *  }
+	 * </pre>
 	 * 
 	 * 
 	 * @param schemaName The schema the fields to be aliased belong to. 
-	 * @param aliases A {@link Aliases} instance that contains pairs of (alias, referenced_field) pairs.
+	 * @param aliases An {@link Aliases} instance that contains pairs of (alias, referenced_field) pairs.
 	 * @throws TupleMRException
 	 */
 	public void setFieldAliases(String schemaName,Aliases aliases) throws TupleMRException {
