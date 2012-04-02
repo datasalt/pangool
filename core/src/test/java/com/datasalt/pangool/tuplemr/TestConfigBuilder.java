@@ -154,7 +154,7 @@ public class TestConfigBuilder extends BaseTest {
 
 	}
 	
-
+	
 	@Test
 	public void testCommonOrderGeneratedImplicitlyFromGroupFields() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
@@ -171,6 +171,24 @@ public class TestConfigBuilder extends BaseTest {
 		}
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void testRepeatedAliases() throws TupleMRException {
+		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
+		b.addIntermediateSchema(new Schema("schema1", Fields
+		    .parse("a:int,b:string,c:string,blabla:string")));
+		b.setFieldAliases("schema1",new Aliases().add("bx","b").add("bx","c"));
+
+	}
+	
+	@Test(expected = TupleMRException.class)
+	public void testAliasesUnknownSchema() throws TupleMRException {
+		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
+		b.addIntermediateSchema(new Schema("schema1", Fields
+		    .parse("a:int,b:string,c:string,blabla:string")));
+		b.setFieldAliases("schemaX",new Aliases().add("bx","b"));
+	}
+
+	
 	@Test(expected = TupleMRException.class)
 	public void testSortFieldWithDifferentTypes1() throws TupleMRException {
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
