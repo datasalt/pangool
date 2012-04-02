@@ -153,15 +153,15 @@ Let’s now check the job configuration:
 <div class="alert alert-info">
 <p><b>Note:</b>
 The specified fields in <code>setGroupByFields</code> must be present in all the intermediate 
-schemas defined. If the field we want to group by is named differently among the schemas
+schemas defined.<br>If the field we want to group by is named differently among the schemas
 then we must declare an alias for it, using <code><a href="http://pangool.net/apidocs/com/datasalt/pangool/tuplemr/TupleMRConfigBuilder.html#setFieldAliases(java.lang.String, com.datasalt.pangool.tuplemr.Aliases)">builder.setFieldAliases()</a></code> and use
-that alias to group by. You can find an example of field aliases in <b><a href="http://github.com/datasalt/pangool/blob/master/examples/src/main/java/com/datasalt/pangool/examples/urlresolution/UrlResolution.java">this</a></b> example.  
+that alias to group by.<br/> You can find an example of field aliases in <b><a href="http://github.com/datasalt/pangool/blob/master/examples/src/main/java/com/datasalt/pangool/examples/urlresolution/UrlResolution.java">this</a></b> example.  
 </p>
 </div>
 <p>
 And that’s about it! We have just defined two schemas and defined the group key. Note that the <code>url</code> 
-is present in both schemas, but that is not a requirement if you use <i>field aliases</i>, as explained <a href="http://pangool.net/apidocs/com/datasalt/pangool/tuplemr/TupleMRConfigBuilder.html#setFieldAliases(java.lang.String, com.datasalt.pangool.tuplemr.Aliases)">above</a>. By default, Pangool will sort by the group by fields and will 
-peform intersource sorting based on the order in which we defined the sources. 
+is present in both schemas, but that is not a requirement if you use <a href="http://pangool.net/apidocs/com/datasalt/pangool/tuplemr/TupleMRConfigBuilder.html#setFieldAliases(java.lang.String, com.datasalt.pangool.tuplemr.Aliases)">field aliases</a>, as explained in the note above.<br> By default, Pangool will sort by the group by fields and will 
+peform intersource sorting based on the order in which we defined the sources.<br/> 
 In this case, for each group, the URL mapping will come first - and that’s why the code above works. 
 </p>
 
