@@ -162,8 +162,8 @@ that alias to group by, as is shown above.<br/>
 </div>
 <p>
 And that’s about it! We have just defined two schemas and defined the group key. Note that even <code>url</code> 
-field is not present in schema <code>urlRegister</code> ,the alias <code>url</code> refers to <code>nonCanonicalUrl</code>, so actually tuples are grouped by <code>nonCanonicalUrl</code>.<br>
-by default, Pangool will sort by the group by fields and will peform intersource sorting based on the order in which we defined the sources.<br/> 
+field is not present in schema <code>urlRegister</code> ,the alias <code>url</code> refers to <code>nonCanonicalUrl</code>, so actually tuples are grouped by <code>nonCanonicalUrl</code>.
+By default, Pangool will sort by the group by fields and will peform intersource sorting based on the order in which we defined the sources.<br/> 
 In this case, for each group, the URL mapping will come first - and that’s why the code above works. 
 </p>
 
