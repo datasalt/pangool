@@ -78,7 +78,7 @@ the intermediate schema that was configured.
      }
 
      String[] fields = value.toString().split("\t");
-     tuple.set("url", fields[0]);
+     tuple.set("nonCanonicalUrl", fields[0]);
      tuple.set("canonicalUrl", fields[1]);
      collector.write(tuple);
    }
