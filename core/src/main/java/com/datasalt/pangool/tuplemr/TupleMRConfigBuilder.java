@@ -125,6 +125,10 @@ public class TupleMRConfigBuilder {
 	 * co-grouping among tuples with different schemas. The groupBy fields
 	 * specified in this method in a multi-source scenario must be present in
 	 * every intermediate schema defined.<p>
+	 * 
+	 * A field that's named differently among the intermediate schemas must be aliased in 
+	 * order to be used in the groupBy. For that purpose, use {@link #setFieldAliases(String, Aliases)}.
+	 * 
 	 */
 	public void setGroupByFields(String... groupByFields) throws TupleMRException {
 		failIfEmpty(groupByFields, "GroupBy fields can't be null or empty");
@@ -189,7 +193,23 @@ public class TupleMRConfigBuilder {
 		}
 		this.fieldsToPartition = fields;
 	}
-	
+	/**
+	 * Permits to set aliases, or alternate names,to fields that belong to intermediate schema's. 
+	 * This allows to group tuples by fields that are named differently across the schemas.
+	 * For instance:
+	 * <code>
+	 *   b.addIntermediateSchema(new Schema("schema1",Fields.parse("my_url:string,my_id:int")
+	 *   b.addIntermediateSchema(new Schema("schema2",Fields.parse("site:string,visits:int")
+	 *   b.setFieldAliases("schema1",new Aliases().add("url","my_url"));
+	 *   b.setFieldAliases("schema2",new Aliases().add("url","site"));
+	 *   b.setGroupByFields("url");
+	 * </code>
+	 * 
+	 * 
+	 * @param schemaName The schema the fields to be aliased belong to. 
+	 * @param aliases A {@link Aliases} instance that contains pairs of (alias, referenced_field) pairs.
+	 * @throws TupleMRException
+	 */
 	public void setFieldAliases(String schemaName,Aliases aliases) throws TupleMRException {
 		if (schemas.isEmpty()){
 			throw new TupleMRException("Not able to define field aliases with no schemas defined");

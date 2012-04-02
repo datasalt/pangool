@@ -33,6 +33,7 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.Aliases;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
@@ -59,7 +60,7 @@ public class UrlResolution extends BaseExampleJob {
 
 	static Schema getURLMapSchema() {
 		List<Field> urlMapFields = new ArrayList<Field>();
-		urlMapFields.add(Field.create("url",Type.STRING));
+		urlMapFields.add(Field.create("nonCanonicalUrl",Type.STRING));
 		urlMapFields.add(Field.create("canonicalUrl",Type.STRING));
 		return new Schema("urlMap", urlMapFields);
 	}
@@ -91,7 +92,7 @@ public class UrlResolution extends BaseExampleJob {
 		    throws IOException, InterruptedException {
 
 			String[] fields = value.toString().split("\t");
-			tuple.set("url", fields[0]);
+			tuple.set("nonCanonicalUrl", fields[0]);
 			tuple.set("canonicalUrl", fields[1]);
 			collector.write(tuple);
 		}
@@ -139,6 +140,7 @@ public class UrlResolution extends BaseExampleJob {
 		TupleMRBuilder mr = new TupleMRBuilder(conf,"Pangool Url Resolution");
 		mr.addIntermediateSchema(getURLMapSchema());
 		mr.addIntermediateSchema(getURLRegisterSchema());
+		mr.setFieldAliases("urlMap",new Aliases().add("url","nonCanonicalUrl"));
 		mr.setGroupByFields("url");
 		mr.setOrderBy(new OrderBy().add("url", Order.ASC).addSchemaOrder(Order.ASC));
 		mr.setTupleReducer(new Handler());
