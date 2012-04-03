@@ -21,16 +21,16 @@ One of the most interesting features of Pangool is its inherent reduce-side join
 
 <p>
  We have one file with URL registers: [<code>url</code>, <code>timestamp</code>, <code>ip</code>] 
- and another file with canonical URL mappings: [<code>url</code>, <code>canonicalUrl</code>].
+ and another file with canonical URL mappings: [<code>nonCanonicalUrl</code>, <code>canonicalUrl</code>].
  We want to output the URL registers file and have the url be substituted with the canonical 
  one according to the mapping file. In other words, we want the output to be like: [<code>canonicalUrl</code>, <code>timestamp</code>, <code>ip</code>]
 </p>
 
 <p>
 For that, we need to join the URL registers file with the URL mappings one. 
-We need to join them by the common field <code>url</code>. Using a reduce-side join, we 
-could store the “canonicalUrl” for each <code>url</code> group and apply the substitution 
-to each of the URL registers records associated with that <code>url</code>. 
+To achiveve that we need to join URL registers grouping by <code>url</code> and URL mappings grouping by <code>nonCanonicalUrl</code>. Using a reduce-side join, we 
+could store the “canonicalUrl” for each group and apply the substitution 
+to each of the URL registers records associated with that url. 
 </p>
 <p>
 To make the join totally scalable, we need to receive the <code>canonicalUrl</code> first 
@@ -42,7 +42,7 @@ We’ll configure a Pangool Job to accept two inputs and two intermediate schema
 </p>
 
 <pre class="prettyprint" id="java">
- public static class UrlProcessor extends TupleMapper<LongWritable, Text> {
+ public static class UrlProcessor extends TupleMapper&lt;LongWritable, Text&gt; {
    private Tuple tuple;
 
    public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
@@ -67,7 +67,7 @@ the intermediate schema that was configured.
 </p>
 
 <pre class="prettyprint" id="java">
- public static class UrlMapProcessor extends TupleMapper<LongWritable, Text> {
+ public static class UrlMapProcessor extends TupleMapper&lt;LongWritable, Text&gt; {
 
    private Tuple tuple;
 
@@ -78,7 +78,7 @@ the intermediate schema that was configured.
      }
 
      String[] fields = value.toString().split("\t");
-     tuple.set("url", fields[0]);
+     tuple.set("nonCanonicalUrl", fields[0]);
      tuple.set("canonicalUrl", fields[1]);
      collector.write(tuple);
    }
@@ -91,11 +91,11 @@ Let’s now check to see the Reducer that performs the join:
 </p>
 
 <pre class="prettyprint" id="java">
- public static class Handler extends TupleReducer<Text, NullWritable> {
+ public static class Handler extends TupleReducer&lt;Text, NullWritable&gt; {
 
    private Text result;
 
-   public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+   public void reduce(ITuple group, Iterable&lt;ITuple&gt; tuples, TupleMRContext context, Collector collector)
      throws IOException, InterruptedException, TupleMRException {
      if (result == null) {
        result = new Text();
@@ -143,17 +143,27 @@ Let’s now check the job configuration:
 </p>
 
 <pre class="prettyprint" id="java">
- TupleMRBuilder grouper = new TupleMRBuilder(conf,"Pangool Url Resolution");
- grouper.addIntermediateSchema(new Schema("urlMap", urlMapFields));
- grouper.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
- grouper.setGroupByFields("url");
+ TupleMRBuilder builder = new TupleMRBuilder(conf,"Pangool Url Resolution");
+ builder.addIntermediateSchema(new Schema("urlRegister", Fields.parse("url:string,timestamp:long,ip:string")));
+ builder.addIntermediateSchema(new Schema("urlMap", Fields.parse("nonCanonicalUrl:string,canonicalUrl:string")));
+ builder.setFieldAliases("urlMap",new Aliases().add("url","nonCanonicalUrl"));
+ builder.setGroupByFields("url");
+ 
  ...
 </pre>
 
+<div class="alert alert-info">
+<p><b>Note:</b>
+The specified fields in <code>setGroupByFields</code> must be present in all the intermediate 
+schemas defined.If the field we want to group by is named differently among the schemas,like the case above,
+then we must declare an alias for it, using <code><a href="http://pangool.net/apidocs/com/datasalt/pangool/tuplemr/TupleMRConfigBuilder.html#setFieldAliases(java.lang.String, com.datasalt.pangool.tuplemr.Aliases)">builder.setFieldAliases()</a></code> and use
+that alias to group by, as it's shown above.<br/>
+</p>
+</div>
 <p>
-And that’s about it! We have just defined two schemas and defined the group key. Note that the <code>url</code> field must be present in both schemas 
-for the join to work. By default, Pangool will sort by the group by fields and will 
-peform intersource sorting based on the order in which we defined the sources. 
+And that’s all! We have just defined two schemas and defined the group key. Note that even <code>url</code> 
+field is not present in schema <code>urlMap</code> ,there exists an alias <code>url</code> that refers to <code>nonCanonicalUrl</code>, so actually tuples are grouped by <code>nonCanonicalUrl</code>.
+By default, Pangool will sort by the <i>groupBy</i> fields and will peform inter-source sorting based on the order in which we defined the sources.<br/> 
 In this case, for each group, the URL mapping will come first - and that’s why the code above works. 
 </p>
 
