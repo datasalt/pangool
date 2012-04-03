@@ -5,8 +5,8 @@
 
   <parent>
     <groupId>com.datasalt.pangool</groupId>
-    <artifactId>pangool</artifactId>
-    <version>0.40.1-SNAPSHOT</version>
+    <artifactId>pangool-top-level</artifactId>
+    <version>0.40.2</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
