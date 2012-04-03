@@ -144,8 +144,8 @@ Let’s now check the job configuration:
 
 <pre class="prettyprint" id="java">
  TupleMRBuilder builder = new TupleMRBuilder(conf,"Pangool Url Resolution");
- builder.addIntermediateSchema(new Schema("urlMap", Fields.parse("url:string,timestamp:long,ip:string")));
- builder.addIntermediateSchema(new Schema("urlRegister", Fields.parse("nonCanonicalUrl:string,canonicalUrl:string")));
+ builder.addIntermediateSchema(new Schema("urlRegister", Fields.parse("url:string,timestamp:long,ip:string")));
+ builder.addIntermediateSchema(new Schema("urlMap", Fields.parse("nonCanonicalUrl:string,canonicalUrl:string")));
  builder.setFieldAliases("urlMap",new Aliases().add("url","nonCanonicalUrl"));
  builder.setGroupByFields("url");
  
