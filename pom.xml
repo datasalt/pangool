@@ -6,203 +6,262 @@
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+  http://www.apache.org/licenses/LICENSE-2.0
 
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
- -->
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>7</version>
-  </parent>
-  <groupId>com.datasalt.pangool</groupId>
-  <artifactId>pangool-top-level</artifactId>
-  <version>0.40.3-SNAPSHOT</version>
-  <packaging>pom</packaging>
 
-  <name>Pangool</name>
-  <url>http://www.datasalt.com</url>
- <description>Tuple MapReduce for Hadoop:Hadoop API made easy</description>
+    <!-- POM Relationships -->
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+    <groupId>com.datasalt.pangool</groupId>
+    <artifactId>pangool-top-level</artifactId>
+    <version>0.40.3-SNAPSHOT</version>
+    <modules>
+        <module>core</module>
+        <module>examples</module>
+    </modules>
 
-  <modules>
-    <module>core</module>
-    <module>examples</module>
-  </modules>
-  <licenses>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
+    <dependencies />
 
-  <scm>
-   <url>http://pangool.net</url>
-    <connection>scm:git:git@github.com:datasalt/pangool.git</connection>
-    <developerConnection>scm:git:git@github.com:datasalt/pangool.git</developerConnection>
-  </scm>
-  <distributionManagement>
-    <repository>
-      <id>pangool-releases</id>
-      <url>http://clinker.pangool.net/nexus/content/repositories/releases</url>
-    </repository>
-    <snapshotRepository>
-      <id>pangool-snapshots</id>
-      <url>http://clinker.pangool.net/nexus/content/repositories/snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
-  <developers>
-      <developer>
-        <id>ivan</id>
-        <name>Ivan De Prado</name>
-        <email>ivan@datasalt.com</email>
-        <organization>Datasalt S.L.</organization>
-        <organizationUrl>http://www.datasalt.com</organizationUrl>
-        <roles>
-          <role>developer</role>
-        </roles>
-        <timezone>-1</timezone>
-      </developer>
-      <developer>
-        <id>pere</id>
-        <name>Pere Ferrera</name>
-        <email>pere@datasalt.com</email>
-        <organization>Datasalt S.L.</organization>
-        <organizationUrl>http://www.datasalt.com</organizationUrl>
-        <roles>
-          <role>developer</role>
-        </roles>
-        <timezone>-1</timezone>
-      </developer>
-      <developer>
-        <id>epalace</id>
-        <name>Eric Palacios</name>
-        <email>epalacios@datasalt.com</email>
-        <organization>Datasalt S.L.</organization>
-        <organizationUrl>http://www.datasalt.com</organizationUrl>
-        <roles>
-          <role>developer</role>
-        </roles>
-        <timezone>-1</timezone>
-      </developer>
-    </developers>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-eclipse-plugin</artifactId>
-        <version>2.8</version>
-        <configuration>
-          <downloadSources>false</downloadSources>
-        </configuration>
-      </plugin>
-	<plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.12</version>
-          <configuration>
-            <includes>
-              <!-- Pangool naming convention for JUnit tests -->
-              <include>**/Test**</include>
-            </includes>
-            <excludes>
-              <!-- A few innner classes are not to be tested -->
-              <exclude>**/*$*</exclude>
-              <!-- exclude the generated classes under apache.avro.test, some of
-                these match **/Test** and are not JUnit tests -->
-              <!--exclude>**/apache/avro/test/**</exclude-->
-            </excludes>
-            <enableAssertions>false</enableAssertions>
-            <!-- some IPC tests hang if not run in a separate JVM -->
-            <forkMode>always</forkMode>
-            <!-- TestSpecificCompiler instantiates a Java compiler to test output results,
-                 this does not work with a manifest-only-jar to set the classpath for the javac.
-                 This may cause problems on some platforms.
-                 See http://maven.apache.org/plugins/maven-surefire-plugin/examples/class-loading.html
-                 for more information. -->
-            <useManifestOnlyJar>false</useManifestOnlyJar>
-            <!-- configures unit test standard error and standard out to go to a file per test
-                 rather than the console. -->
-            <redirectTestOutputToFile>true</redirectTestOutputToFile>
-            <failIfNoTests>false</failIfNoTests>
-            <!--systemPropertyVariables>
-              <test.dir>${project.basedir}/target/</test.dir>
-            </systemPropertyVariables-->
-          </configuration>
-        </plugin>
-	<!--plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId-->
-          <!--version>${checkstyle-plugin.version}</version-->
-          <!--configuration>
-            <configLocation>checkstyle.xml</configLocation>
-          </configuration-->
-          <!-- Runs by default in the verify phase  (mvn verify or later in the build cycle)
-               the 'check' goal will fail the build if it does not pass.  "mvn checkstyle:check"
-               will do this alone, or "mvn checkstyle:checkstyle" will report but not break  -->
-          <!--executions>
-            <execution>
-              <id>checkstyle-check</id>
-              <phase>test</phase>
-              <goals>
-                <goal>checkstyle</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin-->
-        <!--plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-gpg-plugin</artifactId>
-          <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin-->
-    </plugins>
-  </build>
-  <profiles>
-  <profile>
-    <id>release-sign-artifacts</id>
-    <activation>
-      <property>
-        <name>performRelease</name>
-        <value>true</value>
-      </property>
-    </activation>
+    <!-- ///////////////// -->
+
+    <!-- Build Settings -->
+
+    <packaging>pom</packaging>
     <build>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-gpg-plugin</artifactId>
-          <version>1.1</version>
-          <executions>
-            <execution>
-              <id>sign-artifacts</id>
-              <phase>verify</phase>
-              <goals>
-                <goal>sign</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-      </plugins>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <version>2.8</version>
+                <configuration>
+                    <downloadSources>false</downloadSources>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12</version>
+                <configuration>
+                    <includes>
+                        <!-- Pangool naming convention for JUnit tests -->
+                        <include>**/Test**</include>
+                    </includes>
+                    <excludes>
+                        <!-- A few innner classes are not to be tested -->
+                        <exclude>**/*$*</exclude>
+                        <!-- exclude the generated classes under apache.avro.test, some of these match **/Test** and are not JUnit tests -->
+                        <!--exclude>**/apache/avro/test/**</exclude -->
+                    </excludes>
+                    <enableAssertions>false</enableAssertions>
+                    <!-- some IPC tests hang if not run in a separate JVM -->
+                    <forkMode>always</forkMode>
+                    <!-- TestSpecificCompiler instantiates a Java compiler to test output results, this does not work with
+                        a manifest-only-jar to set the classpath for the javac. This may cause problems on some platforms. See http://maven.apache.org/plugins/maven-surefire-plugin/examples/class-loading.html
+                        for more information. -->
+                    <useManifestOnlyJar>false</useManifestOnlyJar>
+                    <!-- configures unit test standard error and standard out to go to a file per test rather than the console. -->
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <failIfNoTests>false</failIfNoTests>
+                    <!--systemPropertyVariables> <test.dir>${project.basedir}/target/</test.dir> </systemPropertyVariables -->
+                </configuration>
+            </plugin>
+            <!-- <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${checkstyle-plugin.version}</version>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                </configuration> -->
+                <!--
+                    Runs by default in the verify phase (mvn verify or later in the build cycle) the 'check' goal will fail
+                    the build if it does not pass. "mvn checkstyle:check" will do this alone, or "mvn checkstyle:checkstyle" will report but
+                    not break
+                -->
+                <!-- <executions>
+                    <execution>
+                        <id>checkstyle-check</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>checkstyle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin> -->
+            <!-- <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>-->
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.soebes.maven.plugins.dmg</groupId>
+                    <artifactId>doxygen-maven-plugin</artifactId>
+                    <version>1.0.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
-  </profile>
-</profiles>
 
+    <!-- ////////////// -->
+
+    <!-- Project Information -->
+
+    <name>Pangool</name>
+    <url>http://pangool.net</url>
+    <inceptionYear />
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <description>Tuple MapReduce for Hadoop:Hadoop API made easy</description>
+    <organization>
+        <name>Datasalt S.L.</name>
+        <url>http://www.datasalt.com</url>
+    </organization>
+    <developers>
+        <developer>
+            <id>ivan</id>
+            <name>Ivan De Prado</name>
+            <email>ivan@datasalt.com</email>
+            <organization>Datasalt S.L.</organization>
+            <organizationUrl>http://www.datasalt.com</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>pere</id>
+            <name>Pere Ferrera</name>
+            <email>pere@datasalt.com</email>
+            <organization>Datasalt S.L.</organization>
+            <organizationUrl>http://www.datasalt.com</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>epalace</id>
+            <name>Eric Palacios</name>
+            <email>epalacios@datasalt.com</email>
+            <organization>Datasalt S.L.</organization>
+            <organizationUrl>http://www.datasalt.com</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
+    <!-- /////////////////// -->
+
+    <!-- Build Environment -->
+
+        <!-- Environment Information -->
+
+        <mailingLists />
+
+        <scm>
+            <url>https://github.com/datasalt/pangool</url>
+            <connection>scm:git:git@github.com:datasalt/pangool.git</connection>
+            <developerConnection>scm:git:git@github.com:datasalt/pangool.git</developerConnection>
+        </scm>
+
+        <issueManagement>
+            <system>github</system>
+            <url>https://github.com/datasalt/pangool</url>
+        </issueManagement>
+
+        <ciManagement>
+            <system>Jenkins CI</system>
+            <url>http://clinker.pangool.net/jenkins</url>
+        </ciManagement>
+
+        <!-- /////////////////////// -->
+
+        <!-- Maven Environment -->
+
+        <repositories />
+
+        <pluginRepositories />
+
+        <profiles>
+            <profile>
+                <id>release-sign-artifacts</id>
+                <activation>
+                    <property>
+                        <name>performRelease</name>
+                        <value>true</value>
+                    </property>
+                </activation>
+                <build>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-gpg-plugin</artifactId>
+                            <version>1.1</version>
+                            <executions>
+                                <execution>
+                                    <id>sign-artifacts</id>
+                                    <phase>verify</phase>
+                                    <goals>
+                                        <goal>sign</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </build>
+            </profile>
+        </profiles>
+
+        <properties>
+            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        </properties>
+
+        <distributionManagement>
+            <repository>
+                <id>pangool-releases</id>
+                <url>http://clinker.pangool.net/nexus/content/repositories/releases</url>
+            </repository>
+            <snapshotRepository>
+                <id>pangool-snapshots</id>
+                <url>http://clinker.pangool.net/nexus/content/repositories/snapshots</url>
+            </snapshotRepository>
+            <site>
+                <id>clinker</id>
+                <name>Pangool</name>
+                <url>file:///clinker/data/htdocs/maven-site</url>
+            </site>
+        </distributionManagement>
+
+        <!-- ///////////////// -->
+
+    <!-- ///////////////// -->
 </project>
