@@ -74,7 +74,9 @@
                     <!-- configures unit test standard error and standard out to go to a file per test rather than the console. -->
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <failIfNoTests>false</failIfNoTests>
-                    <!--systemPropertyVariables> <test.dir>${project.basedir}/target/</test.dir> </systemPropertyVariables -->
+                    <!--<systemPropertyVariables>
+                        <test.dir>${project.basedir}/target</test.dir>
+                    </systemPropertyVariables> -->
                 </configuration>
             </plugin>
             <!-- <plugin>
@@ -138,7 +140,7 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    <description>Tuple MapReduce for Hadoop:Hadoop API made easy</description>
+    <description>Tuple MapReduce for Hadoop: Hadoop API made easy</description>
     <organization>
         <name>Datasalt S.L.</name>
         <url>http://www.datasalt.com</url>
