@@ -4,7 +4,7 @@ title: Pangool - Building Pangool
 name: build
 ---
 <div class="hero-unit">
-	<h1>Building Pangool</h1>
+  <h1>Building Pangool</h1>
 </div>
 
 <h2>Getting Pangool code</h2>
@@ -25,7 +25,8 @@ git clone git://github.com/datasalt/pangool.git
 mvn install
 </pre>
 
-<h2>Maven repository</h2>
+<h2>Releases</h2>
+<h3>Maven dependency</h3>
 <pre class="prettyprint">
  &lt;dependency&gt;
      &lt;groupId&gt;com.datasalt.pangool&lt;/groupId&gt;
@@ -33,4 +34,26 @@ mvn install
      &lt;version&gt;0.40.2&lt;/version&gt;
  &lt;/dependency&gt;
 </pre>
-<hr>
+<h2>Snapshots</h2>
+<h3>Pangool Snapshot Repository</h3>
+<pre class="prettyprint">
+ &lt;repository&gt;
+     &lt;id&gt;pangool-snapshots&lt;/id&gt;
+     &lt;name&gt;Pangool Snapshots Repository&lt;/name&gt;
+     &lt;url&gt;http://clinker.pangool.net/nexus/content/groups/public-snapshots&lt;/url&gt;
+     &lt;releases&gt;
+         &lt;enabled&gt;false&lt;/enabled&gt;
+     &lt;/releases&gt;
+     &lt;snapshots&gt;
+         &lt;enabled&gt;true&lt;/enabled&gt;
+     &lt;/snapshots&gt;
+ &lt;/repository&gt;
+</pre>
+<h3>Maven dependency</h3>
+<pre class="prettyprint">
+ &lt;dependency&gt;
+     &lt;groupId&gt;com.datasalt.pangool&lt;/groupId&gt;
+     &lt;artifactId&gt;pangool-core&lt;/artifactId&gt;
+     &lt;version&gt;0.40.3-SNAPSHOT&lt;/version&gt;
+ &lt;/dependency&gt;
+</pre>
