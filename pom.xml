@@ -28,7 +28,7 @@
 
   <name>Pangool</name>
   <url>http://www.datasalt.com</url>
-   <description>Tuple MapReduce for Hadoop:Hadoop API made easy</description>
+ <description>Tuple MapReduce for Hadoop:Hadoop API made easy</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -95,7 +95,6 @@
         </roles>
         <timezone>-1</timezone>
       </developer>
-
     </developers>
   <build>
     <plugins>
