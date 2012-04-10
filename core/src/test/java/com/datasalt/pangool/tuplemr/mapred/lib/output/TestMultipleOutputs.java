@@ -18,12 +18,18 @@ package com.datasalt.pangool.tuplemr.mapred.lib.output;
 import java.io.File;
 import java.io.IOException;
 
+import junit.framework.Assert;
+
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.DefaultCodec;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -35,15 +41,13 @@ import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Utf8;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.TupleReducer;
-import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
-import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
-import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat;
 import com.datasalt.pangool.utils.CommonUtils;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
@@ -99,6 +103,12 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		}
 	}
 
+	private void checkCompression(String path, Class<? extends CompressionCodec> codec) throws IOException {
+		SequenceFile.Reader reader = new SequenceFile.Reader(FileSystem.get(getConf()), new Path(path), getConf());
+		Assert.assertEquals(reader.getCompressionCodec().getClass(), codec);
+		reader.close();		
+	}
+	
 	@Test
 	public void test() throws TupleMRException, IOException, InterruptedException,
 	    ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -110,6 +120,9 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		// Business logic in {@link MyInputProcessor}
 		CommonUtils.writeTXT("ignore-me", new File(INPUT));
 
+		getConf().set("mapred.output.compress","true");
+		getConf().set("mapred.output.compression.codec","org.apache.hadoop.io.compress.DefaultCodec");
+		
 		TupleMRBuilder builder = new TupleMRBuilder(getConf());
 		Schema baseSchema = new Schema("schema",Fields.parse("name:string, money:int, country:string"));
 		builder.addIntermediateSchema(baseSchema);
@@ -129,6 +142,12 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		job.waitForCompletion(true);
 
 		// Check outputs
+
+		checkCompression(firstReducerOutput(OUTPUT + "/" + OUTPUT_1), DefaultCodec.class);
+		checkCompression(firstReducerOutput(OUTPUT + "/" + OUTPUT_2), DefaultCodec.class);
+		checkCompression(firstMapOutput(OUTPUT + "/" + OUTPUT_1), DefaultCodec.class);
+		checkCompression(firstMapOutput(OUTPUT + "/" + OUTPUT_2), DefaultCodec.class);
+		checkCompression(firstReducerOutput(OUTPUT), DefaultCodec.class);
 
 		withOutput(firstReducerOutput(OUTPUT), new DoubleWritable(1.0), NullWritable.get());
 		withOutput(firstReducerOutput(OUTPUT + "/" + OUTPUT_1), new Text("Pere"), new Text("ES"));

@@ -30,6 +30,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.xerial.snappy.SnappyCodec;
 
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
@@ -98,7 +99,12 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 
 		Configuration conf = context.getConfiguration();
 		if(conf.getBoolean("mapred.output.compress", false)) {
-			String codec = conf.get("mapred.output.compression");
+			String codec = conf.get("mapred.output.compression.codec");
+			if(codec.equals(SnappyCodec.class.getName())) {
+				codec = SNAPPY_CODEC;
+			} else {
+				codec = "null";
+			}
 			int level = conf.getInt(AvroOutputFormat.DEFLATE_LEVEL_KEY,
 			    AvroOutputFormat.DEFAULT_DEFLATE_LEVEL);
 			CodecFactory factory = codec.equals(DEFLATE_CODEC) ? CodecFactory
