@@ -67,7 +67,7 @@ public class Schema implements Serializable {
 	 */
 	public static class Field implements Serializable{
 		public static enum Type {
-			INT, LONG, FLOAT, DOUBLE, STRING, BOOLEAN, ENUM, OBJECT;
+			INT, LONG, FLOAT, DOUBLE, STRING, BOOLEAN, ENUM, BYTES,OBJECT;
 		}
 
 		private final String name;

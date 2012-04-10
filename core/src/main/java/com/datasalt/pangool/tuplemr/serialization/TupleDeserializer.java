@@ -17,8 +17,10 @@ package com.datasalt.pangool.tuplemr.serialization;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -170,6 +172,7 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 				tuple.set(index,(b != 0));
 				break;
 			case ENUM: readEnum(input,tuple,field.getObjectClass(),index); break;
+			case BYTES: readBytes(input,tuple,index); break;
 			case OBJECT: readCustomObject(input,tuple,field.getObjectClass(),index); break;
 			default:
 				throw new IOException("Not supported type:" + field.getType());
@@ -201,6 +204,22 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			throw new IOException("Error deserializing, custom object serialized with negative length : " + size);
 		}
 	}
+	
+  public void readBytes(DataInput input,ITuple tuple,int index) throws IOException {
+    int length = WritableUtils.readVInt(input);
+    ByteBuffer old = (ByteBuffer)tuple.get(index);
+    ByteBuffer result;
+    if (old != null && length <= old.capacity()) {
+    	result = old;
+      result.clear();
+    } else {
+    	result = ByteBuffer.allocate(length);
+      tuple.set(index,result);
+    }
+    input.readFully(result.array(),result.position(),length);
+    result.limit(length);
+  }
+  
 	
 	protected void readEnum(DataInput input,ITuple tuple,Class<?> fieldType,int index) throws IOException{
 		int ordinal = WritableUtils.readVInt(input);
