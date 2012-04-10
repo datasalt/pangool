@@ -142,7 +142,7 @@
     </licenses>
     <description>Tuple MapReduce for Hadoop: Hadoop API made easy</description>
     <organization>
-        <name>Datasalt S.L.</name>
+        <name>Datasalt Systems S.L.</name>
         <url>http://www.datasalt.com</url>
     </organization>
     <developers>
@@ -150,7 +150,7 @@
             <id>ivan</id>
             <name>Ivan De Prado</name>
             <email>ivan@datasalt.com</email>
-            <organization>Datasalt S.L.</organization>
+            <organization>Datasalt Systems S.L.</organization>
             <organizationUrl>http://www.datasalt.com</organizationUrl>
             <roles>
                 <role>developer</role>
@@ -161,7 +161,7 @@
             <id>pere</id>
             <name>Pere Ferrera</name>
             <email>pere@datasalt.com</email>
-            <organization>Datasalt S.L.</organization>
+            <organization>Datasalt Systems S.L.</organization>
             <organizationUrl>http://www.datasalt.com</organizationUrl>
             <roles>
                 <role>developer</role>
@@ -172,7 +172,7 @@
             <id>epalace</id>
             <name>Eric Palacios</name>
             <email>epalacios@datasalt.com</email>
-            <organization>Datasalt S.L.</organization>
+            <organization>Datasalt Systems S.L.</organization>
             <organizationUrl>http://www.datasalt.com</organizationUrl>
             <roles>
                 <role>developer</role>
