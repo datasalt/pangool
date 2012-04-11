@@ -63,10 +63,14 @@ public class AvroUtils {
 			case STRING: fields.add(Field.create(field.name(),Type.STRING)); break;
 			case BYTES:
 				String clazz = avroSchema.getProp(field.name());
-				try{
-				fields.add(Field.createObject(field.name(), Class.forName(clazz)));
-				} catch(ClassNotFoundException e){
-					throw new PangoolRuntimeException(e);
+				if (clazz != null){
+					try{
+						fields.add(Field.createObject(field.name(), Class.forName(clazz)));
+						} catch(ClassNotFoundException e){
+							throw new PangoolRuntimeException(e);
+						}
+				} else {
+					fields.add(Field.create(field.name(),Type.BYTES));
 				}
 				break;
 			case ENUM:
@@ -100,6 +104,7 @@ public class AvroUtils {
 				case LONG: avroFieldType = org.apache.avro.Schema.Type.LONG; break;
 				case BOOLEAN: avroFieldType = org.apache.avro.Schema.Type.BOOLEAN; break;
 				case STRING: avroFieldType = org.apache.avro.Schema.Type.STRING; break; 
+				case BYTES: avroFieldType = org.apache.avro.Schema.Type.BYTES; break;
 				case OBJECT: 
 					avroFieldType = org.apache.avro.Schema.Type.BYTES; 
 					complexTypesMetadata.put(field.getName(), field.getObjectClass().getName());
@@ -150,6 +155,7 @@ public class AvroUtils {
 			case FLOAT:
 			case BOOLEAN:
 			case DOUBLE:
+			case BYTES:
 				record.put(i, obj); //optimistic
 				break;
 			case OBJECT:
@@ -214,6 +220,7 @@ public class AvroUtils {
 				break;
 			case BYTES:
 				clazzName = record.getSchema().getProp(field.name());
+				if (clazzName != null){
 				try{
 					Class clazz = Class.forName(clazzName);
 					if(tuple.get(pos) == null || tuple.get(pos).getClass() != clazz) {
@@ -224,6 +231,8 @@ public class AvroUtils {
 					ser.deser(tuple.get(pos), bytes, 0, bytes.length);
 				} catch(ClassNotFoundException e){
 					throw new IOException(e);
+				}} else {
+					tuple.set(pos, obj); //this should be byte[] or ByteBuffer
 				}
 				break;
 			default:

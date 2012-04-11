@@ -15,6 +15,8 @@
  */
 package com.datasalt.pangool.tuplemr.mapred;
 
+import java.nio.ByteBuffer;
+
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -93,10 +95,25 @@ public class TupleHashPartitioner extends Partitioner<DatumWrapper<ITuple>, Null
 			} else if(o instanceof Text) {
 				HELPER_UTF8.set((Text) o);
 				hashCode = HELPER_UTF8.hashCode();
+			} else if(o instanceof byte[]){
+				hashCode = hashBytes((byte[])o,0,((byte[]) o).length);
+			} else if(o instanceof ByteBuffer){
+				ByteBuffer buffer = (ByteBuffer)o;
+				int start = buffer.position();
+        int length = buffer.limit() - start;
+				hashCode = hashBytes(buffer.array(),start,length);
 			} else {
 				hashCode = o.hashCode();
 			}
 			result = result * 31 + hashCode;
+		}
+		return result;
+	}
+	
+	public static int hashBytes(byte[] array,int offset,int length){
+		int result=0;
+		for (int i=offset; i < offset+length ; i++){
+			result = result*31 + array[i];
 		}
 		return result;
 	}

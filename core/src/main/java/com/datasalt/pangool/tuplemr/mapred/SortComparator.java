@@ -22,23 +22,25 @@ import static org.apache.hadoop.io.WritableComparator.readVInt;
 import static org.apache.hadoop.io.WritableComparator.readVLong;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.WritableUtils;
 
+import com.datasalt.pangool.PangoolRuntimeException;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.tuplemr.Criteria;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
-import com.datasalt.pangool.tuplemr.Criteria.Order;
-import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 
 /**
@@ -160,9 +162,32 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				return ((Comparable) element1).compareTo(element2);
 			} else if(element2 instanceof Comparable) {
 				return -((Comparable) element2).compareTo(element1);
+			} else if(element1 instanceof byte[]){
+				byte[] buffer1 = (byte[])element1;
+				if (element2 instanceof byte[]){
+					byte[] buffer2 = (byte[])element2;
+					return compareBytes(buffer1,0,buffer1.length,buffer2,0,buffer2.length);
+				} else if (element2 instanceof ByteBuffer){
+					ByteBuffer buffer2 = (ByteBuffer)element2;
+					return compareBytes(buffer1,0,buffer1.length,buffer2.array(),buffer2.position(),buffer2.position()+buffer2.limit());
+				} else {
+					throw new PangoolRuntimeException("Can't compare byte[] with " + element2.getClass());
+				}
+			} else if(element1 instanceof ByteBuffer){
+				ByteBuffer buffer1 = (ByteBuffer)element1;
+				if (element2 instanceof byte[]){
+					byte[] buffer2 =(byte[]) element2;
+					return compareBytes(buffer1.array(),buffer1.position(),buffer1.position()+buffer1.limit(),
+							buffer2,0,buffer2.length);
+				} else if (element2 instanceof ByteBuffer){
+					ByteBuffer buffer2 = (ByteBuffer)element2;
+					return compareBytes(buffer1.array(),buffer1.position(),buffer1.position()+buffer1.limit(),
+							buffer2.array(),buffer2.position(),buffer2.position()+buffer2.limit());
+				} else {
+					throw new PangoolRuntimeException("Can't compare byte[] with " + element2.getClass());
+				}
 			} else {
-				// not Comparable -> we don't care
-				return 0;
+				throw new PangoolRuntimeException("Can't compare object " + element1.getClass() + " with object " + element2.getClass());
 			}
 		}
 	}
@@ -301,7 +326,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				} else if(value1 < value2) {
 					return (sort == Order.ASC) ? -1 : 1;
 				}
-			} else if(type == Type.STRING || type == Type.OBJECT) {
+			} else if(type == Type.STRING || type == Type.OBJECT || type == Type.BYTES) {
 				// Utf8 and Type.OBJECT compareBytes
 				int length1 = readVInt(b1, o.offset1);
 				int length2 = readVInt(b2, o.offset2);
