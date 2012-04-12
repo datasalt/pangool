@@ -21,15 +21,14 @@ import static org.apache.hadoop.io.WritableComparator.readVInt;
 import static org.apache.hadoop.io.WritableComparator.readVLong;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 

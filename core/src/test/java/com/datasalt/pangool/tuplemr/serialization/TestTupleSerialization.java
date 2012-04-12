@@ -53,21 +53,21 @@ public class TestTupleSerialization extends BaseTest{
 	public void prepare2() throws TupleMRException{
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
 		b.addIntermediateSchema(new Schema("schema1",
-				Fields.parse("booleanField:boolean, intField:int, strField:string")));
+				Fields.parse("boolean_field:boolean, int_field:int, string_field:string")));
 		b.addIntermediateSchema(new Schema("schema2",
-				Fields.parse("booleanField:boolean, intField:int, longField:long")));
+				Fields.parse("boolean_field:boolean, int_field:int, long_field:long")));
 		b.addIntermediateSchema(new Schema("schema3",
-				Fields.parse("booleanField:boolean, intField:int, longField:long,strField:string")));
+				Fields.parse("boolean_field:boolean, int_field:int, long_field:long,strField:string")));
 		b.addIntermediateSchema(new Schema("schema4",
-				Fields.parse("booleanField:boolean, intField:int, longField:long,strField:string")));
+				Fields.parse("boolean_field:boolean, int_field:int, long_field:long,strField:string")));
 		b.addIntermediateSchema(new Schema("schema5",
-				Fields.parse("booleanField:boolean, intField:int, longField:long,strField:string, " +
-						"enumField:"+TestEnum.class.getName() + ",thriftField:" + A.class.getName())));
-		
-		b.setGroupByFields("booleanField","intField");
-		b.setOrderBy(new OrderBy().add("booleanField",Order.ASC).add("intField",Order.DESC).addSchemaOrder(Order.DESC));
-		b.setSpecificOrderBy("schema1",new OrderBy().add("strField",Order.DESC));
-		b.setSpecificOrderBy("schema2",new OrderBy().add("longField",Order.ASC));
+				Fields.parse("boolean_field:boolean, int_field:int, long_field:long,strField:string, " +
+						"enum_field:"+TestEnum.class.getName() + ",thrift_field:" + A.class.getName())));
+		b.addIntermediateSchema(SCHEMA);
+		b.setGroupByFields("boolean_field","int_field");
+		b.setOrderBy(new OrderBy().add("boolean_field",Order.ASC).add("int_field",Order.DESC).addSchemaOrder(Order.DESC));
+		b.setSpecificOrderBy("schema1",new OrderBy().add("string_field",Order.DESC));
+		b.setSpecificOrderBy("schema2",new OrderBy().add("long_field",Order.ASC));
 		pangoolConf = b.buildConf();
 	}
 	
@@ -77,7 +77,9 @@ public class TestTupleSerialization extends BaseTest{
 		ThriftSerialization.enableThriftSerialization(conf);
 		
 		HadoopSerialization hadoopSer = new HadoopSerialization(conf);
-		Schema schema = pangoolConf.getIntermediateSchema("schema5"); //most complete
+		//defined in BaseTest
+		Schema schema = pangoolConf.getIntermediateSchema("schema"); //most complete
+		
 		TupleSerialization serialization = new TupleSerialization(hadoopSer,pangoolConf);
 		TupleSerializer serializer = (TupleSerializer)serialization.getSerializer(null);
 		TupleDeserializer deser = (TupleDeserializer)serialization.getDeserializer(null);

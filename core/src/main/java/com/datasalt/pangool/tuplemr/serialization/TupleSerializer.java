@@ -30,6 +30,7 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
@@ -76,7 +77,7 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 	private void oneSourceSerialization(ITuple tuple) throws IOException {
 		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(0);
 		//tuple schema is not checked here
-		write(commonSchema, tuple, commonTranslation, out);
+		write(commonSchema, tuple, commonTranslation, out,serInfo.getCommonSchemaSerializers());
 	}
 
 	private void multipleSourcesSerialization(ITuple tuple) throws IOException {
@@ -87,14 +88,14 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 		}
 		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(schemaId);
 		// serialize common
-		write(commonSchema, tuple, commonTranslation, out);
+		write(commonSchema, tuple, commonTranslation, out,serInfo.getCommonSchemaSerializers());
 		// serialize source id
 		WritableUtils.writeVInt(out, schemaId);
 		// serialize rest of the fields
 		Schema specificSchema = serInfo.getSpecificSchema(schemaId);
 		int[] specificTranslation = serInfo
 				.getSpecificSchemaIndexTranslation(schemaId);
-		write(specificSchema, tuple, specificTranslation, out);
+		write(specificSchema, tuple, specificTranslation, out,serInfo.getSpecificSchemaSerializers().get(schemaId));
 	}
 
 	public void close() throws IOException {
@@ -114,7 +115,7 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 	 * @throws IOException
 	 */
 	private void write(Schema destinationSchema, ITuple tuple,
-			int[] translationTable, DataOutput output) throws IOException {
+			int[] translationTable, DataOutput output,FieldSerializer[] customSerializers) throws IOException {
 		for (int i = 0; i < destinationSchema.getFields().size(); i++) {
 			Field field = destinationSchema.getField(i);
 			Type fieldType = field.getType();
@@ -144,7 +145,7 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 				case ENUM:
 					writeEnum((Enum<?>) element, field, output); break;
 				case OBJECT:
-					writeCustomObject(element,output); break;
+					writeCustomObject(element,output,customSerializers[i]); break;
 				case BYTES:
 					writeBytes(element,output);
 					break;
@@ -159,9 +160,16 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 		} // end for		
 	}
 	
-	private void writeCustomObject(Object element, DataOutput output) throws IOException{
+	private void writeCustomObject(Object element, DataOutput output,FieldSerializer customSer) throws IOException{
 			tmpOutputBuffer.reset();
-			ser.ser(element, tmpOutputBuffer);
+			if (customSer != null){
+				customSer.open(tmpOutputBuffer);
+				customSer.serialize(element);
+				customSer.close(); //TODO is this safe with DataOutputBuffer?
+			} else {
+				//if no custom serializer defined then use Hadoop Serialization by default
+				ser.ser(element, tmpOutputBuffer);
+			}
 			WritableUtils.writeVInt(output, tmpOutputBuffer.getLength());
 			output.write(tmpOutputBuffer.getData(), 0, tmpOutputBuffer.getLength());
 	}

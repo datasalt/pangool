@@ -20,8 +20,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.util.ReflectionUtils;
+
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.FieldDeserializer;
+import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.RollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.SimpleReducer;
@@ -58,7 +62,12 @@ public class SerializationInfo {
 	private List<int[]> commonToIntermediateIndexes = new ArrayList<int[]>();
 	private List<int[]> groupToIntermediateIndexes = new ArrayList<int[]>();
 	private List<int[]> specificToIntermediateIndexes = new ArrayList<int[]>();
-
+	
+	private FieldSerializer[] commonSerializers;
+	private FieldDeserializer[] commonDeserializers;
+	private List<FieldSerializer[]> specificSerializers;
+	private List<FieldDeserializer[]> specificDeserializers;
+	
 	public SerializationInfo(TupleMRConfig tupleMRConfig) throws TupleMRException {
 		this.mrConfig = tupleMRConfig;
 		if(tupleMRConfig.getNumIntermediateSchemas() >= 2) {
@@ -73,6 +82,7 @@ public class SerializationInfo {
 		calculatePartitionFields();
 		calculateGroupSchema();
 		calculateIndexTranslations();
+		initCommonSchemaSerialization();
 	}
 
 	private void initializeMultipleSources() throws TupleMRException {
@@ -80,6 +90,8 @@ public class SerializationInfo {
 		calculatePartitionFields();
 		calculateGroupSchema();
 		calculateIndexTranslations();
+		initCommonSchemaSerialization();
+		initSpecificSchemaSerialization();
 	}
 
 	public List<int[]> getPartitionFieldsIndexes() {
@@ -130,7 +142,70 @@ public class SerializationInfo {
 		List<Field> groupFields = fields.subList(0, mrConfig.getGroupByFields().size());
 		this.groupSchema = new Schema("group", groupFields);
 	}
+	
+	public List<FieldSerializer[]> getSpecificSchemaSerializers(){
+		return specificSerializers;
+	}
+	
+	public List<FieldDeserializer[]> getSpecificSchemaDeserializers(){
+		return specificDeserializers;
+	}
+	
+	public FieldSerializer[] getCommonSchemaSerializers(){
+		return commonSerializers;
+	}
+	
+	public FieldDeserializer[] getCommonSchemaDeserializers(){
+		return commonDeserializers;
+	}
 
+	/**
+	 * This serializers have been defined by the user in an OBJECT field
+	 */
+	private void initCommonSchemaSerialization(){
+		commonSerializers = initSerializers(commonSchema);
+		commonDeserializers = initDeserializers(commonSchema);
+	}
+	
+	private void initSpecificSchemaSerialization(){
+		specificSerializers = new ArrayList<FieldSerializer[]>();
+		specificDeserializers = new ArrayList<FieldDeserializer[]>();
+		for(int i= 0 ; i < specificSchemas.size(); i++){
+			Schema specificSchema = specificSchemas.get(i);
+			specificSerializers.add(initSerializers(specificSchema));
+			specificDeserializers.add(initDeserializers(specificSchema));
+		}
+	}
+
+	private static FieldSerializer[] initSerializers(Schema schema){
+		FieldSerializer[] result = new FieldSerializer[schema.getFields().size()];
+		for (int i= 0 ; i < result.length; i++){
+			Field field = schema.getField(i);
+			if (field.getSerializer() != null){
+				FieldSerializer ser = ReflectionUtils.newInstance(field.getSerializer(),null);
+				ser.setProps(field.getProperties());
+				result[i] = ser;
+			}
+		}
+		return result;
+	}
+	
+	private static FieldDeserializer[] initDeserializers(Schema schema){
+		FieldDeserializer[] result = new FieldDeserializer[schema.getFields().size()];
+		for (int i= 0 ; i < result.length; i++){
+			Field field = schema.getField(i);
+			if (field.getSerializer() != null){
+				FieldDeserializer ser = ReflectionUtils.newInstance(field.getDeserializer(),null);
+				ser.setProps(field.getProperties());
+				result[i] = ser;
+			}
+		}
+		return result;
+	}
+	
+	
+	
+	
 	
 	
 	private void calculatePartitionFields() {

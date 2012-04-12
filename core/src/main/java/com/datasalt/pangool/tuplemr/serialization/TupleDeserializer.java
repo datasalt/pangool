@@ -17,7 +17,6 @@ package com.datasalt.pangool.tuplemr.serialization;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -33,6 +32,7 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.FieldDeserializer;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
@@ -119,10 +119,10 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private ITuple deserializeMultipleSources() throws IOException {
 		CachedTuples tuples = cachedTuples.datum();
 		ITuple commonTuple =tuples.commonTuple; 
-		readFields(commonTuple,in);
+		readFields(commonTuple,in,serInfo.getCommonSchemaDeserializers());
 		int schemaId = WritableUtils.readVInt(in);
 		ITuple specificTuple = tuples.specificTuples.get(schemaId);
-		readFields(specificTuple,in);
+		readFields(specificTuple,in,serInfo.getSpecificSchemaDeserializers().get(schemaId));
 		ITuple result = tuples.resultTuples.get(schemaId);
 		mixIntermediateIntoResult(commonTuple,specificTuple,result,schemaId);
 		return result;
@@ -145,7 +145,7 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private ITuple deserializeOneSource(ITuple reuse) throws IOException {
 		CachedTuples tuples = cachedTuples.datum();
 		ITuple commonTuple = tuples.commonTuple;
-		readFields(commonTuple,in);
+		readFields(commonTuple,in,serInfo.getCommonSchemaDeserializers());
 		if (reuse == null){
 			reuse = tuples.resultTuples.get(0);
 		}
@@ -157,9 +157,11 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		return reuse;
 	}
 
-	public void readFields(ITuple tuple, DataInput input) throws IOException {
+	public void readFields(ITuple tuple, DataInputStream input,FieldDeserializer[] customDeserializers) 
+			throws IOException {
 		Schema schema = tuple.getSchema();
 		for(int index = 0; index < schema.getFields().size(); index++) {
+			FieldDeserializer customDeser = customDeserializers[index];
 			Field field = schema.getField(index);
 			switch(field.getType()){
 			case INT:	tuple.set(index,WritableUtils.readVInt(input)); break;
@@ -173,14 +175,14 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 				break;
 			case ENUM: readEnum(input,tuple,field.getObjectClass(),index); break;
 			case BYTES: readBytes(input,tuple,index); break;
-			case OBJECT: readCustomObject(input,tuple,field.getObjectClass(),index); break;
+			case OBJECT: readCustomObject(input,tuple,field.getObjectClass(),index,customDeser); break;
 			default:
 				throw new IOException("Not supported type:" + field.getType());
 			} 
 		}
 	}
 	
-	protected void readUtf8(DataInput input,ITuple tuple,int index) throws IOException {
+	protected void readUtf8(DataInputStream input,ITuple tuple,int index) throws IOException {
 		//this method is safe because tuple is internal, the tuple is not the final one
 		Utf8 t = (Utf8)tuple.get(index); 
 		if (t == null){
@@ -190,22 +192,34 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		t.readFields(input);
 	}
 	
-	protected void readCustomObject(DataInput input,ITuple tuple,Class<?> expectedType,int index) throws IOException{
+	protected void readCustomObject(DataInputStream input,ITuple tuple,Class<?> expectedType,int index,
+			FieldDeserializer customDeser) 
+			throws IOException{
 		int size = WritableUtils.readVInt(input);
 		if(size >=0) {
-			tmpInputBuffer.setSize(size);
-			input.readFully(tmpInputBuffer.getBytes(), 0, size);
-			if(tuple.get(index) == null) {
-				tuple.set(index, ReflectionUtils.newInstance(expectedType, conf));
+			Object object = tuple.get(index);
+			if (customDeser != null){
+				customDeser.open(input );
+				object = customDeser.deserialize(object);
+				customDeser.close();
+				tuple.set(index,object);
+			} else {
+				if(object == null) {
+					tuple.set(index, ReflectionUtils.newInstance(expectedType, conf));
+				}
+				tmpInputBuffer.setSize(size);
+				input.readFully(tmpInputBuffer.getBytes(), 0, size);
+				Object ob = ser.deser(tuple.get(index), tmpInputBuffer.getBytes(), 0, size);
+				tuple.set(index, ob);
 			}
-			Object ob = ser.deser(tuple.get(index), tmpInputBuffer.getBytes(), 0, size);
-			tuple.set(index, ob);
+			
+			
 		} else {
 			throw new IOException("Error deserializing, custom object serialized with negative length : " + size);
 		}
 	}
 	
-  public void readBytes(DataInput input,ITuple tuple,int index) throws IOException {
+  public void readBytes(DataInputStream input,ITuple tuple,int index) throws IOException {
     int length = WritableUtils.readVInt(input);
     ByteBuffer old = (ByteBuffer)tuple.get(index);
     ByteBuffer result;
@@ -221,7 +235,7 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
   }
   
 	
-	protected void readEnum(DataInput input,ITuple tuple,Class<?> fieldType,int index) throws IOException{
+	protected void readEnum(DataInputStream input,ITuple tuple,Class<?> fieldType,int index) throws IOException{
 		int ordinal = WritableUtils.readVInt(input);
 		try {
 			Object[] enums = fieldType.getEnumConstants();

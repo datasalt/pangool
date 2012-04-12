@@ -20,9 +20,12 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
@@ -37,6 +40,8 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.thrift.test.A;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldDeserializer;
+import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldSerializer;
 import com.datasalt.pangool.tuplemr.serialization.TupleDeserializer;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerializer;
@@ -46,6 +51,10 @@ import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 public abstract class BaseTest extends AbstractHadoopTestLibrary {
 
 	public final static  Schema SCHEMA;
+	public final static org.apache.avro.Schema AVRO_SCHEMA;
+	
+	
+	
 	
 	static{
 		List<Field> fields = new ArrayList<Field>();
@@ -57,6 +66,21 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 		fields.add(Field.create("boolean_field",Type.BOOLEAN));
   	fields.add(Field.createEnum("enum_field",Order.class));
 		fields.add(Field.createObject("thrift_field",A.class));
+		
+		AVRO_SCHEMA =  org.apache.avro.Schema.createRecord("MyRecordSchema",null,null,false);
+		List<org.apache.avro.Schema.Field> avroFields = new ArrayList<org.apache.avro.Schema.Field>();
+		avroFields.add(new org.apache.avro.Schema.Field
+				("my_int",org.apache.avro.Schema.create(org.apache.avro.Schema.Type.INT),null,null));
+		avroFields.add(new org.apache.avro.Schema.Field
+				("my_string",org.apache.avro.Schema.create(org.apache.avro.Schema.Type.STRING),null,null));	
+		AVRO_SCHEMA.setFields(avroFields);
+		
+		
+		
+		Map<String,String> properties = new HashMap<String,String>();
+		properties.put("avro.schema",AVRO_SCHEMA.toString());
+		
+		fields.add(Field.createObject("my_avro",Record.class,AvroFieldSerializer.class,AvroFieldDeserializer.class,properties));
 		SCHEMA = new Schema("schema",fields);
 	}
 
@@ -109,11 +133,19 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 		tuple.set(index, values[isRandom ? random.nextInt(values.length) : 0]);
 	}
 	protected static void fillObject(boolean isRandom,ITuple tuple,Field field,int index){
-		Object instance = ReflectionUtils.newInstance(field.getObjectClass(), null);
-		if (instance instanceof A) {
+		
+		Object instance;
+		if (field.getObjectClass() == A.class) {
+			instance = ReflectionUtils.newInstance(field.getObjectClass(), null);
 			A a = (A) instance;
 			a.setId(isRandom ? random.nextInt() + "" : "");
 			a.setUrl(isRandom ? random.nextLong() + "" : "");
+		} else if (field.getProperties().get("avro.schema").equals(AVRO_SCHEMA.toString())){ //FIXME this is slow
+			instance = new Record(AVRO_SCHEMA); //TODO this is slow
+			((Record)instance).put("my_int",isRandom ? random.nextInt() : 0);
+			((Record)instance).put("my_string",isRandom ? random.nextLong()+"" : "");
+		} else {
+			throw new PangoolRuntimeException("Unknown field to fill");
 		}
 		tuple.set(index, instance);
 	}
