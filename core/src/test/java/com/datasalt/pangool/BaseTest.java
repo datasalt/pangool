@@ -18,14 +18,12 @@ package com.datasalt.pangool;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
@@ -53,15 +51,13 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 	public final static  Schema SCHEMA;
 	public final static org.apache.avro.Schema AVRO_SCHEMA;
 	
-	
-	
-	
 	static{
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("int_field",Type.INT));
 		fields.add(Field.create("string_field",Type.STRING));
 		fields.add(Field.create("long_field",Type.LONG));
   	fields.add(Field.create("float_field",Type.FLOAT));
+  	fields.add(Field.create("bytes_field",Type.BYTES));
 		fields.add(Field.create("double_field",Type.DOUBLE));
 		fields.add(Field.create("boolean_field",Type.BOOLEAN));
   	fields.add(Field.createEnum("enum_field",Order.class));
@@ -75,12 +71,10 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 				("my_string",org.apache.avro.Schema.create(org.apache.avro.Schema.Type.STRING),null,null));	
 		AVRO_SCHEMA.setFields(avroFields);
 		
-		
-		
-		Map<String,String> properties = new HashMap<String,String>();
-		properties.put("avro.schema",AVRO_SCHEMA.toString());
-		
-		fields.add(Field.createObject("my_avro",Record.class,AvroFieldSerializer.class,AvroFieldDeserializer.class,properties));
+		Field avroField =Field.createObject("my_avro",Record.class,AvroFieldSerializer.class,
+				AvroFieldDeserializer.class); 
+		avroField.addProp("avro.schema",AVRO_SCHEMA.toString());
+		fields.add(avroField);
 		SCHEMA = new Schema("schema",fields);
 	}
 
@@ -108,6 +102,7 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 					case STRING: fillString(isRandom,tuple,i); break;
 					case ENUM: fillEnum(isRandom,field,tuple,i); break;
 					case OBJECT: fillObject(isRandom,tuple,field,i); break;
+					case BYTES: fillBytes(isRandom,tuple,i); break;
 					default: throw new IllegalArgumentException("Not supported type " + field.getType());
 				}
 			}
@@ -128,20 +123,27 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 		}
 	}
 	protected static void fillEnum(boolean isRandom,Field field,ITuple tuple,int index) throws Exception{
-		Method method = field.getObjectClass().getMethod("values", (Class[])null);
-		Enum[] values = (Enum[]) method.invoke(null);
+		Enum[] values = (Enum[]) field.getObjectClass().getEnumConstants();
 		tuple.set(index, values[isRandom ? random.nextInt(values.length) : 0]);
 	}
+	
+	protected static void fillBytes(boolean isRandom,ITuple tuple,int index) throws Exception {
+		throw new NotImplementedException(); //TODO
+	}
+	
 	protected static void fillObject(boolean isRandom,ITuple tuple,Field field,int index){
-		
-		Object instance;
+		Object instance = tuple.get(index);
 		if (field.getObjectClass() == A.class) {
-			instance = ReflectionUtils.newInstance(field.getObjectClass(), null);
+			if (instance == null){
+				instance = ReflectionUtils.newInstance(field.getObjectClass(), null);
+			}
 			A a = (A) instance;
 			a.setId(isRandom ? random.nextInt() + "" : "");
 			a.setUrl(isRandom ? random.nextLong() + "" : "");
-		} else if (field.getProperties().get("avro.schema").equals(AVRO_SCHEMA.toString())){ //FIXME this is slow
-			instance = new Record(AVRO_SCHEMA); //TODO this is slow
+		} else if (field.getSerializer() == AvroFieldSerializer.class){
+			if (instance == null){
+				instance = new Record(AVRO_SCHEMA);
+			}
 			((Record)instance).put("my_int",isRandom ? random.nextInt() : 0);
 			((Record)instance).put("my_string",isRandom ? random.nextLong()+"" : "");
 		} else {
@@ -151,7 +153,8 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 	}
 	
 
-	protected static void assertSerializable(HadoopSerialization ser,ITuple tuple, boolean debug) throws IOException {
+	protected static void assertSerializable(HadoopSerialization ser,ITuple tuple, 
+			boolean debug) throws IOException {
 		DataInputBuffer input = new DataInputBuffer();
 		DataOutputBuffer output = new DataOutputBuffer();
 		DatumWrapper<ITuple> wrapper = new DatumWrapper<ITuple>(tuple);

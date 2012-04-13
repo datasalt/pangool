@@ -163,8 +163,8 @@ public class SerializationInfo {
 	 * This serializers have been defined by the user in an OBJECT field
 	 */
 	private void initCommonSchemaSerialization(){
-		commonSerializers = initSerializers(commonSchema);
-		commonDeserializers = initDeserializers(commonSchema);
+		commonSerializers = getSerializers(commonSchema);
+		commonDeserializers = getDeserializers(commonSchema);
 	}
 	
 	private void initSpecificSchemaSerialization(){
@@ -172,31 +172,31 @@ public class SerializationInfo {
 		specificDeserializers = new ArrayList<FieldDeserializer[]>();
 		for(int i= 0 ; i < specificSchemas.size(); i++){
 			Schema specificSchema = specificSchemas.get(i);
-			specificSerializers.add(initSerializers(specificSchema));
-			specificDeserializers.add(initDeserializers(specificSchema));
+			specificSerializers.add(getSerializers(specificSchema));
+			specificDeserializers.add(getDeserializers(specificSchema));
 		}
 	}
 
-	private static FieldSerializer[] initSerializers(Schema schema){
+	public static FieldSerializer[] getSerializers(Schema schema){
 		FieldSerializer[] result = new FieldSerializer[schema.getFields().size()];
 		for (int i= 0 ; i < result.length; i++){
 			Field field = schema.getField(i);
 			if (field.getSerializer() != null){
 				FieldSerializer ser = ReflectionUtils.newInstance(field.getSerializer(),null);
-				ser.setProps(field.getProperties());
+				ser.setProps(field.getProps());
 				result[i] = ser;
 			}
 		}
 		return result;
 	}
 	
-	private static FieldDeserializer[] initDeserializers(Schema schema){
+	public static FieldDeserializer[] getDeserializers(Schema schema){
 		FieldDeserializer[] result = new FieldDeserializer[schema.getFields().size()];
 		for (int i= 0 ; i < result.length; i++){
 			Field field = schema.getField(i);
 			if (field.getSerializer() != null){
 				FieldDeserializer ser = ReflectionUtils.newInstance(field.getDeserializer(),null);
-				ser.setProps(field.getProperties());
+				ser.setProps(field.getProps());
 				result[i] = ser;
 			}
 		}

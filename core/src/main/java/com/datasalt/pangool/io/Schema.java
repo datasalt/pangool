@@ -22,11 +22,14 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.avro.AvroRuntimeException;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serializer;
 import org.codehaus.jackson.JsonFactory;
@@ -69,17 +72,6 @@ public class Schema implements Serializable {
 	 * methods. A field object is <b>immutable</b>.
 	 */
 	public static class Field implements Serializable{
-		public static enum Type {
-			INT, LONG, FLOAT, DOUBLE, STRING, BOOLEAN, ENUM, BYTES,OBJECT;
-		}
-
-		private final String name;
-		private final Type type;
-		private final Class<?> objectClass;
-		private final Class<? extends FieldSerializer> ser;
-		private final Class<? extends FieldDeserializer> deser;
-		private final Map<String,String> props;
-
 		public static interface FieldSerializer extends Serializer{
 			public void setProps(Map<String,String> properties);
 		}
@@ -87,6 +79,71 @@ public class Schema implements Serializable {
 		public static interface FieldDeserializer extends Deserializer{
 			public void setProps(Map<String,String> properties);
 		}
+		public static enum Type {
+			INT, LONG, FLOAT, DOUBLE, STRING, BOOLEAN, ENUM, BYTES,OBJECT;
+		}
+		
+		public static final Set<String> RESERVED_KEYWORDS;
+		public static final String METADATA_OBJECT_CLASS="pangool.object.java-class";
+		public static final String METADATA_OBJECT_SERIALIZER="pangool.object.java-serializer-class";
+		public static final String METADATA_OBJECT_DESERIALIZER="pangool.object.java-deserializer-class";
+		
+		static {
+			Set <String> reserved = new HashSet<String>();
+			Collections.addAll(reserved, 
+					METADATA_OBJECT_CLASS,METADATA_OBJECT_SERIALIZER,METADATA_OBJECT_DESERIALIZER);
+			RESERVED_KEYWORDS = Collections.unmodifiableSet(reserved);
+		}
+		
+		static final class Props extends LinkedHashMap<String,String> {
+	    private Set<String> reserved;
+	    public Props(Set<String> reserved) {
+	      super(1);
+	      this.reserved = reserved;
+	    }
+	    public void add(String name, String value) {
+	      if (reserved.contains(name))
+	        throw new AvroRuntimeException("Can't set reserved property: " + name);
+	      
+	      if (value == null)
+	        throw new AvroRuntimeException("Can't set a property to null: " + name);
+	    
+	      String old = get(name);
+	      if (old == null)
+	        put(name, value);
+	      else if (!old.equals(value))
+	        throw new AvroRuntimeException("Can't overwrite property: " + name);
+	    }
+
+	    public void write(JsonGenerator gen) throws IOException {
+	      for (Map.Entry<String,String> e : entrySet())
+	        gen.writeStringField(e.getKey(), e.getValue());
+	    }
+	  }
+		
+
+		private final String name;
+		private final Type type;
+		
+		private final Props props= new Props(RESERVED_KEYWORDS);
+		
+		//special properties in props 
+		private Class<?> objectClass; //lazy loaded
+		private Class<? extends FieldSerializer> ser; //lazy loaded
+		private Class<? extends FieldDeserializer> deser; //lazy loaded
+		
+		public void addProp(String key,String value){
+			props.add(key, value);
+		}
+		
+		public Map<String,String> getProps(){
+			return Collections.unmodifiableMap(props);
+		}
+		
+		public String getProp(String name){
+			return props.get(name);
+		}
+		
 		
 		public static Field create(String name, Type type) {
 			if(type == Type.ENUM) {
@@ -96,7 +153,7 @@ public class Schema implements Serializable {
 				throw new IllegalArgumentException(
 				    "Not allowed 'OBJECT' type. Use 'Field.createObject' method");
 			}
-			return new Field(name, type, null,null,null,null);
+			return new Field(name, type, null,null,null);
 		}
 
 		/**
@@ -109,25 +166,34 @@ public class Schema implements Serializable {
 		 * @return
 		 */
 		public static Field createObject(String name, Class<?> clazz) {
-			return new Field(name, Type.OBJECT, clazz,null,null,null);
+			return new Field(name, Type.OBJECT, clazz,null,null);
 		}
 		
 		public static Field createObject(String name,Class<?> clazz,
-				Class<? extends FieldSerializer> ser,Class<? extends FieldDeserializer> deser,Map<String,String> properties){
-			return new Field(name,Type.OBJECT,clazz,ser,deser,properties);
+				Class<? extends FieldSerializer> ser,Class<? extends FieldDeserializer> deser){
+			return new Field(name,Type.OBJECT,clazz,ser,deser);
 			
 		}
 		
 		public static Field cloneField(Field field, String newName){
+			Field result;
 			switch(field.getType()){
 			case OBJECT:
-				return Field.createObject(newName, field.getObjectClass(),field.getSerializer(),field.getDeserializer(),field.getProperties());
+				 result = Field.createObject(newName, field.getObjectClass(),field.getSerializer(),field.getDeserializer());
+				 break;
 			case ENUM:
-				return Field.createEnum(newName,field.getObjectClass());
+				result =  Field.createEnum(newName,field.getObjectClass());
+				break;
 				default:
-					return Field.create(newName,field.getType());
+					result= Field.create(newName,field.getType());
 			}
 			
+			for(Map.Entry<String,String> entry : field.getProps().entrySet()){
+				if (!RESERVED_KEYWORDS.contains(entry.getKey())){
+					result.addProp(entry.getKey(),entry.getValue());
+				}
+			}
+			return result;
 		}
 
 		/**
@@ -140,12 +206,11 @@ public class Schema implements Serializable {
 		 * @return
 		 */
 		public static Field createEnum(String name, Class<?> clazz) {
-			return new Field(name, Type.ENUM, clazz,null,null,null);
+			return new Field(name, Type.ENUM, clazz,null,null);
 		}
 
 		private Field(String name, Type type, Class<?> clazz,
-				Class<? extends FieldSerializer> ser,Class<? extends FieldDeserializer> deser,
-				Map<String,String> props) {
+				Class<? extends FieldSerializer> ser,Class<? extends FieldDeserializer> deser) {
 			if(name == null) {
 				throw new IllegalArgumentException("Field name can't be null");
 			}
@@ -169,8 +234,6 @@ public class Schema implements Serializable {
 			this.type = type;
 			this.ser = ser;
 			this.deser = deser;
-			this.props = props;
-
 		}
 
 		public Type getType() {
@@ -187,16 +250,24 @@ public class Schema implements Serializable {
 		
 		public Class<? extends FieldSerializer> getSerializer(){
 			return ser;
+			/*try{
+				String serString =  getProp(METADATA_OBJECT_SERIALIZER);
+				return (serString == null) ? null : (Class<? extends FieldSerializer>)Class.forName(ser);
+			} catch(ClassNotFoundException e){
+				throw new PangoolRuntimeException(e);
+			}*/
 		}
 		
 		public Class<? extends FieldDeserializer> getDeserializer(){
 			return deser;
+//			try{
+//				String ser =  getProp(METADATA_OBJECT_SERIALIZER);
+//				return (ser == null) ? null : (Class<? extends FieldSerializer>)Class.forName(ser);
+//			} catch(ClassNotFoundException e){
+//				throw new PangoolRuntimeException(e);
+//			}
 		}
 		
-		public Map<String,String> getProperties(){
-			return props;
-		}
-
 		public boolean equals(Object a) {
 			if(!(a instanceof Field)) {
 				return false;
@@ -261,28 +332,28 @@ public class Schema implements Serializable {
 				if (node.get("deserializer") != null){
 					deser = (Class<? extends FieldDeserializer>) Class.forName(node.get("deserializer").getTextValue());
 				}
-				
-				if (node.get("properties") != null){
-					properties = new HashMap<String,String>();
-					JsonNode propNode = node.get("properties");
-					Iterator<String> fieldNames = propNode.getFieldNames();
-					while (fieldNames.hasNext()){
-						String field = fieldNames.next();
-						properties.put(field,propNode.get(field).getTextValue());
-					}
-				}
-				
-				
+				Field field;
 				switch(type) {
 				case OBJECT:
 					String clazz = node.get("object_class").getTextValue();
-					return Field.createObject(name, Class.forName(clazz),ser,deser,properties);
+					field =Field.createObject(name, Class.forName(clazz),ser,deser);
+					break;
 				case ENUM:
 					clazz = node.get("object_class").getTextValue();
-					return Field.createEnum(name, Class.forName(clazz));
+					field =  Field.createEnum(name, Class.forName(clazz));
+					break;
 				default:
-					return Field.create(name, type);
+					field =  Field.create(name, type);
 				}
+				if (node.get("properties") != null){
+					JsonNode propNode = node.get("properties");
+					Iterator<String> fieldNames = propNode.getFieldNames();
+					while (fieldNames.hasNext()){
+						String key = fieldNames.next();
+						field.addProp(key,propNode.get(key).getTextValue());
+					}
+				}
+				return field;
 			} catch(ClassNotFoundException e) {
 				throw new IOException(e);
 			}

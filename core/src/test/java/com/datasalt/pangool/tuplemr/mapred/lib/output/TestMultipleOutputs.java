@@ -139,7 +139,7 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		getConf()
 		    .setClass(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, SequenceFileOutputFormat.class, OutputFormat.class);
 		Job job = builder.createJob();
-		job.waitForCompletion(true);
+		assertRun(job);
 
 		// Check outputs
 

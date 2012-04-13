@@ -39,6 +39,8 @@ import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.utils.AvroUtils;
+import com.datasalt.pangool.utils.AvroRecordToTupleConverter;
+import com.datasalt.pangool.utils.TupleToAvroRecordConverter;
 
 
 public class TestTupleSerialization extends BaseTest{
@@ -90,31 +92,33 @@ public class TestTupleSerialization extends BaseTest{
 			fillTuple(true,wrapper.datum());
 			assertSerializable(serializer, deser, wrapper, false);
 		}
-		
 	}
 	
 	@Test
 	public void testTupleToRecordConversion() throws Exception {
 		Schema schema = SCHEMA; //TODO add permutations of this schema
-		Tuple tuple = new Tuple(schema);
-		Tuple convertedTuple = new Tuple(schema);
 		Configuration conf = new Configuration();
 		ThriftSerialization.enableThriftSerialization(conf);
-		DataOutputBuffer buffer = new DataOutputBuffer();
-		HadoopSerialization hadoopSer = new HadoopSerialization(conf);
+		
+		TupleToAvroRecordConverter pangoolToAvro = 
+				new TupleToAvroRecordConverter(schema, conf);
+		org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(schema);
+		Schema convertedSchema = AvroUtils.toPangoolSchema(avroSchema);
+		Assert.assertEquals(schema,convertedSchema);
+		
+		AvroRecordToTupleConverter avroToPangool = 
+				new AvroRecordToTupleConverter(avroSchema, conf);
+		
+		ITuple tuple = new Tuple(schema);
+		ITuple convertedTuple=null;
+		Record record=null;
 		int NUM_ITERATIONS=100000;
 		for (int i=0 ; i < NUM_ITERATIONS; i++){
 			fillTuple(true,tuple);
-			org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(schema);
-			Schema convertedSchema = AvroUtils.toPangoolSchema(avroSchema);
-			Assert.assertEquals(schema,convertedSchema);
-			Record r = new Record(avroSchema);
-			AvroUtils.toRecord(tuple, r, buffer, hadoopSer);
+			record = pangoolToAvro.toRecord(tuple,record);
 			
-			AvroUtils.toTuple(r, convertedTuple, conf,hadoopSer);
+			convertedTuple=avroToPangool.toTuple(record,convertedTuple);
 			Assert.assertEquals(tuple,convertedTuple);
 		}
 	}
-	
-	
 }

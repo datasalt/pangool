@@ -36,6 +36,7 @@ import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.utils.AvroUtils;
+import com.datasalt.pangool.utils.TupleToAvroRecordConverter;
 
 /**
  * An Avro-based output format for {@link ITuple}s
@@ -53,7 +54,7 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 	private static final int SYNC_SIZE = 16;
 	private static final int DEFAULT_SYNC_INTERVAL = 1000 * SYNC_SIZE;
 
-	String pangoolOutputSchema;
+	private String pangoolOutputSchema;
 
 	public TupleOutputFormat(String pangoolOutputSchema) {
 		this.pangoolOutputSchema = pangoolOutputSchema;
@@ -61,16 +62,15 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 
 	public static class TupleRecordWriter extends RecordWriter<ITuple, NullWritable> {
 
-		Record record;
-		DataFileWriter<Record> writer;
-		private final HadoopSerialization ser;
-		private final DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
+		protected Record record;
+		protected DataFileWriter<Record> writer;
+		private TupleToAvroRecordConverter converter;
+		//private Configuration conf;
+		
 
-		public TupleRecordWriter(org.apache.avro.Schema schema, Schema pangoolSchema,
-		    DataFileWriter<Record> writer, HadoopSerialization ser) {
-			record = new Record(schema);
-			this.ser = ser;
+		public TupleRecordWriter(Schema pangoolSchema,DataFileWriter<Record> writer,Configuration conf) {
 			this.writer = writer;
+			converter = new TupleToAvroRecordConverter(pangoolSchema, conf);
 		}
 
 		@Override
@@ -81,7 +81,7 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 		@Override
 		public void write(ITuple tuple, NullWritable ignore) throws IOException,
 		    InterruptedException {
-			AvroUtils.toRecord(tuple, record, tmpOutputBuffer, ser);
+			record = converter.toRecord(tuple, record);
 			writer.append(record);
 		}
 	}
@@ -118,7 +118,6 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 		writer
 		    .create(avroSchema, file.getFileSystem(context.getConfiguration()).create(file));
 
-		return new TupleRecordWriter(avroSchema, pangoolOutputSchema, writer,
-		    new HadoopSerialization(conf));
+		return new TupleRecordWriter(pangoolOutputSchema, writer,conf);
 	}
 }

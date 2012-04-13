@@ -37,6 +37,7 @@ import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.utils.AvroUtils;
+import com.datasalt.pangool.utils.AvroRecordToTupleConverter;
 
 @SuppressWarnings("serial")
 public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> implements
@@ -48,17 +49,15 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> impl
 		private FileReader<Record> reader;
 		private long start;
 		private long end;
-		private HadoopSerialization ser;
 		private Configuration conf;
-
-		Tuple tuple;
-		AvroWrapper<Record> wrapper;
+		private AvroRecordToTupleConverter converter;
+		private Record record;
+		private ITuple tuple;
+		//private AvroWrapper<Record> wrapper;
 
 		public TupleInputReader(Configuration conf) throws IOException, InterruptedException {
 			specificReader = new SpecificDatumReader<Record>();
-			wrapper = new AvroWrapper<Record>();
 			this.conf = conf;
-			this.ser = new HadoopSerialization(conf);
 		}
 
 		@Override
@@ -117,12 +116,12 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> impl
 			if(!reader.hasNext()) {
 				return false;
 			}
-			wrapper.datum(reader.next(wrapper.datum()));
-			if(tuple == null) {
-				// Convert schema from FileReader to pangool Schema
-				tuple = new Tuple(AvroUtils.toPangoolSchema(reader.getSchema()));
+			record =(reader.next(record));
+			if (converter == null){
+				//we assume that all the next records will have the same avroSchema
+				converter = new AvroRecordToTupleConverter(record.getSchema(), conf);
 			}
-			AvroUtils.toTuple(wrapper.datum(), tuple, conf, ser);
+			tuple = converter.toTuple(record, tuple);
 			return true;
 		}
 
