@@ -84,7 +84,7 @@ public abstract class DeserializerComparator<T> implements RawComparator<T>, Ser
 	
 	@SuppressWarnings("unchecked")
   @Override
-  public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
+  public final int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		try {
 				object1 = (T) fieldDeser1.deserialize(b1, s1);
 				object2 = (T) fieldDeser2.deserialize(b2, s2);

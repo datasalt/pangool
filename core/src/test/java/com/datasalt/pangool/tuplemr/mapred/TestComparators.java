@@ -218,51 +218,18 @@ public class TestComparators extends ComparatorsBaseTest {
 		public ReverseEqualsComparator(Type type) {
 			super(type);
 		}
+		
 		public ReverseEqualsComparator(Type type, Class objectClazz) {
 			super(type, objectClazz);
 		}
+		
 		public ReverseEqualsComparator(Type type,Class objectClazz,FieldDeserializer fieldDeser){
 			super(type,objectClazz,fieldDeser);
 		}
 
 		@Override
 		public int compare(Object o1, Object o2) {
-			int cmp = cmp(o1, o2);
-			return cmp;
-		}
-
-		public int cmp(Object o1, Object o2) {
-			// Need for being able to compare still not serialized objects with
-			// serialized objects.
-			// That is only needed in testing. User comparators doesn't need to use
-			// this trick.
-			if(o1 == null) {
-				return (o2 == null) ? 0 : -1;
-			} else if(o2 == null) {
-				return 1;
-			} else {
-				if(o1 instanceof String) {
-					o1 = new Utf8((String) o1);
-				}
-				if(o2 instanceof String) {
-					o2 = new Utf8((String) o2);
-				}
-				
-			}
-			
-			if (o1 instanceof Comparable){
-				return -((Comparable)o1).compareTo(o2);
-			} else if (o2 instanceof Comparable){
-				return ((Comparable)o2).compareTo(o1);
-			} else {
-				//not comparables..
-				return 0; //TODO is this true ???
-			}
-		}
-
-		@Override
-		public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-			return super.compare(b1, s1, l1, b2, s2, l2);
+		return -SortComparator.compareObjects(o1,o2);
 		}
 	}
 

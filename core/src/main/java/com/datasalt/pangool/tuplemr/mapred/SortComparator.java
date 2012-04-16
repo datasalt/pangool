@@ -144,10 +144,12 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 		if(type == Type.OBJECT) {
 			return serializerComparator.compare(elem1,serializer, elem2,serializer);
+		} else {
+			return compareObjects(elem1,elem2);
 		}
-
-		Object element1 = elem1;
-		Object element2 = elem2;
+	}
+	
+	public static int compareObjects(Object element1,Object element2){
 		if(element1 == null) {
 			return (element2 == null) ? 0 : -1;
 		} else if(element2 == null) {
@@ -188,10 +190,12 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					throw new PangoolRuntimeException("Can't compare byte[] with " + element2.getClass());
 				}
 			} else {
-				throw new PangoolRuntimeException("Can't compare object " + element1.getClass() + " with object " + element2.getClass());
+				throw new PangoolRuntimeException("Not comparable elements:" + element1.getClass() + " with object " + element2.getClass());
 			}
 		}
+		
 	}
+	
 
 	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
@@ -272,75 +276,82 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				if(comparison != 0) {
 					return (sort == Order.ASC) ? comparison : -comparison;
 				}
-			} else if(type == Type.INT || type == Type.ENUM) {
-				// VInt || Enum
-				int value1 = readVInt(b1, o.offset1);
-				int value2 = readVInt(b2, o.offset2);
-				if(value1 > value2) {
-					return (sort == Order.ASC) ? 1 : -1;
-				} else if(value1 < value2) {
-					return (sort == Order.ASC) ? -1 : 1;
-				}
-				int vintSize = WritableUtils.decodeVIntSize(b1[o.offset1]);
-				o.offset1 += vintSize;
-				o.offset2 += vintSize;
-			} else if(type == Type.LONG) {
-				// VLong
-				long value1 = readVLong(b1, o.offset1);
-				long value2 = readVLong(b2, o.offset2);
-				if(value1 > value2) {
-					return (sort == Order.ASC) ? 1 : -1;
-				} else if(value1 < value2) {
-					return (sort == Order.ASC) ? -1 : 1;
-				}
-				int vIntSize = WritableUtils.decodeVIntSize(b1[o.offset1]);
-				o.offset1 += vIntSize;
-				o.offset2 += vIntSize;
-			} else if(type == Type.FLOAT) {
-				// Float
-				float value1 = readFloat(b1, o.offset1);
-				float value2 = readFloat(b2, o.offset2);
-				if(value1 > value2) {
-					return (sort == Order.ASC) ? 1 : -1;
-				} else if(value1 < value2) {
-					return (sort == Order.ASC) ? -1 : 1;
-				}
-				o.offset1 += Float.SIZE / 8;
-				o.offset2 += Float.SIZE / 8;
-			} else if(type == Type.DOUBLE) {
-				// Double
-				double value1 = readDouble(b1, o.offset1);
-				double value2 = readDouble(b2, o.offset2);
-				if(value1 > value2) {
-					return (sort == Order.ASC) ? 1 : -1;
-				} else if(value1 < value2) {
-					return (sort == Order.ASC) ? -1 : 1;
-				}
-				o.offset1 += Double.SIZE / 8;
-				o.offset2 += Double.SIZE / 8;
-			} else if(type == Type.BOOLEAN) {
-				// Boolean
-				byte value1 = b1[o.offset1++];
-				byte value2 = b2[o.offset2++];
-				if(value1 > value2) {
-					return (sort == Order.ASC) ? 1 : -1;
-				} else if(value1 < value2) {
-					return (sort == Order.ASC) ? -1 : 1;
-				}
-			} else if(type == Type.STRING || type == Type.OBJECT || type == Type.BYTES) {
-				// Utf8 and Type.OBJECT compareBytes
-				int length1 = readVInt(b1, o.offset1);
-				int length2 = readVInt(b2, o.offset2);
-				o.offset1 += WritableUtils.decodeVIntSize(b1[o.offset1]);
-				o.offset2 += WritableUtils.decodeVIntSize(b2[o.offset2]);
-				int comparison = compareBytes(b1, o.offset1, length1, b2, o.offset2, length2);
-				o.offset1 += length1;
-				o.offset2 += length2;
-				if(comparison != 0) {
-					return (sort == Order.ASC) ? comparison : (-comparison);
-				}
 			} else {
-				throw new IOException("Not supported comparison for type:" + type);
+				//not default comparator
+				switch(type){
+				case INT:
+				case ENUM:{
+					int value1 = readVInt(b1, o.offset1);
+					int value2 = readVInt(b2, o.offset2);
+					if(value1 > value2) {
+						return (sort == Order.ASC) ? 1 : -1;
+					} else if(value1 < value2) {
+						return (sort == Order.ASC) ? -1 : 1;
+					}
+					int vintSize = WritableUtils.decodeVIntSize(b1[o.offset1]);
+					o.offset1 += vintSize;
+					o.offset2 += vintSize;
+				}	break;
+				case LONG:{
+					long value1 = readVLong(b1, o.offset1);
+					long value2 = readVLong(b2, o.offset2);
+					if(value1 > value2) {
+						return (sort == Order.ASC) ? 1 : -1;
+					} else if(value1 < value2) {
+						return (sort == Order.ASC) ? -1 : 1;
+					}
+					int vIntSize = WritableUtils.decodeVIntSize(b1[o.offset1]);
+					o.offset1 += vIntSize;
+					o.offset2 += vIntSize;
+				} break;
+				case FLOAT:{
+					float value1 = readFloat(b1, o.offset1);
+					float value2 = readFloat(b2, o.offset2);
+					if(value1 > value2) {
+						return (sort == Order.ASC) ? 1 : -1;
+					} else if(value1 < value2) {
+						return (sort == Order.ASC) ? -1 : 1;
+					}
+					o.offset1 += Float.SIZE / 8;
+					o.offset2 += Float.SIZE / 8;
+				} break;
+				case DOUBLE:{
+					double value1 = readDouble(b1, o.offset1);
+					double value2 = readDouble(b2, o.offset2);
+					if(value1 > value2) {
+						return (sort == Order.ASC) ? 1 : -1;
+					} else if(value1 < value2) {
+						return (sort == Order.ASC) ? -1 : 1;
+					}
+					o.offset1 += Double.SIZE / 8;
+					o.offset2 += Double.SIZE / 8;
+				} break;
+				case BOOLEAN:{
+					byte value1 = b1[o.offset1++];
+					byte value2 = b2[o.offset2++];
+					if(value1 > value2) {
+						return (sort == Order.ASC) ? 1 : -1;
+					} else if(value1 < value2) {
+						return (sort == Order.ASC) ? -1 : 1;
+					}
+					} break;
+				case STRING:
+				case OBJECT:
+				case BYTES:{
+					int length1 = readVInt(b1, o.offset1);
+					int length2 = readVInt(b2, o.offset2);
+					o.offset1 += WritableUtils.decodeVIntSize(b1[o.offset1]);
+					o.offset2 += WritableUtils.decodeVIntSize(b2[o.offset2]);
+					int comparison = compareBytes(b1, o.offset1, length1, b2, o.offset2, length2);
+					o.offset1 += length1;
+					o.offset2 += length2;
+					if(comparison != 0) {
+						return (sort == Order.ASC) ? comparison : (-comparison);
+					}
+				} break;
+				default:
+					throw new IOException("Not supported comparison for type:" + type);
+				}
 			}
 		}
 		return 0; // equals
