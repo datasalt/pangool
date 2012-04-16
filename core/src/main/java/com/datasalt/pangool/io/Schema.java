@@ -169,9 +169,8 @@ public class Schema implements Serializable {
 			return new Field(name, Type.OBJECT, clazz,null,null);
 		}
 		
-		public static Field createObject(String name,Class<?> clazz,
-				Class<? extends FieldSerializer> ser,Class<? extends FieldDeserializer> deser){
-			return new Field(name,Type.OBJECT,clazz,ser,deser);
+		public static Field createObject(String name,Class<? extends FieldSerializer> ser,Class<? extends FieldDeserializer> deser){
+			return new Field(name,Type.OBJECT,null,ser,deser);
 			
 		}
 		
@@ -179,7 +178,11 @@ public class Schema implements Serializable {
 			Field result;
 			switch(field.getType()){
 			case OBJECT:
-				 result = Field.createObject(newName, field.getObjectClass(),field.getSerializerClass(),field.getDeserializerClass());
+				if (field.getObjectClass() != null){
+					result = Field.createObject(newName,field.getObjectClass());
+				} else {
+					result = Field.createObject(newName,field.getSerializerClass(),field.getDeserializerClass());
+				}
 				 break;
 			case ENUM:
 				result =  Field.createEnum(newName,field.getObjectClass());
@@ -217,16 +220,22 @@ public class Schema implements Serializable {
 			if(type == null) {
 				throw new IllegalArgumentException("Field type can't be null");
 			} else if(type == Type.OBJECT || type == Type.ENUM) {
-				if(clazz == null) {
-					throw new IllegalArgumentException("Field with type " + type
-					    + " must specify object class");
+				if(clazz == null){
+					throw new IllegalArgumentException("Field needs specify non-null serializer and deserializer");
 				}
-
 				if(type == Type.ENUM && !clazz.isEnum()) {
 					throw new IllegalArgumentException("Field with type " + type
 					    + " must specify an enum class.Use createEnum.");
 				}
 				this.objectClass = clazz;
+			} else if (type == Type.ENUM){
+				if(clazz == null) {
+					throw new IllegalArgumentException("Enum field must specify enum class");
+				}
+				if(!clazz.isEnum()) {
+					throw new IllegalArgumentException("Field with type " + type
+					    + " must specify an enum class.Use createEnum.");
+				}
 			} else {
 				this.objectClass = null;
 			}

@@ -101,10 +101,10 @@ public class TestConfigParsing {
 		b.addIntermediateSchema(schema3);
 		b.setGroupByFields("int_field");
 		b.setOrderBy(new OrderBy().add("int_field", Order.DESC).addSchemaOrder(Order.DESC)
-		    .add("boolean_field", Order.DESC, new DummyComparator()));
+		    .add("boolean_field", Order.DESC));
 		b.setRollupFrom("int_field");
 		b.setSpecificOrderBy(schema3.getName(),
-		    new OrderBy().add("enum_field", Order.ASC, new DummyComparator()));
+		    new OrderBy().add("thrift_field", Order.ASC, new DummyComparator()));
 
 		TupleMRConfig conf = b.buildConf();
 		Configuration hconf = new Configuration();
@@ -132,8 +132,7 @@ public class TestConfigParsing {
 		b.setOrderBy(new OrderBy().add("int_field", Order.DESC).addSchemaOrder(Order.DESC)
 		    .add("boolean_field", Order.DESC));
 		b.setRollupFrom("int_field");
-		b.setSpecificOrderBy(schema3.getName(),
-		    new OrderBy().add("enum_field", Order.ASC, new DummyComparator()));
+		b.setSpecificOrderBy(schema3.getName(),new OrderBy().add("thrift_field", Order.ASC));
 		b.setCustomPartitionFields("int_field", "boolean_field");
 
 		TupleMRConfig conf = b.buildConf();

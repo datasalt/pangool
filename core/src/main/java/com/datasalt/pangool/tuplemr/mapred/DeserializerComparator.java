@@ -20,39 +20,26 @@ import java.io.Serializable;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.RawComparator;
 
 import com.datasalt.pangool.io.Schema.Field.FieldDeserializer;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.tuplemr.TupleMRConfig;
-import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.serialization.SingleFieldDeserializer;
+import com.datasalt.pangool.serialization.HadoopSerialization;
 
 @SuppressWarnings("serial")
 public abstract class DeserializerComparator<T> implements RawComparator<T>, Serializable, Configurable {
-
 	private Configuration conf;
-	private SingleFieldDeserializer fieldDeser1;
-	private SingleFieldDeserializer fieldDeser2;
-	private final Type type;
-	private final Class<?> objectClazz;
   private T object1 = null;
   private T object2 = null;
-  private FieldDeserializer fieldDeser; //   
+  private FieldDeserializer fieldDeser; //
+  private HadoopSerialization hadoopSer;
+  private final DataInputBuffer tmpInputBuffer = new DataInputBuffer();
   
-	public DeserializerComparator(Type type) {
-		this.type = type;
-		this.objectClazz = null;
-	}
-	
-	public DeserializerComparator(Type type,Class<?> clazz){
-		this.type = type;
-		this.objectClazz = clazz;
-	}
-	
-	public DeserializerComparator(Type type,Class<?> clazz,FieldDeserializer fieldDeser){
-		this.type = type;
-		this.objectClazz = clazz;
+  public DeserializerComparator(){
+  	
+  }
+  public DeserializerComparator(FieldDeserializer fieldDeser){
 		this.fieldDeser = fieldDeser;
 	}
 	
@@ -60,13 +47,8 @@ public abstract class DeserializerComparator<T> implements RawComparator<T>, Ser
 	public void setConf(Configuration conf) {
 		try {
 			this.conf = conf;
-			TupleMRConfig mrConfig = TupleMRConfig.get(conf);
-	    fieldDeser1 = new SingleFieldDeserializer(conf,mrConfig, type,objectClazz,fieldDeser);
-	    fieldDeser2 = new SingleFieldDeserializer(conf,mrConfig, type,objectClazz,fieldDeser);
-	    	    
+			hadoopSer = new HadoopSerialization(conf);
     } catch(IOException e) {
-    	throw new RuntimeException(e);
-    } catch(TupleMRException e) {
     	throw new RuntimeException(e);
     }
 	}
@@ -84,14 +66,24 @@ public abstract class DeserializerComparator<T> implements RawComparator<T>, Ser
 	
 	@SuppressWarnings("unchecked")
   @Override
-  public final int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
+	public final int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		try {
-				object1 = (T) fieldDeser1.deserialize(b1, s1);
-				object2 = (T) fieldDeser2.deserialize(b2, s2);
+			if(fieldDeser == null) {
+				object1 = hadoopSer.deser(object1, b1, s1, l1);
+				object2 = hadoopSer.deser(object2, b2, s2, l2);
+			} else {
+				tmpInputBuffer.reset(b1, s1, l1);
+				fieldDeser.open(tmpInputBuffer);
+				object1 = (T) fieldDeser.deserialize(object1);
+				fieldDeser.close();
+				tmpInputBuffer.reset(b2, s2, l2);
+				fieldDeser.open(tmpInputBuffer);
+				object2 = (T) fieldDeser.deserialize(object2);
+				fieldDeser.close();
+			}
+			return compare(object1, object2);
 		} catch(IOException e) {
 			throw new RuntimeException(e);
-    }
-
-	  return compare(object1, object2);
-  }	
+		}
+	}	
 }

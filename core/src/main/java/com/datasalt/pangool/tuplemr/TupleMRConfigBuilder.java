@@ -266,6 +266,8 @@ public class TupleMRConfigBuilder {
 				    "Not able to use source order when just one source specified");
 			}
 		}
+		Schema firstSchema = schemas.get(0);
+		
 		for(SortElement sortElement : ordering.getElements()) {
 			if(!fieldPresentInAllSchemas(sortElement.getName())) {
 				throw new TupleMRException("Can't sort by field '" + sortElement.getName()
@@ -274,6 +276,13 @@ public class TupleMRConfigBuilder {
 			if(!fieldSameTypeInAllSources(sortElement.getName())) {
 				throw new TupleMRException("Can't sort by field '" + sortElement.getName()
 				    + "' since its type differs among sources");
+			}
+			
+			if (sortElement.getCustomComparator() != null){
+				Field field = firstSchema.getField(sortElement.getName());
+				if (field.getType() != Type.OBJECT){
+					throw new TupleMRException("Not allowed to specify custom comparator for type="+field.getType());
+				}
 			}
 		}
 		// group by fields need to be a prefix of sort by fields
@@ -318,6 +327,15 @@ public class TupleMRConfigBuilder {
 			if(!Schema.containsFieldUsingAlias(schema,e.getName(), aliases)){
 				throw new TupleMRException("Source '" + schemaName + "' doesn't contain field '"
 				    + e.getName());
+			}
+			if (e.getCustomComparator() != null){
+				Field field = schema.getField(e.getName());
+				if (field == null){
+						field = schema.getField(aliases.get(e.getName()));
+				}
+				if (field.getType() != Type.OBJECT){
+					throw new TupleMRException("Not allowed to set custom comparator for type="+field.getType());
+				}
 			}
 		}
 
