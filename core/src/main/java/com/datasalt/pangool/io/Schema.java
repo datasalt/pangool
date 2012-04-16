@@ -72,11 +72,11 @@ public class Schema implements Serializable {
 	 * methods. A field object is <b>immutable</b>.
 	 */
 	public static class Field implements Serializable{
-		public static interface FieldSerializer extends Serializer{
+		public static interface FieldSerializer<T> extends Serializer<T>{
 			public void setProps(Map<String,String> properties);
 		}
 		
-		public static interface FieldDeserializer extends Deserializer{
+		public static interface FieldDeserializer<T> extends Deserializer<T>{
 			public void setProps(Map<String,String> properties);
 		}
 		public static enum Type {
@@ -129,8 +129,8 @@ public class Schema implements Serializable {
 		
 		//special properties in props 
 		private Class<?> objectClass; //lazy loaded
-		private Class<? extends FieldSerializer> ser; //lazy loaded
-		private Class<? extends FieldDeserializer> deser; //lazy loaded
+		private Class<? extends FieldSerializer> serClass;
+		private Class<? extends FieldDeserializer> deserClass;
 		
 		public void addProp(String key,String value){
 			props.add(key, value);
@@ -179,7 +179,7 @@ public class Schema implements Serializable {
 			Field result;
 			switch(field.getType()){
 			case OBJECT:
-				 result = Field.createObject(newName, field.getObjectClass(),field.getSerializer(),field.getDeserializer());
+				 result = Field.createObject(newName, field.getObjectClass(),field.getSerializerClass(),field.getDeserializerClass());
 				 break;
 			case ENUM:
 				result =  Field.createEnum(newName,field.getObjectClass());
@@ -232,8 +232,8 @@ public class Schema implements Serializable {
 			}
 			this.name = name;
 			this.type = type;
-			this.ser = ser;
-			this.deser = deser;
+			this.serClass = ser;
+			this.deserClass = deser;
 		}
 
 		public Type getType() {
@@ -248,24 +248,12 @@ public class Schema implements Serializable {
 			return objectClass;
 		}
 		
-		public Class<? extends FieldSerializer> getSerializer(){
-			return ser;
-			/*try{
-				String serString =  getProp(METADATA_OBJECT_SERIALIZER);
-				return (serString == null) ? null : (Class<? extends FieldSerializer>)Class.forName(ser);
-			} catch(ClassNotFoundException e){
-				throw new PangoolRuntimeException(e);
-			}*/
+		public Class<? extends FieldSerializer> getSerializerClass(){
+			return serClass;
 		}
 		
-		public Class<? extends FieldDeserializer> getDeserializer(){
-			return deser;
-//			try{
-//				String ser =  getProp(METADATA_OBJECT_SERIALIZER);
-//				return (ser == null) ? null : (Class<? extends FieldSerializer>)Class.forName(ser);
-//			} catch(ClassNotFoundException e){
-//				throw new PangoolRuntimeException(e);
-//			}
+		public Class<? extends FieldDeserializer> getDeserializerClass(){
+			return deserClass;
 		}
 		
 		public boolean equals(Object a) {
@@ -280,16 +268,16 @@ public class Schema implements Serializable {
 				t = t && objectClass.equals(that.getObjectClass());
 			} 
 			
-			if (ser == null && that.ser != null || ser != null && that.ser == null){
+			if (serClass == null && that.serClass != null || serClass != null && that.serClass == null){
 				return false;
-			} else if (ser != null && that.ser != null){
-				t = t && ser.equals(that.ser);
+			} else if (serClass != null && that.serClass != null){
+				t = t && serClass.equals(that.serClass);
 			}
 			
-			if (deser == null && that.deser != null || deser != null && that.deser == null){
+			if (deserClass == null && that.deserClass != null || deserClass != null && that.deserClass == null){
 				return false;
-			} else if (deser != null && that.deser != null){
-				t = t && deser.equals(that.deser);
+			} else if (deserClass != null && that.deserClass != null){
+				t = t && deserClass.equals(that.deserClass);
 			}
 			
 			if (props == null && that.props != null || props != null && that.props == null){
@@ -366,11 +354,11 @@ public class Schema implements Serializable {
 			if(getType() == Type.OBJECT || getType() == Type.ENUM) {
 				gen.writeStringField("object_class", getObjectClass().getName());
 			}
-			if (ser != null){
-				gen.writeStringField("serializer",ser.getName());
+			if (serClass != null){
+				gen.writeStringField("serializer",serClass.getName());
 			}
-			if (deser != null){
-				gen.writeStringField("deserializer", deser.getName());
+			if (deserClass != null){
+				gen.writeStringField("deserializer", deserClass.getName());
 			}
 			
 			if (props != null && !props.isEmpty()){

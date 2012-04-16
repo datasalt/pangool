@@ -23,6 +23,7 @@ import org.apache.hadoop.conf.Configuration;
 
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 import com.datasalt.pangool.tuplemr.Criteria;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
@@ -34,7 +35,7 @@ import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
  */
 public class GroupComparator extends SortComparator {
 
-	private Criteria groupSortBy;
+	private Criteria groupCriteria;
 	
 	public GroupComparator(){}
 	
@@ -42,16 +43,17 @@ public class GroupComparator extends SortComparator {
 	public int compare(ITuple w1, ITuple w2) {
 		int schemaId1 = tupleMRConf.getSchemaIdByName(w1.getSchema().getName());
 		int schemaId2 = tupleMRConf.getSchemaIdByName(w2.getSchema().getName());
-		int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(schemaId1);
-		int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(schemaId2);
-		return compare(w1.getSchema(), groupSortBy, w1, indexes1, w2, indexes2);
+		int[] indexes1 = serInfo.getGroupSchemaIndexTranslation(schemaId1);
+		int[] indexes2 = serInfo.getGroupSchemaIndexTranslation(schemaId2);
+	  FieldSerializer[] serializers = serInfo.getGroupSchemaSerializers();
+		return compare(w1.getSchema(), groupCriteria, w1, indexes1, w2, indexes2,serializers);
 	}
 
 	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		try{
-		Schema commonSchema = serInfo.getCommonSchema();
-		return compare(b1,s1,b2,s2,commonSchema,groupSortBy,offsets);
+		Schema groupSchema = serInfo.getGroupSchema();
+		return compare(b1,s1,b2,s2,groupSchema,groupCriteria,offsets);
 		} catch(IOException e){
 			throw new RuntimeException(e);
 		}
@@ -60,12 +62,13 @@ public class GroupComparator extends SortComparator {
 	@Override
 	public void setConf(Configuration conf) {
 	  super.setConf(conf);
+	  //THIS SHOULD BE IN SerInfo
 		List<SortElement> sortElements = tupleMRConf.getCommonCriteria().getElements();
 		int numGroupByFields = tupleMRConf.getGroupByFields().size();
 		List<SortElement> groupSortElements = new ArrayList<SortElement>();
 		groupSortElements.addAll(sortElements);
 		groupSortElements = groupSortElements.subList(0,numGroupByFields);
-		groupSortBy = new Criteria(groupSortElements);					
+		groupCriteria = new Criteria(groupSortElements);					
 		TupleMRConfigBuilder.initializeComparators(conf, tupleMRConf);	  
 	}
 	

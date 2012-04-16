@@ -119,6 +119,7 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private ITuple deserializeMultipleSources() throws IOException {
 		CachedTuples tuples = cachedTuples.datum();
 		ITuple commonTuple =tuples.commonTuple; 
+		
 		readFields(commonTuple,in,serInfo.getCommonSchemaDeserializers());
 		int schemaId = WritableUtils.readVInt(in);
 		ITuple specificTuple = tuples.specificTuples.get(schemaId);
@@ -241,7 +242,7 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 			Object[] enums = fieldType.getEnumConstants();
 			tuple.set(index,enums[ordinal]);
 		} catch(ArrayIndexOutOfBoundsException e) {
-			throw new IOException("Ordinal serialized for ");
+			throw new IOException("Ordinal index out of bounds for " + fieldType + " ordinal="+ordinal);
 		}
 	}
 	

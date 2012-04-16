@@ -22,13 +22,14 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 
+import com.datasalt.pangool.io.Schema.Field.FieldDeserializer;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.serialization.SingleFieldDeserializer;
 
 @SuppressWarnings("serial")
-public abstract class BaseComparator<T> implements RawComparator<T>, Serializable, Configurable {
+public abstract class DeserializerComparator<T> implements RawComparator<T>, Serializable, Configurable {
 
 	private Configuration conf;
 	private SingleFieldDeserializer fieldDeser1;
@@ -37,15 +38,22 @@ public abstract class BaseComparator<T> implements RawComparator<T>, Serializabl
 	private final Class<?> objectClazz;
   private T object1 = null;
   private T object2 = null;
+  private FieldDeserializer fieldDeser; //   
   
-	public BaseComparator(Type type) {
+	public DeserializerComparator(Type type) {
 		this.type = type;
 		this.objectClazz = null;
 	}
 	
-	public BaseComparator(Type type,Class<?> clazz){
+	public DeserializerComparator(Type type,Class<?> clazz){
 		this.type = type;
 		this.objectClazz = clazz;
+	}
+	
+	public DeserializerComparator(Type type,Class<?> clazz,FieldDeserializer fieldDeser){
+		this.type = type;
+		this.objectClazz = clazz;
+		this.fieldDeser = fieldDeser;
 	}
 	
 	@Override
@@ -53,8 +61,8 @@ public abstract class BaseComparator<T> implements RawComparator<T>, Serializabl
 		try {
 			this.conf = conf;
 			TupleMRConfig mrConfig = TupleMRConfig.get(conf);
-	    fieldDeser1 = new SingleFieldDeserializer(conf,mrConfig, type,objectClazz);
-	    fieldDeser2 = new SingleFieldDeserializer(conf,mrConfig, type,objectClazz);
+	    fieldDeser1 = new SingleFieldDeserializer(conf,mrConfig, type,objectClazz,fieldDeser);
+	    fieldDeser2 = new SingleFieldDeserializer(conf,mrConfig, type,objectClazz,fieldDeser);
 	    	    
     } catch(IOException e) {
     	throw new RuntimeException(e);

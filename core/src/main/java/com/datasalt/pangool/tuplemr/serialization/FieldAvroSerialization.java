@@ -12,6 +12,7 @@ import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.mapred.AvroWrapper;
 import org.apache.avro.reflect.ReflectDatumReader;
 import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.avro.specific.SpecificDatumReader;
@@ -22,9 +23,9 @@ import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 
 public class FieldAvroSerialization {
 	
-	public static class AvroFieldSerializer implements FieldSerializer{
+	public static class AvroFieldSerializer<T> implements FieldSerializer<AvroWrapper<T>>{
 
-		private DatumWriter writer;
+		private DatumWriter<T> writer;
     private OutputStream out;
     private BinaryEncoder encoder;
 
@@ -37,8 +38,8 @@ public class FieldAvroSerialization {
 		}
 
 		@Override
-		public void serialize(Object object) throws IOException {
-			writer.write(object, encoder);
+		public void serialize(AvroWrapper<T> wrapper) throws IOException {
+			writer.write(wrapper.datum(), encoder);
       // would be a lot faster if the Serializer interface had a flush()
       // method and the Hadoop framework called it when needed rather
       // than for every record.
@@ -57,16 +58,16 @@ public class FieldAvroSerialization {
 	    String r = properties.get("avro.reflection");
 	    boolean isReflect = (r != null) && Boolean.parseBoolean(r);
 	    writer = (isReflect) ?
-	       new ReflectDatumWriter(schema)
-	      : new SpecificDatumWriter(schema);
+	       new ReflectDatumWriter<T>(schema)
+	      : new SpecificDatumWriter<T>(schema);
 		}
 		
 	}
 	
-	public static class AvroFieldDeserializer implements FieldDeserializer{
+	public static class AvroFieldDeserializer<T> implements FieldDeserializer<AvroWrapper<T>>{
 
 		private static final DecoderFactory FACTORY = DecoderFactory.get();
-		private DatumReader reader;
+		private DatumReader<T> reader;
     private BinaryDecoder decoder;
     
     public AvroFieldDeserializer(){
@@ -78,8 +79,13 @@ public class FieldAvroSerialization {
 		}
 
 		@Override
-		public Object deserialize(Object object) throws IOException {
-			return reader.read(object, decoder);
+		public AvroWrapper<T> deserialize(AvroWrapper<T> wrapper) throws IOException {
+			if (wrapper == null){
+				wrapper = new AvroWrapper<T>();
+			}
+			T obj= reader.read(wrapper.datum(), decoder);
+			wrapper.datum(obj);
+			return wrapper;
 		}
 
 		@Override
@@ -92,8 +98,8 @@ public class FieldAvroSerialization {
 			Schema schema = Schema.parse(properties.get("avro.schema"));
 			String r = properties.get("avro.reflection");
 	    boolean isReflect = (r != null) && Boolean.parseBoolean(r);
-			reader = (isReflect) ? new ReflectDatumReader(schema)
-          : new SpecificDatumReader(schema);
+			reader = (isReflect) ? new ReflectDatumReader<T>(schema)
+          : new SpecificDatumReader<T>(schema);
 		}
 		
 	}

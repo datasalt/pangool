@@ -18,12 +18,13 @@ package com.datasalt.pangool;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import org.apache.avro.generic.GenericData.Record;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.avro.mapred.AvroWrapper;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
@@ -71,7 +72,7 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 				("my_string",org.apache.avro.Schema.create(org.apache.avro.Schema.Type.STRING),null,null));	
 		AVRO_SCHEMA.setFields(avroFields);
 		
-		Field avroField =Field.createObject("my_avro",Record.class,AvroFieldSerializer.class,
+		Field avroField =Field.createObject("my_avro",AvroWrapper.class,AvroFieldSerializer.class,
 				AvroFieldDeserializer.class); 
 		avroField.addProp("avro.schema",AVRO_SCHEMA.toString());
 		fields.add(avroField);
@@ -128,7 +129,23 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 	}
 	
 	protected static void fillBytes(boolean isRandom,ITuple tuple,int index) throws Exception {
-		throw new NotImplementedException(); //TODO
+		Random random = new Random();
+		int BYTES_SIZE=512;
+		Object ob = tuple.get(index);
+		if (ob == null || !(ob instanceof ByteBuffer)){
+			ob = ByteBuffer.allocate(BYTES_SIZE);
+			tuple.set(index,ob);
+		}
+		ByteBuffer buffer = (ByteBuffer)ob;
+		if (isRandom){
+			random.nextBytes(buffer.array());
+			int newLimit = random.nextInt(buffer.capacity());
+			buffer.limit(newLimit);
+		} else {
+			int newLimit=0;
+			buffer.limit(newLimit);
+		}
+		
 	}
 	
 	protected static void fillObject(boolean isRandom,ITuple tuple,Field field,int index){
@@ -140,12 +157,19 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 			A a = (A) instance;
 			a.setId(isRandom ? random.nextInt() + "" : "");
 			a.setUrl(isRandom ? random.nextLong() + "" : "");
-		} else if (field.getSerializer() == AvroFieldSerializer.class){
-			if (instance == null){
-				instance = new Record(AVRO_SCHEMA);
+		} else if (field.getSerializerClass() == AvroFieldSerializer.class){
+			if (instance == null || !(instance instanceof AvroWrapper)){
+				instance = new AvroWrapper<Record>();
 			}
-			((Record)instance).put("my_int",isRandom ? random.nextInt() : 0);
-			((Record)instance).put("my_string",isRandom ? random.nextLong()+"" : "");
+			AvroWrapper wrapper = (AvroWrapper)instance;
+			Object obj = wrapper.datum();
+			if (obj == null || !(obj instanceof Record)){
+				obj = new Record(AVRO_SCHEMA);
+				wrapper.datum(obj);
+			}
+			Record record = (Record)obj;
+			record.put("my_int",isRandom ? random.nextInt() : 0);
+			record.put("my_string",isRandom ? random.nextLong()+"" : "");
 		} else {
 			throw new PangoolRuntimeException("Unknown field to fill");
 		}

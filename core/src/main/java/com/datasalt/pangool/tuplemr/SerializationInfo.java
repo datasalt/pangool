@@ -45,10 +45,10 @@ import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 public class SerializationInfo {
 
 	private final TupleMRConfig mrConfig;
-	/* Fields that will be ser/deserialized before finding schema id */
+	/* Fields that will be hadoopSer/deserialized before finding schema id */
 	private Schema commonSchema;
 
-	/* Fields,for every source,that will be ser/deserialized after the schema id. */
+	/* Fields,for every source,that will be hadoopSer/deserialized after the schema id. */
 	private List<Schema> specificSchemas;
 
 	/**
@@ -67,6 +67,8 @@ public class SerializationInfo {
 	private FieldDeserializer[] commonDeserializers;
 	private List<FieldSerializer[]> specificSerializers;
 	private List<FieldDeserializer[]> specificDeserializers;
+	private FieldSerializer[] groupSerializers;
+	private FieldDeserializer[] groupDeserializers;
 	
 	public SerializationInfo(TupleMRConfig tupleMRConfig) throws TupleMRException {
 		this.mrConfig = tupleMRConfig;
@@ -82,7 +84,7 @@ public class SerializationInfo {
 		calculatePartitionFields();
 		calculateGroupSchema();
 		calculateIndexTranslations();
-		initCommonSchemaSerialization();
+		initCommonAndGroupSchemaSerialization();
 	}
 
 	private void initializeMultipleSources() throws TupleMRException {
@@ -90,7 +92,7 @@ public class SerializationInfo {
 		calculatePartitionFields();
 		calculateGroupSchema();
 		calculateIndexTranslations();
-		initCommonSchemaSerialization();
+		initCommonAndGroupSchemaSerialization();
 		initSpecificSchemaSerialization();
 	}
 
@@ -154,17 +156,27 @@ public class SerializationInfo {
 	public FieldSerializer[] getCommonSchemaSerializers(){
 		return commonSerializers;
 	}
-	
 	public FieldDeserializer[] getCommonSchemaDeserializers(){
 		return commonDeserializers;
+	}
+	
+	public FieldSerializer[] getGroupSchemaSerializers(){
+		return groupSerializers;
+	}
+	
+	public FieldDeserializer[] getGroupSchemaDeserializers(){
+		return groupDeserializers;
 	}
 
 	/**
 	 * This serializers have been defined by the user in an OBJECT field
 	 */
-	private void initCommonSchemaSerialization(){
+	private void initCommonAndGroupSchemaSerialization(){
 		commonSerializers = getSerializers(commonSchema);
 		commonDeserializers = getDeserializers(commonSchema);
+		
+		groupSerializers = getSerializers(groupSchema);
+		groupDeserializers = getDeserializers(groupSchema);
 	}
 	
 	private void initSpecificSchemaSerialization(){
@@ -181,8 +193,8 @@ public class SerializationInfo {
 		FieldSerializer[] result = new FieldSerializer[schema.getFields().size()];
 		for (int i= 0 ; i < result.length; i++){
 			Field field = schema.getField(i);
-			if (field.getSerializer() != null){
-				FieldSerializer ser = ReflectionUtils.newInstance(field.getSerializer(),null);
+			if (field.getSerializerClass() != null){
+				FieldSerializer ser = ReflectionUtils.newInstance(field.getSerializerClass(),null);
 				ser.setProps(field.getProps());
 				result[i] = ser;
 			}
@@ -194,8 +206,8 @@ public class SerializationInfo {
 		FieldDeserializer[] result = new FieldDeserializer[schema.getFields().size()];
 		for (int i= 0 ; i < result.length; i++){
 			Field field = schema.getField(i);
-			if (field.getSerializer() != null){
-				FieldDeserializer ser = ReflectionUtils.newInstance(field.getDeserializer(),null);
+			if (field.getSerializerClass() != null){
+				FieldDeserializer ser = ReflectionUtils.newInstance(field.getDeserializerClass(),null);
 				ser.setProps(field.getProps());
 				result[i] = ser;
 			}
@@ -326,7 +338,7 @@ public class SerializationInfo {
 	}
 
 	/**
-	 * Returns the schema that contains fields that will be ser/deserialized
+	 * Returns the schema that contains fields that will be hadoopSer/deserialized
 	 * before the schemaId. In case that one intermediate schema used then returns
 	 * a schema containing all the fields from the provided intermediate schema
 	 * with fields sorted by common criteria.

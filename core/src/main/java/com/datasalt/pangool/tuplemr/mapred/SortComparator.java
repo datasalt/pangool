@@ -33,6 +33,7 @@ import com.datasalt.pangool.PangoolRuntimeException;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.tuplemr.Criteria;
@@ -57,7 +58,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	protected TupleMRConfig tupleMRConf;
 	protected SerializationInfo serInfo;
 
-	protected final BinaryComparator binaryComparator = new BinaryComparator();
+	protected final SerializerComparator serializerComparator = new SerializerComparator();
 
 	private static final class Offsets {
 		protected int offset1 = 0;
@@ -85,7 +86,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			int[] indexes1 = serInfo.getCommonSchemaIndexTranslation(schemaId1);
 			int[] indexes2 = serInfo.getCommonSchemaIndexTranslation(schemaId2);
 			Criteria c = tupleMRConf.getCommonCriteria();
-			int comparison = compare(w1.getSchema(), c, w1, indexes1, w2, indexes2);
+			int comparison = compare(serInfo.getCommonSchema(), c, w1, indexes1, w2, indexes2,serInfo.getCommonSchemaSerializers());
 			if(comparison != 0) {
 				return comparison;
 			} else if(schemaId1 != schemaId2) {
@@ -96,15 +97,14 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			c = tupleMRConf.getSpecificOrderBys().get(schemaId);
 			if(c != null) {
 				int[] indexes = serInfo.getSpecificSchemaIndexTranslation(schemaId);
-				return compare(w1.getSchema(), c, w1, indexes, w2, indexes);
+				return compare(serInfo.getSpecificSchema(schemaId), c, w1, indexes, w2, indexes,serInfo.getSpecificSchemaSerializers().get(schemaId));
 			} else {
 				return 0;
 			}
 		} else {
-
 			int[] indexes = serInfo.getCommonSchemaIndexTranslation(0);
 			Criteria c = tupleMRConf.getCommonCriteria();
-			return compare(w1.getSchema(), c, w1, indexes, w2, indexes);
+			return compare(serInfo.getCommonSchema(), c, w1, indexes, w2, indexes,serInfo.getCommonSchemaSerializers());
 		}
 
 	}
@@ -114,13 +114,14 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 * 
 	 */
 	public int compare(Schema schema, Criteria c, ITuple w1, int[] index1, ITuple w2,
-	    int[] index2) {
+	    int[] index2,FieldSerializer[] serializers) {
 		for(int i = 0; i < c.getElements().size(); i++) {
 			Field field = schema.getField(i);
 			SortElement e = c.getElements().get(i);
 			Object o1 = w1.get(index1[i]);
 			Object o2 = w2.get(index2[i]);
-			int comparison = compareObjects(o1, o2, e.getCustomComparator(), field.getType());
+			FieldSerializer serializer = (serializers == null) ? null : serializers[i];
+			int comparison = compareObjects(o1, o2, e.getCustomComparator(), field.getType(),serializer);
 			if(comparison != 0) {
 				return(e.getOrder() == Order.ASC ? comparison : -comparison);
 			}
@@ -135,14 +136,14 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 */
 	@SuppressWarnings({ "unchecked" })
 	public int compareObjects(Object elem1, Object elem2, RawComparator comparator,
-	    Type type) {
+	    Type type,FieldSerializer serializer) {
 		// If custom, just use custom.
 		if(comparator != null) {
 			return comparator.compare(elem1, elem2);
 		}
 
 		if(type == Type.OBJECT) {
-			return binaryComparator.compare(elem1, elem2);
+			return serializerComparator.compare(elem1,serializer, elem2,serializer);
 		}
 
 		Object element1 = elem1;
@@ -254,7 +255,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			RawComparator comparator = sortElement.getCustomComparator();
 
 			if(comparator != null) {
-				// Provided specific Comparator. Some field types has different
+				// Provided specific Comparator. Some field types have different
 				// header length and field length.
 				int[] lengths1 = getHeaderLengthAndFieldLength(b1, o.offset1, type);
 				int[] lengths2 = getHeaderLengthAndFieldLength(b2, o.offset2, type);
@@ -353,6 +354,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	    Field.Type type) throws IOException {
 		switch(type) {
 		case STRING:
+		case BYTES:
 			return new int[] { 0,
 			    readVInt(b1, offset1) + WritableUtils.decodeVIntSize(b1[offset1]) };
 		case INT:
@@ -385,7 +387,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				this.conf = conf;
 				setTupleMRConf(TupleMRConfig.get(conf));
 				TupleMRConfigBuilder.initializeComparators(conf, this.tupleMRConf);
-				binaryComparator.setConf(conf);
+				
+				serializerComparator.setConf(conf);
 			}
 		} catch(Exception e) {
 			throw new RuntimeException(e);

@@ -16,6 +16,7 @@
 package com.datasalt.pangool.io;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 
 import org.apache.hadoop.io.Text;
 
@@ -72,11 +73,33 @@ public class Tuple implements ITuple, Serializable {
 				break;
 			case STRING:
 			case ENUM:
+				
 				b.append("\"").append(tuple.get(i)).append("\"");
 				break;
 			case OBJECT:
-				b.append("{").append(tuple.get(i)).append("}");
+				b.append("{").append(tuple.get(i).toString()).append("}");
 				break;
+			case BYTES:
+				Object o = tuple.get(i);
+				b.append("{\"bytes\": \"");
+				byte[] bytes;
+				int pos,limit;
+				if (o instanceof ByteBuffer) {
+					ByteBuffer byteBuffer =(ByteBuffer)o;
+		      bytes = byteBuffer.array();
+		      pos = byteBuffer.position();
+		      limit=byteBuffer.limit();
+				}	else {
+					//byte[]
+					bytes = (byte[])o;
+					pos = 0;
+					limit = bytes.length;
+				}
+		    for (int p = pos; p < limit; p++){
+		       b.append((char)bytes[p]);
+		    }
+		    b.append("\"}");
+			break;
 			default:
 				throw new PangoolRuntimeException("Not stringifiable type :" + f.getType());
 			}

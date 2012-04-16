@@ -319,7 +319,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 	}
 	
 	@SuppressWarnings("serial")
-  public static class ReverseComparator extends BaseComparator<Integer> {
+  public static class ReverseComparator extends DeserializerComparator<Integer> {
 
 		public ReverseComparator() {
 	    super(Type.INT);

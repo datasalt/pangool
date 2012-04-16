@@ -176,12 +176,14 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 	
 	private void writeBytes(Object bytes,DataOutput output) throws IOException {
 		if (bytes instanceof byte[]){
+			WritableUtils.writeVInt(output,((byte[])bytes).length);
 			output.write((byte[])bytes);
 		} else if (bytes instanceof ByteBuffer){
 			ByteBuffer buffer = (ByteBuffer)bytes;
 			int pos = buffer.position();
 	    int start = buffer.arrayOffset() + pos;
 	    int len = buffer.limit() - pos;
+	    WritableUtils.writeVInt(output,len);
 	    output.write(buffer.array(), start, len);
 		} else {
 			throw new IOException("Not allowed " + bytes.getClass() + " for type " + Type.BYTES);

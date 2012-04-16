@@ -21,12 +21,15 @@ import static org.apache.hadoop.io.WritableComparator.readVInt;
 import static org.apache.hadoop.io.WritableComparator.readVLong;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.DataInputBuffer;
+import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.FieldDeserializer;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
@@ -39,34 +42,30 @@ import com.datasalt.pangool.tuplemr.TupleMRConfig;
  */
 public class SingleFieldDeserializer {
 
-
-	private final HadoopSerialization ser;
+	private final HadoopSerialization hadoopSer;
+	private FieldDeserializer fieldDeserializer;
 	private final Type fieldType;
 	private final Class<?> objectClazz;
-	private final Object instance;
-	
+	private Object instance;
+	private final DataInputBuffer tmpInputBuffer = new DataInputBuffer();
 	
   public SingleFieldDeserializer(Configuration conf, TupleMRConfig mrConfig,
-  		Type fieldType,Class<?> objectClazz) throws IOException {
-		this.ser = new HadoopSerialization(conf);
+  		Type fieldType,Class<?> objectClazz,FieldDeserializer deser) throws IOException {
+		this.hadoopSer = new HadoopSerialization(conf);
 		this.fieldType = fieldType;
+		this.fieldDeserializer = deser;
 		this.objectClazz = objectClazz;
 		switch(fieldType){
 			case STRING: this.instance = new Utf8(); break;
 			case OBJECT:
 				this.instance = ReflectionUtils.newInstance(objectClazz, conf);
 				break;
+				//TODO this code is commented because no array copy is performed.
+//			case BYTES:
+//				this.instance = ByteBuffer.allocate(512);//initial capacity
+//				break;
 			default:
 				this.instance=null;
-		}
-	} 
-	
-	static Class<?> instanceType(Field field) {
-		switch(field.getType()){
-		case STRING: return Utf8.class;
-		case OBJECT: return field.getObjectClass();
-		default:
-			return null;
 		}
 	} 
 	
@@ -95,10 +94,23 @@ public class SingleFieldDeserializer {
   		offset += WritableUtils.decodeVIntSize(bytes[offset]);
   		((Utf8) instance).set(bytes, offset, length);
   		return instance;
+		case BYTES:
+			length = readVInt(bytes, offset);
+			offset += WritableUtils.decodeVIntSize(bytes[offset]);
+			return ByteBuffer.wrap(bytes,offset,length);
 		case OBJECT: 
   		length = readVInt(bytes, offset); //read prepended length
   		offset += WritableUtils.decodeVIntSize(bytes[offset]);
-  		return ser.deser(instance, bytes, offset, length);
+  		if (fieldDeserializer == null){
+  			instance = hadoopSer.deser(instance, bytes, offset, length);
+  			return instance;
+  		} else {
+  			tmpInputBuffer.reset(bytes,offset,length);
+  			fieldDeserializer.open(tmpInputBuffer);
+  			instance = fieldDeserializer.deserialize(instance);
+  			fieldDeserializer.close();
+  			return instance;
+  		}
   	 default:
   		throw new IOException("Not supported type:" + fieldType); 
 		}

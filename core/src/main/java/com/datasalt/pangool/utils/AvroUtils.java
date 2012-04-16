@@ -161,11 +161,11 @@ public class AvroUtils {
 			if (pangoolField.getObjectClass() != null){
 				avroField.addProp(Field.METADATA_OBJECT_CLASS, pangoolField.getObjectClass().getName());
 			}
-			if (pangoolField.getSerializer() != null){
-				avroField.addProp(Field.METADATA_OBJECT_SERIALIZER,pangoolField.getSerializer().getName());
+			if (pangoolField.getSerializerClass() != null){
+				avroField.addProp(Field.METADATA_OBJECT_SERIALIZER,pangoolField.getSerializerClass().getName());
 			}
-			if (pangoolField.getSerializer() != null){
-				avroField.addProp(Field.METADATA_OBJECT_DESERIALIZER,pangoolField.getDeserializer().getName());
+			if (pangoolField.getSerializerClass() != null){
+				avroField.addProp(Field.METADATA_OBJECT_DESERIALIZER,pangoolField.getDeserializerClass().getName());
 			}
 			for (Map.Entry<String,String> property : pangoolField.getProps().entrySet()){
 				avroField.addProp(property.getKey(),property.getValue());

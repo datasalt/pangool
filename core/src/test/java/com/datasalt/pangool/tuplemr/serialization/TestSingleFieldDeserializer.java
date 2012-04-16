@@ -41,7 +41,7 @@ import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.mapred.BaseComparator;
+import com.datasalt.pangool.tuplemr.mapred.DeserializerComparator;
 import com.datasalt.pangool.tuplemr.mapred.SortComparator;
 import com.datasalt.pangool.utils.test.AbstractBaseTest;
 
@@ -71,7 +71,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("a");
-		builder.setOrderBy(new OrderBy().add("a", Order.ASC, new BaseComparator<A>(Type.OBJECT,A.class) {
+		builder.setOrderBy(new OrderBy().add("a", Order.ASC, new DeserializerComparator<A>(Type.OBJECT,A.class) {
 
 			@Override
       public int compare(A o1, A o2) {
@@ -90,7 +90,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
 
-		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, tupleMRConf,field.getType(),field.getObjectClass());
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, tupleMRConf,field.getType(),field.getObjectClass(),null);
 		A otherA = (A) fieldDeser.deserialize(buffer1.getData(), 0);
 		assertEquals(a, otherA);
 
@@ -125,7 +125,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("int");
-		builder.setOrderBy(new OrderBy().add("int", Order.ASC, new BaseComparator<Integer>(Type.INT) {
+		builder.setOrderBy(new OrderBy().add("int", Order.ASC, new DeserializerComparator<Integer>(Type.INT) {
 
 			@Override
       public int compare(Integer o1, Integer o2) {
@@ -145,7 +145,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
 
-		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, tupleMRConf,field.getType(),field.getObjectClass());
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, tupleMRConf,field.getType(),field.getObjectClass(),null);
 		Integer iDeser = (Integer) fieldDeser.deserialize(buffer1.getData(), 0);
 		assertEquals(200, (int) iDeser);
 
@@ -180,7 +180,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("string");
-		builder.setOrderBy(new OrderBy().add("string", Order.ASC, new BaseComparator<Utf8>(Type.STRING) {
+		builder.setOrderBy(new OrderBy().add("string", Order.ASC, new DeserializerComparator<Utf8>(Type.STRING) {
 
 			@Override
       public int compare(Utf8 o1, Utf8 o2) {
@@ -200,7 +200,7 @@ public class TestSingleFieldDeserializer extends AbstractBaseTest implements Ser
 		DataOutputBuffer buffer1 = new DataOutputBuffer();
 		ser.ser(new DatumWrapper<ITuple>(tuple1), buffer1);
 
-		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, tupleMRConf,field.getType(),field.getObjectClass());
+		SingleFieldDeserializer fieldDeser = new SingleFieldDeserializer(conf, tupleMRConf,field.getType(),field.getObjectClass(),null);
 		Utf8 objDeser = (Utf8) fieldDeser.deserialize(buffer1.getData(), 0);		
 		assertEquals("lameculos", objDeser + "");
 

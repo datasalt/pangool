@@ -24,6 +24,7 @@ import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.WritableComparator;
 
+import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 
 /**
@@ -36,34 +37,49 @@ import com.datasalt.pangool.serialization.HadoopSerialization;
  * being ready to use the {@link #compare(Object, Object)} method.  
  */
 @SuppressWarnings("serial")
-public class BinaryComparator implements RawComparator<Object>, Serializable, Configurable {
+public class SerializerComparator implements RawComparator<Object>, Serializable, Configurable {
 
 	protected transient Configuration conf;
-	protected transient HadoopSerialization ser;
+	protected transient HadoopSerialization hadoopSer;
 	
 	private transient DataOutputBuffer buf1;
 	private transient DataOutputBuffer buf2;
 	
-	@Override
-  public int compare(Object o1, Object o2) {		
+	
+	public int compare(Object o1,FieldSerializer ser1,Object o2,FieldSerializer ser2){
 		try {
-			
 			if (o1 == null) {
 				return (o2 == null) ? 0 : -1; 
 			} else if (o2 == null) {
 				return 1;
 			}
-			
+
 			buf1.reset();
-	    ser.ser(o1, buf1);
-	    
+			if (ser1 == null){
+				hadoopSer.ser(o1,buf1);
+			} else {
+				ser1.open(buf1);
+				ser1.serialize(o1);
+				ser1.close();
+			}
 			buf2.reset();
-	    ser.ser(o2, buf2);
-	    
-	    return compare(buf1.getData(), 0, buf1.getLength(), buf2.getData(), 0, buf2.getLength());
+			if (ser2 == null){
+				hadoopSer.ser(o2,buf2);
+			} else {
+				ser2.open(buf2);
+				ser2.serialize(o2);
+				ser2.close();
+			}
+		
+			return compare(buf1.getData(), 0, buf1.getLength(), buf2.getData(), 0, buf2.getLength());
     } catch(IOException e) {
     	throw new RuntimeException(e);
     }
+	}
+	
+	@Override
+  public int compare(Object o1, Object o2) {
+		return compare(o1,null,o2,null);
   }
 
 	@Override
@@ -77,7 +93,7 @@ public class BinaryComparator implements RawComparator<Object>, Serializable, Co
 		buf2 = new DataOutputBuffer();
 		
 		try {
-	    ser = new HadoopSerialization(conf);
+	    hadoopSer = new HadoopSerialization(conf);
     } catch(IOException e) {
     	throw new RuntimeException(e);
     }

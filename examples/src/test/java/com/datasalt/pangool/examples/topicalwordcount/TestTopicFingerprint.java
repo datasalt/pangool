@@ -107,7 +107,7 @@ public class TestTopicFingerprint extends AbstractHadoopTestLibrary {
 		org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(schema);
 		DataFileWriter<Record> writer = new DataFileWriter<Record>(new ReflectDatumWriter<Record>());
 		writer.create(avroSchema, new File(file));
-		return new TupleRecordWriter(avroSchema, schema, writer, new HadoopSerialization(conf));
+		return new TupleRecordWriter(schema, writer,conf);
 	}
 	
 	public void createInput(String input, Configuration conf) throws IOException, InterruptedException {

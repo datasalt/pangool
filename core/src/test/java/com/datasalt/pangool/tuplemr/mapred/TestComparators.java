@@ -33,6 +33,7 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.FieldDeserializer;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Utf8;
@@ -213,14 +214,15 @@ public class TestComparators extends ComparatorsBaseTest {
 	}
 
 	@SuppressWarnings("serial")
-	static class ReverseEqualsComparator extends BaseComparator<Object> {
-
+	public static class ReverseEqualsComparator extends DeserializerComparator<Object> {
 		public ReverseEqualsComparator(Type type) {
 			super(type);
 		}
-
 		public ReverseEqualsComparator(Type type, Class objectClazz) {
 			super(type, objectClazz);
+		}
+		public ReverseEqualsComparator(Type type,Class objectClazz,FieldDeserializer fieldDeser){
+			super(type,objectClazz,fieldDeser);
 		}
 
 		@Override
@@ -245,7 +247,16 @@ public class TestComparators extends ComparatorsBaseTest {
 				if(o2 instanceof String) {
 					o2 = new Utf8((String) o2);
 				}
-				return -((Comparable) o1).compareTo(o2);
+				
+			}
+			
+			if (o1 instanceof Comparable){
+				return -((Comparable)o1).compareTo(o2);
+			} else if (o2 instanceof Comparable){
+				return ((Comparable)o2).compareTo(o1);
+			} else {
+				//not comparables..
+				return 0; //TODO is this true ???
 			}
 		}
 
@@ -290,7 +301,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	}
 
 	@SuppressWarnings("serial")
-	RawComparator<Integer> revIntComp = new BaseComparator<Integer>(Type.INT) {
+	RawComparator<Integer> revIntComp = new DeserializerComparator<Integer>(Type.INT) {
 
 		@Override
 		public int compare(Integer o1, Integer o2) {
@@ -306,13 +317,13 @@ public class TestComparators extends ComparatorsBaseTest {
 		// Object behaviour not tested here.
 		SortComparator sortComparator = new SortComparator();
 
-		assertEquals(1, sortComparator.compareObjects(1, 2, revIntComp, iType));
-		assertEquals(0, sortComparator.compareObjects(2, 2, revIntComp, iType));
-		assertEquals(-1, sortComparator.compareObjects(3, 2, revIntComp, iType));
+		assertEquals(1, sortComparator.compareObjects(1, 2, revIntComp, iType,null));
+		assertEquals(0, sortComparator.compareObjects(2, 2, revIntComp, iType,null));
+		assertEquals(-1, sortComparator.compareObjects(3, 2, revIntComp, iType,null));
 
-		assertEquals(-1, sortComparator.compareObjects(1, 2, null, iType));
-		assertEquals(0, sortComparator.compareObjects(2, 2, null, iType));
-		assertEquals(1, sortComparator.compareObjects(3, 2, null, iType));
+		assertEquals(-1, sortComparator.compareObjects(1, 2, null, iType,null));
+		assertEquals(0, sortComparator.compareObjects(2, 2, null, iType,null));
+		assertEquals(1, sortComparator.compareObjects(3, 2, null, iType,null));
 
 	}
 
@@ -333,8 +344,8 @@ public class TestComparators extends ComparatorsBaseTest {
 
 		SortComparator sortComparator = new SortComparator();
 
-		assertPositive(sortComparator.compare(s, cWithCustom, t1, index, t2, index));
-		assertNegative(sortComparator.compare(s, c, t1, index, t2, index));
+		assertPositive(sortComparator.compare(s, cWithCustom, t1, index, t2, index,null));
+		assertNegative(sortComparator.compare(s, c, t1, index, t2, index,null));
 	}
 
 }
