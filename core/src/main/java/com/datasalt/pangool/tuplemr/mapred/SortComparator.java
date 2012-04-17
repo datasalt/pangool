@@ -110,10 +110,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	}
 
-	// TODO doc
-	/**
-	 * 
-	 */
+
 	public int compare(Schema schema, Criteria c, ITuple w1, int[] index1, ITuple w2,
 	    int[] index2,FieldSerializer[] serializers) {
 		for(int i = 0; i < c.getElements().size(); i++) {
@@ -365,7 +362,6 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				this.conf = conf;
 				setTupleMRConf(TupleMRConfig.get(conf));
 				TupleMRConfigBuilder.initializeComparators(conf, this.tupleMRConf);
-				
 				serializerComparator.setConf(conf);
 			}
 		} catch(Exception e) {

@@ -46,7 +46,7 @@ public abstract class AbstractBaseTest {
 		TupleSerialization.enableSerialization(conf);
 	}
 	
-	private Configuration createConf(){
+	protected Configuration createConf(){
 		Configuration conf = createNewConfiguration();
 		configureSerialization(conf);
 		return conf;

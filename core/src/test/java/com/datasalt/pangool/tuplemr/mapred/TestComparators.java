@@ -15,6 +15,8 @@
  */
 package com.datasalt.pangool.tuplemr.mapred;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -22,13 +24,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.datasalt.pangool.PangoolRuntimeException;
 import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
@@ -36,6 +38,8 @@ import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.serialization.HadoopSerialization;
+import com.datasalt.pangool.thrift.test.A;
+import com.datasalt.pangool.tuplemr.Criteria;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.OrderBy;
@@ -103,6 +107,7 @@ public class TestComparators extends ComparatorsBaseTest {
 			}
 
 			for(int minIndex = maxIndex; minIndex >= 0; minIndex--) {
+				conf = createConf();
 				/* trick for speeding up the tests */
 				DCUtils.cleanupTemporaryInstanceCache(conf, "comparator.dat"); 
 				TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
@@ -214,52 +219,18 @@ public class TestComparators extends ComparatorsBaseTest {
 		return new Schema("new_schema", permutedFields);
 	}
 
-//	@SuppressWarnings("serial")
-//	public static class ReverseDeserializerComparator extends DeserializerComparator<Object> {
-//
-//		public ReverseDeserializerComparator(){
-//			super();
-//		}
-//		
-//		public ReverseDeserializerComparator(FieldDeserializer fieldDeser){
-//			super(fieldDeser);
-//		}
-//
-//		@Override
-//		public int compare(Object o1, Object o2) {
-//		return -SortComparator.compareObjects(o1,o2);
-//		}
-//	}
-	
-	public static class MyAvroComparator implements RawComparator,Serializable,Configurable {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		public MyAvroComparator(){}
+	public static class DummyComparator implements RawComparator,Serializable {
+		public DummyComparator(){}
 		@Override
 		public int compare(Object ob1, Object ob2) {
-			// TODO Auto-generated method stub
 			return 0;
 		}
 
 		@Override
 		public int compare(byte[] b1, int offset1, int length1, byte[] b2, int o2,
 				int l2) {
-			// TODO Auto-generated method stub
 			return 0;
 		}
-		@Override
-		public Configuration getConf() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-		@Override
-		public void setConf(Configuration arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-		
 	}
 
 	/**
@@ -276,7 +247,7 @@ public class TestComparators extends ComparatorsBaseTest {
 			if (field.getType() == Type.OBJECT && field.getName().equals("my_avro") && random.nextBoolean()) {
 				// With custom comparator
 				builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC
-				    : Order.DESC, new MyAvroComparator()));
+				    : Order.DESC, new DummyComparator()));
 			} else {
 				// Without custom comparator
 				builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC
@@ -295,52 +266,50 @@ public class TestComparators extends ComparatorsBaseTest {
 		return result;
 	}
 
-//	@SuppressWarnings("serial")
-//	RawComparator<Integer> revIntComp = new DeserializerComparator<Integer>(Type.INT) {
-//
-//		@Override
-//		public int compare(Integer o1, Integer o2) {
-//			return -o1.compareTo(o2);
-//		}
-//	};
+	public static final class MyThriftComparator implements RawComparator<A> {
 
-//	@Test
-//	public void testCompareObjects() {
-//		Type iType = Type.INT;
-//
-//		// Testing behaviour of the method with non Object types.
-//		// Object behaviour not tested here.
-//		SortComparator sortComparator = new SortComparator();
-//
-//		assertEquals(1, sortComparator.compareObjects(1, 2, revIntComp, iType,null));
-//		assertEquals(0, sortComparator.compareObjects(2, 2, revIntComp, iType,null));
-//		assertEquals(-1, sortComparator.compareObjects(3, 2, revIntComp, iType,null));
-//
-//		assertEquals(-1, sortComparator.compareObjects(1, 2, null, iType,null));
-//		assertEquals(0, sortComparator.compareObjects(2, 2, null, iType,null));
-//		assertEquals(1, sortComparator.compareObjects(3, 2, null, iType,null));
-//
-//	}
+		private HadoopSerialization hadoopSer;
+		A a1=new A(),a2=new A();
+		public MyThriftComparator(Configuration conf){
+			try {
+				hadoopSer = new HadoopSerialization(conf);
+			} catch (IOException e) {
+				throw new PangoolRuntimeException(e);
+			}
+		}
 
-//	@Test
-//	public void testCompare() {
-//		ArrayList<Field> fields = new ArrayList<Field>();
-//		fields.add(Field.create("int", Field.Type.INT));
-//		Schema s = new Schema("schema", fields);
-//		Criteria cWithCustom = new Criteria(new OrderBy().add("int", Order.ASC, revIntComp)
-//		    .getElements());
-//		Criteria c = new Criteria(new OrderBy().add("int", Order.ASC).getElements());
-//		Tuple t1 = new Tuple(s);
-//		Tuple t2 = new Tuple(s);
-//		int index[] = new int[] { 0 };
-//
-//		t1.set("int", 1);
-//		t2.set("int", 2);
-//
-//		SortComparator sortComparator = new SortComparator();
-//
-//		assertPositive(sortComparator.compare(s, cWithCustom, t1, index, t2, index,null));
-//		assertNegative(sortComparator.compare(s, c, t1, index, t2, index,null));
-//	}
+		@Override
+		public int compare(byte[] b1, int o1, int l1, byte[] b2, int o2,
+				int l2) {
+			try {
+				a1 = hadoopSer.deser(a1, b1, o1, l1);
+				a2 = hadoopSer.deser(a2, b2, o2, l2);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			return compare(a1,a2);
+		}
+
+		@Override
+		public int compare(A o1, A o2) {
+			return o2.getId().compareTo(o1.getId());
+		}
+		
+	}
+	
+	@Test
+	public void testCompareObjects() throws IOException {
+		// Testing behaviour of the method with non Object types.
+		// Object behaviour not tested here.
+		SortComparator sortComparator = new SortComparator();
+		MyThriftComparator thriftComp = new MyThriftComparator(getConf());
+		assertEquals(1, sortComparator.compareObjects(new A("1",null),new A("2",null), thriftComp, Type.OBJECT,null));
+		assertEquals(0, sortComparator.compareObjects(new A("2",null),new A("2",null),thriftComp, Type.OBJECT,null));
+		assertEquals(-1, sortComparator.compareObjects(new A("3",null),new A("2",null), thriftComp, Type.OBJECT,null));
+
+		assertEquals(1, sortComparator.compareObjects(new A("1",null), new A("2",null), thriftComp,Type.OBJECT,null));
+		assertEquals(0, sortComparator.compareObjects(new A("2",null), new A("2", null),thriftComp,Type.OBJECT,null));
+		assertEquals(-1, sortComparator.compareObjects(new A("3",null), new A("2",null), thriftComp,Type.OBJECT,null));
+	}
 
 }

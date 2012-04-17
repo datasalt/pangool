@@ -17,6 +17,7 @@ package com.datasalt.pangool.tuplemr.mapred;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Comparator;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
@@ -37,7 +38,7 @@ import com.datasalt.pangool.serialization.HadoopSerialization;
  * being ready to use the {@link #compare(Object, Object)} method.  
  */
 @SuppressWarnings("serial")
-public class SerializerComparator implements RawComparator<Object>, Serializable, Configurable {
+public class SerializerComparator implements Comparator<Object>, Serializable, Configurable {
 
 	protected transient Configuration conf;
 	protected transient HadoopSerialization hadoopSer;
@@ -70,8 +71,9 @@ public class SerializerComparator implements RawComparator<Object>, Serializable
 				ser2.serialize(o2);
 				ser2.close();
 			}
-		
-			return compare(buf1.getData(), 0, buf1.getLength(), buf2.getData(), 0, buf2.getLength());
+			
+			return WritableComparator.compareBytes(buf1.getData(), 0, buf1.getLength(), 
+					buf2.getData(), 0, buf2.getLength());
     } catch(IOException e) {
     	throw new RuntimeException(e);
     }
@@ -80,11 +82,6 @@ public class SerializerComparator implements RawComparator<Object>, Serializable
 	@Override
   public int compare(Object o1, Object o2) {
 		return compare(o1,null,o2,null);
-  }
-
-	@Override
-  public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-		return WritableComparator.compareBytes(b1, s1, l1, b2, s2, l2);
   }
 
 	@Override

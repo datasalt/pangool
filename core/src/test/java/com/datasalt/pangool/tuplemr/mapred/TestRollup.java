@@ -17,7 +17,9 @@
 package com.datasalt.pangool.tuplemr.mapred;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import junit.framework.Assert;
 
@@ -34,9 +36,8 @@ import org.junit.Test;
 import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.tuplemr.Aliases;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
@@ -46,12 +47,26 @@ import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.TupleRollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
+import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldDeserializer;
+import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldSerializer;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
 public class TestRollup extends AbstractHadoopTestLibrary {
 
 	public static final String TEST_OUT = "TEST-OUTPUT";
-
+	public static final org.apache.avro.Schema AVRO_SCHEMA;
+	static {
+		AVRO_SCHEMA =  org.apache.avro.Schema.createRecord("MyRecordSchema",null,null,false);
+		List<org.apache.avro.Schema.Field> avroFields = new ArrayList<org.apache.avro.Schema.Field>();
+		avroFields.add(new org.apache.avro.Schema.Field
+				("my_int",org.apache.avro.Schema.create(org.apache.avro.Schema.Type.INT),null,null));
+		avroFields.add(new org.apache.avro.Schema.Field
+				("my_string",org.apache.avro.Schema.create(org.apache.avro.Schema.Type.STRING),null,null));	
+		AVRO_SCHEMA.setFields(avroFields);
+		
+	}
+	
+	
 	private static class Map extends TupleMapper<Text, NullWritable> {
 
 		private Schema schema;
@@ -318,6 +333,8 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		trash(TEST_OUT);
 	}
 	
+	//TODO add Rollup with comparator
+	
 //	@SuppressWarnings("serial")
 //  public static class IntReverseComparator extends DeserializerComparator<Integer> {
 //
@@ -352,8 +369,10 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 //				"US 14 perro 170",  
 //		    "XE 20 listo 230" 
 //		    };
-//
-//		Schema schema = new Schema("schema",Fields.parse("country:string, age:int, name:string, height:int"));
+//		List<Field> fields = Fields.parse("country:string, age:int, name:string, height:int");
+//		Field avroField = Field.createObject("my_avro",AvroFieldSerializer.class,AvroFieldDeserializer.class));
+//		avroField.addProp("avro.schema",AVRO_SCHEMA);
+//		Schema schema = new Schema("schema",fields);
 //		ITuple[] tuples = new ITuple[inputElements.length];
 //		int i = 0;
 //		for(String inputElement : inputElements) {
