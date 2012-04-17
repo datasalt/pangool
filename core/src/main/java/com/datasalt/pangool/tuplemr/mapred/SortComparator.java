@@ -263,8 +263,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				//custom comparator for OBJECT
 				int length1 = WritableComparator.readVInt(b1, o.offset1);
 				int length2 = WritableComparator.readVInt(b2, o.offset2);
-				o.offset1 = WritableUtils.decodeVIntSize(b1[o.offset1]);
-				o.offset2 = WritableUtils.decodeVIntSize(b2[o.offset2]);
+				o.offset1 += WritableUtils.decodeVIntSize(b1[o.offset1]);
+				o.offset2 += WritableUtils.decodeVIntSize(b2[o.offset2]);
 				int comparison = comparator.compare(b1, o.offset1, length1, b2,
 				    o.offset2, length2);
 				o.offset1 += length1;

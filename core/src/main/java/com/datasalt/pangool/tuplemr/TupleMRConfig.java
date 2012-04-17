@@ -501,10 +501,7 @@ public class TupleMRConfig {
 		}
 	}
 
-//	private writeMap(Map<String,String> map, JsonGenerator gen){
-//		
-//		
-//	}
+
 	
 	
 	void toJson(JsonGenerator gen) throws IOException {

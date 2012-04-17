@@ -71,11 +71,10 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 		avroFields.add(new org.apache.avro.Schema.Field
 				("my_string",org.apache.avro.Schema.create(org.apache.avro.Schema.Type.STRING),null,null));	
 		AVRO_SCHEMA.setFields(avroFields);
-		
-//		Field avroField =Field.createObject("my_avro",AvroFieldSerializer.class,
-//				AvroFieldDeserializer.class); 
-//		avroField.addProp("avro.schema",AVRO_SCHEMA.toString());
-//		fields.add(avroField);
+		Field avroField =Field.createObject("my_avro",AvroFieldSerializer.class,
+				AvroFieldDeserializer.class); 
+		avroField.addProp("avro.schema",AVRO_SCHEMA.toString());
+		fields.add(avroField);
 		SCHEMA = new Schema("schema",fields);
 	}
 
@@ -158,15 +157,8 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 			a.setId(isRandom ? random.nextInt() + "" : "");
 			a.setUrl(isRandom ? random.nextLong() + "" : "");
 		} else if (field.getSerializerClass() == AvroFieldSerializer.class){
-//			if (instance == null || !(instance instanceof AvroWrapper)){
-//				instance = new AvroWrapper<Record>();
-//			}
-//			AvroWrapper wrapper = (AvroWrapper)instance;
-//			Object obj = wrapper.datum();
-			
 			if (instance == null || !(instance instanceof Record)){
 				instance = new Record(AVRO_SCHEMA);
-				//wrapper.datum(obj);
 			}
 			Record record = (Record)instance;
 			record.put("my_int",isRandom ? random.nextInt() : 0);

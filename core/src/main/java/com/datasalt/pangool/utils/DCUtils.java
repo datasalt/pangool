@@ -110,7 +110,9 @@ public class DCUtils {
 		Path path = DCUtils.locateFileInDC(conf, fileName);
 		T obj;
 		ObjectInput in;
-
+		if (path == null){
+			throw new IOException("Path is null");
+		}
 		in = new ObjectInputStream(FileSystem.get(conf).open(path));
 
 		try {

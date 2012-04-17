@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
@@ -113,7 +114,11 @@ public class TestComparators extends ComparatorsBaseTest {
 				TupleMRConfig.set(tupleMRConf, conf);
 
 				// tupleMRConf has changed -> we need a new Serialization object
+				try{
 				ser = new HadoopSerialization(conf);
+				} catch(Exception e){
+					throw new IOException(e);
+				}
 
 				SortComparator sortComparator = new SortComparator();
 				GroupComparator groupComparator = new GroupComparator();
@@ -157,7 +162,7 @@ public class TestComparators extends ComparatorsBaseTest {
 	 */
 	private void assertSameComparison(String alias, SortComparator comparator,
 	    ITuple tuple1, ITuple tuple2) throws IOException {
-		boolean DEBUG = false;
+		boolean DEBUG = true;
 		int compObjects = comparator.compare(tuple1, tuple2);
 		int compBinary = compareInBinary1(comparator, tuple1, tuple2);
 		if(compObjects > 0 && compBinary <= 0 || compObjects >= 0 && compBinary < 0
@@ -226,8 +231,12 @@ public class TestComparators extends ComparatorsBaseTest {
 //		}
 //	}
 	
-	public static class MyAvroComparator implements RawComparator,Serializable {
-
+	public static class MyAvroComparator implements RawComparator,Serializable,Configurable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		public MyAvroComparator(){}
 		@Override
 		public int compare(Object ob1, Object ob2) {
 			// TODO Auto-generated method stub
@@ -239,6 +248,16 @@ public class TestComparators extends ComparatorsBaseTest {
 				int l2) {
 			// TODO Auto-generated method stub
 			return 0;
+		}
+		@Override
+		public Configuration getConf() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		@Override
+		public void setConf(Configuration arg0) {
+			// TODO Auto-generated method stub
+			
 		}
 		
 	}
@@ -256,7 +275,6 @@ public class TestComparators extends ComparatorsBaseTest {
 			Field field = schema.getField(i);
 			if (field.getType() == Type.OBJECT && field.getName().equals("my_avro") && random.nextBoolean()) {
 				// With custom comparator
-				//TODO this should allow field deserializer
 				builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC
 				    : Order.DESC, new MyAvroComparator()));
 			} else {

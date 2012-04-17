@@ -155,11 +155,13 @@ public class Criteria {
 	}
 
 	public String toString() {
-		ObjectMapper mapper = new ObjectMapper();
-
 		try {
-			return mapper.writeValueAsString(elements);
-		} catch(Exception e) {
+			StringWriter w = new StringWriter();
+			JsonGenerator gen = new JsonFactory().createJsonGenerator(w);
+			toJson(gen);
+			gen.flush();
+			return w.toString();
+		} catch(IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
