@@ -87,11 +87,14 @@ public class Schema implements Serializable {
 		public static final String METADATA_OBJECT_CLASS="pangool.object.java-class";
 		public static final String METADATA_OBJECT_SERIALIZER="pangool.object.java-serializer-class";
 		public static final String METADATA_OBJECT_DESERIALIZER="pangool.object.java-deserializer-class";
+		//this is to mark a BYTES Avro type as pangool OBJECT
+		public static final String METADATA_BYTES_AS_OBJECT="pangool.object.mark";
 		
 		static {
 			Set <String> reserved = new HashSet<String>();
 			Collections.addAll(reserved, 
-					METADATA_OBJECT_CLASS,METADATA_OBJECT_SERIALIZER,METADATA_OBJECT_DESERIALIZER);
+					METADATA_OBJECT_CLASS,METADATA_OBJECT_SERIALIZER,
+					METADATA_OBJECT_DESERIALIZER,METADATA_BYTES_AS_OBJECT);
 			RESERVED_KEYWORDS = Collections.unmodifiableSet(reserved);
 		}
 		
@@ -219,16 +222,15 @@ public class Schema implements Serializable {
 			}
 			if(type == null) {
 				throw new IllegalArgumentException("Field type can't be null");
-			} else if(type == Type.OBJECT || type == Type.ENUM) {
-				if(clazz == null){
+			} 
+			
+			switch(type){
+			case OBJECT:
+				if (clazz == null && (ser == null || deser == null)){
 					throw new IllegalArgumentException("Field needs specify non-null serializer and deserializer");
 				}
-				if(type == Type.ENUM && !clazz.isEnum()) {
-					throw new IllegalArgumentException("Field with type " + type
-					    + " must specify an enum class.Use createEnum.");
-				}
-				this.objectClass = clazz;
-			} else if (type == Type.ENUM){
+				break;
+			case ENUM:
 				if(clazz == null) {
 					throw new IllegalArgumentException("Enum field must specify enum class");
 				}
@@ -236,9 +238,9 @@ public class Schema implements Serializable {
 					throw new IllegalArgumentException("Field with type " + type
 					    + " must specify an enum class.Use createEnum.");
 				}
-			} else {
-				this.objectClass = null;
+				break;
 			}
+			this.objectClass = clazz;
 			this.name = name;
 			this.type = type;
 			this.serClass = ser;
@@ -319,24 +321,29 @@ public class Schema implements Serializable {
 				String name = node.get("name").getTextValue();
 				String typeStr = node.get("type").getTextValue();
 				Type type = Type.valueOf(typeStr);
-				Class<? extends FieldSerializer> ser=null;
-				Map<String,String> properties =null;
-				if (node.get("serializer") != null){
-					ser = (Class<? extends FieldSerializer>) Class.forName(node.get("serializer").getTextValue());
-				}
 				
-				Class<? extends FieldDeserializer> deser=null;
-				if (node.get("deserializer") != null){
-					deser = (Class<? extends FieldDeserializer>) Class.forName(node.get("deserializer").getTextValue());
-				}
+				Map<String,String> properties =null;
 				Field field;
 				switch(type) {
 				case OBJECT:
-					String clazz = node.get("object_class").getTextValue();
-					field =Field.createObject(name, Class.forName(clazz),ser,deser);
+					JsonNode clazzNode = node.get("object_class");
+					if (clazzNode == null){
+						Class<? extends FieldSerializer> ser=null;
+						if (node.get("serializer") != null){
+							ser = (Class<? extends FieldSerializer>) Class.forName(node.get("serializer").getTextValue());
+						}
+						Class<? extends FieldDeserializer> deser=null;
+						if (node.get("deserializer") != null){
+							deser = (Class<? extends FieldDeserializer>) Class.forName(node.get("deserializer").getTextValue());
+						}
+						field =Field.createObject(name,ser,deser);
+						} else {
+							String clazz = clazzNode.getTextValue();
+							field = Field.createObject(name,Class.forName(clazz));
+						}
 					break;
 				case ENUM:
-					clazz = node.get("object_class").getTextValue();
+					String clazz = node.get("object_class").getTextValue();
 					field =  Field.createEnum(name, Class.forName(clazz));
 					break;
 				default:
@@ -360,16 +367,16 @@ public class Schema implements Serializable {
 			gen.writeStartObject();
 			gen.writeStringField("name", getName());
 			gen.writeStringField("type", getType().toString());
-			if(getType() == Type.OBJECT || getType() == Type.ENUM) {
+			if(getType() == Type.ENUM) {
 				gen.writeStringField("object_class", getObjectClass().getName());
+			} else if (getType() == Type.OBJECT){
+				if (objectClass != null){
+					gen.writeStringField("object_class", getObjectClass().getName());
+				} else {
+					gen.writeStringField("serializer",serClass.getName());
+					gen.writeStringField("deserializer", deserClass.getName());
+				}
 			}
-			if (serClass != null){
-				gen.writeStringField("serializer",serClass.getName());
-			}
-			if (deserClass != null){
-				gen.writeStringField("deserializer", deserClass.getName());
-			}
-			
 			if (props != null && !props.isEmpty()){
 				gen.writeObjectFieldStart("properties");
 				for(Map.Entry<String,String> entry : props.entrySet()){

@@ -34,7 +34,7 @@ public abstract class DeserializerComparator<T> implements RawComparator<T>, Ser
   private T object2 = null;
   private FieldDeserializer fieldDeser; //
   private HadoopSerialization hadoopSer;
-  private final DataInputBuffer tmpInputBuffer = new DataInputBuffer();
+  private  DataInputBuffer tmpInputBuffer;
   
   public DeserializerComparator(){
   	
@@ -48,6 +48,7 @@ public abstract class DeserializerComparator<T> implements RawComparator<T>, Ser
 		try {
 			this.conf = conf;
 			hadoopSer = new HadoopSerialization(conf);
+			
     } catch(IOException e) {
     	throw new RuntimeException(e);
     }
@@ -72,6 +73,9 @@ public abstract class DeserializerComparator<T> implements RawComparator<T>, Ser
 				object1 = hadoopSer.deser(object1, b1, s1, l1);
 				object2 = hadoopSer.deser(object2, b2, s2, l2);
 			} else {
+				if (tmpInputBuffer == null){
+					tmpInputBuffer = new DataInputBuffer();
+				}
 				tmpInputBuffer.reset(b1, s1, l1);
 				fieldDeser.open(tmpInputBuffer);
 				object1 = (T) fieldDeser.deserialize(object1);

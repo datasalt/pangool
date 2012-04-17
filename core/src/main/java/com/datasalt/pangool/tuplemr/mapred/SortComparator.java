@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
+import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
 
 import com.datasalt.pangool.PangoolRuntimeException;
@@ -131,7 +132,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	/**
 	 * Compares two objects. Uses the given custom comparator if present. If the
-	 * type is {@link Type#OBJECT} and no raw comparator is present, then a binary
+	 * type is {@link Type#OBJECT} and no raw comparator is present, then a serializer
 	 * comparator is used.
 	 */
 	@SuppressWarnings({ "unchecked" })
@@ -161,11 +162,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			if(element2 instanceof String) {
 				element2 = new Utf8((String) element2);
 			}
-			if(element1 instanceof Comparable) {
-				return ((Comparable) element1).compareTo(element2);
-			} else if(element2 instanceof Comparable) {
-				return -((Comparable) element2).compareTo(element1);
-			} else if(element1 instanceof byte[]){
+			if(element1 instanceof byte[]){
 				byte[] buffer1 = (byte[])element1;
 				if (element2 instanceof byte[]){
 					byte[] buffer2 = (byte[])element2;
@@ -189,9 +186,13 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				} else {
 					throw new PangoolRuntimeException("Can't compare byte[] with " + element2.getClass());
 				}
+			}	else if(element1 instanceof Comparable) {
+					return ((Comparable) element1).compareTo(element2);
+			} else if(element2 instanceof Comparable) {
+					return -((Comparable) element2).compareTo(element1);
 			} else {
 				throw new PangoolRuntimeException("Not comparable elements:" + element1.getClass() + " with object " + element2.getClass());
-			}
+			} 
 		}
 		
 	}
@@ -259,25 +260,20 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			RawComparator comparator = sortElement.getCustomComparator();
 
 			if(comparator != null) {
-				// Provided specific Comparator. Some field types have different
-				// header length and field length.
-				int[] lengths1 = getHeaderLengthAndFieldLength(b1, o.offset1, type);
-				int[] lengths2 = getHeaderLengthAndFieldLength(b2, o.offset2, type);
-				int dataSize1 = lengths1[1];
-				int dataSize2 = lengths2[1];
-				int totalField1Size = lengths1[0] + dataSize1; // Header size + data
-																											 // size
-				int totalField2Size = lengths2[0] + dataSize2; // Header size + data
-																											 // size
-				int comparison = comparator.compare(b1, o.offset1, totalField1Size, b2,
-				    o.offset2, totalField2Size);
-				o.offset1 += totalField1Size;
-				o.offset2 += totalField2Size;
+				//custom comparator for OBJECT
+				int length1 = WritableComparator.readVInt(b1, o.offset1);
+				int length2 = WritableComparator.readVInt(b2, o.offset2);
+				o.offset1 = WritableUtils.decodeVIntSize(b1[o.offset1]);
+				o.offset2 = WritableUtils.decodeVIntSize(b2[o.offset2]);
+				int comparison = comparator.compare(b1, o.offset1, length1, b2,
+				    o.offset2, length2);
+				o.offset1 += length1;
+				o.offset2 += length2;
 				if(comparison != 0) {
 					return (sort == Order.ASC) ? comparison : -comparison;
 				}
 			} else {
-				//not default comparator
+				//not custom comparator
 				switch(type){
 				case INT:
 				case ENUM:{
@@ -355,35 +351,6 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			}
 		}
 		return 0; // equals
-	}
-
-	/**
-	 * Return the header length and the field length for a field of the given type
-	 * in the given position at the buffer.
-	 */
-	public static int[] getHeaderLengthAndFieldLength(byte[] b1, int offset1,
-	    Field.Type type) throws IOException {
-		switch(type) {
-		case STRING:
-		case BYTES:
-			return new int[] { 0,
-			    readVInt(b1, offset1) + WritableUtils.decodeVIntSize(b1[offset1]) };
-		case INT:
-		case ENUM:
-			return new int[] { 0, WritableUtils.decodeVIntSize(b1[offset1]) };
-		case LONG:
-			return new int[] { 0, WritableUtils.decodeVIntSize(b1[offset1]) };
-		case FLOAT:
-			return new int[] { 0, Float.SIZE / 8 };
-		case DOUBLE:
-			return new int[] { 0, Double.SIZE / 8 };
-		case BOOLEAN:
-			return new int[] { 0, 1 };
-		case OBJECT:
-			return new int[] { WritableUtils.decodeVIntSize(b1[offset1]), readVInt(b1, offset1) };
-		default:
-			throw new IOException("Not supported type:" + type);
-		}
 	}
 
 	@Override

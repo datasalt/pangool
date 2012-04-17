@@ -72,10 +72,10 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 				("my_string",org.apache.avro.Schema.create(org.apache.avro.Schema.Type.STRING),null,null));	
 		AVRO_SCHEMA.setFields(avroFields);
 		
-		Field avroField =Field.createObject("my_avro",AvroWrapper.class,AvroFieldSerializer.class,
-				AvroFieldDeserializer.class); 
-		avroField.addProp("avro.schema",AVRO_SCHEMA.toString());
-		fields.add(avroField);
+//		Field avroField =Field.createObject("my_avro",AvroFieldSerializer.class,
+//				AvroFieldDeserializer.class); 
+//		avroField.addProp("avro.schema",AVRO_SCHEMA.toString());
+//		fields.add(avroField);
 		SCHEMA = new Schema("schema",fields);
 	}
 
@@ -130,7 +130,7 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 	
 	protected static void fillBytes(boolean isRandom,ITuple tuple,int index) throws Exception {
 		Random random = new Random();
-		int BYTES_SIZE=512;
+		int BYTES_SIZE=8;
 		Object ob = tuple.get(index);
 		if (ob == null || !(ob instanceof ByteBuffer)){
 			ob = ByteBuffer.allocate(BYTES_SIZE);
@@ -158,16 +158,17 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 			a.setId(isRandom ? random.nextInt() + "" : "");
 			a.setUrl(isRandom ? random.nextLong() + "" : "");
 		} else if (field.getSerializerClass() == AvroFieldSerializer.class){
-			if (instance == null || !(instance instanceof AvroWrapper)){
-				instance = new AvroWrapper<Record>();
+//			if (instance == null || !(instance instanceof AvroWrapper)){
+//				instance = new AvroWrapper<Record>();
+//			}
+//			AvroWrapper wrapper = (AvroWrapper)instance;
+//			Object obj = wrapper.datum();
+			
+			if (instance == null || !(instance instanceof Record)){
+				instance = new Record(AVRO_SCHEMA);
+				//wrapper.datum(obj);
 			}
-			AvroWrapper wrapper = (AvroWrapper)instance;
-			Object obj = wrapper.datum();
-			if (obj == null || !(obj instanceof Record)){
-				obj = new Record(AVRO_SCHEMA);
-				wrapper.datum(obj);
-			}
-			Record record = (Record)obj;
+			Record record = (Record)instance;
 			record.put("my_int",isRandom ? random.nextInt() : 0);
 			record.put("my_string",isRandom ? random.nextLong()+"" : "");
 		} else {

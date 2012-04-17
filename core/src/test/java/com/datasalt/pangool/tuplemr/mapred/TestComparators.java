@@ -15,9 +15,8 @@
  */
 package com.datasalt.pangool.tuplemr.mapred;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,12 +32,9 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.FieldDeserializer;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
-import com.datasalt.pangool.tuplemr.Criteria;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.OrderBy;
@@ -213,21 +209,38 @@ public class TestComparators extends ComparatorsBaseTest {
 		return new Schema("new_schema", permutedFields);
 	}
 
-	@SuppressWarnings("serial")
-	public static class ReverseDeserializerComparator extends DeserializerComparator<Object> {
+//	@SuppressWarnings("serial")
+//	public static class ReverseDeserializerComparator extends DeserializerComparator<Object> {
+//
+//		public ReverseDeserializerComparator(){
+//			super();
+//		}
+//		
+//		public ReverseDeserializerComparator(FieldDeserializer fieldDeser){
+//			super(fieldDeser);
+//		}
+//
+//		@Override
+//		public int compare(Object o1, Object o2) {
+//		return -SortComparator.compareObjects(o1,o2);
+//		}
+//	}
+	
+	public static class MyAvroComparator implements RawComparator,Serializable {
 
-		public ReverseDeserializerComparator(){
-			super();
-		}
-		
-		public ReverseDeserializerComparator(FieldDeserializer fieldDeser){
-			super(fieldDeser);
+		@Override
+		public int compare(Object ob1, Object ob2) {
+			// TODO Auto-generated method stub
+			return 0;
 		}
 
 		@Override
-		public int compare(Object o1, Object o2) {
-		return -SortComparator.compareObjects(o1,o2);
+		public int compare(byte[] b1, int offset1, int length1, byte[] b2, int o2,
+				int l2) {
+			// TODO Auto-generated method stub
+			return 0;
 		}
+		
 	}
 
 	/**
@@ -241,11 +254,11 @@ public class TestComparators extends ComparatorsBaseTest {
 		List<SortElement> builder = new ArrayList<SortElement>();
 		for(int i = 0; i < numFields; i++) {
 			Field field = schema.getField(i);
-			if (field.getType() == Type.OBJECT && random.nextBoolean()) {
+			if (field.getType() == Type.OBJECT && field.getName().equals("my_avro") && random.nextBoolean()) {
 				// With custom comparator
 				//TODO this should allow field deserializer
 				builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC
-				    : Order.DESC, new ReverseDeserializerComparator()));
+				    : Order.DESC, new MyAvroComparator()));
 			} else {
 				// Without custom comparator
 				builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC

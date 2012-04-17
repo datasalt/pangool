@@ -12,7 +12,6 @@ import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.mapred.AvroWrapper;
 import org.apache.avro.reflect.ReflectDatumReader;
 import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.avro.specific.SpecificDatumReader;
@@ -23,9 +22,9 @@ import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 
 public class FieldAvroSerialization {
 	
-	public static class AvroFieldSerializer<T> implements FieldSerializer<AvroWrapper<T>>{
+	public static class AvroFieldSerializer implements FieldSerializer<Object>{
 
-		private DatumWriter<T> writer;
+		private DatumWriter<Object> writer;
     private OutputStream out;
     private BinaryEncoder encoder;
 
@@ -34,12 +33,11 @@ public class FieldAvroSerialization {
 			this.out = out;
       this.encoder = new EncoderFactory().configureBlockSize(512)
           .binaryEncoder(out, null);
-			
 		}
 
 		@Override
-		public void serialize(AvroWrapper<T> wrapper) throws IOException {
-			writer.write(wrapper.datum(), encoder);
+		public void serialize(Object obj) throws IOException {
+			writer.write(obj, encoder);
       // would be a lot faster if the Serializer interface had a flush()
       // method and the Hadoop framework called it when needed rather
       // than for every record.
@@ -58,16 +56,16 @@ public class FieldAvroSerialization {
 	    String r = properties.get("avro.reflection");
 	    boolean isReflect = (r != null) && Boolean.parseBoolean(r);
 	    writer = (isReflect) ?
-	       new ReflectDatumWriter<T>(schema)
-	      : new SpecificDatumWriter<T>(schema);
+	       new ReflectDatumWriter<Object>(schema)
+	      : new SpecificDatumWriter<Object>(schema);
 		}
 		
 	}
 	
-	public static class AvroFieldDeserializer<T> implements FieldDeserializer<AvroWrapper<T>>{
+	public static class AvroFieldDeserializer implements FieldDeserializer<Object>{
 
 		private static final DecoderFactory FACTORY = DecoderFactory.get();
-		private DatumReader<T> reader;
+		private DatumReader<Object> reader;
     private BinaryDecoder decoder;
     
     public AvroFieldDeserializer(){
@@ -79,13 +77,14 @@ public class FieldAvroSerialization {
 		}
 
 		@Override
-		public AvroWrapper<T> deserialize(AvroWrapper<T> wrapper) throws IOException {
-			if (wrapper == null){
-				wrapper = new AvroWrapper<T>();
-			}
-			T obj= reader.read(wrapper.datum(), decoder);
-			wrapper.datum(obj);
-			return wrapper;
+		public Object deserialize(Object obj) throws IOException {
+//			if (wrapper == null){
+//				wrapper = new AvroWrapper<Object>();
+//			}
+			obj= reader.read(obj, decoder);
+			//wrapper.datum(obj);
+			//return wrapper;
+			return obj;
 		}
 
 		@Override
@@ -98,8 +97,8 @@ public class FieldAvroSerialization {
 			Schema schema = Schema.parse(properties.get("avro.schema"));
 			String r = properties.get("avro.reflection");
 	    boolean isReflect = (r != null) && Boolean.parseBoolean(r);
-			reader = (isReflect) ? new ReflectDatumReader<T>(schema)
-          : new SpecificDatumReader<T>(schema);
+			reader = (isReflect) ? new ReflectDatumReader<Object>(schema)
+          : new SpecificDatumReader<Object>(schema);
 		}
 		
 	}

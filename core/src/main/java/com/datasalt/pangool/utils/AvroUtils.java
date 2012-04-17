@@ -64,31 +64,32 @@ public class AvroUtils {
 			case BOOLEAN: pangoolField = Field.create(avroField.name(),Type.BOOLEAN); break;
 			case STRING: pangoolField = Field.create(avroField.name(),Type.STRING); break;
 			case BYTES:
-				
-				String objectClazz = avroField.getProp(Field.METADATA_OBJECT_CLASS);
-				if (objectClazz != null){
+				if (avroField.getProp(Field.METADATA_BYTES_AS_OBJECT) == null){
+					pangoolField = Field.create(avroField.name(),Type.BYTES);
+				} else {
 					try {
-					String serializerString = avroField.getProp(Field.METADATA_OBJECT_SERIALIZER);
-					String deserializerString = avroField.getProp(Field.METADATA_OBJECT_DESERIALIZER);
-					Class<? extends FieldSerializer> ser;
-          
-	          ser = (serializerString == null) ? null : 
-	          	(Class<? extends FieldSerializer>)Class.forName(serializerString);
-          
-					Class<? extends FieldDeserializer> deser = (deserializerString == null) ? null:
-						(Class<? extends FieldDeserializer>)Class.forName(deserializerString);
-					pangoolField = Field.createObject(avroField.name(), Class.forName(objectClazz),
-								ser,deser);
-          } catch(ClassNotFoundException e) {
+					String objectClazz = avroField.getProp(Field.METADATA_OBJECT_CLASS);
+					if (objectClazz != null){
+						pangoolField = Field.createObject(avroField.name(),Class.forName(objectClazz));
+					} else {
+						
+							String serializerString = avroField.getProp(Field.METADATA_OBJECT_SERIALIZER);
+							String deserializerString = avroField.getProp(Field.METADATA_OBJECT_DESERIALIZER);
+							Class<? extends FieldSerializer> ser=
+		             (serializerString == null) ? null : 
+			          	(Class<? extends FieldSerializer>)Class.forName(serializerString);
+		          
+							Class<? extends FieldDeserializer> deser = (deserializerString == null) ? null:
+								(Class<? extends FieldDeserializer>)Class.forName(deserializerString);
+							pangoolField = Field.createObject(avroField.name(),ser,deser);
+					}
+					} catch(ClassNotFoundException e) {
 	          throw new PangoolRuntimeException(e);
           }
-				} else {
-					//if no objectClazz present then it's just BYTES
-					pangoolField = Field.create(avroField.name(),Type.BYTES);
 				}
 				break;
 			case ENUM:
-				objectClazz = avroField.getProp(Field.METADATA_OBJECT_CLASS);
+				String objectClazz = avroField.getProp(Field.METADATA_OBJECT_CLASS);
 				try{
 					pangoolField = Field.createEnum(avroField.name(),Class.forName(objectClazz));
 					} catch(ClassNotFoundException e){
@@ -141,6 +142,7 @@ public class AvroUtils {
 					avroFieldSchema = org.apache.avro.Schema.create(avroFieldType);
 					avroField = new org.apache.avro.Schema.Field(pangoolField.getName(),avroFieldSchema
 							,null,null);
+					avroField.addProp(Field.METADATA_BYTES_AS_OBJECT,"true");
 					
 				break;
 				case ENUM: 

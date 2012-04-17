@@ -395,7 +395,9 @@ public class TupleMRConfig {
 				try {
 					DCUtils.serializeToDC(comparator, uniqueName, conf);
 				} catch(Exception e) {
-					throw new TupleMRException(e);
+					throw new TupleMRException("The class " + comparator.getClass().getName() + 
+							" can't be serialized"
+							,e);
 				}
 
 				comparatorRefs.add(ref);
