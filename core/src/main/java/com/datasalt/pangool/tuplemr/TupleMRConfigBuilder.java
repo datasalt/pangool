@@ -87,18 +87,23 @@ public class TupleMRConfigBuilder {
 		schemas.add(schema);
 	}
 
-	private boolean fieldSameTypeInAllSources(String field) {
-		Type type = null;
+	private boolean fieldSameTypeInAllSources(String fieldName) {
+		Field field = null;
 		for(Schema source : schemas) {
-			Field f = source.getField(field);
-			if (f == null){
+			Field currentField = source.getField(fieldName);
+			if (currentField == null){
 				Map<String,String> aliases = fieldAliases.get(source.getName());
-				f = source.getField(aliases.get(field));
+				currentField= source.getField(aliases.get(fieldName));
 			}
-			if(type == null) {
-				type = f.getType();
-			} else if(type != f.getType()) {
-				return false;
+			if(field == null) {
+				field = currentField;
+			} else {
+				if(field.getType() != currentField.getType() ||
+					field.getObjectClass() != currentField.getObjectClass() ||
+					field.getSerializerClass() != currentField.getSerializerClass() ||
+					field.getDeserializerClass() != currentField.getDeserializerClass()){
+					return false;
+				}
 			}
 		}
 		return true;

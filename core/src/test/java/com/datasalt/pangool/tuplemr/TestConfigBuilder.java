@@ -25,18 +25,16 @@ import org.junit.Test;
 import com.datasalt.pangool.BaseTest;
 import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.tuplemr.Criteria;
-import com.datasalt.pangool.tuplemr.SerializationInfo;
-import com.datasalt.pangool.tuplemr.OrderBy;
-import com.datasalt.pangool.tuplemr.TupleMRConfig;
-import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
-import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.thrift.test.A;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
+import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldDeserializer;
+import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldSerializer;
 
 /**
  * 
- * Drums of tests tochísima ( Batería de tests)
+ * Drum of tests tochísima ( Batería de tests)
  * 
  */
 public class TestConfigBuilder extends BaseTest {
@@ -219,6 +217,30 @@ public class TestConfigBuilder extends BaseTest {
 		b.addIntermediateSchema(new Schema("schema1", Fields.parse("a:int,b:string")));
 		b.addIntermediateSchema(new Schema("schema2", Fields.parse("a:int,b:boolean")));
 		b.setGroupByFields("b", "a");
+		b.buildConf();
+	}
+	
+	@Test(expected = TupleMRException.class)
+	public void testGroupByObjectDifferentSerialization() throws TupleMRException {
+		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.createObject("my_object",A.class));
+		b.addIntermediateSchema(new Schema("schema1", fields));
+		fields.clear();
+		fields.add(Field.createObject("my_object",AvroFieldSerializer.class,AvroFieldDeserializer.class));
+		b.addIntermediateSchema(new Schema("schema2",fields));
+		b.setGroupByFields("my_object");
+		b.buildConf();
+	}
+	
+	@Test
+	public void testGroupByObjectSameSerialization() throws TupleMRException {
+		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.createObject("my_object",A.class));
+		b.addIntermediateSchema(new Schema("schema1", fields));
+		b.addIntermediateSchema(new Schema("schema2", fields));
+		b.setGroupByFields("my_object");
 		b.buildConf();
 	}
 
@@ -478,7 +500,6 @@ public class TestConfigBuilder extends BaseTest {
 		Assert.assertArrayEquals(new int[] { 0 }, indexes1);
 	}
 
-	@SuppressWarnings("unused")
 	@Ignore
 	@Test(expected = UnsupportedOperationException.class)
 	public void testNotMutableConfig() throws TupleMRException {
@@ -490,5 +511,9 @@ public class TestConfigBuilder extends BaseTest {
 		b.setCustomPartitionFields("b");
 		b.buildConf(); // TODO
 	}
+	
+	
+	
+	
 
 }
