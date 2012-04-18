@@ -223,11 +223,13 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends
 			RawComparator<Object> customComparator = (RawComparator<Object>) customComparators[i];
 
 			if(customComparator != null) {
+				//TODO we assume here that customComparator must implement compare by objects.
+				//Even if it's annoying, we should serialize and compare in binary.
 				if(customComparator.compare(obj1, obj2) != 0) {
 					return i;
 				}
 			} else {
-				if(!obj1.equals(obj2)) {
+				if (SortComparator.compareObjects(obj1,obj2) != 0){
 					return i;
 				}
 			}
