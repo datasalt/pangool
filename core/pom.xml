@@ -26,6 +26,11 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>pangool-core</artifactId>
+	<properties>
+            <hadoop.version>0.20.2</hadoop.version>
+            <jackson.version>1.7.9</jackson.version>
+            <avro.version>1.6.3</avro.version>
+        </properties>
 
     <dependencies>
         <dependency>
@@ -301,13 +306,6 @@
             </profile> -->
         </profiles>
 
-        <properties>
-            <hadoop.version>0.20.2</hadoop.version>
-            <jackson.version>1.7.9</jackson.version>
-            <avro.version>1.6.2</avro.version>
-        </properties>
-
-        <!-- ///////////////// -->
 
     <!-- ///////////////// -->
 </project>

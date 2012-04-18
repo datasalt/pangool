@@ -10,7 +10,8 @@ Pangool 0.40.3 (Unreleased)
 
  IMPROVEMENTS
 
- - Simplification:custom serialization and comparison just for type OBJECT. 
+ - Simplification:custom serialization and comparison just for type OBJECT.
+ - Moved from Avro 1.6.2 to 1.6.3 (efficiency enhancement in Utf8) 
 
 Pangool 0.40.2 (2/4/2012)
 
