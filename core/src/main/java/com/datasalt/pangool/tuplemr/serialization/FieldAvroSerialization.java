@@ -22,9 +22,9 @@ import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 
 public class FieldAvroSerialization {
 	
-	public static class AvroFieldSerializer implements FieldSerializer<Object>{
+	public static class AvroFieldSerializer<T> implements FieldSerializer<T>{
 
-		private DatumWriter<Object> writer;
+		private DatumWriter<T> writer;
     private OutputStream out;
     private BinaryEncoder encoder;
 
@@ -36,7 +36,7 @@ public class FieldAvroSerialization {
 		}
 
 		@Override
-		public void serialize(Object obj) throws IOException {
+		public void serialize(T obj) throws IOException {
 			writer.write(obj, encoder);
       // would be a lot faster if the Serializer interface had a flush()
       // method and the Hadoop framework called it when needed rather
@@ -56,16 +56,16 @@ public class FieldAvroSerialization {
 	    String r = properties.get("avro.reflection");
 	    boolean isReflect = (r != null) && Boolean.parseBoolean(r);
 	    writer = (isReflect) ?
-	       new ReflectDatumWriter<Object>(schema)
-	      : new SpecificDatumWriter<Object>(schema);
+	       new ReflectDatumWriter<T>(schema)
+	      : new SpecificDatumWriter<T>(schema);
 		}
 		
 	}
 	
-	public static class AvroFieldDeserializer implements FieldDeserializer<Object>{
+	public static class AvroFieldDeserializer<T> implements FieldDeserializer<T>{
 
 		private static final DecoderFactory FACTORY = DecoderFactory.get();
-		private DatumReader<Object> reader;
+		private DatumReader<T> reader;
     private BinaryDecoder decoder;
     
     public AvroFieldDeserializer(){
@@ -77,7 +77,7 @@ public class FieldAvroSerialization {
 		}
 
 		@Override
-		public Object deserialize(Object obj) throws IOException {
+		public T deserialize(T obj) throws IOException {
 //			if (wrapper == null){
 //				wrapper = new AvroWrapper<Object>();
 //			}
@@ -97,8 +97,8 @@ public class FieldAvroSerialization {
 			Schema schema = Schema.parse(properties.get("avro.schema"));
 			String r = properties.get("avro.reflection");
 	    boolean isReflect = (r != null) && Boolean.parseBoolean(r);
-			reader = (isReflect) ? new ReflectDatumReader<Object>(schema)
-          : new SpecificDatumReader<Object>(schema);
+			reader = (isReflect) ? new ReflectDatumReader<T>(schema)
+          : new SpecificDatumReader<T>(schema);
 		}
 		
 	}

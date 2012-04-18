@@ -385,8 +385,8 @@ public class TupleMRConfig {
 				RawComparator<?> comparator = element.getCustomComparator();
 
 				if(!(comparator instanceof Serializable)) {
-					throw new TupleMRException("The class " + comparator.getClass()
-					    + " is not Serializable."
+					throw new TupleMRException("The class '" + comparator.getClass().getName()
+					    + "' is not Serializable."
 					    + " The customs comparators must implement Serializable.");
 				}
 

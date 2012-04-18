@@ -152,6 +152,8 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 				default:
 					throw new IOException("Not supported type:" + fieldType);
 				}
+				
+				//TODO this shouldn't be here because customSerializer can throw these exceptions
 			} catch(ClassCastException e) {
 				raiseClassCastException(e, field,element);
 			} catch(NullPointerException e) {

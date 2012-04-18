@@ -191,7 +191,6 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 				throw new PangoolRuntimeException("Not comparable elements:" + element1.getClass() + " with object " + element2.getClass());
 			} 
 		}
-		
 	}
 	
 
