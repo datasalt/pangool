@@ -3,6 +3,15 @@ Pangool Change Log
 
 Pangool 0.40.3 (Unreleased)
 
+ NEW FEATURES
+
+ - 18/04/2012 - Added custom serialization for type OBJECT
+ - 16/04/2012 - Added type BYTES
+
+ IMPROVEMENTS
+
+ - Simplification:custom serialization and comparison just for type OBJECT. 
+
 Pangool 0.40.2 (2/4/2012)
 
  NEW FEATURES
