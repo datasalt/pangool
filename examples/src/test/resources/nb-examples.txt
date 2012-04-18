@@ -1,0 +1,3 @@
+POSITIVE	The room was fantastic. Plenty of light.
+POSITIVE	Big, fantastic room. It had lots of light.
+NEGATIVE	The room was small. It was very dark.

@@ -31,6 +31,10 @@ public abstract class BaseExampleJob implements Tool, Configurable {
 	private String help;
 	protected Configuration conf;
 	
+	public BaseExampleJob() {
+		this("[no help specified]");
+	}
+	
 	public BaseExampleJob(String help) {
 		this.help = help;
 	}
