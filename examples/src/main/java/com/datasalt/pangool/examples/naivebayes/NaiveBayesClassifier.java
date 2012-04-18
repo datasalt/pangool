@@ -53,7 +53,7 @@ public class NaiveBayesClassifier extends BaseExampleJob implements Serializable
 		// Use a HashSet to calculate the total vocabulary size
 		Set<String> vocabulary = new HashSet<String>();
 		// Read tuples from generate job
-		for(FileStatus fileStatus : fileSystem.listStatus(generatedModel)) {
+		for(FileStatus fileStatus : fileSystem.globStatus(generatedModel)) {
 			TupleInputReader reader = new TupleInputReader(conf);
 			reader.initialize(fileStatus.getPath(), conf);
 			while(reader.nextKeyValueNoSync()) {
@@ -98,9 +98,14 @@ public class NaiveBayesClassifier extends BaseExampleJob implements Serializable
 
   @Override
 	public int run(String[] args) throws Exception {
+  	if(args.length != 3) {
+			failArguments("Wrong number of arguments");
+			return -1;
+		}
 		String modelFolder = args[0];
 		String input = args[1];
 		String output = args[2];
+		deleteOutput(output);
 		
 		init(conf, new Path(modelFolder));
 		

@@ -19,6 +19,8 @@ import org.apache.hadoop.util.ProgramDriver;
 
 import com.datasalt.pangool.examples.movingaverage.MovingAverage;
 import com.datasalt.pangool.examples.movingaverage.MovingAverageGenerateData;
+import com.datasalt.pangool.examples.naivebayes.NaiveBayesClassifier;
+import com.datasalt.pangool.examples.naivebayes.NaiveBayesGenerate;
 import com.datasalt.pangool.examples.secondarysort.SecondarySort;
 import com.datasalt.pangool.examples.secondarysort.SecondarySortGenerateData;
 import com.datasalt.pangool.examples.simplesecondarysort.SimpleSecondarySort;
@@ -57,6 +59,9 @@ public class Driver extends ProgramDriver {
 		addClass("url_resolution_gen_data", UrlResolutionGenerateData.class, "Input data generator for the Url Resolution.");
 		addClass("user_activity_normalizer", UserActivityNormalizer.class, "Rollup example that emits the normalized activity of users over features. It emits the feature_clicks / total_clicks from a [user, feature, clicks] dataset.");
 		addClass("user_activity_normalizer_gen_data", UserActivityNormalizerGenerateData.class, "Input data generator for the user activity normalizer.");
+		// 
+		addClass("naive_bayes_generate", NaiveBayesGenerate.class, "Naive Bayes model generator example.");
+		addClass("naive_bayes_classifier", NaiveBayesClassifier.class, "Naive Bayes simple slassifier with add-one smoothing example.");
 	}
 
 	public static void main(String[] args) throws Throwable {
