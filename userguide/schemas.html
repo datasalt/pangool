@@ -54,14 +54,14 @@ summarizes the available field types:
 	<tr><td>Type.DOUBLE</td><td>Double</td><td>Double</td><td>64-bit floating number</td></tr> 
 	<tr><td>Type.STRING</td><td>String, Utf8</td><td>Utf8</td><td>Integer encoded in variable length (size) + uft8 bytes</td></tr> 
 	<tr><td>Type.BOOLEAN</td><td>Boolean</td><td>Boolean</td><td>1-byte boolean type</td></tr> 
-	<tr><td>Type.ENUM</td><td>Enum</td><td>Enum</td><td>As Type.INT</td></tr> 
+	<tr><td>Type.ENUM</td><td>Enum</td><td>Enum</td><td>As Type.INT</td></tr>
+	<tr><td>Type.BYTES</td><td>byte[],ByteBuffer</td><td>ByteBuffer</td><td>length encoded as Type.INT  + bytes</td> 
 	<tr>
 		<td>Type.OBJECT</td>
-		<td>Any Hadoop serializable object</td>
-		<td>Same as input</td>
+		<td>Any serializable object</td>
+		<td>As defined in Hadoop's (or custom) serialization</td>
 		<td>
-			Variable length integer (size) + the bytes of the object serialized with the
-			Hadoop serialization.
+			length encoded as Type.INT  + serialized bytes
 		</td>
 	</tr>
 </body>
@@ -72,27 +72,36 @@ summarizes the available field types:
 smaller numbers than for bigger ones. The smallest numbers can fit in just one byte.  
 </p>
 
-<h4>Objects</h4>
+<h3>Objects</h3>
 
+<p><br>
+For non-primitive types you can use <code>Type.OBJECT</code> and set arbitrary objects.
+There are two ways of defining OBJECT fields: 
+<ul>
+ <li><b>Specifying the object's class:</b> This class will be used by Hadoop's serialization 
+ factory to choose the right serializers and deserializers.The field is defined this way:</li>
 <p>
-For non-primitive types you can use <code>Type.OBJECT</code> and set arbitrary objects. 
-These will be serialized using the Hadoop Serialization library. 
-So if you are using your own custom data types, you need to configure Hadoop accordingly.
-</p>
-
-<p>
-The schema should be configured in the following way:
-</p>
-
-<pre class="prettyprint" id="java">
- List<Field> fields = new ArrayList<Field>();	
- fields.add(Field.createObject("obj", IntWritable.class));
- Schema schema1 = new Schema("schema1", fields);
-</pre>
-
-<p>
-Objects are serialized internally by Pangool with a variable length integer
-that stores the number of bytes of the serialized object as header.  
+ <pre class="prettyprint" id="java">
+  List<Field> fields = new ArrayList<Field>(); 
+  fields.add(Field.createObject("obj", IntWritable.class));
+  Schema schema1 = new Schema("schema1", fields);
+ </pre>
+ </p>
+ <li><b>Specifying custom serialization:</b> Pangool's will use custom serializers and deserializers
+ specified in the field's definition.The field is defined this way:</li>
+ <p>
+ <pre class="prettyprint" id="java">
+  List<Field> fields = new ArrayList<Field>(); 
+  Field field = Field.createObject("my_avro_field",AvroFieldSerializer.class,AvroFieldDeserializer.class));
+  field.addProps("avro.schema",myAvroSchema.toString());
+  Schema schema1 = new Schema("schema1", fields);
+ </pre>
+ </p> 
+ 
+ <p>
+ To know more about custom serialization take a look at <a href="custom_serialization.html">here</a>
+ </p>
+</ul> 
 </p>
 
 <p>
