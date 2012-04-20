@@ -166,20 +166,26 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 					return compareBytes(buffer1,0,buffer1.length,buffer2,0,buffer2.length);
 				} else if (element2 instanceof ByteBuffer){
 					ByteBuffer buffer2 = (ByteBuffer)element2;
-					return compareBytes(buffer1,0,buffer1.length,buffer2.array(),buffer2.position(),buffer2.position()+buffer2.limit());
+					int start2 = buffer2.arrayOffset() + buffer2.position();
+					int len2 = buffer2.limit() - buffer2.position();
+					return compareBytes(buffer1,0,buffer1.length,buffer2.array(),start2,len2);
 				} else {
 					throw new PangoolRuntimeException("Can't compare byte[] with " + element2.getClass());
 				}
 			} else if(element1 instanceof ByteBuffer){
 				ByteBuffer buffer1 = (ByteBuffer)element1;
+				int pos1 = buffer1.position();
+				int start1 = buffer1.arrayOffset() + pos1;
+		    int len1 = buffer1.limit() - pos1;
 				if (element2 instanceof byte[]){
 					byte[] buffer2 =(byte[]) element2;
-					return compareBytes(buffer1.array(),buffer1.position(),buffer1.position()+buffer1.limit(),
-							buffer2,0,buffer2.length);
+					return compareBytes(buffer1.array(),start1,len1,buffer2,0,buffer2.length);
 				} else if (element2 instanceof ByteBuffer){
 					ByteBuffer buffer2 = (ByteBuffer)element2;
-					return compareBytes(buffer1.array(),buffer1.position(),buffer1.position()+buffer1.limit(),
-							buffer2.array(),buffer2.position(),buffer2.position()+buffer2.limit());
+					int pos2 = buffer2.position();
+					int start2 = buffer2.arrayOffset() + pos2;
+			    int len2 = buffer2.limit() - pos2;
+					return compareBytes(buffer1.array(),start1,len1,buffer2.array(),start2,len2);
 				} else {
 					throw new PangoolRuntimeException("Can't compare byte[] with " + element2.getClass());
 				}

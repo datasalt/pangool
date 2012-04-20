@@ -83,19 +83,19 @@ public class Tuple implements ITuple, Serializable {
 				Object o = tuple.get(i);
 				b.append("{\"bytes\": \"");
 				byte[] bytes;
-				int pos,limit;
+				int offset,length;
 				if (o instanceof ByteBuffer) {
 					ByteBuffer byteBuffer =(ByteBuffer)o;
 		      bytes = byteBuffer.array();
-		      pos = byteBuffer.position();
-		      limit=byteBuffer.limit();
+		      offset = byteBuffer.arrayOffset() + byteBuffer.position();
+		      length=byteBuffer.limit() -byteBuffer.position();
 				}	else {
 					//byte[]
 					bytes = (byte[])o;
-					pos = 0;
-					limit = bytes.length;
+					offset = 0;
+					length = bytes.length;
 				}
-		    for (int p = pos; p < limit; p++){
+		    for (int p = offset; p < offset+length; p++){
 		       b.append((char)bytes[p]);
 		    }
 		    b.append("\"}");

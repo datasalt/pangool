@@ -99,9 +99,9 @@ public class TupleHashPartitioner extends Partitioner<DatumWrapper<ITuple>, Null
 				hashCode = hashBytes((byte[])o,0,((byte[]) o).length);
 			} else if(o instanceof ByteBuffer){
 				ByteBuffer buffer = (ByteBuffer)o;
-				int start = buffer.position();
-        int length = buffer.limit() - start;
-				hashCode = hashBytes(buffer.array(),start,length);
+				int offset =  buffer.arrayOffset() + buffer.position();
+        int length = buffer.limit() - buffer.position();
+				hashCode = hashBytes(buffer.array(),offset,length);
 			} else {
 				hashCode = o.hashCode();
 			}

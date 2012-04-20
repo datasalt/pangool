@@ -98,7 +98,9 @@ public class AvroRecordToTupleConverter {
 					inputBuffer.reset((byte[])objRecord,((byte[])objRecord).length);
 				} else if (objRecord instanceof ByteBuffer){
 					ByteBuffer buffer = (ByteBuffer)objRecord;
-					inputBuffer.reset(buffer.array(),buffer.position(),buffer.position()+buffer.limit());
+					int offset = buffer.arrayOffset()+buffer.position();
+					int length = buffer.limit()- buffer.position();
+					inputBuffer.reset(buffer.array(),offset,length);
 				} else {
 					throw new PangoolRuntimeException("Can't convert to OBJECT from instance " + objRecord.getClass());
 				}

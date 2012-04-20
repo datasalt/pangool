@@ -84,6 +84,7 @@ public class TupleToAvroRecordConverter {
 				} else {
 					hadoopSer.ser(obj, buffer);
 				}
+				//TODO this byteBuffer instances should be cached and reused
 				ByteBuffer byteBuffer = ByteBuffer.wrap(buffer.getData(), 0,buffer.getLength());
 				record.put(i, byteBuffer);
 				break;
