@@ -65,6 +65,7 @@ public class Schema implements Serializable {
 	 * <li>A unicode <i>string</i>;
 	 * <li>A <i>boolean</i>; or
 	 * <li>An <i>enum</i>, containing one of a small set of symbols;
+	 * <li>A <i>byte buffer</i>
 	 * <li>An arbitrary <i>object</i>, serializable by Hadoop's serialization
 	 * </ul>
 	 * 

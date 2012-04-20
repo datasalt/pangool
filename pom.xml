@@ -214,7 +214,7 @@
         <pluginRepositories />
 
         <profiles>
-            <profile>
+            <!--profile>
                 <id>release-sign-artifacts</id>
                 <activation>
                     <property>
@@ -240,14 +240,14 @@
                         </plugin>
                     </plugins>
                 </build>
-            </profile>
+            </profilei-->
         </profiles>
 
         <properties>
             <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         </properties>
 
-        <distributionManagement>
+        <!--distributionManagement>
             <repository>
                 <id>pangool-releases</id>
                 <url>http://clinker.pangool.net/nexus/content/repositories/releases</url>
@@ -261,7 +261,7 @@
                 <name>Pangool</name>
                 <url>file:///clinker/data/htdocs/maven-site</url>
             </site>
-        </distributionManagement>
+        </distributionManagement-->
 
         <!-- ///////////////// -->
 
