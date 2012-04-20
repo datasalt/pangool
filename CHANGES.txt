@@ -1,7 +1,7 @@
 Pangool Change Log
+====================
 
-
-Pangool 0.40.3 (Unreleased)
+Pangool 0.41.0 (20/04/2012)
 
  NEW FEATURES
 
@@ -13,7 +13,7 @@ Pangool 0.40.3 (Unreleased)
  - Simplification:custom serialization and comparison just for type OBJECT.
  - Moved from Avro 1.6.2 to 1.6.3 (efficiency enhancement in Utf8) 
 
-Pangool 0.40.2 (2/4/2012)
+Pangool 0.40.2 (2/04/2012)
 
  NEW FEATURES
 
