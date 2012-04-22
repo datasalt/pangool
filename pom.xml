@@ -247,11 +247,7 @@
             <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         </properties>
 
-        <!--distributionManagement>
-            <repository>
-                <id>pangool-releases</id>
-                <url>http://clinker.pangool.net/nexus/content/repositories/releases</url>
-            </repository>
+        <distributionManagement>
             <snapshotRepository>
                 <id>pangool-snapshots</id>
                 <url>http://clinker.pangool.net/nexus/content/repositories/snapshots</url>
@@ -261,7 +257,7 @@
                 <name>Pangool</name>
                 <url>file:///clinker/data/htdocs/maven-site</url>
             </site>
-        </distributionManagement-->
+        </distributionManagement>
 
         <!-- ///////////////// -->
 
