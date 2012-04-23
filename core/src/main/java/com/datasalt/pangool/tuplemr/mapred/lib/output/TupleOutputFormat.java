@@ -21,7 +21,7 @@ import java.io.Serializable;
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericData.Record;
-import org.apache.avro.mapred.AvroOutputFormat;
+import org.apache.avro.mapreduce.lib.output.AvroOutputFormat;
 import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;

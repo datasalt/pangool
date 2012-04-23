@@ -35,15 +35,15 @@ import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
-public class TestAvroCustomJob extends AbstractHadoopTestLibrary {
+public class TestAvroTopicalWordCount extends AbstractHadoopTestLibrary {
 	
-	public final static String INPUT = TestAvroCustomJob.class.getName() + "-input";
-	public final static String OUTPUT = TestAvroCustomJob.class.getName() + "-output";
+	public final static String INPUT = TestAvroTopicalWordCount.class.getName() + "-input";
+	public final static String OUTPUT = TestAvroTopicalWordCount.class.getName() + "-output";
 	
 	@Test
 	public void test() throws Exception {
 		createInput(INPUT);
-		ToolRunner.run( new AvroCustomSerializationJob(), new String[] {  INPUT, OUTPUT });
+		ToolRunner.run( new AvroTopicalWordCount(), new String[] {  INPUT, OUTPUT });
 		
 		assertEquals(6, assertOutput(OUTPUT + "/part-r-00000", new Configuration()));
 		

@@ -64,7 +64,7 @@ import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFie
  * The behaviour is identical to the example {@link TopicalWordCount} , but using the external
  * serialization provided by Avro. 
  */
-public class AvroCustomSerializationJob extends BaseExampleJob {
+public class AvroTopicalWordCount extends BaseExampleJob {
 
 	@SuppressWarnings("serial")
 	public static class TokenizeMapper extends TupleMapper<LongWritable, Text> {
@@ -120,8 +120,8 @@ public class AvroCustomSerializationJob extends BaseExampleJob {
 		}
 	}
 
-	public AvroCustomSerializationJob() {
-		super("Usage: AvroCustomSerializationJob [input_path] [output_path]");
+	public AvroTopicalWordCount() {
+		super("Usage: AvroTopicalWordCount [input_path] [output_path]");
 	}
 
 	static Schema getSchema() {
@@ -236,6 +236,6 @@ public class AvroCustomSerializationJob extends BaseExampleJob {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		ToolRunner.run(new AvroCustomSerializationJob(), args);
+		ToolRunner.run(new AvroTopicalWordCount(), args);
 	}
 }
