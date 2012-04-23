@@ -42,8 +42,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
-import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldDeserializer;
-import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldSerializer;
+import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization;
 
 /**
  * TODO STILL WIP!!
@@ -113,7 +112,8 @@ public class Avro2Job extends BaseExampleJob {
 	private static Schema getPangoolTweetsSchema() {
 		org.apache.avro.Schema avroSchema = getAvroTweetSchema();
 		Field tweetIdField = Field.create("tweet_id",Schema.Field.Type.INT);
-		Field avroField = Field.createObject("tweet",AvroFieldSerializer.class,AvroFieldDeserializer.class);
+		Field avroField = Field.createObject("tweet",Object.class);
+		avroField.setSerialization(AvroFieldSerialization.class);
 		avroField.addProp("avro.schema",avroSchema.toString());
 		return new Schema("retweeters",Arrays.asList(tweetIdField,avroField));
 	}

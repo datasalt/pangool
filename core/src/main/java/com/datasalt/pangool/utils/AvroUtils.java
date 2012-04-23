@@ -15,28 +15,19 @@
  */
 package com.datasalt.pangool.utils;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.mapred.AvroSerialization;
-import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.DataOutputBuffer;
-import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.PangoolRuntimeException;
-import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.FieldDeserializer;
-import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
+import com.datasalt.pangool.io.Schema.Field.FieldSerialization;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.serialization.HadoopSerialization;
 
 public class AvroUtils {
 
@@ -69,20 +60,15 @@ public class AvroUtils {
 				} else {
 					try {
 					String objectClazz = avroField.getProp(Field.METADATA_OBJECT_CLASS);
-					if (objectClazz != null){
-						pangoolField = Field.createObject(avroField.name(),Class.forName(objectClazz));
-					} else {
-						
-							String serializerString = avroField.getProp(Field.METADATA_OBJECT_SERIALIZER);
-							String deserializerString = avroField.getProp(Field.METADATA_OBJECT_DESERIALIZER);
-							Class<? extends FieldSerializer> ser=
-		             (serializerString == null) ? null : 
-			          	(Class<? extends FieldSerializer>)Class.forName(serializerString);
-		          
-							Class<? extends FieldDeserializer> deser = (deserializerString == null) ? null:
-								(Class<? extends FieldDeserializer>)Class.forName(deserializerString);
-							pangoolField = Field.createObject(avroField.name(),ser,deser);
+					pangoolField = Field.createObject(avroField.name(),Class.forName(objectClazz));
+					String serializationString = avroField.getProp(Field.METADATA_OBJECT_SERIALIZATION);
+					if (serializationString != null){
+							Class<? extends FieldSerialization> ser=
+		             (serializationString == null) ? null : 
+			          	(Class<? extends FieldSerialization>)Class.forName(serializationString);
+							pangoolField.setSerialization(ser);
 					}
+					
 					} catch(ClassNotFoundException e) {
 	          throw new PangoolRuntimeException(e);
           }
@@ -163,11 +149,8 @@ public class AvroUtils {
 			if (pangoolField.getObjectClass() != null){
 				avroField.addProp(Field.METADATA_OBJECT_CLASS, pangoolField.getObjectClass().getName());
 			}
-			if (pangoolField.getSerializerClass() != null){
-				avroField.addProp(Field.METADATA_OBJECT_SERIALIZER,pangoolField.getSerializerClass().getName());
-			}
-			if (pangoolField.getSerializerClass() != null){
-				avroField.addProp(Field.METADATA_OBJECT_DESERIALIZER,pangoolField.getDeserializerClass().getName());
+			if (pangoolField.getSerializationClass() != null){
+				avroField.addProp(Field.METADATA_OBJECT_SERIALIZATION,pangoolField.getSerializationClass().getName());
 			}
 			for (Map.Entry<String,String> property : pangoolField.getProps().entrySet()){
 				avroField.addProp(property.getKey(),property.getValue());

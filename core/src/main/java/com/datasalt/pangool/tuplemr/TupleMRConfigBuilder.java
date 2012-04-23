@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
@@ -100,8 +99,7 @@ public class TupleMRConfigBuilder {
 			} else {
 				if(field.getType() != currentField.getType() ||
 					field.getObjectClass() != currentField.getObjectClass() ||
-					field.getSerializerClass() != currentField.getSerializerClass() ||
-					field.getDeserializerClass() != currentField.getDeserializerClass()){
+					field.getSerializationClass() != currentField.getSerializationClass()){
 					return false;
 				}
 			}

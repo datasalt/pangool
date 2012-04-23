@@ -20,10 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.serializer.Serializer;
 
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 import com.datasalt.pangool.tuplemr.Criteria;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
@@ -45,7 +45,7 @@ public class GroupComparator extends SortComparator {
 		int schemaId2 = tupleMRConf.getSchemaIdByName(w2.getSchema().getName());
 		int[] indexes1 = serInfo.getGroupSchemaIndexTranslation(schemaId1);
 		int[] indexes2 = serInfo.getGroupSchemaIndexTranslation(schemaId2);
-	  FieldSerializer[] serializers = serInfo.getGroupSchemaSerializers();
+	  Serializer[] serializers = serInfo.getGroupSchemaSerializers();
 		return compare(w1.getSchema(), groupCriteria, w1, indexes1, w2, indexes2,serializers);
 	}
 

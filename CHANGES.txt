@@ -1,6 +1,13 @@
 Pangool Change Log
 ====================
 
+Pangool 0.42.0 (unreleased)
+
+ IMPROVEMENTS
+
+ - (23/04/2012) - Redesign of the custom serialization API
+
+
 Pangool 0.41.0 (20/04/2012)
 
  NEW FEATURES

@@ -29,12 +29,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
+import org.apache.hadoop.io.serializer.Serializer;
 
 import com.datasalt.pangool.PangoolRuntimeException;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.tuplemr.Criteria;
@@ -112,13 +112,13 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 
 	public int compare(Schema schema, Criteria c, ITuple w1, int[] index1, ITuple w2,
-	    int[] index2,FieldSerializer[] serializers) {
+	    int[] index2,Serializer[] serializers) {
 		for(int i = 0; i < c.getElements().size(); i++) {
 			Field field = schema.getField(i);
 			SortElement e = c.getElements().get(i);
 			Object o1 = w1.get(index1[i]);
 			Object o2 = w2.get(index2[i]);
-			FieldSerializer serializer = (serializers == null) ? null : serializers[i];
+			Serializer serializer = (serializers == null) ? null : serializers[i];
 			int comparison = compareObjects(o1, o2, e.getCustomComparator(), field.getType(),serializer);
 			if(comparison != 0) {
 				return(e.getOrder() == Order.ASC ? comparison : -comparison);
@@ -134,7 +134,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	 */
 	@SuppressWarnings({ "unchecked" })
 	public int compareObjects(Object elem1, Object elem2, RawComparator comparator,
-	    Type type,FieldSerializer serializer) {
+	    Type type,Serializer serializer) {
 		// If custom, just use custom.
 		if(comparator != null) {
 			return comparator.compare(elem1, elem2);

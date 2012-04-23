@@ -24,8 +24,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.WritableComparator;
+import org.apache.hadoop.io.serializer.Serializer;
 
-import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 
 /**
@@ -47,7 +47,7 @@ public class SerializerComparator implements Comparator<Object>, Serializable, C
 	private transient DataOutputBuffer buf2;
 	
 	
-	public int compare(Object o1,FieldSerializer ser1,Object o2,FieldSerializer ser2){
+	public int compare(Object o1,Serializer ser1,Object o2,Serializer ser2){
 		try {
 			if (o1 == null) {
 				return (o2 == null) ? 0 : -1; 

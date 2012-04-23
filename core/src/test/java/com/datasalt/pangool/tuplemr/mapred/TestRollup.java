@@ -47,8 +47,8 @@ import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.TupleRollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
-import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldDeserializer;
-import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldSerializer;
+import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization.AvroFieldDeserializer;
+import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization.AvroFieldSerializer;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
 public class TestRollup extends AbstractHadoopTestLibrary {

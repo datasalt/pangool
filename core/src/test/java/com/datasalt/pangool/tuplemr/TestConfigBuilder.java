@@ -29,8 +29,7 @@ import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.thrift.test.A;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
-import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldDeserializer;
-import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldSerializer;
+import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization;
 
 /**
  * 
@@ -227,7 +226,9 @@ public class TestConfigBuilder extends BaseTest {
 		fields.add(Field.createObject("my_object",A.class));
 		b.addIntermediateSchema(new Schema("schema1", fields));
 		fields.clear();
-		fields.add(Field.createObject("my_object",AvroFieldSerializer.class,AvroFieldDeserializer.class));
+		Field avroField = Field.createObject("my_object",Object.class);
+		avroField.setSerialization(AvroFieldSerialization.class);
+		fields.add(avroField);
 		b.addIntermediateSchema(new Schema("schema2",fields));
 		b.setGroupByFields("my_object");
 		b.buildConf();

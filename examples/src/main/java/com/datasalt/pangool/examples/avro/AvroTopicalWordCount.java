@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -38,6 +37,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.PangoolRuntimeException;
 import com.datasalt.pangool.examples.BaseExampleJob;
+import com.datasalt.pangool.examples.topicalwordcount.TopicalWordCount;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
@@ -49,8 +49,8 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
-import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldDeserializer;
-import com.datasalt.pangool.tuplemr.serialization.FieldAvroSerialization.AvroFieldSerializer;
+import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization;
+import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization.AvroFieldDeserializer;
 
 /**
  * This is an advanced example to illustrate the usage of custom serializers and 
@@ -126,7 +126,8 @@ public class AvroTopicalWordCount extends BaseExampleJob {
 
 	static Schema getSchema() {
 		org.apache.avro.Schema avroSchema = getAvroSchema();
-		Field avroField = Field.createObject("my_avro",AvroFieldSerializer.class,AvroFieldDeserializer.class);
+		Field avroField = Field.createObject("my_avro",Object.class);
+		avroField.setSerialization(AvroFieldSerialization.class);
 		avroField.addProp("avro.schema",avroSchema.toString());
 		return new Schema("schema",Arrays.asList(avroField));
 	}
@@ -153,7 +154,7 @@ public class AvroTopicalWordCount extends BaseExampleJob {
 	@SuppressWarnings("serial")
   public static class MyAvroComparator implements RawComparator<Record>,Serializable {
 
-		//MyAvroComparator must be serializable so 
+		//MyAvroComparator must be serializable so this must be transient 
 		private transient AvroFieldDeserializer<Record> deser;
 		private transient Record record1,record2;
 		private transient DataInputBuffer inputBuffer;
@@ -167,10 +168,7 @@ public class AvroTopicalWordCount extends BaseExampleJob {
 		//lazy loading of deserializer and buffers
 		private void init(){
 			if (deser == null){
-				deser = new AvroFieldDeserializer<Record>();
-				Map<String,String> props = new HashMap<String,String>();
-				props.put("avro.schema",avroSchema.toString());
-				deser.setProps(props);
+				deser = new AvroFieldDeserializer<Record>(org.apache.avro.Schema.parse(avroSchema),false);
 			}
 			if (inputBuffer == null){
 				inputBuffer = new DataInputBuffer();

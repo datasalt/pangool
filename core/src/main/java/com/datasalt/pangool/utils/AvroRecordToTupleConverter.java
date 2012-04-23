@@ -7,14 +7,13 @@ import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataInputBuffer;
+import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.PangoolRuntimeException;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.FieldDeserializer;
-import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
@@ -27,7 +26,7 @@ public class AvroRecordToTupleConverter {
 	private HadoopSerialization hadoopSer;
 	
 	//custom deserializers for OBJECT fields
-	private FieldDeserializer[] customDeserializers;
+	private Deserializer[] customDeserializers;
 	
 	private org.apache.avro.Schema avroSchema;
 	private Schema pangoolSchema;
@@ -93,7 +92,7 @@ public class AvroRecordToTupleConverter {
 				tuple.set(pos,objRecord); //TODO FIXME this should copy bytes really, not reference!
 				break;
 			case OBJECT:
-				FieldDeserializer customDeser = customDeserializers[pos];
+				Deserializer customDeser = customDeserializers[pos];
 				if (objRecord instanceof byte[]){
 					inputBuffer.reset((byte[])objRecord,((byte[])objRecord).length);
 				} else if (objRecord instanceof ByteBuffer){

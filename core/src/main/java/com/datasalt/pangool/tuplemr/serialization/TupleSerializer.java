@@ -30,7 +30,6 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
@@ -115,7 +114,7 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 	 * @throws IOException
 	 */
 	private void write(Schema destinationSchema, ITuple tuple,
-			int[] translationTable, DataOutput output,FieldSerializer[] customSerializers) throws IOException {
+			int[] translationTable, DataOutput output,Serializer[] customSerializers) throws IOException {
 		for (int i = 0; i < destinationSchema.getFields().size(); i++) {
 			Field field = destinationSchema.getField(i);
 			Type fieldType = field.getType();
@@ -162,7 +161,7 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 		} // end for		
 	}
 	
-	private void writeCustomObject(Object element, DataOutput output,FieldSerializer customSer) throws IOException{
+	private void writeCustomObject(Object element, DataOutput output,Serializer customSer) throws IOException{
 			tmpOutputBuffer.reset();
 			if (customSer != null){
 				customSer.open(tmpOutputBuffer);

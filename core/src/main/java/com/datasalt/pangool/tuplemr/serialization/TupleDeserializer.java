@@ -15,7 +15,6 @@
  */
 package com.datasalt.pangool.tuplemr.serialization;
 
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +31,6 @@ import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.FieldDeserializer;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
@@ -158,11 +156,11 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		return reuse;
 	}
 
-	public void readFields(ITuple tuple, DataInputStream input,FieldDeserializer[] customDeserializers) 
+	public void readFields(ITuple tuple, DataInputStream input,Deserializer[] customDeserializers) 
 			throws IOException {
 		Schema schema = tuple.getSchema();
 		for(int index = 0; index < schema.getFields().size(); index++) {
-			FieldDeserializer customDeser = customDeserializers[index];
+			Deserializer customDeser = customDeserializers[index];
 			Field field = schema.getField(index);
 			switch(field.getType()){
 			case INT:	tuple.set(index,WritableUtils.readVInt(input)); break;
@@ -194,7 +192,7 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	}
 	
 	protected void readCustomObject(DataInputStream input,ITuple tuple,Class<?> expectedType,int index,
-			FieldDeserializer customDeser) 
+			Deserializer customDeser) 
 			throws IOException{
 		int size = WritableUtils.readVInt(input);
 		if(size >=0) {

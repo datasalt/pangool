@@ -7,12 +7,12 @@ import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.io.serializer.Serializer;
 
 import com.datasalt.pangool.PangoolRuntimeException;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.FieldSerializer;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
 
@@ -23,8 +23,8 @@ public class TupleToAvroRecordConverter {
 	//serialization in "io.serializations"
 	private HadoopSerialization hadoopSer;
 	
-	//custom deserializers for OBJECT fields
-	private FieldSerializer[] customSerializers;
+	//custom serializers for OBJECT fields
+	private Serializer[] customSerializers;
 	
 	private org.apache.avro.Schema avroSchema;
 	private Schema pangoolSchema;
@@ -74,7 +74,7 @@ public class TupleToAvroRecordConverter {
 				record.put(i, obj); //optimistic
 				break;
 			case OBJECT:
-				FieldSerializer customSer = customSerializers[i];
+				Serializer customSer = customSerializers[i];
 				DataOutputBuffer buffer = buffers[i];
 				buffer.reset();
 				if (customSer != null){
