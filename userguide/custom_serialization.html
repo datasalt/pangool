@@ -9,25 +9,9 @@ title: Pangool - User guide - Custom Comparators
 <h1>Custom Serialization</h1>
 
 <p>
-You can use your own custom stateful serializers and deserializers for serializing OBJECT fields implementing
-FieldSerializer and FieldDeserializaer interfaces.
-</p>
-<p>
-  <pre class="prettyprint" id="java">
-    public static interface FieldSerializer&lt;T&gt; extends Serializer&lt;T&gt;{
-      public void setProps(Map&lt;String,String&gt; properties);
-    }
+You can use your own custom stateful serialization for OBJECT fields implementing FieldSerialization. 
+As an example, you can take a look to <a href="https://github.com/datasalt/pangool/blob/master/core/src/main/java/com/datasalt/pangool/tuplemr/serialization/AvroFieldSerialization.java">AvroFieldSerialization</a>
 
-    public static interface FieldDeserializer&lt;T&gt; extends Deserializer&lt;T&gt;{
-      public void setProps(Map&lt;String,String&gt; properties);
-    }
-</pre>
-</p>
-
-<p>
-As example, Pangool offers stateful Avro stateful serialization. This means that you can use any Avro data type for 
-one of yours Pangool fields. 
-</p> 
 
 <pre class="prettyprint" id="java">
   static org.apache.avro.Schema getAvroSchema(){

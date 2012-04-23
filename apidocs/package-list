@@ -8,3 +8,5 @@ com.datasalt.pangool.tuplemr.mapred.lib.output
 com.datasalt.pangool.tuplemr.serialization
 com.datasalt.pangool.utils
 com.datasalt.pangool.utils.test
+org.apache.avro.mapreduce.lib.input
+org.apache.avro.mapreduce.lib.output
