@@ -39,7 +39,7 @@ public class TupleToAvroRecordConverter {
 		} catch(IOException e){
 			throw new PangoolRuntimeException(e);
 		}
-		this.customSerializers = SerializationInfo.getSerializers(pangoolSchema);
+		this.customSerializers = SerializationInfo.getSerializers(pangoolSchema,conf);
 		initBuffers();
 	}
 	

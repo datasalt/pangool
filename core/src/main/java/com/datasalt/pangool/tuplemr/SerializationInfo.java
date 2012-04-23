@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serializer;
 import org.apache.hadoop.util.ReflectionUtils;
@@ -173,11 +174,12 @@ public class SerializationInfo {
 	 * This serializers have been defined by the user in an OBJECT field
 	 */
 	private void initCommonAndGroupSchemaSerialization(){
-		commonSerializers = getSerializers(commonSchema);
-		commonDeserializers = getDeserializers(commonSchema);
+		//TODO Should SerializationInfo contain Configuration ?
+		commonSerializers = getSerializers(commonSchema,null);
+		commonDeserializers = getDeserializers(commonSchema,null);
 		
-		groupSerializers = getSerializers(groupSchema);
-		groupDeserializers = getDeserializers(groupSchema);
+		groupSerializers = getSerializers(groupSchema,null);
+		groupDeserializers = getDeserializers(groupSchema,null);
 	}
 	
 	private void initSpecificSchemaSerialization(){
@@ -185,17 +187,18 @@ public class SerializationInfo {
 		specificDeserializers = new ArrayList<Deserializer[]>();
 		for(int i= 0 ; i < specificSchemas.size(); i++){
 			Schema specificSchema = specificSchemas.get(i);
-			specificSerializers.add(getSerializers(specificSchema));
-			specificDeserializers.add(getDeserializers(specificSchema));
+			//TODO Should SerializationInfo contain Configuration ?
+			specificSerializers.add(getSerializers(specificSchema,null));
+			specificDeserializers.add(getDeserializers(specificSchema,null));
 		}
 	}
 
-	public static Serializer[] getSerializers(Schema schema){
+	public static Serializer[] getSerializers(Schema schema,Configuration conf){
 		Serializer[] result = new Serializer[schema.getFields().size()];
 		for (int i= 0 ; i < result.length; i++){
 			Field field = schema.getField(i);
 			if (field.getSerializationClass() != null){
-				FieldSerialization serialization = ReflectionUtils.newInstance(field.getSerializationClass(),null);
+				FieldSerialization serialization = ReflectionUtils.newInstance(field.getSerializationClass(),conf);
 				serialization.setFieldProps(field.getProps());
 				result[i] = serialization.getSerializer(field.getObjectClass());
 			}
@@ -203,12 +206,12 @@ public class SerializationInfo {
 		return result;
 	}
 	
-	public static Deserializer[] getDeserializers(Schema schema){
+	public static Deserializer[] getDeserializers(Schema schema,Configuration conf){
 		Deserializer[] result = new Deserializer[schema.getFields().size()];
 		for (int i= 0 ; i < result.length; i++){
 			Field field = schema.getField(i);
 			if (field.getSerializationClass() != null){
-				FieldSerialization serialization = ReflectionUtils.newInstance(field.getSerializationClass(),null);
+				FieldSerialization serialization = ReflectionUtils.newInstance(field.getSerializationClass(),conf);
 				serialization.setFieldProps(field.getProps());
 				result[i] = serialization.getDeserializer(field.getObjectClass());
 			}

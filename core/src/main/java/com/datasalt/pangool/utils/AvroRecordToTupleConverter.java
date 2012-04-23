@@ -42,7 +42,7 @@ public class AvroRecordToTupleConverter {
 			throw new PangoolRuntimeException(e);
 		}
 		
-		this.customDeserializers = SerializationInfo.getDeserializers(pangoolSchema);
+		this.customDeserializers = SerializationInfo.getDeserializers(pangoolSchema,conf);
 	}
 	
 	/**
