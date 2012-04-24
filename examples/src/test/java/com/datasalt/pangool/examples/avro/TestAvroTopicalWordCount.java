@@ -31,14 +31,13 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
 import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
 public class TestAvroTopicalWordCount extends AbstractHadoopTestLibrary {
 	
-	public final static String INPUT = TestAvroTopicalWordCount.class.getName() + "-input";
-	public final static String OUTPUT = TestAvroTopicalWordCount.class.getName() + "-output";
+	private final static String INPUT = TestAvroTopicalWordCount.class.getName() + "-input";
+	private final static String OUTPUT = TestAvroTopicalWordCount.class.getName() + "-output";
 	
 	@Test
 	public void test() throws Exception {

@@ -53,7 +53,8 @@ public class AvroInputFormat<T>
       ) throws IOException {
 		List<FileStatus> result = new ArrayList<FileStatus>();
     for (FileStatus file : super.listStatus(job)){
-      if (file.getPath().getName().endsWith(AvroOutputFormat.EXT)){
+    	String fileName = file.getPath().getName();
+      if (fileName.endsWith(AvroOutputFormat.EXT)){
       	result.add(file);
       }
     }

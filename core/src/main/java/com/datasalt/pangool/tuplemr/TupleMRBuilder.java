@@ -166,6 +166,10 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		this.jobName = name;
 	}
 
+	public Configuration getConf(){
+		return conf;
+	}
+	
 	/**
 	 * Sets the jar by class , as in {@link Job#setJarByClass(Class)}
 	 */

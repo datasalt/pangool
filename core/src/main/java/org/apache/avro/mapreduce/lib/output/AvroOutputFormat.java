@@ -114,10 +114,7 @@ public class AvroOutputFormat <T>
       new DataFileWriter<T>(new ReflectDatumWriter<T>());
     
     configureDataFileWriter(writer, job);
-    String name = job.getJobName();
-    //TODO is this equivalent to FileOutputFormat.getTaskOutputPath(job,name+EXT) ??
-    Path path = new Path(FileOutputFormat.getUniqueFile(job, name,EXT));
-    //Path path = org.apache.hadoop.mapred.FileOutputFormat.getTaskOutputPath(job, name+EXT);
+    Path path = getDefaultWorkFile(job,EXT);
     writer.create(schema, path.getFileSystem(job.getConfiguration()).create(path));
 
     return new RecordWriter<AvroWrapper<T>, NullWritable>() {
