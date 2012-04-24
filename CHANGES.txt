@@ -1,7 +1,7 @@
 Pangool Change Log
 ====================
 
-Pangool 0.42.0 (23/04/2012)
+Pangool 0.42.0 (unreleased)
 
  NEW FEATURES
 

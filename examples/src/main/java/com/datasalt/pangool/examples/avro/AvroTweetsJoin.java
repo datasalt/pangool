@@ -23,14 +23,12 @@ import java.util.List;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData.Array;
 import org.apache.avro.generic.GenericData.Record;
-import org.apache.avro.mapred.AvroJob;
 import org.apache.avro.mapred.AvroWrapper;
-import org.apache.avro.mapreduce.lib.input.AvroInputFormat;
-import org.apache.avro.mapreduce.lib.output.AvroOutputFormat;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -39,25 +37,28 @@ import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.TupleReducer;
+import com.datasalt.pangool.tuplemr.avro.AvroInputFormat;
+import com.datasalt.pangool.tuplemr.avro.AvroOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
-import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization;
 
 /**
  * This example illustrates two things:
  * 
  * <ul>
- *  <li> How to use {@link AvroInputFormat} and {@link AvroOutputFormat}, that are 
+ *  <li>How to use {@link AvroInputFormat} and {@link AvroOutputFormat}, that are 
  *  compliant with new Hadoop's API : mapreduce.lib.{input,output} 
  *  </li>
  *  <li> How to perform a reduce-join with Avro-data using custom serialization</li> 
  *
  */
-public class AvroJoinExample extends BaseExampleJob {
+public class AvroTweetsJoin extends BaseExampleJob {
 
 	@SuppressWarnings("serial")
 	private static class TweetsMapper extends TupleMapper<AvroWrapper<Record>,NullWritable> {
@@ -125,10 +126,6 @@ public class AvroJoinExample extends BaseExampleJob {
 		}
 	}
 
-	public AvroJoinExample() {
-		super("Usage: AvroJoinExample [input_path] [output_path]");
-	}
-
 	private static Schema getPangoolTweetSchema() {
 		Field tweetIdField = Field.create("tweet_id",Schema.Field.Type.INT);
 		Field tweetHashTags = Field.createObject("tweet_hashtags",Array.class);
@@ -176,6 +173,10 @@ public class AvroJoinExample extends BaseExampleJob {
 		return result;
 	}
 	
+	public AvroTweetsJoin() {
+		super("Usage: AvroTweetsJoin [tweets_path] [retweets_path] [output_path]");
+	}
+	
 	@Override
 	public int run(String[] args) throws Exception {
 		if(args.length != 3) {
@@ -187,29 +188,26 @@ public class AvroJoinExample extends BaseExampleJob {
 		Path outputPath = new Path(args[2]);
 		deleteOutput(outputPath.toString());
 		
-		
-
-		TupleMRBuilder mr = new TupleMRBuilder(conf, "AvroJoinExample");
+		TupleMRBuilder mr = new TupleMRBuilder(conf, "AvroTweetsJoin");
 		mr.addIntermediateSchema(getPangoolTweetSchema());
 		mr.addIntermediateSchema(getPangoolRetweetSchema());
 		mr.setGroupByFields("tweet_id");
-		//here the custom comparator that groups by "topic,word" is used. 
-		//MyAvroComparator customComp = new MyAvroComparator(getTweetSchema(),"topic","word");
+		mr.setOrderBy(new OrderBy().add("tweet_id",Order.ASC).addSchemaOrder(Order.ASC));
 		
-		mr.getConf().set(AvroJob.INPUT_SCHEMA,getAvroTweetSchema().toString());
-		mr.getConf().set(AvroJob.OUTPUT_SCHEMA,getAvroOutputSchema().toString());
-		mr.addInput(tweetsPath, new HadoopInputFormat(AvroInputFormat.class), new TweetsMapper());
+		mr.addInput(tweetsPath,new AvroInputFormat<Record>(getAvroTweetSchema()),new TweetsMapper());
 		mr.addInput(retweetsPath, new HadoopInputFormat(TextInputFormat.class), new RetweetsMapper());
-		mr.setOutput(outputPath,new HadoopOutputFormat(AvroOutputFormat.class),AvroWrapper.class,NullWritable.class);
+		mr.setOutput(outputPath,new AvroOutputFormat<Record>(getAvroOutputSchema()),
+				AvroWrapper.class,NullWritable.class);
 
 		mr.setTupleReducer(new Red());
 
-		mr.createJob().waitForCompletion(true);
+		Job job = mr.createJob();
+		job.waitForCompletion(true);
 
 		return 1;
 	}
 	
 	public static void main(String[] args) throws Exception {
-		ToolRunner.run(new AvroJoinExample(), args);
+		ToolRunner.run(new AvroTweetsJoin(), args);
 	}
 }

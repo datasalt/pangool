@@ -38,25 +38,33 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
-
-public class TestAvroJoinExample extends AbstractHadoopTestLibrary {
+/**
+ * 
+ * Tests for {@link AvroTweetsJoin}
+ *
+ */
+public class TestAvroTweetsJoin extends AbstractHadoopTestLibrary {
 	
-	private final static String INPUT_TWEETS = TestAvroJoinExample.class.getName() + "-input-tweets"+AvroOutputFormat.EXT;
-	private final static String INPUT_RETWEETS = TestAvroJoinExample.class.getName() + "-input-retweets";
-	private final static String OUTPUT = TestAvroJoinExample.class.getName() + "-output"+AvroOutputFormat.EXT;
+	private final static String INPUT_TWEETS = 
+			TestAvroTweetsJoin.class.getName() + "-input-tweets"+AvroOutputFormat.EXT;
+	private final static String INPUT_RETWEETS = 
+			TestAvroTweetsJoin.class.getName() + "-input-retweets";
+	private final static String OUTPUT = 
+			TestAvroTweetsJoin.class.getName() + "-output"+AvroOutputFormat.EXT;
 	
 	@Test
 	public void test() throws Exception {
 		createTweetInput(INPUT_TWEETS);
 		createRetweetsInput(INPUT_RETWEETS);
-		ToolRunner.run( new AvroJoinExample(), new String[] {  INPUT_TWEETS,INPUT_RETWEETS,OUTPUT });
+		ToolRunner.run( new AvroTweetsJoin(), new String[] {  INPUT_TWEETS,INPUT_RETWEETS,OUTPUT });
 		assertOutput(OUTPUT + "/part-r-00000.avro", getConf());
 		trash(INPUT_TWEETS,INPUT_RETWEETS,OUTPUT);
 	}
 	
-	public static void assertOutput(String output, Configuration conf) throws NumberFormatException, IOException, InterruptedException {
+	public static void assertOutput(String output, Configuration conf) 
+			throws NumberFormatException, IOException, InterruptedException {
 
-		DatumReader datumReader = new SpecificDatumReader(AvroJoinExample.getAvroOutputSchema());
+		DatumReader datumReader = new SpecificDatumReader(AvroTweetsJoin.getAvroOutputSchema());
 		FileReader reader = DataFileReader.openReader(new File(output),datumReader);
 		
 		Record record=null;
@@ -65,7 +73,6 @@ public class TestAvroJoinExample extends AbstractHadoopTestLibrary {
 		Assert.assertEquals("eric",record.get("username").toString());
 		Array<Utf8> hashtags = (Array<Utf8>)record.get("hashtags");
 		assertEquals(hashtags,"ivan","datasalt","pere");
-		
 		
 		reader.next(record);
 		Assert.assertEquals("eric",record.get("username").toString());
@@ -83,7 +90,7 @@ public class TestAvroJoinExample extends AbstractHadoopTestLibrary {
 		for (String s : strings){
 			list.add(new Utf8(s));
 		}
-		org.apache.avro.Schema schema = AvroJoinExample.getAvroStringArraySchema();
+		org.apache.avro.Schema schema = AvroTweetsJoin.getAvroStringArraySchema();
 		return new Array<Utf8>(schema,list);
 	}
 	
@@ -100,7 +107,7 @@ public class TestAvroJoinExample extends AbstractHadoopTestLibrary {
 	      new DataFileWriter<Record>(new ReflectDatumWriter<Record>());
 		
 		CodecFactory factory = CodecFactory.deflateCodec(1);
-		org.apache.avro.Schema schema = AvroJoinExample.getAvroTweetSchema();
+		org.apache.avro.Schema schema = AvroTweetsJoin.getAvroTweetSchema();
 		
     writer.setCodec(factory);
     int SYNC_SIZE = 16;
