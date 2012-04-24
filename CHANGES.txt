@@ -5,7 +5,8 @@ Pangool 0.42.0 (unreleased)
 
  NEW FEATURES
 
- - 23/04/2012 - Avro{Input,Output}Format implemented in new hadoop's API (mapreduce.lib.{input,output})
+ - 24/04/2012 - Avro{Input,Output}Format Pangool's version using Serializable instances, not statically configured via Configuration
+ - 23/04/2012 - Avro{Input,Output}Format implemented in new hadoop's API (mapreduce.lib.{input,output}). Should be in avro-mapred artifact.
 
  IMPROVEMENTS
 

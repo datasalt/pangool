@@ -204,7 +204,7 @@ public class AvroTweetsJoin extends BaseExampleJob {
 		Job job = mr.createJob();
 		job.waitForCompletion(true);
 
-		return 1;
+		return 0;
 	}
 	
 	public static void main(String[] args) throws Exception {
