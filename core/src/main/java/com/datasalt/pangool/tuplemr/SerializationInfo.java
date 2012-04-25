@@ -22,12 +22,13 @@ import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Deserializer;
+import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.FieldSerialization;
+import com.datasalt.pangool.io.Schema.Field.FieldConfigurable;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.RollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.SimpleReducer;
@@ -44,6 +45,7 @@ import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
  * {@link TupleHashPartitioner} , {@link SortComparator}, as well {@link SimpleReducer}
  * and {@link RollupReducer}.
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class SerializationInfo {
 
 	private final TupleMRConfig mrConfig;
@@ -65,7 +67,8 @@ public class SerializationInfo {
 	private List<int[]> groupToIntermediateIndexes = new ArrayList<int[]>();
 	private List<int[]> specificToIntermediateIndexes = new ArrayList<int[]>();
 	
-	private Serializer[] commonSerializers;
+	
+  private Serializer[] commonSerializers;
 	private Deserializer[] commonDeserializers;
 	private List<Serializer[]> specificSerializers;
 	private List<Deserializer[]> specificDeserializers;
@@ -147,7 +150,7 @@ public class SerializationInfo {
 		this.groupSchema = new Schema("group", groupFields);
 	}
 	
-	public List<Serializer[]> getSpecificSchemaSerializers(){
+  public List<Serializer[]> getSpecificSchemaSerializers(){
 		return specificSerializers;
 	}
 	
@@ -155,7 +158,7 @@ public class SerializationInfo {
 		return specificDeserializers;
 	}
 	
-	public Serializer[] getCommonSchemaSerializers(){
+  public Serializer[] getCommonSchemaSerializers(){
 		return commonSerializers;
 	}
 	public Deserializer[] getCommonSchemaDeserializers(){
@@ -193,13 +196,15 @@ public class SerializationInfo {
 		}
 	}
 
-	public static Serializer[] getSerializers(Schema schema,Configuration conf){
+  public static Serializer[] getSerializers(Schema schema,Configuration conf){
 		Serializer[] result = new Serializer[schema.getFields().size()];
 		for (int i= 0 ; i < result.length; i++){
 			Field field = schema.getField(i);
 			if (field.getSerializationClass() != null){
-				FieldSerialization serialization = ReflectionUtils.newInstance(field.getSerializationClass(),conf);
-				serialization.setFieldProps(field.getProps());
+				Serialization serialization = ReflectionUtils.newInstance(field.getSerializationClass(),conf);
+				if (serialization instanceof FieldConfigurable){
+					((FieldConfigurable)serialization).setFieldProperties(field.getProps());
+				}
 				result[i] = serialization.getSerializer(field.getObjectClass());
 			}
 		}
@@ -211,8 +216,10 @@ public class SerializationInfo {
 		for (int i= 0 ; i < result.length; i++){
 			Field field = schema.getField(i);
 			if (field.getSerializationClass() != null){
-				FieldSerialization serialization = ReflectionUtils.newInstance(field.getSerializationClass(),conf);
-				serialization.setFieldProps(field.getProps());
+				Serialization serialization = ReflectionUtils.newInstance(field.getSerializationClass(),conf);
+				if(serialization instanceof FieldConfigurable){
+					((FieldConfigurable)serialization).setFieldProperties(field.getProps());
+				}
 				result[i] = serialization.getDeserializer(field.getObjectClass());
 			}
 		}

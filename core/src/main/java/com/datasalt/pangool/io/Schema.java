@@ -30,10 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.avro.AvroRuntimeException;
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
-import org.apache.hadoop.io.serializer.Serializer;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
@@ -79,17 +76,13 @@ public class Schema implements Serializable {
 		/**
 		 *	Interface that must be implemented to custom field serialization 
 		 */
-		public static abstract class FieldSerialization<T> implements Serialization<T> {
-			public final boolean accept(Class clazz){
-				throw new NotImplementedException();
-			}
-			
+		public static interface FieldConfigurable {
 		  /**
 		   * Sets the properties for that field
 			 *
 		   * @param props Properties of that field
 		   */
-			public abstract void setFieldProps(Map<String,String> props);
+			public void setFieldProperties(Map<String,String> props);
 		}
 
 		public static enum Type {
@@ -144,7 +137,7 @@ public class Schema implements Serializable {
 		
 		//special properties in props 
 		private Class<?> objectClass; //lazy loaded
-		private Class<? extends FieldSerialization> serializationClass;
+		private Class<? extends Serialization> serializationClass;
 		
 		public void addProp(String key,String value){
 			props.add(key, value);
@@ -260,11 +253,11 @@ public class Schema implements Serializable {
 			return objectClass;
 		}
 		
-		public Class<? extends FieldSerialization> getSerializationClass(){
+		public Class<? extends Serialization> getSerializationClass(){
 			return serializationClass;
 		}
 		
-		public void setSerialization(Class<? extends FieldSerialization> serialization){
+		public void setSerialization(Class<? extends Serialization> serialization){
 			if (type != Type.OBJECT){
 				throw new PangoolRuntimeException("Can't set custom serialization for type " + type);
 			}

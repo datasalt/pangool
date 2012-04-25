@@ -22,11 +22,11 @@ import java.util.Map;
 
 import org.apache.avro.mapred.AvroSerialization;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.serializer.Serialization;
 
 import com.datasalt.pangool.PangoolRuntimeException;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.FieldSerialization;
 import com.datasalt.pangool.io.Schema.Field.Type;
 
 public class AvroUtils {
@@ -42,7 +42,8 @@ public class AvroUtils {
 	/**
 	 * Converts from one Avro schema to one Pangool schema for de-serializing it
 	 */
-	public static Schema toPangoolSchema(org.apache.avro.Schema avroSchema) {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+  public static Schema toPangoolSchema(org.apache.avro.Schema avroSchema) {
 		List<Field> fields = new ArrayList<Field>();
 		for(org.apache.avro.Schema.Field avroField : avroSchema.getFields()) {
 			org.apache.avro.Schema.Type type = avroField.schema().getType();
@@ -63,9 +64,9 @@ public class AvroUtils {
 					pangoolField = Field.createObject(avroField.name(),Class.forName(objectClazz));
 					String serializationString = avroField.getProp(Field.METADATA_OBJECT_SERIALIZATION);
 					if (serializationString != null){
-							Class<? extends FieldSerialization> ser=
+							Class<? extends Serialization> ser=
 		             (serializationString == null) ? null : 
-			          	(Class<? extends FieldSerialization>)Class.forName(serializationString);
+			          	(Class<? extends Serialization>)Class.forName(serializationString);
 							pangoolField.setSerialization(ser);
 					}
 					
@@ -161,9 +162,5 @@ public class AvroUtils {
 		avroSchema.setFields(avroFields);
 		return avroSchema;
 	}
-
-	
-
-	
 	
 }

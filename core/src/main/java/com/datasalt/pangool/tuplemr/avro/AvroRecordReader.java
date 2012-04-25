@@ -19,11 +19,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 /**
  * 
  * This is the pangool's implementation of {@link org.apache.avro.mapred.AvroRecordReader}.
- * It implements the new Hadoop's api defined in package {@link org.apache.hadoop.mapreduce.lib.output}
- * Any {@link AvroOutputFormat} instance is stateful and is not configured 
- * via {@link Configuration}. Instead, it uses Java-serialization to store its state in 
- * a Distributed Cache file. 
- * 
+ * It's not configured via {@link Configuration}.  
  */
 public class AvroRecordReader<T>
   extends RecordReader<AvroWrapper<T>, NullWritable> {
