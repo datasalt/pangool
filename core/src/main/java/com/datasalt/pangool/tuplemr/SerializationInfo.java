@@ -200,8 +200,8 @@ public class SerializationInfo {
 		Serializer[] result = new Serializer[schema.getFields().size()];
 		for (int i= 0 ; i < result.length; i++){
 			Field field = schema.getField(i);
-			if (field.getSerializationClass() != null){
-				Serialization serialization = ReflectionUtils.newInstance(field.getSerializationClass(),conf);
+			if (field.getObjectSerialization() != null){
+				Serialization serialization = ReflectionUtils.newInstance(field.getObjectSerialization(),conf);
 				if (serialization instanceof FieldConfigurable){
 					((FieldConfigurable)serialization).setFieldProperties(field.getProps());
 				}
@@ -215,8 +215,8 @@ public class SerializationInfo {
 		Deserializer[] result = new Deserializer[schema.getFields().size()];
 		for (int i= 0 ; i < result.length; i++){
 			Field field = schema.getField(i);
-			if (field.getSerializationClass() != null){
-				Serialization serialization = ReflectionUtils.newInstance(field.getSerializationClass(),conf);
+			if (field.getObjectSerialization() != null){
+				Serialization serialization = ReflectionUtils.newInstance(field.getObjectSerialization(),conf);
 				if(serialization instanceof FieldConfigurable){
 					((FieldConfigurable)serialization).setFieldProperties(field.getProps());
 				}

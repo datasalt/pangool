@@ -99,7 +99,7 @@ public class TupleMRConfigBuilder {
 			} else {
 				if(field.getType() != currentField.getType() ||
 					field.getObjectClass() != currentField.getObjectClass() ||
-					field.getSerializationClass() != currentField.getSerializationClass()){
+					field.getObjectSerialization() != currentField.getObjectSerialization()){
 					return false;
 				}
 			}

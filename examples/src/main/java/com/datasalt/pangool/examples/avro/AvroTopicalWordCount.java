@@ -127,7 +127,7 @@ public class AvroTopicalWordCount extends BaseExampleJob {
 	static Schema getSchema() {
 		org.apache.avro.Schema avroSchema = getAvroSchema();
 		Field avroField = Field.createObject("my_avro",Object.class);
-		avroField.setSerialization(AvroFieldSerialization.class);
+		avroField.setObjectSerialization(AvroFieldSerialization.class);
 		avroField.addProp("avro.schema",avroSchema.toString());
 		return new Schema("schema",Arrays.asList(avroField));
 	}

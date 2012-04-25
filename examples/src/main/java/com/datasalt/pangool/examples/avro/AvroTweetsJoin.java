@@ -129,7 +129,7 @@ public class AvroTweetsJoin extends BaseExampleJob {
 	private static Schema getPangoolTweetSchema() {
 		Field tweetIdField = Field.create("tweet_id",Schema.Field.Type.INT);
 		Field tweetHashTags = Field.createObject("tweet_hashtags",Array.class);
-		tweetHashTags.setSerialization(AvroFieldSerialization.class);
+		tweetHashTags.setObjectSerialization(AvroFieldSerialization.class);
 		tweetHashTags.addProp("avro.schema",getAvroStringArraySchema().toString());
 		return new Schema("tweet",Arrays.asList(tweetIdField,tweetHashTags));
 	}

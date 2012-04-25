@@ -227,7 +227,7 @@ public class TestConfigBuilder extends BaseTest {
 		b.addIntermediateSchema(new Schema("schema1", fields));
 		fields.clear();
 		Field avroField = Field.createObject("my_object",Object.class);
-		avroField.setSerialization(AvroFieldSerialization.class);
+		avroField.setObjectSerialization(AvroFieldSerialization.class);
 		fields.add(avroField);
 		b.addIntermediateSchema(new Schema("schema2",fields));
 		b.setGroupByFields("my_object");

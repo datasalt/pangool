@@ -67,7 +67,7 @@ public class AvroUtils {
 							Class<? extends Serialization> ser=
 		             (serializationString == null) ? null : 
 			          	(Class<? extends Serialization>)Class.forName(serializationString);
-							pangoolField.setSerialization(ser);
+							pangoolField.setObjectSerialization(ser);
 					}
 					
 					} catch(ClassNotFoundException e) {
@@ -150,8 +150,8 @@ public class AvroUtils {
 			if (pangoolField.getObjectClass() != null){
 				avroField.addProp(Field.METADATA_OBJECT_CLASS, pangoolField.getObjectClass().getName());
 			}
-			if (pangoolField.getSerializationClass() != null){
-				avroField.addProp(Field.METADATA_OBJECT_SERIALIZATION,pangoolField.getSerializationClass().getName());
+			if (pangoolField.getObjectSerialization() != null){
+				avroField.addProp(Field.METADATA_OBJECT_SERIALIZATION,pangoolField.getObjectSerialization().getName());
 			}
 			for (Map.Entry<String,String> property : pangoolField.getProps().entrySet()){
 				avroField.addProp(property.getKey(),property.getValue());

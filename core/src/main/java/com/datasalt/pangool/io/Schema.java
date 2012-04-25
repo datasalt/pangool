@@ -72,9 +72,9 @@ public class Schema implements Serializable {
 	 * methods. A field object is <b>immutable</b>.
 	 */
 	public static class Field implements Serializable{
-		
 		/**
-		 *	Interface that must be implemented to custom field serialization 
+		 *	Interface that allows to pass field's metadata to the object that implements it.
+		 *  Used to permit stateful custom serialization for fields. 
 		 */
 		public static interface FieldConfigurable {
 		  /**
@@ -182,7 +182,7 @@ public class Schema implements Serializable {
 			switch(field.getType()){
 			case OBJECT:
 					result = Field.createObject(newName,field.getObjectClass());
-					result.setSerialization(field.getSerializationClass());
+					result.setObjectSerialization(field.getObjectSerialization());
 				 break;
 			case ENUM:
 				result =  Field.createEnum(newName,field.getObjectClass());
@@ -253,11 +253,16 @@ public class Schema implements Serializable {
 			return objectClass;
 		}
 		
-		public Class<? extends Serialization> getSerializationClass(){
+		public Class<? extends Serialization> getObjectSerialization(){
 			return serializationClass;
 		}
 		
-		public void setSerialization(Class<? extends Serialization> serialization){
+		/**
+		 * Sets custom serialization for fields with type OBJECT.
+		 * If the Serialization class also implements {@link FieldConfigurable} then 
+		 * the field's metadata (properties) is passed to the instance allowing stateful serialization. 
+		 */
+		public void setObjectSerialization(Class<? extends Serialization> serialization){
 			if (type != Type.OBJECT){
 				throw new PangoolRuntimeException("Can't set custom serialization for type " + type);
 			}
@@ -325,7 +330,7 @@ public class Schema implements Serializable {
 					field = Field.createObject(name,Class.forName(clazz));
 					if (node.get("serialization") != null){
 						Class ser = Class.forName(node.get("serialization").getTextValue());
-						field.setSerialization(ser);
+						field.setObjectSerialization(ser);
 					}
 					break;
 				}
