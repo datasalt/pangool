@@ -22,7 +22,7 @@
     <parent>
         <groupId>com.datasalt.pangool</groupId>
         <artifactId>pangool-top-level</artifactId>
-        <version>0.42.1-SNAPSHOT</version>
+        <version>0.42.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>pangool-examples</artifactId>
