@@ -76,10 +76,10 @@ smaller numbers than for bigger ones. The smallest numbers can fit in just one b
 
 <p><br>
 For non-primitive types you can use <code>Type.OBJECT</code> and set arbitrary objects.
-There are two ways of defining OBJECT fields: 
+There are two ways of serializing OBJECT fields: 
 <ul>
- <li><b>Specifying the object's class:</b> This class will be used by Hadoop's serialization 
- factory to choose the right serializers and deserializers.The field is defined this way:</li>
+ <li><b>Using Hadoop's serialization:</b> This class will be used by Hadoop's serialization 
+ factory to choose the right serializers and deserializers defined in <code>io.serialization</code>:</li>
 <p>
  <pre class="prettyprint" id="java">
   List<Field> fields = new ArrayList<Field>(); 
@@ -87,13 +87,15 @@ There are two ways of defining OBJECT fields:
   Schema schema1 = new Schema("schema1", fields);
  </pre>
  </p>
- <li><b>Specifying custom serialization:</b> Pangool's will use custom serializers and deserializers
- specified in the field's definition.The field is defined this way:</li>
+ <li><b>Setting custom serialization:</b> Pangool's will use the serialization factory
+ specified in the field's properties:</li>
  <p>
  <pre class="prettyprint" id="java">
   List<Field> fields = new ArrayList<Field>(); 
-  Field field = Field.createObject("my_avro_field",AvroFieldSerializer.class,AvroFieldDeserializer.class));
+  Field field = Field.createObject("my_avro_field",Record.class);
+  field.setSerialization(AvroFieldSerialization.class);
   field.addProps("avro.schema",myAvroSchema.toString());
+  field.addProps("avro.reflection",false);
   Schema schema1 = new Schema("schema1", fields);
  </pre>
  </p> 

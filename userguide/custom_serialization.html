@@ -9,17 +9,62 @@ title: Pangool - User guide - Custom Comparators
 <h1>Custom Serialization</h1>
 
 <p>
-You can use your own custom stateful serialization for OBJECT fields implementing FieldSerialization. 
-As an example, you can take a look to <a href="https://github.com/datasalt/pangool/blob/master/core/src/main/java/com/datasalt/pangool/tuplemr/serialization/AvroFieldSerialization.java">AvroFieldSerialization</a>
+<br>
+You can use your own custom stateful serialization for <b>OBJECT</b> fields creating
+a serialization factory that implements <a href="http://hadoop.apache.org/common/docs/r0.20.0/api/org/apache/hadoop/io/serializer/Serialization.html">Serialization</a>.<br> 
+As an example, you can take a look to 
+<a href="https://github.com/datasalt/pangool/blob/master/core/src/main/java/com/datasalt/pangool/tuplemr/serialization/AvroFieldSerialization.java">AvroFieldSerialization</a>.
+<br>
+
+Implementing <a href="../apidocs/com/datasalt/pangool/io/Schema.Field.FieldConfigurable.html">FieldConfigurable</a> your serialization factory will receive 
+the metadata associated with the <b>OBJECT</b> field to be serialized. <br>
+
+<br>
+Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the properties <code>avro.schema</code> and <code>avro.reflection</code>  
+<br>
+</p><br>
+<pre class="prettyprint" id="java">
+  public class AvroFieldSerialization&lt;T&gt; implements Serialization&lt;T&gt;,FieldConfigurable{
+    private Schema schema;
+    private boolean isReflect;
+    
+    public AvroFieldSerialization(){
+    }
+  
+    @Override
+    public Deserializer&lt;T&gt; getDeserializer(Class&lt;T&gt; clazz) {
+      return new AvroFieldDeserializer&lt;T&gt;(schema, isReflect);
+    }
+  
+    @Override
+    public Serializer&lt;T&gt; getSerializer(Class&lt;T&gt; clazz) {
+      return new AvroFieldSerializer<T>(schema, isReflect);
+    }
+  
+    @Override
+    public void setFieldProperties(Map&lt;String,String&gt; properties) {
+      schema = Schema.parse(properties.get("avro.schema"));
+      String r = properties.get("avro.reflection");
+      isReflect = (r != null) && Boolean.parseBoolean(r);
+    }
+ </pre>
+
+<p>
+The custom serialized object is added to the schema this way:
+</p>
 
 
 <pre class="prettyprint" id="java">
-  static org.apache.avro.Schema getAvroSchema(){
-    return org.apache.avro.Schema.createArray(org.apache.avro.Schema.create(Type.INT));
-  }
+  List<Field> fields = new ArrayList<Field>(); 
+  Field field = Field.createObject("my_avro_field",Record.class);
+  field.setSerialization(AvroFieldSerialization.class);
+  field.addProps("avro.schema",myAvroSchema.toString());
+  field.addProps("avro.reflection",false);
+  Schema schema1 = new Schema("schema1", fields);
   
-  List<Field> fields = new ArrayList<Field>();
-  
+  Tuple tuple = new Tuple(schema1);
+  Record avroRecord = new Record(myAvroSchema);
+  tuple.set("my_avro",avroRecord);
 </pre>
 
 
