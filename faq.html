@@ -47,8 +47,7 @@ Pangool is not a serialization library.
 Pangool uses Tuples as an extension to the (Key, value) 
 model imposed by the traditional MapReduce model - <i>see <a href='http://www.datasalt.com/2012/02/tuple-mapreduce-beyond-the-classic-mapreduce/'>our post about Tuple MapReduce</a> for a reference on this</i>. 
 Although Pangool implements mappings for basic types, 
-Tuple fields are serialization-agnostic. They may contain arbitrary data types - as long as they are 
-serializable by Hadoop’s serialization API.
+Tuple fields are serialization-agnostic. They may contain arbitrary data types that are serialized by Hadoop’s or custom serialization.
 </p>
 
 <p>
