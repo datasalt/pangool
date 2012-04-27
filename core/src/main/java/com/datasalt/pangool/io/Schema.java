@@ -73,8 +73,8 @@ public class Schema implements Serializable {
 	 */
 	public static class Field implements Serializable{
 		/**
-		 *	Interface that allows to pass field's metadata to the object that implements it.
-		 *  Used to permit stateful custom serialization for fields. 
+		 *	Interface that allows to receive {@link ITuple} field's metadata.
+		 *  Used to allow stateful custom serialization for fields. 
 		 */
 		public static interface FieldConfigurable {
 		  /**
