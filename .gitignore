@@ -7,10 +7,12 @@
 /core/.classpath
 /core/.project
 /core/.settings
+/core/.checkstyle
 /examples/target
 /examples/.classpath
 /examples/.project
 /examples/.settings
+/examples/.checkstyle
 pangool-flow/.classpath
 pangool-flow/.project
 pangool-flow/.settings
