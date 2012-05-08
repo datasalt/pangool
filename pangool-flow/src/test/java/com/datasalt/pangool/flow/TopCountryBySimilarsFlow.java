@@ -77,7 +77,7 @@ public class TopCountryBySimilarsFlow extends LinearFlow {
 		});
 
 		add(new FlowMR("attachCountry", new Inputs("topSimilarities", "countryInfo"), Params.NONE, new NamedOutputs(
-		    "unresolved"), new GroupBy("second")) {
+		    "unresolved"), new GroupBy("second"),new OrderBy().add("second",Order.ASC).addSchemaOrder(Order.DESC)) {
 
 			@Override
 			public void configure(Map<String, Object> parameters) throws TupleMRException {
@@ -98,9 +98,9 @@ public class TopCountryBySimilarsFlow extends LinearFlow {
 							if(tuple.getSchema().getName().equals("countryInfo")) {
 								country = tuple.get("country").toString();
 							} else if(country != null) {
-								Utils.shallowCopy(tuple, this.tuple, similaritySchema);
-								this.tuple.set("country", country);
-								collector.write(this.tuple, NullWritable.get());
+								Utils.shallowCopy(tuple, getOutputTuple(), similaritySchema);
+								getOutputTuple().set("country", country);
+								collector.write(getOutputTuple(), NullWritable.get());
 							} else { // write users that don't have country
 								unresolvedId.set(tuple.get("second").toString());
 								collector.getNamedOutput("unresolved").write(unresolvedId, NullWritable.get());

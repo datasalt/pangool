@@ -15,6 +15,7 @@
  */
 package com.datasalt.pangool.flow.mapred;
 
+import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.tuplemr.TupleReducer;
@@ -26,9 +27,19 @@ import com.datasalt.pangool.tuplemr.TupleReducer;
 @SuppressWarnings("serial")
 public abstract class SingleSchemaReducer<T, K> extends TupleReducer<T, K> {
 
-	protected Tuple tuple;
+	private final Tuple outTuple;
+	private final Schema outputSchema;
 	
-	public SingleSchemaReducer(Schema schema) {
-		this.tuple = new Tuple(schema);
+	public SingleSchemaReducer(Schema outputSchema) {
+		this.outputSchema = outputSchema;
+		this.outTuple = new Tuple(outputSchema);
+	}
+	
+	protected ITuple getOutputTuple(){
+		return outTuple;
+	}
+	
+	protected Schema getOutputSchema(){
+		return outputSchema;
 	}
 }

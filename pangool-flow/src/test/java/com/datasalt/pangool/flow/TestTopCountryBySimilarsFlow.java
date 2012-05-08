@@ -50,9 +50,9 @@ public class TestTopCountryBySimilarsFlow extends AbstractHadoopTestLibrary {
 				resultMap.put(tuple.get("first").toString(), tuple.get("country").toString());
 			}
 		});
-
-		assertEquals("ES", resultMap.get("Jon"));
 		assertEquals("UK", resultMap.get("Pere"));
+		assertEquals("ES", resultMap.get("Jon"));
+		
 
 		trash(OUT, "topSimilarities.output", "attachCountry.output");
 	}

@@ -1,0 +1,6 @@
+Greg	7.8
+Peter	4.5
+Ivan	8.0
+Pere	3.3
+Eric	7.5
+Silvia	7.6

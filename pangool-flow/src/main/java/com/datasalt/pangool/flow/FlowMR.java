@@ -1,6 +1,7 @@
 package com.datasalt.pangool.flow;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.hadoop.fs.Path;
@@ -29,9 +30,9 @@ public abstract class FlowMR extends FlowJob {
 	transient GroupBy groupBy;
 	transient OrderBy orderBy = null;
 	
-	transient Map<String, RichInput> bindedInputs = new HashMap<String, RichInput>();
+	transient LinkedHashMap<String, RichInput> bindedInputs = new LinkedHashMap<String, RichInput>();
 	transient RichOutput jobOutput;
-	transient Map<String, RichOutput> bindedOutputs = new HashMap<String, RichOutput>();
+	transient LinkedHashMap<String, RichOutput> bindedOutputs = new LinkedHashMap<String, RichOutput>();
 	
 	public FlowMR(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy) {
 		this(name, inputs, parameters, namedOutputs, groupBy, null, null);
