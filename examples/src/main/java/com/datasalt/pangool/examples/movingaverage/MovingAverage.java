@@ -148,7 +148,7 @@ public class MovingAverage extends BaseExampleJob {
 		String output = args[1];
 		Integer nDaysAverage = Integer.parseInt(args[2]);
 		
-		deleteOutput(output);
+		delete(output);
 		
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();

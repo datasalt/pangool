@@ -160,7 +160,7 @@ public class Avro2Job extends BaseExampleJob {
 		Path tweetsPath = new Path(args[0]);
 		Path retweetersPath = new Path(args[1]);
 		Path outputPath = new Path(args[2]);
-		deleteOutput(outputPath.toString());
+		delete(outputPath.toString());
 		
 		
 

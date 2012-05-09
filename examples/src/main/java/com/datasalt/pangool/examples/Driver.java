@@ -17,6 +17,7 @@ package com.datasalt.pangool.examples;
 
 import org.apache.hadoop.util.ProgramDriver;
 
+import com.datasalt.pangool.examples.gameoflife.GameOfLifeJob;
 import com.datasalt.pangool.examples.movingaverage.MovingAverage;
 import com.datasalt.pangool.examples.movingaverage.MovingAverageGenerateData;
 import com.datasalt.pangool.examples.naivebayes.NaiveBayesClassifier;
@@ -62,6 +63,8 @@ public class Driver extends ProgramDriver {
 		// 
 		addClass("naive_bayes_generate", NaiveBayesGenerate.class, "Naive Bayes model generator example.");
 		addClass("naive_bayes_classifier", NaiveBayesClassifier.class, "Naive Bayes simple slassifier with add-one smoothing example.");
+		// 
+		addClass("game_of_life", GameOfLifeJob.class, "Game Of Life M/R Job.");
 	}
 
 	public static void main(String[] args) throws Throwable {

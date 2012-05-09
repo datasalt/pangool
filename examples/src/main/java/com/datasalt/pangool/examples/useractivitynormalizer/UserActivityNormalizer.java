@@ -183,7 +183,7 @@ public class UserActivityNormalizer extends BaseExampleJob {
 		String input = args[0];
 		String output = args[1];
 		
-		deleteOutput(output);
+		delete(output);
 		
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();

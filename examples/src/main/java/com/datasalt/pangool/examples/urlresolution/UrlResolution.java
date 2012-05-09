@@ -135,7 +135,7 @@ public class UrlResolution extends BaseExampleJob {
 		String input2 = args[1];
 		String output = args[2];
 	
-		deleteOutput(output);
+		delete(output);
 		
 		TupleMRBuilder mr = new TupleMRBuilder(conf,"Pangool Url Resolution");
 		mr.addIntermediateSchema(getURLMapSchema());

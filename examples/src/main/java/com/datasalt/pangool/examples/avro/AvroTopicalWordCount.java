@@ -214,7 +214,7 @@ public class AvroTopicalWordCount extends BaseExampleJob {
 			return -1;
 		}
 
-		deleteOutput(args[1]);
+		delete(args[1]);
 
 		TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Topical Word Count");
 		mr.addIntermediateSchema(getSchema());

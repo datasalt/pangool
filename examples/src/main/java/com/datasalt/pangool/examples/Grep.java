@@ -66,7 +66,7 @@ public class Grep extends BaseExampleJob {
 		String input = args[1];
 		String output = args[2];
 		
-		deleteOutput(output);
+		delete(output);
 		
 		MapOnlyJobBuilder b = new MapOnlyJobBuilder(conf);
 		b.setMapper(new GrepHandler(regex));

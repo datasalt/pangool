@@ -57,7 +57,7 @@ public class NaiveBayesGenerate extends BaseExampleJob implements Serializable {
 		}
 		String inputExamples = args[0];
 		String output = args[1];
-		deleteOutput(output);
+		delete(output);
 
 		TupleMRBuilder job = new TupleMRBuilder(conf, "Naive Bayes Model Generator");
 		job.addIntermediateSchema(INTERMEDIATE_SCHEMA);

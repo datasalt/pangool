@@ -112,7 +112,7 @@ public class SecondarySort extends BaseExampleJob {
 		String input = args[0];
 		String output = args[1];
 
-		deleteOutput(output);
+		delete(output);
 
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("intField", Type.INT));

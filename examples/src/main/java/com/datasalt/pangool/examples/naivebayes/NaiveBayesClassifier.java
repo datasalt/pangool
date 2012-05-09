@@ -105,7 +105,7 @@ public class NaiveBayesClassifier extends BaseExampleJob implements Serializable
 		String modelFolder = args[0];
 		String input = args[1];
 		String output = args[2];
-		deleteOutput(output);
+		delete(output);
 		
 		init(conf, new Path(modelFolder));
 		

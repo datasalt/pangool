@@ -96,7 +96,7 @@ public class TopicFingerprint extends BaseExampleJob {
 			return -1;
 		}
 
-		deleteOutput(args[1]);
+		delete(args[1]);
 		// Parse the size of the Top
 		Integer n = Integer.parseInt(args[2]);
 

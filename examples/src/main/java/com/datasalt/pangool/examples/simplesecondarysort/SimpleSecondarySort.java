@@ -98,7 +98,7 @@ public class SimpleSecondarySort extends BaseExampleJob {
 		String input = args[0];
 		String output = args[1];
 		
-		deleteOutput(output);
+		delete(output);
 		
 		TupleMRBuilder builder = new TupleMRBuilder(conf);
 		builder.addIntermediateSchema(getSchema());

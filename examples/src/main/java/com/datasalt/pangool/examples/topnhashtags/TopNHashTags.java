@@ -154,7 +154,7 @@ public class TopNHashTags extends BaseExampleJob {
 		String output = args[1];
 		int n = Integer.parseInt(args[2]);
 		
-		deleteOutput(output);
+		delete(output);
 		
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
