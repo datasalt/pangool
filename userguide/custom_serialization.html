@@ -20,7 +20,7 @@ Implementing <a href="../apidocs/com/datasalt/pangool/io/Schema.Field.FieldConfi
 the metadata associated with the <b>OBJECT</b> field to be serialized. <br>
 
 <br>
-Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the properties <code>avro.schema</code> and <code>avro.reflection</code>  
+Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the field's properties <code>avro.schema</code> and <code>avro.reflection</code>  
 <br>
 </p><br>
 <pre class="prettyprint" id="java">
@@ -48,23 +48,63 @@ Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the propert
       isReflect = (r != null) && Boolean.parseBoolean(r);
     }
  </pre>
-
+ 
+<h2> Built-in serialization in Pangool</h2>
 <p>
-The custom serialized object is added to the schema this way:
+ There exist 4 types of built-in serializations supported in Pangool for OBJECT fields. 
+ However, any other custom serialization can be added, as explained above. Let's show 
+ how to define fields with them: 
 </p>
+ 
 
+<h3>Writables</h3>
+<br>
 
 <pre class="prettyprint" id="java">
-  List<Field> fields = new ArrayList<Field>(); 
-  Field field = Field.createObject("my_avro_field",Record.class);
-  field.setSerialization(AvroFieldSerialization.class);
-  field.addProps("avro.schema",myAvroSchema.toString());
-  field.addProps("avro.reflection",false);
-  Schema schema1 = new Schema("schema1", fields);
+  List&lt;Field&gt; fields = new ArrayList&lt;Field&gt;(); 
+  fields.add(Field.createObject("my_writable",TextLongWritable.class);
+  Schema schema = new Schema("schema", fields);
+  
+  Tuple tuple = new Tuple(schema);
+  tuple.set("my_writable",new TextLongWritable("eric",89L));
+</pre>
+
+
+<h3>Avro</h3>
+<br>
+
+<pre class="prettyprint" id="java">
+  List&lt;Field&gt; fields = new ArrayList&lt;Field&gt;(); 
+  fields.add(Fields.createAvroField("my_avro_field",myAvroSchema));
+  Schema schema = new Schema("schema", fields);
+  
+  Tuple tuple = new Tuple(schema);
+  Record avroRecord = new Record(myAvroSchema); //Avro Record
+  tuple.set("my_avro_field",avroRecord);
+</pre>
+
+
+<h3>Thrift</h3>
+<br>
+<pre class="prettyprint" id="java">
+  List&lt;Field&gt; fields = new ArrayList&lt;Field&gt;(); 
+  fields.add(Field.createObject("my_thrift_field",MyThrifObject.class));
+  Schema schema = new Schema("schema", fields);
   
   Tuple tuple = new Tuple(schema1);
-  Record avroRecord = new Record(myAvroSchema);
-  tuple.set("my_avro",avroRecord);
+  tuple.set("my_thrift_field",new MyThriftObject());
+</pre>
+
+
+<h3>Protostuff</h3>
+<br>
+<pre class="prettyprint" id="java">
+  List&lt;Field&gt; fields = new ArrayList&lt;Field&gt;(); 
+  fields.add(Field.createObject("my_protostuff_field",MyProtoStuffObject.class));
+  Schema schema = new Schema("schema", fields);
+  
+  Tuple tuple = new Tuple(schema);
+  tuple.set("my_protostuff_field",new MyProtostuffObject());
 </pre>
 
 

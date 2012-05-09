@@ -78,7 +78,7 @@ smaller numbers than for bigger ones. The smallest numbers can fit in just one b
 For non-primitive types you can use <code>Type.OBJECT</code> and set arbitrary objects.
 There are two ways of serializing OBJECT fields: 
 <ul>
- <li><b>Using Hadoop's serialization:</b> This class will be used by Hadoop's serialization 
+ <li><b>Using Hadoop's serialization:</b> The associated object's class will be used by Hadoop's serialization 
  factory to choose the right serializers and deserializers defined in <code>io.serialization</code>:</li>
 <p>
  <pre class="prettyprint" id="java">
