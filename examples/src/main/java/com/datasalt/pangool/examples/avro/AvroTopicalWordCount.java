@@ -38,6 +38,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import com.datasalt.pangool.PangoolRuntimeException;
 import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.examples.topicalwordcount.TopicalWordCount;
+import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
@@ -125,10 +126,7 @@ public class AvroTopicalWordCount extends BaseExampleJob {
 	}
 
 	static Schema getSchema() {
-		org.apache.avro.Schema avroSchema = getAvroSchema();
-		Field avroField = Field.createObject("my_avro",Object.class);
-		avroField.setObjectSerialization(AvroFieldSerialization.class);
-		avroField.addProp("avro.schema",avroSchema.toString());
+		Field avroField = Fields.createAvroField("my_avro",getAvroSchema(),false);
 		return new Schema("schema",Arrays.asList(avroField));
 	}
 	

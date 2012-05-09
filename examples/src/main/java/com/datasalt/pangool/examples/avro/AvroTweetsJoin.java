@@ -33,6 +33,7 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.ToolRunner;
 
 import com.datasalt.pangool.examples.BaseExampleJob;
+import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
@@ -128,9 +129,8 @@ public class AvroTweetsJoin extends BaseExampleJob {
 
 	private static Schema getPangoolTweetSchema() {
 		Field tweetIdField = Field.create("tweet_id",Schema.Field.Type.INT);
-		Field tweetHashTags = Field.createObject("tweet_hashtags",Array.class);
-		tweetHashTags.setObjectSerialization(AvroFieldSerialization.class);
-		tweetHashTags.addProp("avro.schema",getAvroStringArraySchema().toString());
+		Field tweetHashTags = Fields.createAvroField("tweet_hashtags",
+				getAvroStringArraySchema(),false);
 		return new Schema("tweet",Arrays.asList(tweetIdField,tweetHashTags));
 	}
 	

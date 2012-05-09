@@ -71,7 +71,6 @@ public class TestStandardDeviationFlow extends AbstractHadoopTestLibrary {
 		
 		reader.close();
 		
-
 		trash(OUT, "job1.output","job2.output","job3.output");
 	}
 }
