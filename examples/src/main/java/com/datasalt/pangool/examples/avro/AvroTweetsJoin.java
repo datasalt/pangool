@@ -47,7 +47,6 @@ import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.avro.AvroInputFormat;
 import com.datasalt.pangool.tuplemr.avro.AvroOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
-import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization;
 
 /**
  * This example illustrates two things:
@@ -186,7 +185,7 @@ public class AvroTweetsJoin extends BaseExampleJob {
 		Path tweetsPath = new Path(args[0]);
 		Path retweetsPath = new Path(args[1]);
 		Path outputPath = new Path(args[2]);
-		deleteOutput(outputPath.toString());
+		delete(outputPath.toString());
 		
 		TupleMRBuilder mr = new TupleMRBuilder(conf, "AvroTweetsJoin");
 		mr.addIntermediateSchema(getPangoolTweetSchema());
