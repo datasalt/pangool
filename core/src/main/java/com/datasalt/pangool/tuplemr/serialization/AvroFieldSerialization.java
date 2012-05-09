@@ -32,11 +32,12 @@ import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.hadoop.io.serializer.Deserializer;
+import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.Serializer;
 
-import com.datasalt.pangool.io.Schema.Field.FieldSerialization;
+import com.datasalt.pangool.io.Schema.Field.FieldConfigurable;
 
-public class AvroFieldSerialization<T> extends FieldSerialization<T>{
+public class AvroFieldSerialization<T> implements Serialization<T>,FieldConfigurable{
 	
 	private Schema schema;
 	private boolean isReflect;
@@ -56,7 +57,7 @@ public class AvroFieldSerialization<T> extends FieldSerialization<T>{
   }
 
 	@Override
-  public void setFieldProps(Map<String,String> properties) {
+  public void setFieldProperties(Map<String,String> properties) {
 		schema = Schema.parse(properties.get("avro.schema"));
 		String r = properties.get("avro.reflection");
 		isReflect = (r != null) && Boolean.parseBoolean(r);
@@ -124,5 +125,10 @@ public class AvroFieldSerialization<T> extends FieldSerialization<T>{
 			this.decoder = FACTORY.directBinaryDecoder(in, decoder);
 		}
 	}
+
+	@Override
+  public boolean accept(Class<?> c) {
+	  return true;
+  }
 	
 }

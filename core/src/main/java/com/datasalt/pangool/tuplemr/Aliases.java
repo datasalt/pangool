@@ -16,6 +16,7 @@
 package com.datasalt.pangool.tuplemr;
 
 import java.io.IOException;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -49,6 +50,7 @@ public class Aliases {
 		} else {
 			throw new IllegalArgumentException("Alias '" + alias + "' already exists");
 		}
+
 		return this;
 	}
 	

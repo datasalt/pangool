@@ -1,11 +1,19 @@
 Pangool Change Log
 ====================
 
-Pangool 0.42.0 (23/04/2012)
+
+Pangool 0.42.1 (09/05/2012)
 
  NEW FEATURES
 
- - 23/04/2012 - Avro{Input,Output}Format implemented in new hadoop's API (mapreduce.lib.{input,output})
+ - 09/05/2012 - Minor : added utility in Fields to create Avro fields easily.
+
+Pangool 0.42.0 (24/04/2012)
+
+ NEW FEATURES
+
+ - 24/04/2012 - Avro{Input,Output}Format Pangool's version using Serializable instances, not statically configured via Configuration
+ - 23/04/2012 - Avro{Input,Output}Format implemented in new hadoop's API (mapreduce.lib.{input,output}). Should be in avro-mapred artifact.
 
  IMPROVEMENTS
 

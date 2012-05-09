@@ -16,36 +16,63 @@
  * limitations under the License.
  */
 
-package org.apache.avro.mapreduce.lib.input;
+package com.datasalt.pangool.tuplemr.avro;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-
+import org.apache.avro.Schema;
 import org.apache.avro.mapred.AvroWrapper;
 import org.apache.avro.mapreduce.lib.output.AvroOutputFormat;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
 
-/** An {@link org.apache.hadoop.mapred.InputFormat} for Avro data files */
+/** 
+ * This is a Pangool's implementation of {@link org.apache.avro.mapred.AvroInputFormat}.
+ * Instead of being configured via {@link Configuration}, its state is defined via 
+ * instantiation using Java-serialization.    
+ */
+@SuppressWarnings("serial")
 public class AvroInputFormat<T>
-  extends FileInputFormat<AvroWrapper<T>, NullWritable> {
+  extends FileInputFormat<AvroWrapper<T>, NullWritable> implements Serializable{
 
+	private transient Schema schema;
+	private String schemaStr;
+	private boolean isReflect;
+	
+	public AvroInputFormat(Schema schema){
+		this.schema = schema;
+		this.schemaStr = schema.toString();
+	}
+	
+	public AvroInputFormat(Schema schema,boolean isReflect){
+		this(schema);
+		this.isReflect = isReflect;
+	}
+	
+	private Schema getSchema(){
+		if (schema == null){
+			schema = new Schema.Parser().parse(schemaStr);
+		}
+		return schema;
+	}
+	
 	@Override
 	public RecordReader<AvroWrapper<T>, NullWritable> createRecordReader(
 			InputSplit inputSplit, TaskAttemptContext context) throws IOException,
 			InterruptedException {
 		context.setStatus(inputSplit.toString());
-		return new AvroRecordReader<T>(context.getConfiguration(), (FileSplit)inputSplit);
+		return new AvroRecordReader<T>(getSchema(),isReflect,
+				context.getConfiguration(), (FileSplit)inputSplit);
 	}
 
 	@Override

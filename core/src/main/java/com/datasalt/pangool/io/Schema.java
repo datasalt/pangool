@@ -30,10 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.avro.AvroRuntimeException;
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.io.serializer.Serialization;
-import org.apache.hadoop.io.serializer.Serializer;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
@@ -75,21 +72,17 @@ public class Schema implements Serializable {
 	 * methods. A field object is <b>immutable</b>.
 	 */
 	public static class Field implements Serializable{
-		
 		/**
-		 *	Interface that must be implemented to custom field serialization 
+		 *	Interface that allows to receive {@link ITuple} field's metadata.
+		 *  Used to allow stateful custom serialization for fields. 
 		 */
-		public static abstract class FieldSerialization<T> implements Serialization<T> {
-			public final boolean accept(Class clazz){
-				throw new NotImplementedException();
-			}
-			
+		public static interface FieldConfigurable {
 		  /**
 		   * Sets the properties for that field
 			 *
 		   * @param props Properties of that field
 		   */
-			public abstract void setFieldProps(Map<String,String> props);
+			public void setFieldProperties(Map<String,String> props);
 		}
 
 		public static enum Type {
@@ -144,7 +137,7 @@ public class Schema implements Serializable {
 		
 		//special properties in props 
 		private Class<?> objectClass; //lazy loaded
-		private Class<? extends FieldSerialization> serializationClass;
+		private Class<? extends Serialization> serializationClass;
 		
 		public void addProp(String key,String value){
 			props.add(key, value);
@@ -189,7 +182,7 @@ public class Schema implements Serializable {
 			switch(field.getType()){
 			case OBJECT:
 					result = Field.createObject(newName,field.getObjectClass());
-					result.setSerialization(field.getSerializationClass());
+					result.setObjectSerialization(field.getObjectSerialization());
 				 break;
 			case ENUM:
 				result =  Field.createEnum(newName,field.getObjectClass());
@@ -260,11 +253,16 @@ public class Schema implements Serializable {
 			return objectClass;
 		}
 		
-		public Class<? extends FieldSerialization> getSerializationClass(){
+		public Class<? extends Serialization> getObjectSerialization(){
 			return serializationClass;
 		}
 		
-		public void setSerialization(Class<? extends FieldSerialization> serialization){
+		/**
+		 * Sets custom serialization for fields with type OBJECT.
+		 * If the Serialization class also implements {@link FieldConfigurable} then 
+		 * the field's metadata (properties) is passed to the instance allowing stateful serialization. 
+		 */
+		public void setObjectSerialization(Class<? extends Serialization> serialization){
 			if (type != Type.OBJECT){
 				throw new PangoolRuntimeException("Can't set custom serialization for type " + type);
 			}
@@ -332,7 +330,7 @@ public class Schema implements Serializable {
 					field = Field.createObject(name,Class.forName(clazz));
 					if (node.get("serialization") != null){
 						Class ser = Class.forName(node.get("serialization").getTextValue());
-						field.setSerialization(ser);
+						field.setObjectSerialization(ser);
 					}
 					break;
 				}

@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization;
 
 public class Fields {
 
@@ -69,5 +70,31 @@ public class Fields {
 			}
 		}
 		return fields;
+	}
+	
+	/**
+	 * @see {@link #createAvroField(String, org.apache.avro.Schema, boolean)}
+	 */
+	public static Field createAvroField(String name,org.apache.avro.Schema avroSchema){
+		return createAvroField(name,avroSchema,false);
+	}
+	
+	/**
+	 * Creates a field containing an Avro object that will be serialized using 
+	 * {@link AvroFieldSerialization}
+	 * 
+	 * @param name Field's name
+	 * @param avroSchema The schema of the field
+	 * @param isReflect If the object to be serialized needs reflection to be serialized
+	 * or deserialized
+	 * @return
+	 */
+	public static Field createAvroField(String name,
+			 org.apache.avro.Schema avroSchema,	boolean isReflect){
+		Field field = Field.createObject(name,Object.class);
+		field.setObjectSerialization(AvroFieldSerialization.class);
+		field.addProp("avro.schema",avroSchema.toString());
+		field.addProp("avro.reflection",Boolean.toString(isReflect));
+		return field;
 	}
 }

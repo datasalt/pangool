@@ -70,7 +70,7 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 				("my_string",org.apache.avro.Schema.create(org.apache.avro.Schema.Type.STRING),null,null));	
 		AVRO_SCHEMA.setFields(avroFields);
 		Field avroField =Field.createObject("my_avro",Object.class);
-		avroField.setSerialization(AvroFieldSerialization.class);
+		avroField.setObjectSerialization(AvroFieldSerialization.class);
 		avroField.addProp("avro.schema",AVRO_SCHEMA.toString());
 		fields.add(avroField);
 		SCHEMA = new Schema("schema",fields);
@@ -154,7 +154,7 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 			A a = (A) instance;
 			a.setId(isRandom ? random.nextInt() + "" : "");
 			a.setUrl(isRandom ? random.nextLong() + "" : "");
-		} else if (field.getSerializationClass() == AvroFieldSerialization.class){
+		} else if (field.getObjectSerialization() == AvroFieldSerialization.class){
 			if (instance == null || !(instance instanceof Record)){
 				instance = new Record(AVRO_SCHEMA);
 			}

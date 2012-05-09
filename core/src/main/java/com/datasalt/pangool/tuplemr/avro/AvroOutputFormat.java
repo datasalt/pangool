@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.avro.mapreduce.lib.output;
+package com.datasalt.pangool.tuplemr.avro;
 
 import static org.apache.avro.file.DataFileConstants.DEFAULT_SYNC_INTERVAL;
 import static org.apache.avro.file.DataFileConstants.DEFLATE_CODEC;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Map;
@@ -41,14 +42,15 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 /**
- * An {@link org.apache.hadoop.mapred.OutputFormat} for Avro data files.
- * <p/>
- * You can specify various options using Job Configuration properties.
- * Look at the fields in {@link AvroJob} as well as this class to get
- * an overview of the supported options.
+ * This is the Pangool's version of {@link org.apache.avro.mapred.AvroOutputFormat}.
+ * It implements the new Hadoop's api in package {@link org.apache.hadoop.mapreduce.lib.output}
+ * Any {@link AvroOutputFormat} instance is stateful and is not configured 
+ * via {@link Configuration}. Instead, it uses Java-serialization to store its state in 
+ * a Distributed Cache file.  
  */
+@SuppressWarnings("serial")
 public class AvroOutputFormat <T>
-  extends FileOutputFormat<AvroWrapper<T>, NullWritable> {
+  extends FileOutputFormat<AvroWrapper<T>, NullWritable> implements Serializable{
 
   /** The file name extension for avro data files. */
   public final static String EXT = ".avro";
@@ -74,13 +76,11 @@ public class AvroOutputFormat <T>
   }
   
   static <T> void configureDataFileWriter(DataFileWriter<T> writer,
-      TaskAttemptContext job) throws UnsupportedEncodingException {
+      TaskAttemptContext job,String codecName,int deflateLevel) throws UnsupportedEncodingException {
   	Configuration conf = job.getConfiguration();
     if (FileOutputFormat.getCompressOutput(job)) {
-      int level = conf.getInt(DEFLATE_LEVEL_KEY, DEFAULT_DEFLATE_LEVEL);
-      String codecName = conf.get(AvroJob.OUTPUT_CODEC, DEFLATE_CODEC);
       CodecFactory factory = codecName.equals(DEFLATE_CODEC)
-        ? CodecFactory.deflateCodec(level)
+        ? CodecFactory.deflateCodec(deflateLevel)
         : CodecFactory.fromString(codecName);
       writer.setCodec(factory);
     }
@@ -99,23 +99,44 @@ public class AvroOutputFormat <T>
     }
   }
 
+  private transient Schema schema;
+  private String schemaStr;
+  private int deflateLevel=DEFAULT_DEFLATE_LEVEL;
+  private String codecName=DEFLATE_CODEC;
+  
+  public AvroOutputFormat(Schema schema){
+  	this.schema = schema;
+  	this.schemaStr = schema.toString();
+  }
+  
+  public AvroOutputFormat(Schema schema,String codecName){
+  	this(schema);
+  	this.codecName = codecName;
+  }
+  public AvroOutputFormat(Schema schema,String codecName,int deflateLevel){
+  	this(schema,codecName);
+  	this.deflateLevel = deflateLevel;
+  }
+  
+  public Schema getSchema(){
+  	if (schema == null){
+  		schema = new Schema.Parser().parse(schemaStr);
+  	}
+  	return schema;
+  }
+  
 
   @Override
   public RecordWriter<AvroWrapper<T>, NullWritable>
     getRecordWriter(TaskAttemptContext job)
     throws IOException,InterruptedException {
-  	Configuration conf = job.getConfiguration();
-    boolean isMapOnly = job.getNumReduceTasks() == 0;
-    Schema schema = isMapOnly
-      ? AvroJob.getMapOutputSchema(conf)
-      : AvroJob.getOutputSchema(conf);
       
     final DataFileWriter<T> writer =
       new DataFileWriter<T>(new ReflectDatumWriter<T>());
     
-    configureDataFileWriter(writer, job);
+    configureDataFileWriter(writer, job,codecName,deflateLevel);
     Path path = getDefaultWorkFile(job,EXT);
-    writer.create(schema, path.getFileSystem(job.getConfiguration()).create(path));
+    writer.create(getSchema(), path.getFileSystem(job.getConfiguration()).create(path));
 
     return new RecordWriter<AvroWrapper<T>, NullWritable>() {
       @Override  
