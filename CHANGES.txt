@@ -1,7 +1,14 @@
 Pangool Change Log
 ====================
 
-Pangool 0.42.0 (unreleased)
+
+Pangool 0.42.1 (09/05/2012)
+
+ NEW FEATURES
+
+ - 09/05/2012 - Minor : added utility in Fields to create Avro fields easily.
+
+Pangool 0.42.0 (24/04/2012)
 
  NEW FEATURES
 
