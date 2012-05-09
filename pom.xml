@@ -26,7 +26,7 @@
     </parent>
     <groupId>com.datasalt.pangool</groupId>
     <artifactId>pangool-top-level</artifactId>
-    <version>0.42.1-SNAPSHOT</version>
+    <version>0.42.1</version>
     <modules>
         <module>core</module>
         <module>examples</module>
@@ -64,12 +64,12 @@
                                 <?xml version="1.0" encoding="UTF-8"?>
                                 <fileset-config file-format-version="1.2.0" simple-config="true" sync-formatter="true">
                                     <fileset name="all" enabled="true" check-config-name="pangool" local="false">
-                                        <file-match-pattern match-pattern="." include-pattern="true"/>
+                                        <file-match-pattern match-pattern="." include-pattern="true" />
                                     </fileset>
                                     <filter name="FileTypesFilter" enabled="true">
-                                        <filter-data value="java"/>
+                                        <filter-data value="java" />
                                     </filter>
-                                    <filter name="NonSrcDirs" enabled="true"/>
+                                    <filter name="NonSrcDirs" enabled="true" />
                                 </fileset-config>
                                 ]]>
                             </content>
