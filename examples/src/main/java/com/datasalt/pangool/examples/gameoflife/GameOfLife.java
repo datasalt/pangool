@@ -148,7 +148,7 @@ public class GameOfLife {
 		for(int i = 0; i < MAX_X; i++) {
 			for(int j = 0; j < MAX_Y; j++) {
 				if(matrix[i][j] == 1) {
-					if(i == MAX_X - 1 || j == MAX_Y - 1) {
+					if(i >= MAX_X - 2 || j >= MAX_Y - 2) {
 						throw new GameOfLifeException(CauseMessage.GRID_OVERFLOW, states.size(),
 						    "Current state can't be evolved further with a " + MAX_X + "x" + MAX_Y + " grid.");
 					}
@@ -269,5 +269,11 @@ public class GameOfLife {
 			b[7 - i] = (byte) (initialState >>> (i * 8));
 		}
 		return b;
+	}
+	
+	public static void main(String[] args) throws GameOfLifeException {
+		byte[] pattern = new byte[] { 0, 0, 0, 0, 1, -8, 33, -1 };
+		GameOfLife gameOfLife = new GameOfLife(5, pattern, 32, 32, 1000);
+		GameOfLife.printMatrix(gameOfLife.matrix, 32, 32, System.out);
 	}
 }
