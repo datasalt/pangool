@@ -270,20 +270,4 @@ public class GameOfLife {
 		}
 		return b;
 	}
-
-	// --------------------------------------------- //
-
-	public static void main(String[] args) throws GameOfLifeException {
-		for(int i = 0; i < 3000000; i++) {
-			try {
-				System.out.println(i);
-				GameOfLife gameOfLife = new GameOfLife(5, GameOfLife.longToBytes((long) i), 32, 32, 1000);
-				while(true) {
-					gameOfLife.nextCycle();
-				}
-			} catch(GameOfLifeException e) {
-
-			}
-		}
-	}
 }
