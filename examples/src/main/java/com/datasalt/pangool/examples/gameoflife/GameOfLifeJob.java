@@ -29,6 +29,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.ToolRunner;
+import org.mortbay.log.Log;
 
 import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.examples.gameoflife.GameOfLife.GameOfLifeException;
@@ -84,12 +85,19 @@ public class GameOfLifeJob extends BaseExampleJob implements Serializable {
 		}
 		writer.close();
 
+		// Optional parameters: maxX, maxY, #iterations
+		final int maxX = conf.getInt("gol.max_x", 32);
+		final int maxY = conf.getInt("gol.max_y", 32);
+		final int iterations = conf.getInt("gol.iterations", 1000);
+		Log.info("using parameters: maxX grid: " + maxX + " maxY grid: " + maxY + " max #iterations: " + iterations);
+		
 		// Define the intermediate schema: a pair of ints
 		final Schema schema = new Schema("minMax", Fields.parse("min:int, max:int"));
 
 		TupleMRBuilder job = new TupleMRBuilder(conf);
 		job.addIntermediateSchema(schema);
 		job.setGroupByFields("min", "max");
+		job.setCustomPartitionFields("min");
 		// Define the input and its associated mapper
 		// The mapper will just emit the (min, max) pairs to the reduce stage
 		job.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new TupleMapper<LongWritable, Text>() {
@@ -117,14 +125,14 @@ public class GameOfLifeJob extends BaseExampleJob implements Serializable {
 
 				int min = (Integer) group.get("min"), max = (Integer) group.get("max");
 				for(int i = min; i < max; i++) {
-					boolean done = false;
 					try {
-						GameOfLife gameOfLife = new GameOfLife(gridSize, GameOfLife.longToBytes((long) i));
-						while(!done) {
+						GameOfLife gameOfLife = new GameOfLife(gridSize, GameOfLife.longToBytes((long) i), maxX, maxY, iterations);
+						while(true) {
 							gameOfLife.nextCycle();
 						}
 					} catch(GameOfLifeException e) {
-						done = true;
+						context.getHadoopContext().progress();
+						context.getHadoopContext().getCounter("stats", e.getCauseMessage() + "").increment(1);
 						if(e.getCauseMessage().equals(CauseMessage.CONVERGENCE_REACHED)) {
 							collector.write(new Text(Arrays.toString(GameOfLife.longToBytes((long) i)) + "\t" + e.getIterations()),
 							    NullWritable.get());

@@ -15,7 +15,7 @@
  */
 package com.datasalt.pangool.examples.gameoflife;
 
-import java.math.BigInteger;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,9 +23,9 @@ import java.util.Set;
 import com.datasalt.pangool.examples.gameoflife.GameOfLife.GameOfLifeException.CauseMessage;
 
 /**
- * Simple class that can run a GOL simulation (http://en.wikipedia.org/wiki/The_Game_of_Life)
- * using a fixed-size table of {@link this.#MAX_X} x {@link this.#MAX_Y}.
- * The simulation is run in a way that the table moves with the automata (the automata is always centered in (0, 0)).
+ * Simple class that can run a GOL simulation (http://en.wikipedia.org/wiki/The_Game_of_Life) using a fixed-size table
+ * of {@link this.#MAX_X} x {@link this.#MAX_Y}. The simulation is run in a way that the table moves with the automata
+ * (the automata is always centered in (0, 0)).
  * <p>
  * This class can be used to calculate how many iterations a certain configuration of GOL needs for convergence.
  */
@@ -34,19 +34,25 @@ public class GameOfLife {
 	int width;
 	long initialState;
 
-	public final static int MAX_X = 16;
-	public final static int MAX_Y = 16;
-
-	public final static int MAX_ITERATIONS = 10000;
+	private int MAX_X = 16;
+	private int MAX_Y = 16;
+	private int MAX_ITERATIONS = 1000;
 
 	byte[][] matrix;
+	byte[][] auxMatrix;
 
 	// Will keep track of all seen states to detect cycles
-	Set<BigInteger> states = new HashSet<BigInteger>();
+	Set<String> states = new HashSet<String>();
 
-	public GameOfLife(int width, byte[] initialStateInBytes) throws GameOfLifeException {
+	public GameOfLife(int width, byte[] initialStateInBytes, int maxX, int maxY, int maxIterations)
+	    throws GameOfLifeException {
 		this.width = width;
-		matrix = emptyMatrix();
+		this.MAX_X = maxX;
+		this.MAX_Y = maxY;
+		this.MAX_ITERATIONS = maxIterations;
+		matrix = new byte[maxX][maxY];
+		auxMatrix = new byte[maxX][maxY];
+		emptyMatrix(matrix, maxX, maxY);
 		for(int i = 0; i < width; i++) {
 			for(int j = 0; j < width; j++) {
 				int offset = i * width + j;
@@ -62,21 +68,19 @@ public class GameOfLife {
 
 	// Create an empty matrix - we do this all around.
 	// It is not very efficient but it is simple enough
-	public static byte[][] emptyMatrix() {
-		byte[][] matrix = new byte[MAX_X][MAX_Y];
-		for(int i = 0; i < MAX_X; i++) {
-			for(int j = 0; j < MAX_Y; j++) {
+	public static void emptyMatrix(byte[][] matrix, int maxX, int maxY) {
+		for(int i = 0; i < maxX; i++) {
+			for(int j = 0; j < maxY; j++) {
 				matrix[i][j] = 0;
 			}
 		}
-		return matrix;
 	}
 
 	// This method is used for adjusting the current state to (0, 0) so that we can effectively identify repeated states
-	protected static void adjustUpLeft(byte[][] matrix) {
+	protected static void adjustUpLeft(byte[][] matrix, byte[][] tempMatrix, int maxX, int maxY) {
 		int currentMinX = Integer.MAX_VALUE, currentMinY = Integer.MAX_VALUE;
-		for(int i = 0; i < MAX_X; i++) {
-			for(int j = 0; j < MAX_Y; j++) {
+		for(int i = 0; i < maxX; i++) {
+			for(int j = 0; j < maxY; j++) {
 				if(matrix[i][j] == 1) {
 					if(i < currentMinX) {
 						currentMinX = i;
@@ -87,14 +91,13 @@ public class GameOfLife {
 				}
 			}
 		}
-		byte[][] tempMatrix = emptyMatrix();
-		for(int i = currentMinX; i < MAX_X; i++) {
-			for(int j = currentMinY; j < MAX_Y; j++) {
+		for(int i = currentMinX; i < maxX; i++) {
+			for(int j = currentMinY; j < maxY; j++) {
 				tempMatrix[i - currentMinX][j - currentMinY] = matrix[i][j];
 			}
 		}
-		for(int i = 0; i < MAX_X; i++) {
-			for(int j = 0; j < MAX_Y; j++) {
+		for(int i = 0; i < maxX; i++) {
+			for(int j = 0; j < maxY; j++) {
 				matrix[i][j] = tempMatrix[i][j];
 			}
 		}
@@ -128,20 +131,20 @@ public class GameOfLife {
 	/*
 	 * Useful for debug, prints a matrix
 	 */
-	public static void printMatrix(byte[][] matrix) {
-		for(int i = 0; i < MAX_X; i++) {
-			for(int j = 0; j < MAX_Y; j++) {
-				System.out.print(matrix[i][j] + " ");
+	public static void printMatrix(byte[][] matrix, int maxX, int maxY, PrintStream stream) {
+		for(int i = 0; i < maxX; i++) {
+			for(int j = 0; j < maxY; j++) {
+				stream.print(matrix[i][j] + " ");
 			}
-			System.out.print("\n");
+			stream.print("\n");
 		}
-		System.out.println();
+		stream.println();
 	}
 
 	public void nextCycle() throws GameOfLifeException {
 		// We initialize the next state as a x + 1, y + 1 of current state
 		// We do this so next cells can be born around past state
-		byte[][] nextState = emptyMatrix();
+		emptyMatrix(auxMatrix, MAX_X, MAX_Y);
 		for(int i = 0; i < MAX_X; i++) {
 			for(int j = 0; j < MAX_Y; j++) {
 				if(matrix[i][j] == 1) {
@@ -149,14 +152,14 @@ public class GameOfLife {
 						throw new GameOfLifeException(CauseMessage.GRID_OVERFLOW, states.size(),
 						    "Current state can't be evolved further with a " + MAX_X + "x" + MAX_Y + " grid.");
 					}
-					nextState[i + 1][j + 1] = 1;
+					auxMatrix[i + 1][j + 1] = 1;
 				}
 			}
 		}
 		for(int i = 0; i < MAX_X; i++) {
 			for(int j = 0; j < MAX_Y; j++) {
-				matrix[i][j] = nextState[i][j];
-				nextState[i][j] = 0;
+				matrix[i][j] = auxMatrix[i][j];
+				auxMatrix[i][j] = 0;
 			}
 		}
 		// Next we calculate whether some cells die or are born
@@ -189,15 +192,15 @@ public class GameOfLife {
 				}
 				if(matrix[i][j] == 1) {
 					if(nNeighbors < 2 || nNeighbors > 3) {
-						nextState[i][j] = 0;
+						auxMatrix[i][j] = 0;
 					} else {
-						nextState[i][j] = 1;
+						auxMatrix[i][j] = 1;
 					}
 				} else {
 					if(nNeighbors == 3) {
-						nextState[i][j] = 1;
+						auxMatrix[i][j] = 1;
 					} else {
-						nextState[i][j] = 0;
+						auxMatrix[i][j] = 0;
 					}
 				}
 			}
@@ -206,7 +209,7 @@ public class GameOfLife {
 		int nAlives = 0;
 		for(int i = 0; i < MAX_X; i++) {
 			for(int j = 0; j < MAX_Y; j++) {
-				matrix[i][j] = nextState[i][j];
+				matrix[i][j] = auxMatrix[i][j];
 				if(matrix[i][j] == 1) {
 					nAlives++;
 				}
@@ -217,18 +220,19 @@ public class GameOfLife {
 		}
 		// Adjust the current state up-left
 		// This helps us identify repeated states
-		adjustUpLeft(matrix);
+		emptyMatrix(auxMatrix, MAX_X, MAX_Y);
+		adjustUpLeft(matrix, auxMatrix, MAX_X, MAX_Y);
 		saveCurrentState();
 	}
 
 	protected void saveCurrentState() throws GameOfLifeException {
-		byte[] stateBytes = new byte[MAX_X * MAX_Y];
+		StringBuffer buffer = new StringBuffer();
 		for(int i = 0; i < MAX_X; i++) {
 			for(int j = 0; j < MAX_Y; j++) {
-				stateBytes[i * MAX_X + j] = matrix[i][j];
+				buffer.append((int) matrix[i][j]);
 			}
 		}
-		BigInteger currentState = new BigInteger(stateBytes);
+		String currentState = buffer.toString();
 		if(states.contains(currentState)) {
 			throw new GameOfLifeException(CauseMessage.CONVERGENCE_REACHED, states.size(), "Convergence reached after "
 			    + states.size() + " states");
@@ -246,7 +250,7 @@ public class GameOfLife {
 	}
 
 	// --------------------------------------------- //
-	
+
 	protected static long bytesToLong(byte[] bytes) {
 		byte[] b = new byte[8];
 		for(int i = 0; i < 8; i++) {
@@ -265,5 +269,21 @@ public class GameOfLife {
 			b[7 - i] = (byte) (initialState >>> (i * 8));
 		}
 		return b;
+	}
+
+	// --------------------------------------------- //
+
+	public static void main(String[] args) throws GameOfLifeException {
+		for(int i = 0; i < 3000000; i++) {
+			try {
+				System.out.println(i);
+				GameOfLife gameOfLife = new GameOfLife(5, GameOfLife.longToBytes((long) i), 32, 32, 1000);
+				while(true) {
+					gameOfLife.nextCycle();
+				}
+			} catch(GameOfLifeException e) {
+
+			}
+		}
 	}
 }

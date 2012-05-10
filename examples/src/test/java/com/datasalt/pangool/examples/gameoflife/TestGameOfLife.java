@@ -41,10 +41,13 @@ public class TestGameOfLife {
 
 	@Test
 	public void testAdjustUpLeft1() {
-		byte[][] matrix = GameOfLife.emptyMatrix();
+		byte[][] matrix = new byte[4][4];
+		byte[][] auxMatrix = new byte[4][4];
+		GameOfLife.emptyMatrix(matrix, 4, 4);
+		GameOfLife.emptyMatrix(auxMatrix, 4, 4);
 		matrix[1][1] = 1;
 		matrix[2][2] = 1;
-		GameOfLife.adjustUpLeft(matrix);
+		GameOfLife.adjustUpLeft(matrix, auxMatrix, 4, 4);
 		assertEquals(matrix[0][0], 1);
 		assertEquals(matrix[1][1], 1);
 
@@ -54,7 +57,7 @@ public class TestGameOfLife {
 	@Test
 	public void testNextCycle() throws GameOfLifeException {
 		byte[] bytes = new byte[] { -52, 51 };
-		GameOfLife gameOfLife = new GameOfLife(4, bytes);
+		GameOfLife gameOfLife = new GameOfLife(4, bytes, 8, 8, 10);
 		assertEquals(1, gameOfLife.getMatrix()[0][0]);
 		assertEquals(1, gameOfLife.getMatrix()[0][1]);
 		assertEquals(0, gameOfLife.getMatrix()[0][2]);
@@ -130,10 +133,13 @@ public class TestGameOfLife {
 
 	@Test
 	public void testAdjustUpLeft2() {
-		byte[][] matrix = GameOfLife.emptyMatrix();
+		byte[][] matrix = new byte[4][4];
+		byte[][] auxMatrix = new byte[4][4];
+		GameOfLife.emptyMatrix(matrix, 4, 4);
+		GameOfLife.emptyMatrix(auxMatrix, 4, 4);
 		matrix[1][3] = 1;
 		matrix[2][2] = 1;
-		GameOfLife.adjustUpLeft(matrix);
+		GameOfLife.adjustUpLeft(matrix, auxMatrix, 4, 4);
 		assertEquals(matrix[0][1], 1);
 		assertEquals(matrix[1][0], 1);
 
@@ -144,7 +150,7 @@ public class TestGameOfLife {
 	@Test
 	public void testSetBigInitialState() throws GameOfLifeException {
 		byte[] bigState = new byte[] { 1, 0, 20, 20 };
-		GameOfLife gameOfLife = new GameOfLife(5, bigState);
+		GameOfLife gameOfLife = new GameOfLife(5, bigState, 8, 8, 10);
 		assertEquals(0, gameOfLife.getMatrix()[0][0]);
 		assertEquals(0, gameOfLife.getMatrix()[0][1]);
 		assertEquals(1, gameOfLife.getMatrix()[0][2]);
@@ -180,7 +186,7 @@ public class TestGameOfLife {
 	public void testSetInitialState() throws GameOfLifeException {
 		byte[] smallState = new byte[] { 11 }; // 00001011 <-
 		// Interpreted as a grid of 2x2
-		GameOfLife gameOfLife = new GameOfLife(2, smallState);
+		GameOfLife gameOfLife = new GameOfLife(2, smallState, 8, 8, 10);
 		assertEquals(1, gameOfLife.getMatrix()[0][0]);
 		assertEquals(1, gameOfLife.getMatrix()[0][1]);
 		assertEquals(0, gameOfLife.getMatrix()[1][0]);
@@ -188,7 +194,7 @@ public class TestGameOfLife {
 
 		// Interpreted as a grid of 4x4
 		smallState = new byte[] { 0, 11 };
-		gameOfLife = new GameOfLife(4, smallState);
+		gameOfLife = new GameOfLife(4, smallState, 8, 8, 10);
 		assertEquals(1, gameOfLife.getMatrix()[0][0]);
 		assertEquals(1, gameOfLife.getMatrix()[0][1]);
 		assertEquals(0, gameOfLife.getMatrix()[0][2]);
