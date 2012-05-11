@@ -66,8 +66,6 @@ public class Driver extends ProgramDriver {
 		addClass("naive_bayes_classifier", NaiveBayesClassifier.class, "Naive Bayes simple slassifier with add-one smoothing example.");
 		// 
 		addClass("game_of_life", GameOfLifeJob.class, "Game Of Life M/R Job.");
-		// 
-		addClass("create_solr_index", TupleSolrOutputFormatExample.class, "Create a SOLR index.");
 	}
 
 	public static void main(String[] args) throws Throwable {
