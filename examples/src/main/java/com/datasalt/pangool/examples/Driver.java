@@ -36,7 +36,6 @@ import com.datasalt.pangool.examples.urlresolution.UrlResolution;
 import com.datasalt.pangool.examples.urlresolution.UrlResolutionGenerateData;
 import com.datasalt.pangool.examples.useractivitynormalizer.UserActivityNormalizer;
 import com.datasalt.pangool.examples.useractivitynormalizer.UserActivityNormalizerGenerateData;
-import com.datasalt.pangool.solr.TupleSolrOutputFormatExample;
 
 public class Driver extends ProgramDriver {
 
