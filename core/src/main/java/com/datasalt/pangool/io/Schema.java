@@ -86,7 +86,7 @@ public class Schema implements Serializable {
 		}
 
 		public static enum Type {
-			INT, LONG, FLOAT, DOUBLE, STRING, BOOLEAN, ENUM, BYTES,OBJECT;
+			INT, LONG, FLOAT, DOUBLE, STRING, BOOLEAN, ENUM, BYTES, OBJECT;
 		}
 		
 		public static final Set<String> RESERVED_KEYWORDS;

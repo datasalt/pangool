@@ -272,7 +272,7 @@ public class GameOfLife {
 	}
 	
 	public static void main(String[] args) throws GameOfLifeException {
-		byte[] pattern = new byte[] { 0, 0, 0, 0, 1, -8, 33, -1 };
+		byte[] pattern = new byte[] { 0, 0, 0, 0, 0, 93, -26, -91 };
 		GameOfLife gameOfLife = new GameOfLife(5, pattern, 32, 32, 1000);
 		GameOfLife.printMatrix(gameOfLife.matrix, 32, 32, System.out);
 	}

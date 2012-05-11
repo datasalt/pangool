@@ -52,130 +52,120 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
  * This example illustrates two things:
  * 
  * <ul>
- *  <li>How to use {@link AvroInputFormat} and {@link AvroOutputFormat}, that are 
- *  compliant with new Hadoop's API : mapreduce.lib.{input,output} 
- *  </li>
- *  <li> How to perform a reduce-join with Avro-data using custom serialization</li> 
- *
+ * <li>How to use {@link AvroInputFormat} and {@link AvroOutputFormat}, that are compliant with new Hadoop's API :
+ * mapreduce.lib.{input,output}</li>
+ * <li>How to perform a reduce-join with Avro-data using custom serialization</li>
+ * 
  */
 public class AvroTweetsJoin extends BaseExampleJob {
 
 	@SuppressWarnings("serial")
-	private static class TweetsMapper extends TupleMapper<AvroWrapper<Record>,NullWritable> {
+	private static class TweetsMapper extends TupleMapper<AvroWrapper<Record>, NullWritable> {
 
 		private Tuple tuple;
-		public void setup(TupleMRContext context, Collector collector) 
-				throws IOException, InterruptedException {
+
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
 			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("tweet"));
 		};
-		
-		public void map(AvroWrapper<Record> key, NullWritable value, TupleMRContext context, Collector collector) 
-				throws IOException, InterruptedException {
+
+		public void map(AvroWrapper<Record> key, NullWritable value, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException {
 			Record tweet = key.datum();
-			tuple.set("tweet_id",tweet.get("id"));
-			tuple.set("tweet_hashtags",tweet.get("hashtags"));
+			tuple.set("tweet_id", tweet.get("id"));
+			tuple.set("tweet_hashtags", tweet.get("hashtags"));
 			collector.write(tuple);
 		}
 	}
-	
+
 	@SuppressWarnings("serial")
-	private static class RetweetsMapper extends TupleMapper<LongWritable,Text> {
+	private static class RetweetsMapper extends TupleMapper<LongWritable, Text> {
 		private Tuple tuple;
-		public void setup(TupleMRContext context, Collector collector) 
-				throws IOException, InterruptedException {
+
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
 			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("retweet"));
 		};
-		
-		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) 
-				throws IOException, InterruptedException {
+
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			String[] tokens = value.toString().split("\t");
-			tuple.set("username",tokens[0]);
-			tuple.set("tweet_id",Integer.parseInt(tokens[1]));
+			tuple.set("username", tokens[0]);
+			tuple.set("tweet_id", Integer.parseInt(tokens[1]));
 			collector.write(tuple);
 		}
 	}
-	
 
 	@SuppressWarnings("serial")
 	public static class Red extends TupleReducer<AvroWrapper<Record>, NullWritable> {
 
 		private Record outputRecord;
 		private AvroWrapper<Record> wrapper;
-		
-		public void setup(TupleMRContext context, Collector collector) 
-				throws IOException, InterruptedException {
-			outputRecord= new Record(getAvroOutputSchema());
+
+		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+			outputRecord = new Record(getAvroOutputSchema());
 			wrapper = new AvroWrapper<Record>();
 		};
+
 		@SuppressWarnings("unchecked")
-    @Override
+		@Override
 		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException, TupleMRException {
-			
+
 			for(ITuple tuple : tuples) {
-				if ("tweet".equals(tuple.getSchema().getName())){
-					Array<String> hashtags = (Array<String>)tuple.get("tweet_hashtags");
-					outputRecord.put("hashtags",hashtags);
+				if("tweet".equals(tuple.getSchema().getName())) {
+					Array<String> hashtags = (Array<String>) tuple.get("tweet_hashtags");
+					outputRecord.put("hashtags", hashtags);
 				} else {
 					String user = tuple.get("username").toString();
-					outputRecord.put("username",user);
+					outputRecord.put("username", user);
 					wrapper.datum(outputRecord);
-					collector.write(wrapper,NullWritable.get());
+					collector.write(wrapper, NullWritable.get());
 				}
 			}
 		}
 	}
 
 	private static Schema getPangoolTweetSchema() {
-		Field tweetIdField = Field.create("tweet_id",Schema.Field.Type.INT);
-		Field tweetHashTags = Fields.createAvroField("tweet_hashtags",
-				getAvroStringArraySchema(),false);
-		return new Schema("tweet",Arrays.asList(tweetIdField,tweetHashTags));
+		Field tweetIdField = Field.create("tweet_id", Schema.Field.Type.INT);
+		Field tweetHashTags = Fields.createAvroField("tweet_hashtags", getAvroStringArraySchema(), false);
+		return new Schema("tweet", Arrays.asList(tweetIdField, tweetHashTags));
 	}
-	
-	private static Schema getPangoolRetweetSchema(){
-		Field userId = Field.create("username",Schema.Field.Type.STRING);
-		Field tweetId = Field.create("tweet_id",Schema.Field.Type.INT);
-		return new Schema("retweet",Arrays.asList(userId,tweetId));
+
+	private static Schema getPangoolRetweetSchema() {
+		Field userId = Field.create("username", Schema.Field.Type.STRING);
+		Field tweetId = Field.create("tweet_id", Schema.Field.Type.INT);
+		return new Schema("retweet", Arrays.asList(userId, tweetId));
 	}
-	
-	
-	
-	public static org.apache.avro.Schema getAvroStringArraySchema(){
+
+	public static org.apache.avro.Schema getAvroStringArraySchema() {
 		return org.apache.avro.Schema.createArray(org.apache.avro.Schema.create(Type.STRING));
 	}
-	
-	public static org.apache.avro.Schema getAvroTweetSchema(){
-		List<org.apache.avro.Schema.Field> avroFields = 
-				new ArrayList<org.apache.avro.Schema.Field>();
-		avroFields.add(
-				new org.apache.avro.Schema.Field("id",org.apache.avro.Schema.create(Type.INT),null,null));
-		avroFields.add(
-				new org.apache.avro.Schema.Field("text",org.apache.avro.Schema.create(Type.STRING),null,null));
-		avroFields.add(
-				new org.apache.avro.Schema.Field("timestamp",org.apache.avro.Schema.create(Type.LONG),null,null));
-		avroFields.add(new org.apache.avro.Schema.Field("hashtags",getAvroStringArraySchema(),null,null));
-		org.apache.avro.Schema result= org.apache.avro.Schema.createRecord("tweet",null,null,false);
+
+	public static org.apache.avro.Schema getAvroTweetSchema() {
+		List<org.apache.avro.Schema.Field> avroFields = new ArrayList<org.apache.avro.Schema.Field>();
+		avroFields.add(new org.apache.avro.Schema.Field("id", org.apache.avro.Schema.create(Type.INT), null, null));
+		avroFields.add(new org.apache.avro.Schema.Field("text", org.apache.avro.Schema.create(Type.STRING), null, null));
+		avroFields.add(new org.apache.avro.Schema.Field("timestamp", org.apache.avro.Schema.create(Type.LONG), null, null));
+		avroFields.add(new org.apache.avro.Schema.Field("hashtags", getAvroStringArraySchema(), null, null));
+		org.apache.avro.Schema result = org.apache.avro.Schema.createRecord("tweet", null, null, false);
 		result.setFields(avroFields);
 		return result;
 	}
-	
-	public static org.apache.avro.Schema getAvroOutputSchema(){
-		org.apache.avro.Schema.Field retweeter = 
-				new org.apache.avro.Schema.Field("username",
-						org.apache.avro.Schema.create(Type.STRING),null,null);
-		org.apache.avro.Schema.Field tweet = 
-				new org.apache.avro.Schema.Field("hashtags",getAvroStringArraySchema(),null,null);
-		
-		org.apache.avro.Schema result= org.apache.avro.Schema.createRecord("output",null,null,false);
-		result.setFields(Arrays.asList(retweeter,tweet));
+
+	public static org.apache.avro.Schema getAvroOutputSchema() {
+		org.apache.avro.Schema.Field retweeter = new org.apache.avro.Schema.Field("username",
+		    org.apache.avro.Schema.create(Type.STRING), null, null);
+		org.apache.avro.Schema.Field tweet = new org.apache.avro.Schema.Field("hashtags", getAvroStringArraySchema(), null,
+		    null);
+
+		org.apache.avro.Schema result = org.apache.avro.Schema.createRecord("output", null, null, false);
+		result.setFields(Arrays.asList(retweeter, tweet));
 		return result;
 	}
-	
+
 	public AvroTweetsJoin() {
 		super("Usage: AvroTweetsJoin [tweets_path] [retweets_path] [output_path]");
 	}
-	
+
 	@Override
 	public int run(String[] args) throws Exception {
 		if(args.length != 3) {
@@ -186,17 +176,16 @@ public class AvroTweetsJoin extends BaseExampleJob {
 		Path retweetsPath = new Path(args[1]);
 		Path outputPath = new Path(args[2]);
 		delete(outputPath.toString());
-		
+
 		TupleMRBuilder mr = new TupleMRBuilder(conf, "AvroTweetsJoin");
 		mr.addIntermediateSchema(getPangoolTweetSchema());
 		mr.addIntermediateSchema(getPangoolRetweetSchema());
 		mr.setGroupByFields("tweet_id");
-		mr.setOrderBy(new OrderBy().add("tweet_id",Order.ASC).addSchemaOrder(Order.ASC));
-		
-		mr.addInput(tweetsPath,new AvroInputFormat<Record>(getAvroTweetSchema()),new TweetsMapper());
+		mr.setOrderBy(new OrderBy().add("tweet_id", Order.ASC).addSchemaOrder(Order.ASC));
+
+		mr.addInput(tweetsPath, new AvroInputFormat<Record>(getAvroTweetSchema()), new TweetsMapper());
 		mr.addInput(retweetsPath, new HadoopInputFormat(TextInputFormat.class), new RetweetsMapper());
-		mr.setOutput(outputPath,new AvroOutputFormat<Record>(getAvroOutputSchema()),
-				AvroWrapper.class,NullWritable.class);
+		mr.setOutput(outputPath, new AvroOutputFormat<Record>(getAvroOutputSchema()), AvroWrapper.class, NullWritable.class);
 
 		mr.setTupleReducer(new Red());
 
@@ -205,7 +194,7 @@ public class AvroTweetsJoin extends BaseExampleJob {
 
 		return 0;
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		ToolRunner.run(new AvroTweetsJoin(), args);
 	}

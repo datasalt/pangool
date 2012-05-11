@@ -36,6 +36,7 @@ import com.datasalt.pangool.examples.urlresolution.UrlResolution;
 import com.datasalt.pangool.examples.urlresolution.UrlResolutionGenerateData;
 import com.datasalt.pangool.examples.useractivitynormalizer.UserActivityNormalizer;
 import com.datasalt.pangool.examples.useractivitynormalizer.UserActivityNormalizerGenerateData;
+import com.datasalt.pangool.solr.TupleSolrOutputFormatExample;
 
 public class Driver extends ProgramDriver {
 
@@ -65,6 +66,8 @@ public class Driver extends ProgramDriver {
 		addClass("naive_bayes_classifier", NaiveBayesClassifier.class, "Naive Bayes simple slassifier with add-one smoothing example.");
 		// 
 		addClass("game_of_life", GameOfLifeJob.class, "Game Of Life M/R Job.");
+		// 
+		addClass("create_solr_index", TupleSolrOutputFormatExample.class, "Create a SOLR index.");
 	}
 
 	public static void main(String[] args) throws Throwable {
