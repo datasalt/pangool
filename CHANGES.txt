@@ -1,6 +1,11 @@
 Pangool Change Log
 ====================
 
+Pangool 0.43.0 (11/05/2012)
+
+ NEW FEATURES
+
+ - 11/05/2012 - Implemented seamlessly integration with SOLR (TupleSolrOutputFormat)
 
 Pangool 0.42.1 (09/05/2012)
 
