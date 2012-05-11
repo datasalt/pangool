@@ -1,6 +1,7 @@
 com.datasalt.pangool
 com.datasalt.pangool.io
 com.datasalt.pangool.serialization
+com.datasalt.pangool.solr
 com.datasalt.pangool.tuplemr
 com.datasalt.pangool.tuplemr.avro
 com.datasalt.pangool.tuplemr.mapred
