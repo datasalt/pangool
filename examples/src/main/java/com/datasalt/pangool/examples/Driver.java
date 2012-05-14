@@ -26,6 +26,7 @@ import com.datasalt.pangool.examples.secondarysort.SecondarySort;
 import com.datasalt.pangool.examples.secondarysort.SecondarySortGenerateData;
 import com.datasalt.pangool.examples.simplesecondarysort.SimpleSecondarySort;
 import com.datasalt.pangool.examples.simplesecondarysort.SimpleSecondarySortGenerateData;
+import com.datasalt.pangool.examples.solr.MultiShakespeareIndexer;
 import com.datasalt.pangool.examples.topicalwordcount.TopicFingerprint;
 import com.datasalt.pangool.examples.topicalwordcount.TopicalWordCount;
 import com.datasalt.pangool.examples.topicalwordcount.TopicalWordCountGenerateData;
@@ -65,6 +66,8 @@ public class Driver extends ProgramDriver {
 		addClass("naive_bayes_classifier", NaiveBayesClassifier.class, "Naive Bayes simple slassifier with add-one smoothing example.");
 		// 
 		addClass("game_of_life", GameOfLifeJob.class, "Game Of Life M/R Job.");
+		//
+		addClass("multi_shakespeare_indexer", MultiShakespeareIndexer.class, "Create four SOLR indexes out of Shakespeare's plays");
 	}
 
 	public static void main(String[] args) throws Throwable {
