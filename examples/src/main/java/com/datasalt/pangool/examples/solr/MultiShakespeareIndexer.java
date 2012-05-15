@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -39,9 +41,9 @@ public class MultiShakespeareIndexer extends BaseExampleJob implements Serializa
 		COMEDIES, HISTORIES, POETRY, TRAGEDIES
 	}
 
-	final static Schema SCHEMA = new Schema("shakespeare", Fields.parse("line:long, text:string, category:"
+	final static Schema SCHEMA = new Schema("shakespeare", Fields.parse("line:long, text:string, title:string, category:"
 	    + Category.class.getName()));
-	final static Schema OUT_SCHEMA = new Schema("shakespeare", Fields.parse("line:long, text:string"));
+	final static Schema OUT_SCHEMA = new Schema("shakespeare", Fields.parse("line:long, text:string, title:string"));
 
 	/*
 	 * Per-category mapper that adds the Category to the intermediate Tuple
@@ -49,10 +51,14 @@ public class MultiShakespeareIndexer extends BaseExampleJob implements Serializa
 	public static class CategoryMapper extends TupleMapper<LongWritable, Text> {
 
 		Category category;
+		String title;
 		ITuple tuple = new Tuple(SCHEMA);
 
-		public CategoryMapper(Category category) {
+		public CategoryMapper(Category category, String title) {
 			this.category = category;
+			this.title = title;
+			tuple.set("title", title);
+			tuple.set("category", category);
 		}
 
 		@Override
@@ -60,7 +66,6 @@ public class MultiShakespeareIndexer extends BaseExampleJob implements Serializa
 		    InterruptedException {
 			tuple.set("line", key.get());
 			tuple.set("text", value.toString());
-			tuple.set("category", category);
 			collector.write(tuple);
 		}
 	}
@@ -78,13 +83,16 @@ public class MultiShakespeareIndexer extends BaseExampleJob implements Serializa
 		job.setGroupByFields("line");
 
 		String input = args[0], output = args[1];
+		FileSystem fileSystem = FileSystem.get(conf);
 		
 		for(Category category : Category.values()) { // For each Category
 			String categoryString = category.toString().toLowerCase();
-			// Add the category input with the associated CategoryMapper
-			job.addInput(new Path(input + "/" + categoryString), new HadoopInputFormat(TextInputFormat.class),
-			    new CategoryMapper(category));
-			// Add a named output for it
+			// Add the category, book title input spec with the associated CategoryMapper
+			for(FileStatus fileStatus: fileSystem.listStatus(new Path(input + "/" + categoryString))) {
+				job.addInput(fileStatus.getPath(), new HadoopInputFormat(TextInputFormat.class),
+				    new CategoryMapper(category, fileStatus.getPath().getName()));
+			}
+			// Add a named output for each category
 			job.addNamedOutput(categoryString, new TupleSolrOutputFormat(new File("src/test/resources/shakespeare-solr"),
 			    conf), ITuple.class, NullWritable.class);
 		}
@@ -99,8 +107,9 @@ public class MultiShakespeareIndexer extends BaseExampleJob implements Serializa
 
 				for(ITuple tuple: tuples) {
 					Category category = (Category) tuple.get("category"); 
-					outTuple.set("line", tuple.get("line"));
-					outTuple.set("text", tuple.get("text"));
+					outTuple.set("line",  tuple.get("line"));
+					outTuple.set("text",  tuple.get("text"));
+					outTuple.set("title", tuple.get("title"));
 					collector.getNamedOutput(category.toString().toLowerCase()).write(outTuple, NullWritable.get());
 				}
 			}

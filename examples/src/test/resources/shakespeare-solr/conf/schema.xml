@@ -107,6 +107,7 @@
 <fields>
   <field name="line" type="long" indexed="true" stored="true" sortMissingLast="true"/>
   <field name="text" type="string" indexed="true" stored="true" sortMissingLast="true"/>
+  <field name="title" type="string" indexed="true" stored="true" sortMissingLast="true"/>
 </fields>
 
 <defaultSearchField>text</defaultSearchField> 
