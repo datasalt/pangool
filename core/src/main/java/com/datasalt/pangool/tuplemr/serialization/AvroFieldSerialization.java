@@ -37,79 +37,74 @@ import org.apache.hadoop.io.serializer.Serializer;
 
 import com.datasalt.pangool.io.Schema.Field.FieldConfigurable;
 
-public class AvroFieldSerialization<T> implements Serialization<T>,FieldConfigurable{
-	
+public class AvroFieldSerialization<T> implements Serialization<T>, FieldConfigurable {
+
 	private Schema schema;
 	private boolean isReflect;
-	
-	public AvroFieldSerialization(){
-		
+
+	public AvroFieldSerialization() {
+
 	}
-	
+
 	@Override
-  public Deserializer<T> getDeserializer(Class<T> clazz) {
+	public Deserializer<T> getDeserializer(Class<T> clazz) {
 		return new AvroFieldDeserializer<T>(schema, isReflect);
-  }
+	}
 
 	@Override
-  public Serializer<T> getSerializer(Class<T> clazz) {
-	  return new AvroFieldSerializer<T>(schema, isReflect);
-  }
+	public Serializer<T> getSerializer(Class<T> clazz) {
+		return new AvroFieldSerializer<T>(schema, isReflect);
+	}
 
 	@Override
-  public void setFieldProperties(Map<String,String> properties) {
+	public void setFieldProperties(Map<String, String> properties) {
 		schema = Schema.parse(properties.get("avro.schema"));
 		String r = properties.get("avro.reflection");
 		isReflect = (r != null) && Boolean.parseBoolean(r);
-  }
-	
-	
-	public static class AvroFieldSerializer<T> implements Serializer<T>{
+	}
+
+	public static class AvroFieldSerializer<T> implements Serializer<T> {
 
 		private DatumWriter<T> writer;
-    private OutputStream out;
-    private BinaryEncoder encoder;
+		private OutputStream out;
+		private BinaryEncoder encoder;
 
-    public AvroFieldSerializer(Schema schema,boolean isReflect){
-    writer = (isReflect) ?
-    		new ReflectDatumWriter<T>(schema)
-    		: new SpecificDatumWriter<T>(schema);
-    }
-    
+		public AvroFieldSerializer(Schema schema, boolean isReflect) {
+			writer = (isReflect) ? new ReflectDatumWriter<T>(schema) : new SpecificDatumWriter<T>(schema);
+		}
+
 		@Override
 		public void open(OutputStream out) throws IOException {
 			this.out = out;
-      this.encoder = new EncoderFactory().configureBlockSize(512)
-          .binaryEncoder(out, null);
+			this.encoder = new EncoderFactory().configureBlockSize(512).binaryEncoder(out, null);
 		}
 
 		@Override
 		public void serialize(T obj) throws IOException {
 			writer.write(obj, encoder);
-      // would be a lot faster if the Serializer interface had a flush()
-      // method and the Hadoop framework called it when needed rather
-      // than for every record.
-      encoder.flush();
-			
+			// would be a lot faster if the Serializer interface had a flush()
+			// method and the Hadoop framework called it when needed rather
+			// than for every record.
+			encoder.flush();
+
 		}
-		
+
 		@Override
 		public void close() throws IOException {
 			out.close();
 		}
 	}
-	
-	public static class AvroFieldDeserializer<T> implements Deserializer<T>{
+
+	public static class AvroFieldDeserializer<T> implements Deserializer<T> {
 
 		private static final DecoderFactory FACTORY = DecoderFactory.get();
 		private DatumReader<T> reader;
-    private BinaryDecoder decoder;
-    
-    public AvroFieldDeserializer(Schema schema,boolean isReflect){
-    	reader = (isReflect) ? new ReflectDatumReader<T>(schema)
-    				: new SpecificDatumReader<T>(schema);
-    }
-		
+		private BinaryDecoder decoder;
+
+		public AvroFieldDeserializer(Schema schema, boolean isReflect) {
+			reader = (isReflect) ? new ReflectDatumReader<T>(schema) : new SpecificDatumReader<T>(schema);
+		}
+
 		@Override
 		public void close() throws IOException {
 			decoder.inputStream().close();
@@ -127,8 +122,8 @@ public class AvroFieldSerialization<T> implements Serialization<T>,FieldConfigur
 	}
 
 	@Override
-  public boolean accept(Class<?> c) {
-	  return true;
-  }
-	
+	public boolean accept(Class<?> c) {
+		return true;
+	}
+
 }

@@ -42,7 +42,7 @@ import org.apache.hadoop.util.Progressable;
  * <b>This class has been copied from SOLR-1301 patch although it might be slightly different from it.</b>
  * <p>
  */
-class HeartBeater extends Thread {
+public class HeartBeater extends Thread {
 	public static Log LOG = LogFactory.getLog(HeartBeater.class);
 
 	/**

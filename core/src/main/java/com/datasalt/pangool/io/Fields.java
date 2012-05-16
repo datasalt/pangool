@@ -23,6 +23,7 @@ import java.util.Map;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization;
+import com.datasalt.pangool.tuplemr.serialization.TupleFieldSerialization;
 
 public class Fields {
 
@@ -95,6 +96,20 @@ public class Fields {
 		field.setObjectSerialization(AvroFieldSerialization.class);
 		field.addProp("avro.schema",avroSchema.toString());
 		field.addProp("avro.reflection",Boolean.toString(isReflect));
+		return field;
+	}
+	
+	/**
+	 * Creates a field containing a Pangool Tuple.
+	 * 
+	 * @param name Field's name
+	 * @param schema The schema of the field
+	 * @return
+	 */
+	public static Field createTupleField(String name, Schema schema) {
+		Field field = Field.createObject(name,Object.class);
+		field.setObjectSerialization(TupleFieldSerialization.class);
+		field.addProp("schema", schema.toString());
 		return field;
 	}
 }

@@ -15,41 +15,32 @@
  */
 package com.datasalt.pangool.tuplemr.serialization;
 
-import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 
-import org.apache.hadoop.io.DataOutputBuffer;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Serializer;
 
 import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 
 public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 
-	private final HadoopSerialization ser;
-
-	private DataOutputStream out;
 	private final TupleMRConfig tupleMRConfig;
-	private final Utf8 HELPER_TEXT = new Utf8();
 	private boolean isMultipleSources = false;
-	private final DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 	private final SerializationInfo serInfo;
 	private final Schema commonSchema;
+	
+	// Makes use of an "agnostic" simple Tuple serializer for serializing Tuples
+	// Enable code reusing
+	private final SimpleTupleSerializer tupleSerializer;
 
 	public TupleSerializer(HadoopSerialization ser, TupleMRConfig tupleMRConfig) {
-		this.ser = ser;
+		tupleSerializer = new SimpleTupleSerializer(ser);
 		this.tupleMRConfig = tupleMRConfig;
 		this.serInfo = tupleMRConfig.getSerializationInfo();
 		this.commonSchema = this.serInfo.getCommonSchema();
@@ -57,11 +48,7 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 	}
 
 	public void open(OutputStream out) {
-		if (out instanceof DataOutputStream) {
-			this.out = (DataOutputStream) out;
-		} else {
-			this.out = new DataOutputStream(out);
-		}
+		tupleSerializer.open(out);
 	}
 
 	public void serialize(DatumWrapper<ITuple> wrapper) throws IOException {
@@ -75,8 +62,8 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 
 	private void oneSourceSerialization(ITuple tuple) throws IOException {
 		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(0);
-		//tuple schema is not checked here
-		write(commonSchema, tuple, commonTranslation, out,serInfo.getCommonSchemaSerializers());
+		// Tuple schema is not checked here
+		tupleSerializer.write(commonSchema, tuple, commonTranslation, serInfo.getCommonSchemaSerializers());
 	}
 
 	private void multipleSourcesSerialization(ITuple tuple) throws IOException {
@@ -86,133 +73,18 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 			throw new IOException("Schema '" + tuple.getSchema() +"' is not a valid intermediate schema");
 		}
 		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(schemaId);
-		// serialize common
-		write(commonSchema, tuple, commonTranslation, out,serInfo.getCommonSchemaSerializers());
-		// serialize source id
-		WritableUtils.writeVInt(out, schemaId);
-		// serialize rest of the fields
+		// Serialize common
+		tupleSerializer.write(commonSchema, tuple, commonTranslation, serInfo.getCommonSchemaSerializers());
+		// Serialize source id
+		WritableUtils.writeVInt(tupleSerializer.getOut(), schemaId);
+		// Serialize rest of the fields
 		Schema specificSchema = serInfo.getSpecificSchema(schemaId);
 		int[] specificTranslation = serInfo
 				.getSpecificSchemaIndexTranslation(schemaId);
-		write(specificSchema, tuple, specificTranslation, out,serInfo.getSpecificSchemaSerializers().get(schemaId));
+		tupleSerializer.write(specificSchema, tuple, specificTranslation, serInfo.getSpecificSchemaSerializers().get(schemaId));
 	}
 
 	public void close() throws IOException {
-		this.out.close();
+		tupleSerializer.close();
 	}
-
-	/**
-	 * 
-	 * The size of the translation table matches the destinationSchema fields
-	 * size.
-	 * 
-	 * @param destinationSchema
-	 * @param tuple
-	 * @param translationTable
-	 *          If null then no translation is performed
-	 * @param output
-	 * @throws IOException
-	 */
-	private void write(Schema destinationSchema, ITuple tuple,
-			int[] translationTable, DataOutput output,Serializer[] customSerializers) throws IOException {
-		for (int i = 0; i < destinationSchema.getFields().size(); i++) {
-			Field field = destinationSchema.getField(i);
-			Type fieldType = field.getType();
-			Object element = tuple.get(translationTable[i]);
-			try {
-				switch(fieldType){
-				case INT:
-					WritableUtils.writeVInt(output, (Integer) element); break;
-				case LONG:
-					WritableUtils.writeVLong(output, (Long) element);break;
-				case DOUBLE:
-					output.writeDouble((Double) element); break;
-				case FLOAT:
-					output.writeFloat((Float) element);break;
-				case STRING:
-					if (element instanceof Text){
-						((Text)element).write(output);
-					} else if (element instanceof String){
-						HELPER_TEXT.set((String)element);
-						HELPER_TEXT.write(output);
-					} else {
-						raiseClassCastException(null,field,element);
-					}
-					break;
-				case BOOLEAN:
-					output.write((Boolean) element ? 1 : 0); break;
-				case ENUM:
-					writeEnum((Enum<?>) element, field, output); break;
-				case OBJECT:
-					writeCustomObject(element,output,customSerializers[i]); break;
-				case BYTES:
-					writeBytes(element,output);
-					break;
-				default:
-					throw new IOException("Not supported type:" + fieldType);
-				}
-				
-				//TODO this shouldn't be here because customSerializer can throw these exceptions
-			} catch(ClassCastException e) {
-				raiseClassCastException(e, field,element);
-			} catch(NullPointerException e) {
-				raiseNullInstanceException(e, field, element);
-			}
-		} // end for		
-	}
-	
-	private void writeCustomObject(Object element, DataOutput output,Serializer customSer) throws IOException{
-			tmpOutputBuffer.reset();
-			if (customSer != null){
-				customSer.open(tmpOutputBuffer);
-				customSer.serialize(element);
-				customSer.close(); //TODO is this safe with DataOutputBuffer?
-			} else {
-				//if no custom serializer defined then use Hadoop Serialization by default
-				ser.ser(element, tmpOutputBuffer);
-			}
-			WritableUtils.writeVInt(output, tmpOutputBuffer.getLength());
-			output.write(tmpOutputBuffer.getData(), 0, tmpOutputBuffer.getLength());
-	}
-	
-	private void writeBytes(Object bytes,DataOutput output) throws IOException {
-		if (bytes instanceof byte[]){
-			WritableUtils.writeVInt(output,((byte[])bytes).length);
-			output.write((byte[])bytes);
-		} else if (bytes instanceof ByteBuffer){
-			ByteBuffer buffer = (ByteBuffer)bytes;
-			int pos = buffer.position();
-	    int start = buffer.arrayOffset() + pos;
-	    int len = buffer.limit() - pos;
-	    WritableUtils.writeVInt(output,len);
-	    output.write(buffer.array(), start, len);
-		} else {
-			throw new IOException("Not allowed " + bytes.getClass() + " for type " + Type.BYTES);
-		}
-		
-	}
-
-	private void writeEnum(Enum<?> element, Field field, DataOutput output) throws IOException {
-		Enum<?> e = (Enum<?>) element;
-		Class<?> expectedType = field.getObjectClass();
-		if (e.getClass() != expectedType) {
-			throw new IOException("Field '" + field.getName() + "' contains '" + element
-					+ "' which is " + element.getClass().getName()
-					+ ".The expected type is " + expectedType.getName());
-		}
-		WritableUtils.writeVInt(output, e.ordinal());
-	}
-	
-	private void raiseClassCastException(ClassCastException cause,Field field,Object element)
-	throws IOException {
-		throw new IOException("Field '" + field.getName() + "' with type: '" + 
-				field.getType() + "' can't contain '" + element + "' which is "
-		    + element.getClass().getName(),cause);
-	}
-	
-	private void raiseNullInstanceException(NullPointerException cause, Field field,Object element) 
-	throws IOException {
-		throw new IOException("Field '" + field.getName() + "' with type " + 
-				field.getType() +" can't contain null value",cause);
-	}	
 }
