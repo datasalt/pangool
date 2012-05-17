@@ -216,12 +216,9 @@ public class SolrRecordWriter extends RecordWriter<ITuple, NullWritable> {
 			// copy the schema to the conf dir
 			File confDir = new File(local.toString(), "conf");
 			confDir.mkdirs();
-			File srcSchemaFile = new File(solrHome.toString(), "conf/schema.xml");
-			assert srcSchemaFile.exists();
-			FileUtils.copyFile(srcSchemaFile, new File(confDir, "schema.xml"));
-			File srcSolrConfigFile = new File(solrHome.toString(), "conf/solrconfig.xml");
-			assert srcSolrConfigFile.exists();
-			FileUtils.copyFile(srcSolrConfigFile, new File(confDir, "solrconfig.xml"));
+			
+			File unpackedSolrHome = new File(solrHome.toString());
+			FileUtils.copyDirectory(new File(unpackedSolrHome, "conf"), confDir);
 
 			Properties props = new Properties();
 			props.setProperty("solr.data.dir", dataDir);

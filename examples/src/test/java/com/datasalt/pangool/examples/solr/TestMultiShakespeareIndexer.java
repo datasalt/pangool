@@ -24,10 +24,12 @@ public class TestMultiShakespeareIndexer extends AbstractHadoopTestLibrary {
 		ToolRunner.run(new MultiShakespeareIndexer(), new String[] { INPUT, OUTPUT });
 		
 		// Assert that indexes have been created
-		assertTrue(new File(OUTPUT + "/comedies/part-00000/data/index").exists());
-		assertTrue(new File(OUTPUT + "/histories/part-00000/data/index").exists());
-		assertTrue(new File(OUTPUT + "/tragedies/part-00000/data/index").exists());
-		assertTrue(new File(OUTPUT + "/poetry/part-00000/data/index").exists());
+		for(String category: new String[] { "comedies", "histories", "tragedies", "poetry" }) {
+			assertTrue(new File(OUTPUT + "/" + category + "/part-00000/data/index").exists());
+			assertTrue(new File(OUTPUT + "/" + category + "/part-00000/conf/schema.xml").exists());
+			assertTrue(new File(OUTPUT + "/" + category + "/part-00000/conf/solrconfig.xml").exists());
+			assertTrue(new File(OUTPUT + "/" + category + "/part-00000/conf/stopwords.txt").exists());
+		}		
 		
 		// Validate data inside index
 		IndexReader r = IndexReader.open(FSDirectory.open(new File(OUTPUT + "/comedies/part-00000/data/index")));
