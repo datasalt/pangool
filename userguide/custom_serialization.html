@@ -56,7 +56,6 @@ Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the field's
  how to define fields with them: 
 </p>
  
-
 <h3>Writables</h3>
 <br>
 
@@ -68,7 +67,6 @@ Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the field's
   Tuple tuple = new Tuple(schema);
   tuple.set("my_writable",new TextLongWritable("eric",89L));
 </pre>
-
 
 <h3>Avro</h3>
 <br>
@@ -83,7 +81,6 @@ Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the field's
   tuple.set("my_avro_field",avroRecord);
 </pre>
 
-
 <h3>Thrift</h3>
 <br>
 <pre class="prettyprint" id="java">
@@ -94,7 +91,6 @@ Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the field's
   Tuple tuple = new Tuple(schema1);
   tuple.set("my_thrift_field",new MyThriftObject());
 </pre>
-
 
 <h3>Protostuff</h3>
 <br>
@@ -107,7 +103,20 @@ Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the field's
   tuple.set("my_protostuff_field",new MyProtostuffObject());
 </pre>
 
-
-
+<h3>Pangool (Tuple inside Tuple)</h3>
+<br>
+(It is possible to serialize Pangool Tuples inside Pangool Tuples.)
+<br>
+<pre class="prettyprint" id="java">
+  Schema tupleSchema = new Schema(...);
+  List&lt;Field&gt; fields = new ArrayList&lt;Field&gt;(); 
+  fields.add(Fields.createTupleField("my_tuple_field", tupleSchema));
+  Schema metaTupleSchema = new Schema("schema", fields);
+  
+  Tuple tuple = new Tuple(tupleSchema);
+  ...
+  Tuple metaTuple = new Tuple(metaTupleSchema);
+  metaTuple.set("my_tuple_field", tuple);
+</pre>
 
 <p><a class="btn btn-primary btn-large" href="comparators.html">Next: Custom Comparators &raquo;</a></p>

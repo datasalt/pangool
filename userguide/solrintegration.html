@@ -1,0 +1,75 @@
+---
+layout: user_guide
+title: Pangool - User guide - SOLR Integration
+---
+<div class="hero-unit">
+	<h1>Pangool User Guide</h1>
+</div>
+
+<h1>SOLR Integration</h1>
+
+<p>
+Pangool comes with a smooth integration with SOLR. 
+This integration is possible due to a stateful OutputFormat, <a href='http://pangool.net/apidocs/com/datasalt/pangool/solr/TupleSolrOutputFormat.html'>TupleSolrOutputFormat</a>. 
+Let's see how to use it.
+</p>
+
+<h3>Configuring a TupleSolrOutputFormat</h3>
+
+<p>
+The following code instantiates a <a href='http://pangool.net/apidocs/com/datasalt/pangool/solr/TupleSolrOutputFormat.html'>TupleSolrOutputFormat</a> with a certain Hadoop Configuration and a File pointing to "SOLR Home". 
+"SOLR Home" must be a folder that contains a sub-folder "conf" with, at least, files "schema.xml" and "solrconfig.xml". These files will be used for creating the SOLR index. For those who used it, the idea is the same than that of <a href='https://issues.apache.org/jira/browse/SOLR-1301'>SOLR-1301</a>.
+</p>
+
+<pre class="prettyprint" id="java">
+Configuration conf = new Configuration();
+File solrHome = new File("my-solr-home");
+TupleSolrOutputFormat outputFormat = new TupleSolrOutputFormat(solrHome, conf);
+</pre>
+
+<p>
+It is OK to use <a href='http://pangool.net/apidocs/com/datasalt/pangool/solr/TupleSolrOutputFormat.html'>TupleSolrOutputFormat</a> both as the main output of the Job or as a <a href='named_outputs.html'>"named output"</a>:
+</p>
+
+<pre class="prettyprint" id="java">
+Configuration conf = new Configuration();
+Path jobOutput = new Path("job-output");
+job.addNamedOutput("namedOutput1", new TupleSolrOutputFormat(new File("solr-home1"), conf), ITuple.class, NullWritable.class);
+job.addNamedOutput("namedOutput2", new TupleSolrOutputFormat(new File("solr-home2"), conf), ITuple.class, NullWritable.class);
+job.setOutput(jobOutput, new TupleSolrOutputFormat(new File("solr-home3"), conf), ITuple.class, NullWritable.class);
+</pre>
+
+<h3>TupleDocumentConverter</h3>
+
+<p>
+In order to index Tuples they must be converted to <a href='http://lucene.apache.org/solr/api/org/apache/solr/common/SolrInputDocument.html'>SolrInputDocument</a>. This conversion process is done by a <a href='http://pangool.net/apidocs/com/datasalt/pangool/solr/TupleDocumentConverter.html'>TupleDocumentConverter</a>. Pangool comes with a default TupleDocumentConverter called <a href='http://pangool.net/apidocs/com/datasalt/pangool/solr/DefaultTupleDocumentConverter.html'>DefaultTupleDocumentConverter</a> which will be OK for most of the cases. This converter maps Pangool primitive fields (INT, LONG, STRING, DOUBLE, FLOAT, BOOLEAN) to SOLR primitive fields.
+More advanced converters can be implemented and passed as a parameter to the OutputFormat:
+</p>
+
+<pre class="prettyprint" id="java">
+Configuration conf = new Configuration();
+File solrHome = new File("my-solr-home");
+TupleDocumentConverter converter = new MyCustomTupleDocumentConverter();
+TupleSolrOutputFormat outputFormat = new TupleSolrOutputFormat(solrHome, conf, converter);
+</pre>
+
+<h3>Advanced configuration</h3>
+
+<p>
+It is possible to configure the OutputFormat further with the following extra constructor parameters:
+</p>
+
+<ul>
+	<li><em>outputZipFile (false)</em>: If user wants to produce a ZIP with the index.</li>
+	<li><em>batchSize (20)</em>: Number of documents that will go in each indexing batch.</li>
+	<li><em>threadCount (2)</em>: Number of threads in a pool that will be used for indexing.</li>
+	<li><em>queueSize (100)</em>: Maximum number of batches that can be pooled in the batch indexing thread pool.</li>
+</ul>
+
+<h3>Use case</h3>
+
+<p>
+For a example use case see <a href='https://github.com/datasalt/pangool/blob/master/examples/src/main/java/com/datasalt/pangool/examples/solr/MultiShakespeareIndexer.java'>MultiShakespeareIndexer</a>.
+</p>
+
+<p><a class="btn btn-primary btn-large" href="mapred_api.html">Next: Tuple MapReduce API &raquo;</a></p>
