@@ -1,6 +1,13 @@
 Pangool Change Log
 ====================
 
+Pangool 0.43.1 (17/05/2012)
+
+ NEW FEATURES
+
+ - 16/05/2012 - Possibility of serializing Tuples inside Tuples
+ - 17/05/2012 - Improved TupleSolrOutputFormat to copy all SOLR config into the output
+
 Pangool 0.43.0 (11/05/2012)
 
  NEW FEATURES
