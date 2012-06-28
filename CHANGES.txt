@@ -1,6 +1,13 @@
 Pangool Change Log
 ====================
 
+Pangool 0.43.2 (2012-06-28)
+
+ BUG FIXES
+
+ - 2012-06-28 - NullPointerException with RollupReducer for empty reduce
+                tasks
+
 Pangool 0.43.1 (17/05/2012)
 
  NEW FEATURES

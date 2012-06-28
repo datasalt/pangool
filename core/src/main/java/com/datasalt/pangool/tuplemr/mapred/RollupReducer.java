@@ -130,15 +130,18 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends
 		try {
 			setup(context);
 			firstRun = true;
+			boolean anyValue = false;
 			while(context.nextKey()) {
+				anyValue = true;
 				reduce(context.getCurrentKey(), context.getValues(), context);
-				// TODO look if this matches super.run() implementation
 			}
 
-			// close last group
-			for(int i = maxDepth; i >= minDepth; i--) {
-				handler.onCloseGroup(i, groupSchema.getField(i).getName(), context
-				    .getCurrentKey().datum(), this.context, collector);
+			// close last group. Only if there was any value.
+			if (anyValue) {
+				for(int i = maxDepth; i >= minDepth; i--) {
+					handler.onCloseGroup(i, groupSchema.getField(i).getName(), context
+					    .getCurrentKey().datum(), this.context, collector);
+				}
 			}
 			cleanup(context);
 		} catch(TupleMRException e) {

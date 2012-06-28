@@ -333,111 +333,6 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		trash(TEST_OUT);
 	}
 	
-	//TODO add Rollup with comparator
-	
-//	@SuppressWarnings("serial")
-//  public static class IntReverseComparator extends DeserializerComparator<Integer> {
-//
-//		public IntReverseComparator() {
-//	    super(Type.INT);
-//    }
-//
-//		@Override
-//    public int compare(Integer a, Integer b) {
-//			return - a.compareTo(b);
-//		}
-//		
-//	};
-	
-	/**
-	 * Testing rollup with a custom comparator. The age
-	 * is sorted by reversering the digits.
-	 */
-//	@Test
-//	public void testWithCustomComparator() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
-//	    IllegalAccessException, TupleMRException {
-//
-//		String input = TEST_OUT + "/input";
-//		String output = TEST_OUT + "/output";
-//
-//		String[] inputElements = new String[] { 
-//				"ES 20 listo 250", 
-//		    "US 16 listo 160",
-//		    "US 15 jauja 160",
-//				"US 14 beber 202", 
-//				"US 14 perro 180", 
-//				"US 14 perro 170",  
-//		    "XE 20 listo 230" 
-//		    };
-//		List<Field> fields = Fields.parse("country:string, age:int, name:string, height:int");
-//		Field avroField = Field.createObject("my_avro",AvroFieldSerializer.class,AvroFieldDeserializer.class));
-//		avroField.addProp("avro.schema",AVRO_SCHEMA);
-//		Schema schema = new Schema("schema",fields);
-//		ITuple[] tuples = new ITuple[inputElements.length];
-//		int i = 0;
-//		for(String inputElement : inputElements) {
-//			withInput(input, writable(inputElement));
-//			tuples[i++] = createTuple(inputElement,schema);
-//		}
-//		Path outputPath = new Path(output);
-//		
-//		TupleMRBuilder builder = new TupleMRBuilder(getConf());
-//		builder.addIntermediateSchema(schema);
-//		builder.setGroupByFields("country","age","name");
-//		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC, new IntReverseComparator()).add("name",Order.ASC));
-//		builder.setRollupFrom("age");
-//		builder.setTupleReducer(new IdentityRed());
-//		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
-//		builder.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
-//
-//		Job job = builder.createJob();
-//		job.setNumReduceTasks(1);
-//
-//		assertRun(job);
-//
-//		FileSystem fs = FileSystem.get(getConf());
-//		Path outputFile = new Path(output + "/part-r-00000");
-//		checkRollupOutput(outputFile, 1, 2);
-//		SequenceFile.Reader reader = new SequenceFile.Reader(fs, outputFile, getConf());
-//
-//		assertOutput(reader, "OPEN 1", tuples[0]);
-//		assertOutput(reader, "OPEN 2", tuples[0]);
-//		assertOutput(reader, "ELEMENT", tuples[0]);
-//		assertOutput(reader, "CLOSE 2", tuples[0]);
-//		assertOutput(reader, "CLOSE 1", tuples[0]);
-//
-//		assertOutput(reader, "OPEN 1", tuples[1]);
-//		assertOutput(reader, "OPEN 2", tuples[1]);
-//		assertOutput(reader, "ELEMENT", tuples[1]);
-//		assertOutput(reader, "CLOSE 2", tuples[1]);
-//		assertOutput(reader, "CLOSE 1", tuples[1]);
-//
-//		assertOutput(reader, "OPEN 1", tuples[2]);
-//		assertOutput(reader, "OPEN 2", tuples[2]);
-//		assertOutput(reader, "ELEMENT", tuples[2]);
-//		assertOutput(reader, "CLOSE 2", tuples[2]);
-//		assertOutput(reader, "CLOSE 1", tuples[2]);
-//
-//		assertOutput(reader, "OPEN 1", tuples[3]);
-//		assertOutput(reader, "OPEN 2", tuples[3]);
-//		assertOutput(reader, "ELEMENT", tuples[3]);
-//		assertOutput(reader, "CLOSE 2", tuples[3]);
-//
-//		assertOutput(reader, "OPEN 2", tuples[4]);
-//		assertOutput(reader, "ELEMENT", tuples[4]);
-//		assertOutput(reader, "ELEMENT", tuples[5]);
-//		assertOutput(reader, "CLOSE 2", tuples[5]);
-//		assertOutput(reader, "CLOSE 1", tuples[5]);
-//
-//		assertOutput(reader, "OPEN 1", tuples[6]);
-//		assertOutput(reader, "OPEN 2", tuples[6]);
-//		assertOutput(reader, "ELEMENT", tuples[6]);
-//		assertOutput(reader, "CLOSE 2", tuples[6]);
-//		assertOutput(reader, "CLOSE 1", tuples[6]);
-//
-//		cleanUp();
-//		trash(TEST_OUT);
-//	}
 
 	private enum State {
 		OPEN, CLOSE, ELEMENT
@@ -524,6 +419,53 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 
 		Assert.assertEquals(new Text(expectedKey), actualKey);
 		Assert.assertEquals(new Text(expectedValue.toString()), actualValue);
+	}
+	
+	
+	@SuppressWarnings("serial")
+  private static class DoNothingMap extends TupleMapper<Text, NullWritable> {	
+
+		@Override
+		public void map(Text key, NullWritable value, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException {
+		}
+	}
+
+	/**
+	 * Tests the case in which the reducer receives no data.  
+	 */
+	@Test
+	public void testNoDataReducer() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
+	    IllegalAccessException, TupleMRException {
+
+		String input = TEST_OUT + "/input";
+		String output = TEST_OUT + "/output";
+
+		String[] inputElements = new String[] { 
+				"ES 20 listo 250", 
+		    };
+
+		withInput(input, writable("ES 20 listo 250"));
+		
+		Schema schema = new Schema("schema",Fields.parse("country:string, age:int, name:string, height:int"));
+		Path outputPath = new Path(output);
+
+		TupleMRBuilder builder = new TupleMRBuilder(getConf());
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("age","name","country");
+		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
+		builder.setRollupFrom("age");
+		builder.setTupleReducer(new IdentityRed());
+		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
+		builder.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new DoNothingMap());
+
+		Job job = builder.createJob();
+		job.setNumReduceTasks(1);
+
+		assertRun(job);
+				
+		cleanUp();
+		trash(TEST_OUT);
 	}
 
 }
