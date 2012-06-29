@@ -1,6 +1,12 @@
 Pangool Change Log
 ====================
 
+Pangool 0.43.3 (development)
+
+ IMPROVEMENTS
+
+ - 2012-06-29 - Miscellaneous improvements to Pangool-flow
+
 Pangool 0.43.2 (2012-06-28)
 
  BUG FIXES
