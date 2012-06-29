@@ -30,7 +30,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
  * Reducer to be used to execute one {@link Op} or {@link ChainOp}. Removes the need of implementing a reducer.
  * It can be used with {@link TupleOutput}s. 
  */
-public class TupleOpReducer extends SingleSchemaReducer<ITuple, NullWritable> {
+public class TupleOpReducer extends SingleSchemaReducer {
 
 	Op<Iterable<ITuple>, ITuple> op;
 	Collector collector;

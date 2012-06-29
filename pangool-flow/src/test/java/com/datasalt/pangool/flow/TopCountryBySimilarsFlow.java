@@ -85,7 +85,7 @@ public class TopCountryBySimilarsFlow extends LinearFlow {
 				addInput("topSimilarities", new TupleInput(similaritySchema));
 				addInput("countryInfo", new TextInput(new TextMapper(new TupleParser(countryInfo, "\t")), countryInfo));
 				// Define the Reducer - this is a custom reducer
-				setReducer(new SingleSchemaReducer<ITuple, NullWritable>(jointSchema) {
+				setReducer(new SingleSchemaReducer(jointSchema) {
 
 					TextSer unresolvedId = new TextSer();
 

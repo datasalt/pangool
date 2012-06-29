@@ -16,9 +16,14 @@
 package com.datasalt.pangool.flow;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class Params extends ArrayList<Param> {
+	
+	public Params(List<Param> params) {
+		this(params.toArray(new Param[0]));
+	}
 	
 	public Params(Param... config) {
 		super(config.length);

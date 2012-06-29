@@ -15,6 +15,8 @@
  */
 package com.datasalt.pangool.flow.mapred;
 
+import org.apache.hadoop.io.NullWritable;
+
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
@@ -25,10 +27,10 @@ import com.datasalt.pangool.tuplemr.TupleReducer;
  * be cached and reused.
  */
 @SuppressWarnings("serial")
-public abstract class SingleSchemaReducer<T, K> extends TupleReducer<T, K> {
+public abstract class SingleSchemaReducer extends TupleReducer<ITuple, NullWritable> {
 
-	private final Tuple outTuple;
-	private final Schema outputSchema;
+	protected final Tuple outTuple;
+	protected final Schema outputSchema;
 	
 	public SingleSchemaReducer(Schema outputSchema) {
 		this.outputSchema = outputSchema;

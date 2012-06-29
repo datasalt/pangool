@@ -7,13 +7,13 @@ import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 
 @SuppressWarnings("serial")
-public class Sum extends TupleOp<Iterable<ITuple>>{
+public class IntSum extends TupleOp<Iterable<ITuple>>{
 
 	String origField;
 	String destField;
 	Schema copySchema;
 
-	public Sum(String origField, String destField, Schema outSchema, Schema copySchema) {
+	public IntSum(String origField, String destField, Schema outSchema, Schema copySchema) {
 		super(outSchema);
 		this.origField = origField;
 		this.destField = destField;
@@ -23,10 +23,10 @@ public class Sum extends TupleOp<Iterable<ITuple>>{
 	public void process(Iterable<ITuple> tuples, ReturnCallback<ITuple> callback) throws IOException,
 	    InterruptedException {
 
-	  long count = 0l;
+	  int count = 0;
 	  ITuple lastTuple = null;
 		for(ITuple tuple : tuples) {
-			count += (Long) tuple.get(origField);
+			count += (Integer) tuple.get(origField);
 			lastTuple = tuple;
 		}
 		Utils.shallowCopy(lastTuple, tuple, copySchema);

@@ -177,7 +177,9 @@ public abstract class LinearFlow implements Serializable {
 				HadoopUtils.deleteIfExists(p.getFileSystem(conf), p);
 			}
 			Log.info("Executing [" + job.getName() + "], args: " + args);
-			ToolRunner.run(conf, job, args.toArray(new String[0]));
+			if(ToolRunner.run(conf, job, args.toArray(new String[0])) < 0) {
+				throw new RuntimeException("Flow failed at step [" + job.getName() + "]");
+			}
 		}
 	}
 }

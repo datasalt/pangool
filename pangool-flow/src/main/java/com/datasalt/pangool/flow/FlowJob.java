@@ -148,6 +148,8 @@ public abstract class FlowJob implements Configurable, Tool, Serializable {
 					val = hadoopConf.getStrings(hadoopConfName);
 				} else if(parameter.getClazz().equals(Long.class)) {
 					val = Long.parseLong(val + "");
+				} else if(parameter.getClazz().equals(Boolean.class)) {
+					val = Boolean.parseBoolean(val + "");
 				}
 				parsedParameters.put(parameter.getName(), val);
 			} catch(Throwable e) {

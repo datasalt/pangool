@@ -15,11 +15,6 @@
  */
 package com.datasalt.pangool.flow;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import junit.framework.Assert;
 
 import org.apache.hadoop.conf.Configuration;

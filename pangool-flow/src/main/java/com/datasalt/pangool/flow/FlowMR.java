@@ -1,6 +1,5 @@
 package com.datasalt.pangool.flow;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -21,12 +20,11 @@ import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "rawtypes", "unchecked" })
 public abstract class FlowMR extends FlowJob {
 
-	@SuppressWarnings("rawtypes")
   transient TupleReducer reducer = new IdentityTupleReducer();
-	transient TupleReducer combiner = null;
+  transient TupleReducer combiner = null;
 	transient GroupBy groupBy;
 	transient OrderBy orderBy = null;
 	
@@ -63,7 +61,7 @@ public abstract class FlowMR extends FlowJob {
 		bindedOutputs.put(name, outputSpec);
 	}
 	
-	protected void setReducer(@SuppressWarnings("rawtypes") TupleReducer reducer) {
+	protected void setReducer(TupleReducer reducer) {
 		this.reducer = reducer;
 	}
 	
@@ -77,12 +75,12 @@ public abstract class FlowMR extends FlowJob {
 	
 	transient TupleMRBuilder mr;
 	
-	@SuppressWarnings("unchecked")
   @Override
   public int run(Path outputPath, Map<String, Path> parsedInputs, Map<String, Object> parsedParameters)
       throws Exception {
 
-		mr = new TupleMRBuilder(hadoopConf);
+		mr = new TupleMRBuilder(hadoopConf, getName());
+		mr.setJarByClass(this.getClass());
 		
 		configure(parsedParameters);
 
