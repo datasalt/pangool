@@ -280,11 +280,6 @@
                 <id>pangool-snapshots</id>
                 <url>http://clinker.pangool.net/nexus/content/repositories/snapshots</url>
             </snapshotRepository>
-            <site>
-                <id>clinker</id>
-                <name>Pangool</name>
-                <url>file:///clinker/data/htdocs/maven-site</url>
-            </site>
         </distributionManagement>
 
         <!-- ///////////////// -->
