@@ -8,10 +8,9 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 
 /**
- * A special operation that implements a 1-N Tuple join. It copies all the fields from the left tuple
- * and them all the fields from the right tuple. If the 1 side of the relationship is not present, it applies
- * the default values defined in the Map<String, Object> that is given as a parameter. The joint schema has to be given
- * as well. 
+ * A special operation that implements a 1-N Tuple join. It copies all the fields from the left tuple and them all the
+ * fields from the right tuple. If the 1 side of the relationship is not present, it applies the default values defined
+ * in the Map<String, Object> that is given as a parameter. The joint schema has to be given as well.
  */
 @SuppressWarnings("serial")
 public class OneToNJoinOp extends TupleOp<Iterable<ITuple>> {
@@ -32,26 +31,28 @@ public class OneToNJoinOp extends TupleOp<Iterable<ITuple>> {
 	    InterruptedException {
 
 		int count = 0;
-		ITuple oneSchemaTuple = null;
+
 		for(ITuple tuple : tuples) {
-			if(count == 0) {
-				if(tuple.getSchema().getName().equals(leftSchema.getName())) {
-					oneSchemaTuple = tuple;
-				}
-			} else { // apply join operation
-				if(tuple.getSchema().getName().equals(leftSchema.getName())) {
-					throw new IOException("Expected to receive one tuple from left schema [" + leftSchema.getName() + "] but received more than one!");
-				}
-				if(oneSchemaTuple != null) {
-					for(Field field: leftSchema.getFields()) {
-						this.tuple.set(field.getName(), oneSchemaTuple.get(field.getName()));
+			if(tuple.getSchema().getName().equals(leftSchema.getName())) {
+				if(count == 0) {
+					for(Field field : leftSchema.getFields()) {
+						this.tuple.set(field.getName(), tuple.get(field.getName()));
 					}
 				} else {
-					for(Map.Entry<String, Object> mapEntry: defaultValues.entrySet()) {
+					throw new IOException("Expected to receive one tuple from left schema [" + leftSchema.getName()
+					    + "] but received more than one!");
+				}
+			} else {
+				if(count == 0) {
+					for(Map.Entry<String, Object> mapEntry : defaultValues.entrySet()) {
 						this.tuple.set(mapEntry.getKey(), mapEntry.getValue());
 					}
 				}
-				for(Field field: rightSchema.getFields()) {
+			}
+			
+			if(tuple.getSchema().getName().equals(rightSchema.getName())) {
+				// Apply join operation
+				for(Field field : rightSchema.getFields()) {
 					this.tuple.set(field.getName(), tuple.get(field.getName()));
 				}
 				callback.onReturn(this.tuple);

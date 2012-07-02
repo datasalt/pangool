@@ -23,28 +23,25 @@ import java.io.IOException;
 @SuppressWarnings({ "serial", "unchecked", "rawtypes" })
 public class ChainOp<T, K> extends Op<T, K> {
 
-	Op[] ops;
-	int methodCount = 0;
-	ReturnCallback origCallback;
+	final Op[] ops;
 
 	public ChainOp(Op... ops) {
 		this.ops = ops;
 	}
 
-	ReturnCallback callback = new ReturnCallback() {
-		public void onReturn(Object element) throws IOException, InterruptedException {
-			if(methodCount < ops.length) {
-				ops[methodCount++].process(element, callback);
-			} else {
-				methodCount = 0;
-				origCallback.onReturn(element);
-			}
-		};
-	};
-
 	@Override
-	public void process(T input, ReturnCallback<K> callback) throws IOException, InterruptedException {
-		origCallback = callback;
-		ops[methodCount++].process(input, this.callback);
+	public void process(T input, final ReturnCallback<K> origCallback) throws IOException, InterruptedException {
+		ops[0].process(input, new ReturnCallback() {
+			
+			int methodCount = 1;
+
+			public void onReturn(Object element) throws IOException, InterruptedException {
+				if(methodCount < ops.length) {
+					ops[methodCount++].process(element, this);
+				} else {
+					origCallback.onReturn((K)element);
+				}
+			};
+		});
 	}
 }
