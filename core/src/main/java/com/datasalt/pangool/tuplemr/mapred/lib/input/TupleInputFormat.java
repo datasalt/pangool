@@ -21,7 +21,6 @@ import java.io.Serializable;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.FileReader;
 import org.apache.avro.generic.GenericData.Record;
-import org.apache.avro.mapred.AvroWrapper;
 import org.apache.avro.mapred.FsInput;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.hadoop.conf.Configuration;
@@ -34,9 +33,6 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
 import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.serialization.HadoopSerialization;
-import com.datasalt.pangool.utils.AvroUtils;
 import com.datasalt.pangool.utils.AvroRecordToTupleConverter;
 
 @SuppressWarnings("serial")

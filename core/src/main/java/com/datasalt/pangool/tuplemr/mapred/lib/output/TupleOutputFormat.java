@@ -25,7 +25,6 @@ import org.apache.avro.mapreduce.lib.output.AvroOutputFormat;
 import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -34,17 +33,14 @@ import org.xerial.snappy.SnappyCodec;
 
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.utils.AvroUtils;
 import com.datasalt.pangool.utils.TupleToAvroRecordConverter;
 
 /**
  * An Avro-based output format for {@link ITuple}s
- * 
  */
 @SuppressWarnings("serial")
-public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> implements
-    Serializable {
+public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> implements Serializable {
 
 	public final static String FILE_PREFIX = "tuple";
 
@@ -65,38 +61,33 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 		protected Record record;
 		protected DataFileWriter<Record> writer;
 		private TupleToAvroRecordConverter converter;
-		//private Configuration conf;
-		
 
-		public TupleRecordWriter(Schema pangoolSchema,DataFileWriter<Record> writer,Configuration conf) {
+		public TupleRecordWriter(Schema pangoolSchema, DataFileWriter<Record> writer, Configuration conf) {
 			this.writer = writer;
 			converter = new TupleToAvroRecordConverter(pangoolSchema, conf);
 		}
 
 		@Override
-		public void close(TaskAttemptContext arg0) throws IOException, InterruptedException {
+		public void close(TaskAttemptContext context) throws IOException, InterruptedException {
 			writer.close();
 		}
 
 		@Override
-		public void write(ITuple tuple, NullWritable ignore) throws IOException,
-		    InterruptedException {
+		public void write(ITuple tuple, NullWritable ignore) throws IOException, InterruptedException {
 			record = converter.toRecord(tuple, record);
 			writer.append(record);
 		}
 	}
 
 	@Override
-	public RecordWriter<ITuple, NullWritable> getRecordWriter(TaskAttemptContext context)
-	    throws IOException, InterruptedException {
+	public RecordWriter<ITuple, NullWritable> getRecordWriter(TaskAttemptContext context) throws IOException,
+	    InterruptedException {
 
 		Schema pangoolOutputSchema = Schema.parse(this.pangoolOutputSchema);
 		org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(pangoolOutputSchema);
-		DataFileWriter<Record> writer = new DataFileWriter<Record>(
-		    new ReflectDatumWriter<Record>());
+		DataFileWriter<Record> writer = new DataFileWriter<Record>(new ReflectDatumWriter<Record>());
 
 		// Compression etc - use Avro codecs
-
 		Configuration conf = context.getConfiguration();
 		if(conf.getBoolean("mapred.output.compress", false)) {
 			String codec = conf.get("mapred.output.compression.codec");
@@ -105,19 +96,16 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 			} else {
 				codec = "null";
 			}
-			int level = conf.getInt(AvroOutputFormat.DEFLATE_LEVEL_KEY,
-			    AvroOutputFormat.DEFAULT_DEFLATE_LEVEL);
-			CodecFactory factory = codec.equals(DEFLATE_CODEC) ? CodecFactory
-			    .deflateCodec(level) : CodecFactory.fromString(codec);
+			int level = conf.getInt(AvroOutputFormat.DEFLATE_LEVEL_KEY, AvroOutputFormat.DEFAULT_DEFLATE_LEVEL);
+			CodecFactory factory = codec.equals(DEFLATE_CODEC) ? CodecFactory.deflateCodec(level) : CodecFactory
+			    .fromString(codec);
 			writer.setCodec(factory);
 		}
-		writer.setSyncInterval(conf.getInt(AvroOutputFormat.SYNC_INTERVAL_KEY,
-		    DEFAULT_SYNC_INTERVAL));
+		writer.setSyncInterval(conf.getInt(AvroOutputFormat.SYNC_INTERVAL_KEY, DEFAULT_SYNC_INTERVAL));
 
 		Path file = getDefaultWorkFile(context, "");
-		writer
-		    .create(avroSchema, file.getFileSystem(context.getConfiguration()).create(file));
+		writer.create(avroSchema, file.getFileSystem(context.getConfiguration()).create(file));
 
-		return new TupleRecordWriter(pangoolOutputSchema, writer,conf);
+		return new TupleRecordWriter(pangoolOutputSchema, writer, conf);
 	}
 }
