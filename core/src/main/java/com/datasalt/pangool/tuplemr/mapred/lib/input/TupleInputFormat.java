@@ -21,7 +21,6 @@ import java.io.Serializable;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.FileReader;
 import org.apache.avro.generic.GenericData.Record;
-import org.apache.avro.mapred.AvroWrapper;
 import org.apache.avro.mapred.FsInput;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.hadoop.conf.Configuration;
@@ -34,9 +33,6 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
 import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.serialization.HadoopSerialization;
-import com.datasalt.pangool.utils.AvroUtils;
 import com.datasalt.pangool.utils.AvroRecordToTupleConverter;
 
 @SuppressWarnings("serial")
@@ -47,13 +43,12 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> impl
 
 		private SpecificDatumReader<Record> specificReader;
 		private FileReader<Record> reader;
-		private long start;
-		private long end;
+		private long start = 0;
+		private long end = Integer.MAX_VALUE;
 		private Configuration conf;
 		private AvroRecordToTupleConverter converter;
 		private Record record;
 		private ITuple tuple;
-		//private AvroWrapper<Record> wrapper;
 
 		public TupleInputReader(Configuration conf) throws IOException, InterruptedException {
 			specificReader = new SpecificDatumReader<Record>();
@@ -104,9 +99,7 @@ public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> impl
 		public void initialize(Path path, Configuration conf) throws IOException {
 			FsInput fSInput = new FsInput(path, conf);
 			reader = DataFileReader.openReader(fSInput, specificReader);
-			end = Long.MAX_VALUE;
 			reader.sync(0);
-			start = reader.tell();
 		}
 
 		/*

@@ -28,7 +28,7 @@ import com.google.common.io.Files;
 
 public class TestGrep extends AbstractHadoopTestLibrary {
 
-	private final static String FOLDER = "/tmp";
+	private final static String FOLDER = ".";
 	private final static String INPUT = FOLDER + "/test-input-" + TestGrep.class.getName();
 	private final static String OUTPUT = FOLDER + "/tests-files/test-output-" + TestGrep.class.getName();
 
