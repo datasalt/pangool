@@ -15,7 +15,9 @@
  */
 package com.datasalt.pangool.tuplemr.mapred.lib.output;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
 
 import org.apache.avro.file.CodecFactory;
@@ -24,6 +26,7 @@ import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.mapreduce.lib.output.AvroOutputFormat;
 import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
@@ -76,6 +79,46 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 		public void write(ITuple tuple, NullWritable ignore) throws IOException, InterruptedException {
 			record = converter.toRecord(tuple, record);
 			writer.append(record);
+		}
+		
+		/**
+		 * Get a TupleRecordWriter from a local File.
+		 */
+		public static TupleRecordWriter getTupleWriter(Configuration conf, Schema schema, File file) throws IOException {
+			DataFileWriter<Record> avroWriter = new DataFileWriter<Record>(new ReflectDatumWriter<Record>());
+			avroWriter.create(AvroUtils.toAvroSchema(schema), file);
+			TupleRecordWriter writer = new TupleRecordWriter(schema, avroWriter, conf);
+			return writer;
+		}
+		
+		/**
+		 * Get a TupleRecordWriter from an OutputStream.
+		 */
+		public static TupleRecordWriter getTupleWriter(Configuration conf, Schema schema, OutputStream oS) throws IOException {
+			DataFileWriter<Record> avroWriter = new DataFileWriter<Record>(new ReflectDatumWriter<Record>());
+			avroWriter.create(AvroUtils.toAvroSchema(schema), oS);
+			TupleRecordWriter writer = new TupleRecordWriter(schema, avroWriter, conf);
+			return writer;
+		}
+		
+		/**
+		 * Get a TupleRecordWriter from a Hadoop Path and a Schema 
+		 */
+		public static TupleRecordWriter getTupleWriter(Configuration conf, Schema schema, Path file)
+		    throws IOException {
+			org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(schema);
+			DataFileWriter<Record> writer = new DataFileWriter<Record>(new ReflectDatumWriter<Record>());
+			FileSystem fS = file.getFileSystem(conf);
+			writer.create(avroSchema, fS.create(file, true));
+			return new TupleRecordWriter(schema, writer, conf);
+		}
+
+		/**
+		 * Get a TupleRecordWriter for a local file String and a Schema
+		 */
+		public static TupleRecordWriter getTupleWriter(Configuration conf, Schema schema, String localFile)
+		    throws IOException {
+			return getTupleWriter(conf, schema, new File(localFile));
 		}
 	}
 
