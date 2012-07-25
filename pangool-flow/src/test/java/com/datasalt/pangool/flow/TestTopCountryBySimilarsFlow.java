@@ -43,7 +43,7 @@ public class TestTopCountryBySimilarsFlow extends AbstractHadoopTestLibrary {
 		flow.execute(EXECUTION_MODE.OVERWRITE, conf, "topCountry.output");
 
 		final Map<String, String> resultMap = new HashMap<String, String>();
-		Utils.readTuples(new Path(OUT + "/part-r-00000"), conf, new Utils.TupleVisitor() {
+		AbstractHadoopTestLibrary.readTuples(new Path(OUT + "/part-r-00000"), conf, new AbstractHadoopTestLibrary.TupleVisitor() {
 
 			@Override
 			public void onTuple(ITuple tuple) {
