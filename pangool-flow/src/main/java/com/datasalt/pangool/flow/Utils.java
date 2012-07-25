@@ -25,7 +25,6 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.tuplemr.TupleMapper.TupleMRContext;
-import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 import com.datasalt.pangool.utils.HadoopUtils;
 
 public class Utils {
@@ -45,32 +44,5 @@ public class Utils {
 	
 	public static void delete(Path path, Configuration conf) throws IOException {
 		HadoopUtils.deleteIfExists(path.getFileSystem(conf), path);
-	}
-	
-
-	public abstract static class TupleVisitor {
-
-		public abstract void onTuple(ITuple tuple);
-	}
-
-	public static class PrintVisitor extends TupleVisitor {
-
-		@Override
-    public void onTuple(ITuple tuple) {
-	    System.out.println(tuple);
-    }
-	}
-	
-	/*
-	 * Read the Tuples from a TupleOutput using TupleInputReader.
-	 */
-	public static void readTuples(Path file, Configuration conf, TupleVisitor iterator) throws IOException, InterruptedException {
-		TupleInputReader reader = new TupleInputReader(conf);
-		reader.initialize(new Path(file + ""), conf);
-		while(reader.nextKeyValueNoSync()) {
-			ITuple tuple = reader.getCurrentKey();
-			iterator.onTuple(tuple);
-		}
-		reader.close();
 	}
 }

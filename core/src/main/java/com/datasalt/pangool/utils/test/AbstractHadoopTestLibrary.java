@@ -20,7 +20,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BooleanWritable;
@@ -146,25 +149,63 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 		withOutput(output, key, NullWritable.get());
 	}
 
-	public void withTupleOutput(String output, ITuple expectedTuple) throws IOException {
-		List<Pair<Object, Object>> outs = ensureTupleOutput(output);
-		for(Pair<Object, Object> out : outs) {
-			ITuple currentTuple = (ITuple) out.getFirst();
-			if(currentTuple.equals(expectedTuple)) {
-				return; //found
-			}
+	public abstract static class TupleVisitor {
+
+		public abstract void onTuple(ITuple tuple);
+	}
+
+	public static class PrintVisitor extends TupleVisitor {
+
+		@Override
+    public void onTuple(ITuple tuple) {
+	    System.out.println(tuple);
+    }
+	}
+	
+	/*
+	 * Read the Tuples from a TupleOutput using TupleInputReader.
+	 */
+	public static void readTuples(Path file, Configuration conf, TupleVisitor iterator) throws IOException, InterruptedException {
+		TupleInputReader reader = new TupleInputReader(conf);
+		reader.initialize(new Path(file + ""), conf);
+		while(reader.nextKeyValueNoSync()) {
+			ITuple tuple = reader.getCurrentKey();
+			iterator.onTuple(tuple);
 		}
+		reader.close();
+	}
+	
+	public void withTupleOutput(String output, final ITuple expectedTuple) throws IOException, InterruptedException {
+		final AtomicBoolean found = new AtomicBoolean(false);
+		final AtomicInteger tuples = new AtomicInteger(0); 
+		readTuples(new Path(output), new Configuration(), new TupleVisitor() {
+			@Override
+      public void onTuple(ITuple tuple) {
+	      tuples.incrementAndGet();
+	      if(tuple.equals(expectedTuple)) {
+	      	found.set(true);
+	      }
+      }
+		});
+		
+		if(found.get()) {
+			return;
+		}
+
 		/*
 		 * Not found. Let's create some meaningful message
 		 */
-		if(outs.size() == 0) {
+		if(tuples.get() == 0) {
 			throw new AssertionError("Empty output " + output);
 		}
 		System.err.println("Not found in output. Tuple: " + expectedTuple);
-		for(Pair<Object, Object> inOutput : outs) {
-			System.err.println("Output entry -> Tuple: " + inOutput.getFirst());
-		}
-		throw new AssertionError("Not found in output -> Tuple: " + expectedTuple + ". Found tuples: " + outs);
+		readTuples(new Path(output), new Configuration(), new TupleVisitor() {
+			public void onTuple(ITuple tuple) {
+				System.err.println("Output entry -> Tuple: " + tuple);
+			};
+		});
+		
+		throw new AssertionError("Not found in output -> Tuple: " + expectedTuple);
 	}
 
 	public void withOutput(String output, Object key, Object value) throws IOException {
@@ -185,25 +226,6 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 			System.err.println("Output entry -> KEY: " + inOutput.getFirst() + ", VALUE: " + inOutput.getSecond());
 		}
 		throw new AssertionError("Not found in output -> KEY: " + key + ", VALUE: " + value);
-	}
-
-	public List<Pair<Object, Object>> ensureTupleOutput(String output) throws IOException {
-		List<Pair<Object, Object>> outs = outputs.get(output);
-		try {
-			if(outs == null) {
-				outs = new ArrayList<Pair<Object, Object>>();
-				TupleInputReader reader = new TupleInputReader(getConf());
-				reader.initialize(new Path(output), getConf());
-				while(reader.nextKeyValueNoSync()) {
-					ITuple tuple = reader.getCurrentKey();
-					outs.add(new Pair<Object, Object>(tuple, NullWritable.get()));
-				}
-				reader.close();
-			}
-		} catch(InterruptedException e) {
-			throw new IOException(e);
-		}
-		return outs;
 	}
 
 	public List<Pair<Object, Object>> ensureOutput(String output) throws IOException {
