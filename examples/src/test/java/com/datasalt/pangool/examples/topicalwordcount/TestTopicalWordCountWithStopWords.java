@@ -41,13 +41,13 @@ public class TestTopicalWordCountWithStopWords extends AbstractHadoopTestLibrary
 		TestTopicalWordCount.createInput(INPUT);
 
 		Files.touch(new File(STOP_WORDS));
-		ToolRunner.run( new TopicalWordCountWithStopWords(), new String[] { INPUT, OUTPUT, STOP_WORDS });
+		ToolRunner.run(getConf(), new TopicalWordCountWithStopWords(), new String[] { INPUT, OUTPUT, STOP_WORDS });
 		
 		assertEquals(6, TestTopicalWordCount.assertOutput(OUTPUT + "/part-r-00000", conf));
 		
 		// Stop words: bar, bloh
 		Files.write(("bar" + "\n" + "bloh").getBytes("UTF-8"), new File(STOP_WORDS));
-		ToolRunner.run( new TopicalWordCountWithStopWords(), new String[] { INPUT, OUTPUT, STOP_WORDS });
+		ToolRunner.run(getConf(), new TopicalWordCountWithStopWords(), new String[] { INPUT, OUTPUT, STOP_WORDS });
 
 		assertEquals(3, TestTopicalWordCount.assertOutput(OUTPUT + "/part-r-00000", conf));
 		

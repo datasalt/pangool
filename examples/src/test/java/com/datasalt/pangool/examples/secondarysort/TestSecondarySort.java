@@ -15,12 +15,13 @@
  */
 package com.datasalt.pangool.examples.secondarysort;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+import org.apache.hadoop.util.ToolRunner;
 import org.junit.Test;
 
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
@@ -34,7 +35,7 @@ public class TestSecondarySort extends AbstractHadoopTestLibrary {
 	
 	@Test
 	public void testPangool() throws Exception {
-		SecondarySort.main(new String[] { TEST_FILE, OUT_PANGOOL });
+		ToolRunner.run(getConf(),new SecondarySort(),new String[] { TEST_FILE, OUT_PANGOOL });
 		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
 		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
 		assertEquals(expectedOutput, outPangool);

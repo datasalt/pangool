@@ -37,6 +37,7 @@ public abstract class AbstractBaseTest {
 
 	public static Configuration createNewConfiguration() {
 		Configuration conf = new Configuration();
+		TupleSerialization.enableSchemaValidation(conf);
 		return conf;
 	}
 	

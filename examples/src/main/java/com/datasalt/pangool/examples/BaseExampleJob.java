@@ -18,14 +18,13 @@ package com.datasalt.pangool.examples;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
-import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-public abstract class BaseExampleJob implements Tool, Configurable {
+public abstract class BaseExampleJob implements Tool {
 
 	public final static Charset UTF8 = Charset.forName("UTF-8");
 	private String help;

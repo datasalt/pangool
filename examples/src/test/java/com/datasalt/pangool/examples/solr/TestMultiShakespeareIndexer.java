@@ -21,7 +21,7 @@ public class TestMultiShakespeareIndexer extends AbstractHadoopTestLibrary {
 	public void test() throws Exception {
 		trash(OUTPUT);
 		
-		ToolRunner.run(new MultiShakespeareIndexer(), new String[] { INPUT, OUTPUT });
+		ToolRunner.run(getConf(),new MultiShakespeareIndexer(), new String[] { INPUT, OUTPUT });
 		
 		// Assert that indexes have been created
 		for(String category: new String[] { "comedies", "histories", "tragedies", "poetry" }) {

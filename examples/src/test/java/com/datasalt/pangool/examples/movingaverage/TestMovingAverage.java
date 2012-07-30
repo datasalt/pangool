@@ -44,7 +44,7 @@ public class TestMovingAverage extends AbstractHadoopTestLibrary{
 				"url2" + "\t" + "2011-02-25" + "\t" + "25" + "\n"
 		, new File(INPUT), Charset.forName("UTF-8"));
 
-		ToolRunner.run(new MovingAverage(), new String[] { INPUT, OUTPUT, "3" });
+		ToolRunner.run(getConf(),new MovingAverage(), new String[] { INPUT, OUTPUT, "3" });
 
 		int validatedOutputLines = 0;
 		for(String line : Files.readLines(new File(OUTPUT + "/part-r-00000"), Charset.forName("UTF-8"))) {

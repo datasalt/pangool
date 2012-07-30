@@ -42,7 +42,8 @@ public class TestAvroTopicalWordCount extends AbstractHadoopTestLibrary {
 	@Test
 	public void test() throws Exception {
 		createInput(INPUT);
-		ToolRunner.run( new AvroTopicalWordCount(), new String[] {  INPUT, OUTPUT });
+		Configuration conf = getConf();
+		ToolRunner.run(conf,new AvroTopicalWordCount(), new String[] {  INPUT, OUTPUT });
 		
 		assertEquals(6, assertOutput(OUTPUT + "/part-r-00000", new Configuration()));
 		

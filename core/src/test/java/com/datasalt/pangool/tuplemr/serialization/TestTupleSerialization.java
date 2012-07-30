@@ -75,14 +75,15 @@ public class TestTupleSerialization extends BaseTest{
 	
 	@Test
 	public void testRandomTupleSerialization() throws IOException,  TupleMRException {
-		Configuration conf = new Configuration();
-		ThriftSerialization.enableThriftSerialization(conf);
+		Configuration conf = getConf();
+		//ThriftSerialization.enableThriftSerialization(conf);
 		
 		HadoopSerialization hadoopSer = new HadoopSerialization(conf);
 		//defined in BaseTest
 		Schema schema = pangoolConf.getIntermediateSchema("schema"); //most complete
 		
 		TupleSerialization serialization = new TupleSerialization(hadoopSer,pangoolConf);
+		
 		TupleSerializer serializer = (TupleSerializer)serialization.getSerializer(null);
 		TupleDeserializer deser = (TupleDeserializer)serialization.getDeserializer(null);
 		Tuple tuple = new Tuple(schema);
@@ -97,8 +98,8 @@ public class TestTupleSerialization extends BaseTest{
 	@Test
 	public void testTupleToRecordConversion() throws Exception {
 		Schema schema = SCHEMA; //TODO add permutations of this schema
-		Configuration conf = new Configuration();
-		ThriftSerialization.enableThriftSerialization(conf);
+		Configuration conf = getConf();
+		//ThriftSerialization.enableThriftSerialization(conf);
 		
 		TupleToAvroRecordConverter pangoolToAvro = 
 				new TupleToAvroRecordConverter(schema, conf);

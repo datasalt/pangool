@@ -36,8 +36,8 @@ public class TestNaiveBayes extends AbstractHadoopTestLibrary{
 	public void test() throws Exception {
 		trash(OUT_MODEL, OUT_CLASSIFY);
 		
-		ToolRunner.run(new NaiveBayesGenerate(), new String[] { "src/test/resources/nb-examples.txt", OUT_MODEL });
-		ToolRunner.run(new NaiveBayesClassifier(), new String[] { OUT_MODEL + "/p*", "src/test/resources/nb-test-examples.txt", OUT_CLASSIFY });
+		ToolRunner.run(getConf(),new NaiveBayesGenerate(), new String[] { "src/test/resources/nb-examples.txt", OUT_MODEL });
+		ToolRunner.run(getConf(),new NaiveBayesClassifier(), new String[] { OUT_MODEL + "/p*", "src/test/resources/nb-test-examples.txt", OUT_CLASSIFY });
 		
 		int assertionsMade = 0;
 		

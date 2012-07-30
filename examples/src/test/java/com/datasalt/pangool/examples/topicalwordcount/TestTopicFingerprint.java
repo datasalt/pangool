@@ -52,7 +52,7 @@ public class TestTopicFingerprint extends AbstractHadoopTestLibrary {
 		Configuration conf = new Configuration();
 		
 		createInput(INPUT, conf);
-		ToolRunner.run( new TopicFingerprint(), new String[] {  INPUT, OUTPUT, 2 + "" } );
+		ToolRunner.run(getConf(), new TopicFingerprint(), new String[] {  INPUT, OUTPUT, 2 + "" } );
 		
 		TupleInputReader reader = new TupleInputReader(conf);
 		reader.initialize(new Path(OUTPUT + "/part-r-00000"), conf);
