@@ -103,6 +103,8 @@ public abstract class LinearFlow implements Serializable {
 
 		FlowJob orig;
 
+		Map<String, FlowJob> jobOutputBindings = new HashMap<String, FlowJob>();
+		
 		while(toResolve.size() > 0) {
 			Iterator<FlowJob> it = toResolve.iterator();
 			orig = it.next();
@@ -112,7 +114,7 @@ public abstract class LinearFlow implements Serializable {
 				toExecute.remove(orig);
 			}
 			toExecute.add(orig);
-
+			
 			for(Input input : orig.getInputs()) {
 				String inputName = orig.getName() + "." + input.name;
 				String bindedTo = bindings.get(inputName);
@@ -128,15 +130,7 @@ public abstract class LinearFlow implements Serializable {
 						    + " not found in flow context.");
 					}
 				} else {
-					if(job.getNamedOutputs().size() > 0 && bindedTo.endsWith(".output")) {
-						// Main output from a Job with multiple outputs. Rebind to glob.
-						bindings.put(inputName, bindedTo + "/part*");
-					} else if(!bindedTo.endsWith(".output")) {
-						// Named output. Rebind to corresponding glob.
-						int lastPoint = bindedTo.lastIndexOf(".");
-						String namedOutput = bindedTo.substring(lastPoint + 1, bindedTo.length());
-						bindings.put(inputName, bindedTo.substring(0, lastPoint) + "/" + namedOutput);
-					}
+					jobOutputBindings.put(inputName, job);
 					toResolve.add(job);
 				}
 			}
@@ -163,6 +157,21 @@ public abstract class LinearFlow implements Serializable {
 				String inputName = job.getName() + "." + input.name;
 				args.add("--" + input.name);
 				String bindedTo = bindings.get(inputName);
+				FlowJob jOutput = jobOutputBindings.get(inputName);
+				if(jOutput != null) {
+					// sometimes we need to rewrite the path expression to avoid conflicts
+					if(jOutput.namedOutputs.size() > 0) {
+						if(bindedTo.endsWith(".output")) { // main output of a named output job
+							// rebind to glob expression
+							bindedTo = bindedTo + "/part*";
+						} else { // a named output 
+							// rebind to glob expression
+							int lastPoint = bindedTo.lastIndexOf(".");
+							String namedOutput = bindedTo.substring(lastPoint + 1, bindedTo.length());
+							bindedTo = bindedTo.substring(0, lastPoint) + "/" + namedOutput;
+						}
+					}
+				}
 				args.add(bindedTo);
 			}
 			args.add("--output");
