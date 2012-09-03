@@ -42,7 +42,7 @@ public class TestTopicalWordCount extends AbstractHadoopTestLibrary {
 	@Test
 	public void test() throws Exception {
 		createInput(INPUT);
-		ToolRunner.run( new TopicalWordCount(), new String[] {  INPUT, OUTPUT });
+		ToolRunner.run(getConf(), new TopicalWordCount(), new String[] {  INPUT, OUTPUT });
 		
 		assertEquals(6, assertOutput(OUTPUT + "/part-r-00000", new Configuration()));
 		

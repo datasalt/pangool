@@ -1,3 +1,18 @@
+/**
+ * Copyright [2012] [Datasalt Systems S.L.]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.datasalt.pangool.utils;
 
 import java.io.IOException;
@@ -15,11 +30,10 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
+import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
 
 public class TupleToAvroRecordConverter {
 
-	private Configuration conf;
-	
 	//serialization in "io.serializations"
 	private HadoopSerialization hadoopSer;
 	
@@ -29,11 +43,11 @@ public class TupleToAvroRecordConverter {
 	private org.apache.avro.Schema avroSchema;
 	private Schema pangoolSchema;
 	private DataOutputBuffer[] buffers;
+	private boolean schemaValidation;
 	
 	public TupleToAvroRecordConverter(Schema pangoolSchema,Configuration conf){
 		this.pangoolSchema = pangoolSchema;
 		this.avroSchema = AvroUtils.toAvroSchema(pangoolSchema);
-		this.conf = conf;
 		try{
 			this.hadoopSer = new HadoopSerialization(conf);
 		} catch(IOException e){
@@ -41,6 +55,7 @@ public class TupleToAvroRecordConverter {
 		}
 		this.customSerializers = SerializationInfo.getSerializers(pangoolSchema,conf);
 		initBuffers();
+		schemaValidation = TupleSerialization.getSchemaValidation(conf);
 	}
 	
 	private void initBuffers(){
@@ -61,9 +76,19 @@ public class TupleToAvroRecordConverter {
 		if (record == null){
 			record = new Record(avroSchema);
 		}
+		if (schemaValidation && !tuple.getSchema().equals(pangoolSchema)){
+			throw new IOException("Tuple '"+tuple + "' " +
+					"contains schema not expected." +
+					"Expected schema '"+ pangoolSchema + " and actual: " + tuple.getSchema());
+		}
 		for(int i = 0; i < pangoolSchema.getFields().size(); i++) {
 			Object obj = tuple.get(i);
 			Field field = pangoolSchema.getField(i);
+			if (obj == null){
+				throw new IOException("Field '" 
+			+ field.getName() + "' can't be null in tuple:" + tuple);
+			}
+			
 			switch(field.getType()){
 			case INT:
 			case LONG:

@@ -148,7 +148,7 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 	    ClassNotFoundException {
 		
 		
-		Configuration conf = new Configuration();
+		Configuration conf = getConf();
 		String input = "combiner-input";
 		String output ="combiner-output";
 		

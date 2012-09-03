@@ -34,9 +34,8 @@ public class TestGrep extends AbstractHadoopTestLibrary {
 
 	@Test
 	public void test() throws Exception {
-
 		Files.write("foo\nbar", new File(INPUT), Charset.forName("UTF-8"));
-		ToolRunner.run(new Grep(), new String[] { "foo", INPUT, OUTPUT });
+		ToolRunner.run(getConf(),new Grep(), new String[] { "foo", INPUT, OUTPUT });
 		assertEquals("foo", Files.toString(new File(OUTPUT + "/part-m-00000"), Charset.forName("UTF-8")).trim());
 
 		trash(INPUT, OUTPUT);

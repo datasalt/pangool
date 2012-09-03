@@ -35,7 +35,7 @@ public class TestGameOfLifeJob extends AbstractHadoopTestLibrary {
 	public void test() throws Exception {
 		trash(OUTPUT);
 
-		ToolRunner.run(new GameOfLifeJob(), new String[] { OUTPUT, "2", "1" });
+		ToolRunner.run(getConf(),new GameOfLifeJob(), new String[] { OUTPUT, "2", "1" });
 		
 		/*
 		 * For testing {@link GameOfLifeJob} we calculate all the possibilities in a 2x2 grid

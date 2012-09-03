@@ -56,7 +56,8 @@ public class TestAvroTweetsJoin extends AbstractHadoopTestLibrary {
 	public void test() throws Exception {
 		createTweetInput(INPUT_TWEETS);
 		createRetweetsInput(INPUT_RETWEETS);
-		ToolRunner.run( new AvroTweetsJoin(), new String[] {  INPUT_TWEETS,INPUT_RETWEETS,OUTPUT });
+		
+		ToolRunner.run(getConf(), new AvroTweetsJoin(), new String[] {  INPUT_TWEETS,INPUT_RETWEETS,OUTPUT });
 		assertOutput(OUTPUT + "/part-r-00000.avro", getConf());
 		trash(INPUT_TWEETS,INPUT_RETWEETS,OUTPUT);
 	}

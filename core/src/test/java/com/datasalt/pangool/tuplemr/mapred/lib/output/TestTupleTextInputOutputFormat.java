@@ -65,7 +65,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest {
 
 		// The input is a simple space-separated file with no quotes
 		CommonUtils.writeTXT(line1 + "\n" + line2 + "\n" + line3, new File(IN));
-		Configuration conf = new Configuration();
+		Configuration conf = getConf();
 		FileSystem fS = FileSystem.get(conf);
 		Path outPath = new Path(OUT);
 		Path inPath = new Path(IN);

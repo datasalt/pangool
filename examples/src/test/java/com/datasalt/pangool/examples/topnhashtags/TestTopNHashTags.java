@@ -76,7 +76,7 @@ public class TestTopNHashTags extends AbstractHadoopTestLibrary {
 		writer.write(getTweet(anotherDay, "h3", "l2") + "\n");
 		writer.close();
 		
-		ToolRunner.run(new TopNHashTags(), new String[] { INPUT, OUTPUT, "1" });
+		ToolRunner.run(getConf(),new TopNHashTags(), new String[] { INPUT, OUTPUT, "1" });
 		
 		int validatedOutputLines = 0;
 		

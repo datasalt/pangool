@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+import org.apache.hadoop.util.ToolRunner;
 import org.junit.Test;
 
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
@@ -36,7 +37,7 @@ public class TestUrlResolution extends AbstractHadoopTestLibrary {
 	
 	@Test
 	public void testPangool() throws Exception {
-		UrlResolution.main(new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_PANGOOL });
+		ToolRunner.run(getConf(),new UrlResolution(),new String[] { TEST_FILE_URL_MAP, TEST_FILE_URL_REG, OUT_PANGOOL });
 		String outPangool = getReducerOutputAsText(OUT_PANGOOL);
 		String expectedOutput = getOutputAsText(EXPECTED_OUTPUT);
 		assertEquals(expectedOutput,outPangool);

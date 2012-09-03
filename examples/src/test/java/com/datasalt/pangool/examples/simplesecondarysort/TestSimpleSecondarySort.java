@@ -38,7 +38,7 @@ public class TestSimpleSecondarySort extends AbstractHadoopTestLibrary{
 		
 		Files.write("10 3 \n 5 3 \n 5 30 \n 10 10", new File(INPUT), Charset.forName("UTF-8"));
 
-		ToolRunner.run(new SimpleSecondarySort(), new String[] { INPUT, OUTPUT });
+		ToolRunner.run(getConf(),new SimpleSecondarySort(), new String[] { INPUT, OUTPUT });
 
 		String[][] expectedOutput = new String[][] { new String[] { "5", "3" }, new String[] { "5", "30" },
 		    new String[] { "10", "3" }, new String[] { "10", "10" } };

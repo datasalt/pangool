@@ -15,6 +15,7 @@
  */
 package com.datasalt.pangool.tuplemr.mapred;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,16 +34,17 @@ import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.utils.TestUtils;
+import com.datasalt.pangool.utils.test.AbstractBaseTest;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class TestTupleHashPartitioner {
+public class TestTupleHashPartitioner extends AbstractBaseTest{
 
 	final static int MAX_ITERATIONS_OVER_ONE_SCHEMA = 100000;
 	final static int N_PARTITIONS = 5;
 	
   @Test
-	public void multipleSourcesTest() throws TupleMRException {
-		Configuration conf = new Configuration();
+	public void multipleSourcesTest() throws TupleMRException, IOException {
+		Configuration conf = getConf();
 		TupleHashPartitioner partitioner = new TupleHashPartitioner();
 		
 		List<Field> fields = new ArrayList<Field>();
@@ -105,10 +107,10 @@ public class TestTupleHashPartitioner {
 	}
 	
 	@Test
-	public void sanityTest() throws TupleMRException {
+	public void sanityTest() throws TupleMRException, IOException {
 		// This is a basic sanity test for checking that the partitioner works for nPartitions > 1
 		
-		Configuration conf = new Configuration();
+		Configuration conf = getConf();
 		TupleHashPartitioner partitioner = new TupleHashPartitioner();
 
 		List<Field> fields = new ArrayList<Field>();

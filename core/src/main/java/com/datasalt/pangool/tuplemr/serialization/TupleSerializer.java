@@ -34,17 +34,20 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 	private boolean isMultipleSources = false;
 	private final SerializationInfo serInfo;
 	private final Schema commonSchema;
+	private boolean inputSchemaValidation;
 	
 	// Makes use of an "agnostic" simple Tuple serializer for serializing Tuples
 	// Enable code reusing
 	private final SimpleTupleSerializer tupleSerializer;
 
-	public TupleSerializer(HadoopSerialization ser, TupleMRConfig tupleMRConfig) {
+	public TupleSerializer(HadoopSerialization ser, TupleMRConfig tupleMRConfig,
+			boolean inputSchemaValidation) {
 		tupleSerializer = new SimpleTupleSerializer(ser);
 		this.tupleMRConfig = tupleMRConfig;
 		this.serInfo = tupleMRConfig.getSerializationInfo();
 		this.commonSchema = this.serInfo.getCommonSchema();
 		this.isMultipleSources = (tupleMRConfig.getNumIntermediateSchemas() >= 2);
+		this.inputSchemaValidation = inputSchemaValidation;
 	}
 
 	public void open(OutputStream out) {
@@ -61,21 +64,38 @@ public class TupleSerializer implements Serializer<DatumWrapper<ITuple>> {
 	}
 
 	private void oneSourceSerialization(ITuple tuple) throws IOException {
+		if (inputSchemaValidation){
+			Schema expectedSchema = tupleMRConfig.getIntermediateSchema(0);
+			if (!tuple.getSchema().equals(expectedSchema)){
+				throw new IOException("Tuple '"+tuple + "' " +
+						"contains schema not expected." +
+						"Expected schema '"+ expectedSchema + " and actual: " + tuple.getSchema());
+			}
+		}
+		
 		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(0);
 		// Tuple schema is not checked here
 		tupleSerializer.write(commonSchema, tuple, commonTranslation, serInfo.getCommonSchemaSerializers());
 	}
 
 	private void multipleSourcesSerialization(ITuple tuple) throws IOException {
-		String sourceName = tuple.getSchema().getName();
-		Integer schemaId = tupleMRConfig.getSchemaIdByName(sourceName);
+		String schemaName = tuple.getSchema().getName();
+		Integer schemaId = tupleMRConfig.getSchemaIdByName(schemaName);
 		if (schemaId == null){
 			throw new IOException("Schema '" + tuple.getSchema() +"' is not a valid intermediate schema");
+		}
+		if (inputSchemaValidation){
+			Schema expectedSchema = tupleMRConfig.getIntermediateSchema(schemaId);
+			if (!expectedSchema.equals(tuple.getSchema())){
+				throw new IOException("Tuple '"+tuple + "' " +
+					"contains not expected schema." +
+					"Expected schema '"+ expectedSchema + " and actual: " + tuple.getSchema());
+			}
 		}
 		int[] commonTranslation = serInfo.getCommonSchemaIndexTranslation(schemaId);
 		// Serialize common
 		tupleSerializer.write(commonSchema, tuple, commonTranslation, serInfo.getCommonSchemaSerializers());
-		// Serialize source id
+		// Serialize schema id
 		WritableUtils.writeVInt(tupleSerializer.getOut(), schemaId);
 		// Serialize rest of the fields
 		Schema specificSchema = serInfo.getSpecificSchema(schemaId);

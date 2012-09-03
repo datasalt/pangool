@@ -43,6 +43,45 @@ public class TupleSerialization implements Serialization<DatumWrapper<ITuple>>, 
 	private com.datasalt.pangool.serialization.HadoopSerialization ser;
 	private TupleMRConfig tupleMRConfig;
 	
+	/**
+	 * Configuration parameter to enable the Schema strict validation.<br>
+	 * When schema validation is set, the schema of the tuples emitted through the {@link TupleMapper} collector
+	 * or {@link TupleOutputFormat} are validated, i.e. must strictly match the expected schema set
+	 * in those outputs,otherwise an exception will be raised.<br><br> Using strict matching
+	 * is safer, but <b>not recommended in production environment</b>, since its overhead may be great.
+	 * 
+	 * On the other hand,if schema validation is not set, 
+	 * <a href="http://en.wikipedia.org/wiki/Duck_typing">duck typing</a>
+	 *  is applied to the tuples. That is, a tuple can be accepted as long as its schema 
+	 * contains all the fields from the expected schema in the same order. It may contain
+	 * additional fields but these won't be serialized.
+	 * 
+	 * Important:<br>
+	 * Schema strict validation is unset by default, and is <b>only recommended in testing environments</b>.
+	 *   
+	 */
+	public static final String CONF_SCHEMA_VALIDATION = "pangool.schema.validation";
+	
+	/**
+	 * see {@link #CONF_SCHEMA_VALIDATION}
+	 */
+	public static void enableSchemaValidation(Configuration conf){
+		conf.setBoolean(CONF_SCHEMA_VALIDATION, true);
+	}
+	
+	/**
+	 * see {@link #CONF_SCHEMA_VALIDATION}
+	 */
+	public static void disableSchemaValidation(Configuration conf){
+		conf.setBoolean(CONF_SCHEMA_VALIDATION, false);
+	}
+	
+	/**
+	 * see {@link #CONF_SCHEMA_VALIDATION}
+	 */
+	public static boolean getSchemaValidation(Configuration conf){
+		return conf.getBoolean(CONF_SCHEMA_VALIDATION, false);
+	}
 	
 
 	public TupleSerialization() {
@@ -84,7 +123,8 @@ public class TupleSerialization implements Serialization<DatumWrapper<ITuple>>, 
 
 	@Override
 	public Serializer<DatumWrapper<ITuple>> getSerializer(Class<DatumWrapper<ITuple>> c) {
-		return new TupleSerializer(this.ser, this.tupleMRConfig);
+		boolean inputSchemaValidation = (conf == null ) ? true : getSchemaValidation(conf);
+		return new TupleSerializer(this.ser, this.tupleMRConfig,inputSchemaValidation);
 	}
 
 	@Override

@@ -27,9 +27,10 @@ import org.apache.hadoop.util.ToolRunner;
 import org.junit.Test;
 
 import com.datasalt.pangool.utils.HadoopUtils;
+import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 import com.google.common.io.Files;
 
-public class TestUserActivityNormalizer {
+public class TestUserActivityNormalizer extends AbstractHadoopTestLibrary{
 
 	private final static String INPUT = "test-input-" + TestUserActivityNormalizer.class.getName();
 	private final static String OUTPUT = "test-output-" + TestUserActivityNormalizer.class.getName();
@@ -49,7 +50,7 @@ public class TestUserActivityNormalizer {
 				"user2" + "\t" + "feat3" + "\t" + "10" + "\n"
 		, new File(INPUT), Charset.forName("UTF-8"));
 
-		ToolRunner.run(new UserActivityNormalizer(), new String[] { INPUT, OUTPUT });
+		ToolRunner.run(getConf(),new UserActivityNormalizer(), new String[] { INPUT, OUTPUT });
 		
 		int validatedOutputLines = 0;
 		

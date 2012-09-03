@@ -48,9 +48,9 @@ public abstract class ComparatorsBaseTest extends BaseTest{
 		
 	}
 	
-	protected void setConf(SortComparator comparator) throws TupleMRException  {
+	protected void setConf(SortComparator comparator) throws TupleMRException, IOException  {
 		
-		Configuration conf = new Configuration();
+		Configuration conf = getConf();
 		TupleMRConfigBuilder b = new TupleMRConfigBuilder();
 		b.addIntermediateSchema(schema1);
 		b.addIntermediateSchema(schema2);

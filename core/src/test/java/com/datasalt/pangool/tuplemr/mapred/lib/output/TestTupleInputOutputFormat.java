@@ -103,7 +103,7 @@ public class TestTupleInputOutputFormat extends BaseTest {
 	    ClassNotFoundException {
 
 		CommonUtils.writeTXT("foo1 bar1\nbar2 foo2", new File(IN));
-		Configuration conf = new Configuration();
+		Configuration conf = getConf();
 		FileSystem fS = FileSystem.get(conf);
 		Path outPath = new Path(OUT);
 		Path inPath = new Path(IN);
