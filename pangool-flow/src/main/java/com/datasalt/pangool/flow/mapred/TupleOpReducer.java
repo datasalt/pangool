@@ -21,6 +21,7 @@ import org.apache.hadoop.io.NullWritable;
 
 import com.datasalt.pangool.flow.ops.Op;
 import com.datasalt.pangool.flow.ops.ReturnCallback;
+import com.datasalt.pangool.flow.ops.TupleReduceOp;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.TupleMRException;
@@ -35,10 +36,15 @@ public class TupleOpReducer extends SingleSchemaReducer {
 	Op<Iterable<ITuple>, ITuple> op;
 	Collector collector;
 	
-	public TupleOpReducer(Op<Iterable<ITuple>, ITuple> op, Schema schema) {
-	  super(schema);
-	  this.op = op;
+	public TupleOpReducer(TupleReduceOp op) {
+	  super(op.getSchema());
+	  this.op = (Op<Iterable<ITuple>, ITuple>)op;
   }
+	
+	public TupleOpReducer(Op<Iterable<ITuple>, ITuple> op, Schema outSchema) {
+		super(outSchema);
+		this.op = op;
+	}
 	
 	public void setup(TupleMRContext tupleMRContext, Collector collector) throws IOException ,InterruptedException ,TupleMRException {
 		this.collector = collector;

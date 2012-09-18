@@ -42,7 +42,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 
 /**
  * This is a somewhat more serious flow that executes 3 M/R steps in order to find the top country per each user given a
- * list of similarities between users and a user-country map. It shows the usage of {@link FlowMR}.
+ * list of similarities between users and a user-country map. It shows the usage of {@link MapReduceStep}.
  */
 @SuppressWarnings("serial")
 public class TopCountryBySimilarsFlow extends LinearFlow {
@@ -60,7 +60,7 @@ public class TopCountryBySimilarsFlow extends LinearFlow {
 		// Define the Flow
 
 		// Emit the top "n" user similarities for each user
-		add(new FlowMR("topSimilarities", new Inputs("similarityInput"), new Params(new Param("topSize", Integer.class)),
+		add(new MapReduceStep("topSimilarities", new Inputs("similarityInput"), new Params(new Param("topSize", Integer.class)),
 		    NamedOutputs.NONE, new GroupBy("first"), new OrderBy().add("first", Order.ASC).add("score", Order.DESC)) {
 
 			@Override
@@ -68,22 +68,21 @@ public class TopCountryBySimilarsFlow extends LinearFlow {
 				// Read the "n" parameter. This is the size of the top.
 				int topSize = (Integer) parameters.get("topSize");
 				// Define input processors (Mappers)
-				addInput("similarityInput", new TextInput(new TextMapper(new TupleParser(similaritySchema, "\t")),
-				    similaritySchema));
+				addInput("similarityInput", new TextInput(new TextMapper(new TupleParser(similaritySchema, "\t"))));
 				// Define the Reducer
 				setReducer(new TupleOpReducer(new TopTuples(topSize), similaritySchema));
 				setOutput(new TupleOutput(similaritySchema));
 			}
 		});
 
-		add(new FlowMR("attachCountry", new Inputs("topSimilarities", "countryInfo"), Params.NONE, new NamedOutputs(
+		add(new MapReduceStep("attachCountry", new Inputs("topSimilarities", "countryInfo"), Params.NONE, new NamedOutputs(
 		    "unresolved"), new GroupBy("second"),new OrderBy().add("second",Order.ASC).addSchemaOrder(Order.DESC)) {
 
 			@Override
 			public void configure(Map<String, Object> parameters) throws TupleMRException {
 				// Define the input processors (Mappers)
 				addInput("topSimilarities", new TupleInput(similaritySchema));
-				addInput("countryInfo", new TextInput(new TextMapper(new TupleParser(countryInfo, "\t")), countryInfo));
+				addInput("countryInfo", new TextInput(new TextMapper(new TupleParser(countryInfo, "\t"))));
 				// Define the Reducer - this is a custom reducer
 				setReducer(new SingleSchemaReducer(jointSchema) {
 
@@ -113,7 +112,7 @@ public class TopCountryBySimilarsFlow extends LinearFlow {
 			}
 		});
 
-		add(new FlowMR("topCountry", new Inputs("topSimilaritiesJoinCountryInfo"), Params.NONE, NamedOutputs.NONE,
+		add(new MapReduceStep("topCountry", new Inputs("topSimilaritiesJoinCountryInfo"), Params.NONE, NamedOutputs.NONE,
 		    new GroupBy("first"), new OrderBy().add("first", Order.ASC).add("score", Order.DESC)) {
 			@Override
 			public void configure(Map<String, Object> parameters) throws TupleMRException {

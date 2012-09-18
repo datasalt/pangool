@@ -13,7 +13,7 @@ import com.datasalt.pangool.io.Schema.Field;
  * in the Map<String, Object> that is given as a parameter. The joint schema has to be given as well.
  */
 @SuppressWarnings("serial")
-public class OneToNJoinOp extends TupleOp<Iterable<ITuple>> {
+public class OneToNJoinOp extends TupleReduceOp {
 
 	private Schema leftSchema;
 	private Schema rightSchema;

@@ -19,10 +19,13 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.Text;
 
-import com.datasalt.pangool.flow.ops.Op;
+import com.datasalt.pangool.flow.io.SequenceInput;
+import com.datasalt.pangool.flow.io.TextInput;
+import com.datasalt.pangool.flow.ops.ChainOp;
 import com.datasalt.pangool.flow.ops.ReturnCallback;
 import com.datasalt.pangool.flow.ops.TupleOp;
 import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.TupleMapper;
 
 /**
@@ -33,11 +36,13 @@ import com.datasalt.pangool.tuplemr.TupleMapper;
 @SuppressWarnings("serial")
 public class TextMapper extends TupleMapper<Object, Text> {
 
-	Op<String, ITuple> op;
+	TupleOp<String> op;
 	Collector collector;
+	Schema intermediateSchema;
 	
-	public TextMapper(Op<String, ITuple> op) {
+	public TextMapper(TupleOp<String> op) {
 		this.op = op;
+		this.intermediateSchema = op.getSchema();
 	}
 
 	public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
@@ -66,4 +71,8 @@ public class TextMapper extends TupleMapper<Object, Text> {
 		
 		op.process(value.toString(), callback);
 	}
+
+	public Schema getIntermediateSchema() {
+  	return intermediateSchema;
+  }
 }

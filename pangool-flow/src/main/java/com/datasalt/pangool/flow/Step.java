@@ -45,7 +45,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
  * passed as parameters of this method. Help and parameter error handling is handled transparently.
  */
 @SuppressWarnings("serial")
-public abstract class FlowJob implements Configurable, Tool, Serializable {
+public abstract class Step implements Configurable, Tool, Serializable {
 
 	protected transient Output output;
 	protected transient String help; // extra explanation on what this Job does
@@ -55,23 +55,23 @@ public abstract class FlowJob implements Configurable, Tool, Serializable {
 
 	protected transient Configuration hadoopConf;
 
-	public FlowJob(String name, Inputs inputs) {
+	public Step(String name, Inputs inputs) {
 		this(new Output(name), inputs, Params.NONE, NamedOutputs.NONE, null);
 	}
 
-	public FlowJob(String name, Inputs inputs, Params parameters) {
+	public Step(String name, Inputs inputs, Params parameters) {
 		this(new Output(name), inputs, parameters, NamedOutputs.NONE, null);
 	}
 
-	public FlowJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs) {
+	public Step(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs) {
 		this(new Output(name), inputs, parameters, namedOutputs, null);
 	}
 
-	public FlowJob(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, String help) {
+	public Step(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, String help) {
 		this(new Output(name), inputs, parameters, namedOutputs, help);
 	}
 
-	public FlowJob(Output output, Inputs inputs, Params parameters, NamedOutputs namedOutputs, String help) {
+	public Step(Output output, Inputs inputs, Params parameters, NamedOutputs namedOutputs, String help) {
 		this.output = output;
 		this.help = help;
 		this.inputs = inputs;

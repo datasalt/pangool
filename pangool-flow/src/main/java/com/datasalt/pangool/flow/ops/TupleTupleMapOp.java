@@ -11,11 +11,11 @@ import com.datasalt.pangool.io.Schema;
  * Given the Map<String, String> it perform destTuple.set(key(), origTuple.get(value()))
  */
 @SuppressWarnings("serial")
-public class TupleMapOp extends TupleOp<ITuple> {
+public class TupleTupleMapOp extends TupleOp<ITuple> {
 
 	private Map<String, String> mapping;
 	
-	public TupleMapOp(Schema emitSchema, Map<String, String> mapping) {
+	public TupleTupleMapOp(Schema emitSchema, Map<String, String> mapping) {
 	  super(emitSchema);
 	  this.mapping = mapping;
   }

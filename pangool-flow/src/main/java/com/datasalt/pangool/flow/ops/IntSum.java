@@ -7,7 +7,7 @@ import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 
 @SuppressWarnings("serial")
-public class IntSum extends TupleOp<Iterable<ITuple>>{
+public class IntSum extends TupleReduceOp {
 
 	String origField;
 	String destField;

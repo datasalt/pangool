@@ -7,7 +7,7 @@ import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 
 @SuppressWarnings("serial")
-public class Count extends TupleOp<Iterable<ITuple>> {
+public class Count extends TupleReduceOp {
 
 	String destField;
 	Schema copySchema;

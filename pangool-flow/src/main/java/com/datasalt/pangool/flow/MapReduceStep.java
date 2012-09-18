@@ -21,7 +21,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 
 @SuppressWarnings({ "serial", "rawtypes", "unchecked" })
-public abstract class FlowMR extends FlowJob {
+public abstract class MapReduceStep extends Step {
 
   transient TupleReducer reducer = new IdentityTupleReducer();
   transient TupleReducer combiner = null;
@@ -32,15 +32,15 @@ public abstract class FlowMR extends FlowJob {
 	transient RichOutput jobOutput;
 	transient LinkedHashMap<String, RichOutput> bindedOutputs = new LinkedHashMap<String, RichOutput>();
 	
-	public FlowMR(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy) {
+	public MapReduceStep(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy) {
 		this(name, inputs, parameters, namedOutputs, groupBy, null, null);
 	}
 
-	public FlowMR(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy) {
+	public MapReduceStep(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy) {
 		this(name, inputs, parameters, namedOutputs, groupBy, orderBy, null);
 	}
 
-	public FlowMR(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy, String help) {
+	public MapReduceStep(String name, Inputs inputs, Params parameters, NamedOutputs namedOutputs, GroupBy groupBy, OrderBy orderBy, String help) {
 	  super(name, inputs, parameters, namedOutputs, help);
 	  this.reducer = new IdentityTupleReducer();
 	  this.groupBy = groupBy;

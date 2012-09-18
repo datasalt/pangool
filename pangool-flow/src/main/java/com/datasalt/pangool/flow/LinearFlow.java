@@ -32,7 +32,7 @@ import com.datasalt.pangool.utils.HadoopUtils;
 /**
  * This class allows creating classes that define a Flow by defining resources and binding relationships between them.
  * <p>
- * Use {@link #add(FlowJob)} for adding Job resources to the Flow. Resources must implement {@link FlowJob} for
+ * Use {@link #add(Step)} for adding Job resources to the Flow. Resources must implement {@link Step} for
  * declaring its input / output / parameter dependencies.
  * <p>
  * Use {@link #add(String)} for adding Input resources to the Flow (e.g. input files).
@@ -49,9 +49,9 @@ public abstract class LinearFlow implements Serializable {
 
 	private final transient List<String> inputs = new ArrayList<String>();
 	private final transient Map<String, String> bindings = new HashMap<String, String>();
-	private final transient Map<String, FlowJob> jobContext = new HashMap<String, FlowJob>();
+	private final transient Map<String, Step> jobContext = new HashMap<String, Step>();
 
-	public void add(FlowJob job) {
+	public void add(Step job) {
 		if(jobContext.containsKey(job.getName())) {
 			throw new IllegalArgumentException(job.getName() + " already binded to an instance of "
 			    + jobContext.get(job.getName()).getClass().getName());
@@ -70,8 +70,8 @@ public abstract class LinearFlow implements Serializable {
 		bindings.put(name, bind.toString());
 	}
 
-	public FlowJob findInOutputs(String output) {
-		for(FlowJob job : jobContext.values()) {
+	public Step findInOutputs(String output) {
+		for(Step job : jobContext.values()) {
 			if(output.equals(job.getOutputName())) {
 				return job;
 			}
@@ -89,11 +89,11 @@ public abstract class LinearFlow implements Serializable {
 	}
 
 	public void execute(EXECUTION_MODE mode, Configuration conf, String... outputs) throws Exception {
-		List<FlowJob> toExecute = new ArrayList<FlowJob>();
-		List<FlowJob> toResolve = new ArrayList<FlowJob>();
+		List<Step> toExecute = new ArrayList<Step>();
+		List<Step> toResolve = new ArrayList<Step>();
 
 		for(String output : outputs) {
-			FlowJob orig = findInOutputs(output);
+			Step orig = findInOutputs(output);
 			if(orig == null) {
 				throw new IllegalArgumentException("Unknown output: " + output + " not found in flow context.");
 			}
@@ -101,12 +101,12 @@ public abstract class LinearFlow implements Serializable {
 			toResolve.add(orig);
 		}
 
-		FlowJob orig;
+		Step orig;
 
-		Map<String, FlowJob> jobOutputBindings = new HashMap<String, FlowJob>();
+		Map<String, Step> jobOutputBindings = new HashMap<String, Step>();
 		
 		while(toResolve.size() > 0) {
-			Iterator<FlowJob> it = toResolve.iterator();
+			Iterator<Step> it = toResolve.iterator();
 			orig = it.next();
 			it.remove();
 			Log.info("Resolving dependencies for " + orig.getName());
@@ -123,7 +123,7 @@ public abstract class LinearFlow implements Serializable {
 					throw new IllegalArgumentException("Input " + inputName + " not binded to anything in current flow context.");
 				}
 
-				FlowJob job = findInOutputs(bindedTo);
+				Step job = findInOutputs(bindedTo);
 				if(job == null) {
 					if(!inputs.contains(bindedTo)) {
 						throw new IllegalArgumentException("Unknown input: " + bindedTo + " binded to " + inputName
@@ -139,7 +139,7 @@ public abstract class LinearFlow implements Serializable {
 		Log.info("Linear execution plan: " + toExecute);
 
 		for(int i = toExecute.size() - 1; i >= 0; i--) {
-			FlowJob job = toExecute.get(i);
+			Step job = toExecute.get(i);
 			List<String> args = new ArrayList<String>();
 			for(Param param : job.getParameters()) {
 				String paramName = job.getName() + "." + param.getName();
@@ -157,7 +157,7 @@ public abstract class LinearFlow implements Serializable {
 				String inputName = job.getName() + "." + input.name;
 				args.add("--" + input.name);
 				String bindedTo = bindings.get(inputName);
-				FlowJob jOutput = jobOutputBindings.get(inputName);
+				Step jOutput = jobOutputBindings.get(inputName);
 				if(jOutput != null) {
 					// sometimes we need to rewrite the path expression to avoid conflicts
 					if(jOutput.namedOutputs.size() > 0) {

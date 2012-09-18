@@ -73,7 +73,7 @@ public class StandardDeviationFlow extends LinearFlow {
 
 		// Define the Flow
 		// new Params().add(new Param("minAge"))
-		add(new FlowMR("job1", new Inputs("students", "scores"), new Params(new Param("minAge", Integer.class)),
+		add(new MapReduceStep("job1", new Inputs("students", "scores"), new Params(new Param("minAge", Integer.class)),
 		    NamedOutputs.NONE, new GroupBy("student"), null) {
 			int minAge;
 
@@ -81,8 +81,8 @@ public class StandardDeviationFlow extends LinearFlow {
 			public void configure(Map<String, Object> parameters) throws TupleMRException {
 				this.minAge = (Integer) parameters.get("minAge");
 				// Define input processors (Mappers)
-				addInput("students", new TextInput(new TextMapper(new TupleParser(studentSchema, "\\s+")), studentSchema));
-				addInput("scores", new TextInput(new TextMapper(new TupleParser(scoresSchema, "\\s+")), scoresSchema));
+				addInput("students", new TextInput(new TextMapper(new TupleParser(studentSchema, "\\s+"))));
+				addInput("scores", new TextInput(new TextMapper(new TupleParser(scoresSchema, "\\s+"))));
 				// Define the Reducer
 				setReducer(new SingleSchemaReducer(countryScoresSchema) {
 
@@ -114,7 +114,7 @@ public class StandardDeviationFlow extends LinearFlow {
 			}
 		});
 
-		add(new FlowMR("job2", new Inputs("input"), Params.NONE, NamedOutputs.NONE, new GroupBy("country"), null) {
+		add(new MapReduceStep("job2", new Inputs("input"), Params.NONE, NamedOutputs.NONE, new GroupBy("country"), null) {
 
 			@Override
 			public void configure(Map<String, Object> parameters) throws TupleMRException {
@@ -143,7 +143,7 @@ public class StandardDeviationFlow extends LinearFlow {
 			}
 		});
 
-		add(new FlowMR("job3", new Inputs("country_averages", "country_scores"), Params.NONE, NamedOutputs.NONE,
+		add(new MapReduceStep("job3", new Inputs("country_averages", "country_scores"), Params.NONE, NamedOutputs.NONE,
 		    new GroupBy("country"), new OrderBy().add("country", Order.ASC).addSchemaOrder(Order.ASC)) {
 
 			@Override
@@ -201,6 +201,5 @@ public class StandardDeviationFlow extends LinearFlow {
 		bind("job3.country_scores", "job1.output");
 		bind("job3.country_averages", "job2.output");
 		bind("job3.output", output);
-
 	}
 }

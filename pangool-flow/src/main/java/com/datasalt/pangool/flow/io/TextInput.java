@@ -17,17 +17,15 @@ package com.datasalt.pangool.flow.io;
 
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 
-import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.tuplemr.TupleMapper;
+import com.datasalt.pangool.flow.mapred.TextMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 
 /**
  * Input spec for text inputs.
  */
-@SuppressWarnings("rawtypes")
 public class TextInput extends HadoopInput {
 
-	public TextInput(TupleMapper processor, Schema intermediateSchema) {
-	  super(new HadoopInputFormat(TextInputFormat.class), processor, intermediateSchema);
+	public TextInput(TextMapper processor) {
+	  super(new HadoopInputFormat(TextInputFormat.class), processor, processor.getIntermediateSchema());
   }
 }

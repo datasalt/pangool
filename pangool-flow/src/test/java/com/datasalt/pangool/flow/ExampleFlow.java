@@ -22,7 +22,7 @@ import org.apache.hadoop.fs.Path;
 
 /**
  * This is a very dummy example flow that does nothing but will assure that things are executed in the appropriated order.
- * It shows the usage of {@link FlowJob}.
+ * It shows the usage of {@link Step}.
  */
 @SuppressWarnings("serial")
 public class ExampleFlow extends LinearFlow {
@@ -30,7 +30,7 @@ public class ExampleFlow extends LinearFlow {
 	ArrayList<String> executedJobs = new ArrayList<String>();
 
 	// Job1 has one input file and one integer parameter
-  public class Job1 extends FlowJob {
+  public class Job1 extends Step {
 
 		public Job1() {
 			super("job1", new Inputs("inputFile"), new Params(
@@ -46,7 +46,7 @@ public class ExampleFlow extends LinearFlow {
 	}
 
 	// Job2 has one input file and one named output
-	public class Job2 extends FlowJob {
+	public class Job2 extends Step {
 
 		public Job2() {
 			super("job2", new Inputs("inputFile"), Params.NONE, new NamedOutputs("secondaryOutput"),
@@ -62,7 +62,7 @@ public class ExampleFlow extends LinearFlow {
 	}
 
 	// Job3 has 3 input files
-	public class Job3 extends FlowJob {
+	public class Job3 extends Step {
 
 		public Job3() {
 			super("job3", new Inputs("inputFile1", "inputFile2", "inputFile3"));
