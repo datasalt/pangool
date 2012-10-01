@@ -39,7 +39,6 @@ import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.thrift.test.A;
-import com.datasalt.pangool.tuplemr.Criteria;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.OrderBy;
@@ -219,7 +218,8 @@ public class TestComparators extends ComparatorsBaseTest {
 		return new Schema("new_schema", permutedFields);
 	}
 
-	public static class DummyComparator implements RawComparator,Serializable {
+	@SuppressWarnings("serial")
+  public static class DummyComparator implements RawComparator,Serializable {
 		public DummyComparator(){}
 		@Override
 		public int compare(Object ob1, Object ob2) {

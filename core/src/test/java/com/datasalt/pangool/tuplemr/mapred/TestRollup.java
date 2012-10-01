@@ -36,7 +36,6 @@ import org.junit.Test;
 import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.OrderBy;
@@ -47,8 +46,6 @@ import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.TupleRollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
-import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization.AvroFieldDeserializer;
-import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization.AvroFieldSerializer;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
 public class TestRollup extends AbstractHadoopTestLibrary {
@@ -440,10 +437,6 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 
 		String input = TEST_OUT + "/input";
 		String output = TEST_OUT + "/output";
-
-		String[] inputElements = new String[] { 
-				"ES 20 listo 250", 
-		    };
 
 		withInput(input, writable("ES 20 listo 250"));
 		

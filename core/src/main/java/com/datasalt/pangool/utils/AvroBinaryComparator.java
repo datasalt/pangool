@@ -9,6 +9,7 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 
+@SuppressWarnings({ "serial", "rawtypes" })
 public class AvroBinaryComparator implements RawComparator, Serializable,Configurable{
 	
 	private transient Schema schema;
@@ -20,7 +21,8 @@ public class AvroBinaryComparator implements RawComparator, Serializable,Configu
 		this.schemaStr = schema.toString();
 	}
 
-	public void setConf(Configuration notUsed){
+	@SuppressWarnings("deprecation")
+  public void setConf(Configuration notUsed){
 		schema = Schema.parse(schemaStr);
 	}
 	

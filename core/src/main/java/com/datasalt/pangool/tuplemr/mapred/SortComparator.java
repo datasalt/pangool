@@ -147,7 +147,8 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		}
 	}
 	
-	public static int compareObjects(Object element1,Object element2){
+	@SuppressWarnings("unchecked")
+  public static int compareObjects(Object element1,Object element2){
 		if(element1 == null) {
 			return (element2 == null) ? 0 : -1;
 		} else if(element2 == null) {

@@ -56,7 +56,8 @@ public class AvroFieldSerialization<T> implements Serialization<T>, FieldConfigu
 		return new AvroFieldSerializer<T>(schema, isReflect);
 	}
 
-	@Override
+	@SuppressWarnings("deprecation")
+  @Override
 	public void setFieldProperties(Map<String, String> properties) {
 		schema = Schema.parse(properties.get("avro.schema"));
 		String r = properties.get("avro.reflection");

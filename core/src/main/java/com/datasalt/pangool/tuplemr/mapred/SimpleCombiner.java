@@ -21,8 +21,6 @@ import java.util.Iterator;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
@@ -39,7 +37,6 @@ public class SimpleCombiner extends
 
 	public final static String CONF_COMBINER_HANDLER = SimpleCombiner.class.getName()
 	    + ".combiner.handler";
-	private final static Logger log = LoggerFactory.getLogger(SimpleCombiner.class);
 
 	// Following variables protected to be shared by Combiners
 	private TupleMRConfig tupleMRConfig;

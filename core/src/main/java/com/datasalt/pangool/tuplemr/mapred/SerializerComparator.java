@@ -47,7 +47,8 @@ public class SerializerComparator implements Comparator<Object>, Serializable, C
 	private transient DataOutputBuffer buf2;
 	
 	
-	public int compare(Object o1,Serializer ser1,Object o2,Serializer ser2){
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+  public int compare(Object o1,Serializer ser1,Object o2,Serializer ser2){
 		try {
 			if (o1 == null) {
 				return (o2 == null) ? 0 : -1; 

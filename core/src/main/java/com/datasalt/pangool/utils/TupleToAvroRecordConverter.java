@@ -38,7 +38,8 @@ public class TupleToAvroRecordConverter {
 	private HadoopSerialization hadoopSer;
 	
 	//custom serializers for OBJECT fields
-	private Serializer[] customSerializers;
+	@SuppressWarnings("rawtypes")
+  private Serializer[] customSerializers;
 	
 	private org.apache.avro.Schema avroSchema;
 	private Schema pangoolSchema;
@@ -71,7 +72,8 @@ public class TupleToAvroRecordConverter {
 	/**
 	 * Moves data between a Tuple and an Avro Record
 	 */
-	public Record toRecord(ITuple tuple, Record reuse) throws IOException {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+  public Record toRecord(ITuple tuple, Record reuse) throws IOException {
 		Record record = reuse;
 		if (record == null){
 			record = new Record(avroSchema);

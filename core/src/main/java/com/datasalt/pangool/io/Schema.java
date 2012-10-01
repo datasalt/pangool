@@ -137,7 +137,8 @@ public class Schema implements Serializable {
 		
 		//special properties in props 
 		private Class<?> objectClass; //lazy loaded
-		private Class<? extends Serialization> serializationClass;
+		@SuppressWarnings("rawtypes")
+    private Class<? extends Serialization> serializationClass;
 		
 		public void addProp(String key,String value){
 			props.add(key, value);
@@ -253,7 +254,8 @@ public class Schema implements Serializable {
 			return objectClass;
 		}
 		
-		public Class<? extends Serialization> getObjectSerialization(){
+		@SuppressWarnings("rawtypes")
+    public Class<? extends Serialization> getObjectSerialization(){
 			return serializationClass;
 		}
 		
@@ -262,7 +264,8 @@ public class Schema implements Serializable {
 		 * If the Serialization class also implements {@link FieldConfigurable} then 
 		 * the field's metadata (properties) is passed to the instance allowing stateful serialization. 
 		 */
-		public void setObjectSerialization(Class<? extends Serialization> serialization){
+		@SuppressWarnings("rawtypes")
+    public void setObjectSerialization(Class<? extends Serialization> serialization){
 			if (type != Type.OBJECT){
 				throw new PangoolRuntimeException("Can't set custom serialization for type " + type);
 			}
@@ -315,13 +318,13 @@ public class Schema implements Serializable {
 			}
 		}
 
-		static Field parse(JsonNode node) throws IOException {
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+    static Field parse(JsonNode node) throws IOException {
 			try {
 				String name = node.get("name").getTextValue();
 				String typeStr = node.get("type").getTextValue();
 				Type type = Type.valueOf(typeStr);
 				
-				Map<String,String> properties =null;
 				Field field;
 				switch(type) {
 				case OBJECT:{

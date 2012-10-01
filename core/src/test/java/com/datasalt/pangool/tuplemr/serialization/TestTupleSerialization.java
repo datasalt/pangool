@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.DataOutputBuffer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,15 +30,14 @@ import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.serialization.HadoopSerialization;
-import com.datasalt.pangool.serialization.ThriftSerialization;
 import com.datasalt.pangool.thrift.test.A;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.utils.AvroUtils;
 import com.datasalt.pangool.utils.AvroRecordToTupleConverter;
+import com.datasalt.pangool.utils.AvroUtils;
 import com.datasalt.pangool.utils.TupleToAvroRecordConverter;
 
 

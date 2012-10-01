@@ -39,7 +39,8 @@ public class GroupComparator extends SortComparator {
 	
 	public GroupComparator(){}
 	
-	@Override
+	@SuppressWarnings("rawtypes")
+  @Override
 	public int compare(ITuple w1, ITuple w2) {
 		int schemaId1 = tupleMRConf.getSchemaIdByName(w1.getSchema().getName());
 		int schemaId2 = tupleMRConf.getSchemaIdByName(w2.getSchema().getName());
