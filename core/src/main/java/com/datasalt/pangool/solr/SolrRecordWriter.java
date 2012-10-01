@@ -199,6 +199,7 @@ public class SolrRecordWriter extends RecordWriter<ITuple, NullWritable> {
 			if(outputZipFile && !perm.getName().endsWith(".zip")) {
 				perm = perm.suffix(".zip");
 			}
+			fs.delete(temp, true); // delete old, if any
 			fs.delete(perm, true); // delete old, if any
 			Path local = fs.startLocalOutput(perm, temp);
 
