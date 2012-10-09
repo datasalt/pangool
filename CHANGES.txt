@@ -1,7 +1,12 @@
 Pangool Change Log
 ====================
 
-Pangool 0.43.3 (development)
+Pangool 0.43.4 (development)
+
+ CHANGES
+ - 2012-10-09 - Migrated to Solr 4.0.0-BETA
+
+Pangool 0.43.3 (2012-10-01)
 
  IMPROVEMENTS
  - 2012-10-1  - Solved bug in TupleSolrOutputFormat inherited from SolrOutputFormat where Hadoop Temp folder was not deleted if it existed

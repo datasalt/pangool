@@ -27,6 +27,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 
+import com.datasalt.pangool.PangoolRuntimeException;
 import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
@@ -86,6 +87,9 @@ public class TupleSolrOutputFormatExample implements Serializable {
 		job.setOutput(new Path(output), new TupleSolrOutputFormat(new File("src/test/resources/solr-en"), conf), ITuple.class, NullWritable.class);
 		Job hadoopJob = job.createJob();
 		hadoopJob.waitForCompletion(true);
+		if (!hadoopJob.isSuccessful()){
+			throw new PangoolRuntimeException("Job was not sucessfull");
+		}
 		return 0;
 	}
 }

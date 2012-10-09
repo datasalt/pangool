@@ -27,6 +27,7 @@
     </parent>
     <artifactId>pangool-core</artifactId>
     <properties>
+    <!-- hadoop.version>0.20.205.0</hadoop.version-->
         <hadoop.version>0.20.2</hadoop.version>
         <jackson.version>1.7.9</jackson.version>
         <avro.version>1.6.3</avro.version>
@@ -34,11 +35,11 @@
     </properties>
 
     <dependencies>
-    	<dependency> 
+    	<dependency>
 		<groupId>net.sf.opencsv</groupId>
 		<artifactId>opencsv</artifactId>
 		<version>2.3</version>
-	</dependency>            
+	</dependency>
         <dependency>
             <groupId>colt</groupId>
             <artifactId>colt</artifactId>
@@ -96,6 +97,12 @@
             <groupId>org.apache.thrift</groupId>
             <artifactId>libthrift</artifactId>
             <version>0.6.1</version>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>httpclient</artifactId>
+            		<groupId>org.apache.httpcomponents</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <!-- Xerces for XML parsing -->
         <dependency>
@@ -162,17 +169,7 @@
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-core</artifactId>
-            <version>3.3.0</version>
-            <exclusions>
-		<exclusion>
-                	<groupId>org.apache.zookeeper</groupId>
-                	<artifactId>zookeeper</artifactId>
-        	</exclusion>
-		<exclusion>
-                	<groupId>org.slf4j</groupId>
-                	<artifactId>slf4j-jdk14</artifactId>
-        	</exclusion>
-            </exclusions>
+            <version>4.0.0-BETA</version>
         </dependency>
     </dependencies>
 
@@ -320,7 +317,4 @@
                 </build>
             </profile> -->
         </profiles>
-
-
-    <!-- ///////////////// -->
 </project>
