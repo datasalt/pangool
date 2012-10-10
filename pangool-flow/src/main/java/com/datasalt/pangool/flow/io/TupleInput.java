@@ -15,6 +15,7 @@
  */
 package com.datasalt.pangool.flow.io;
 
+import com.datasalt.pangool.flow.mapred.TupleOpMapper;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.IdentityTupleMapper;
 import com.datasalt.pangool.tuplemr.TupleMapper;
@@ -30,6 +31,11 @@ public class TupleInput implements RichInput {
 
 	public TupleInput(Schema... intermediateSchemas) {
 		this(new IdentityTupleMapper(), intermediateSchemas);
+	}
+	
+	public TupleInput(TupleOpMapper mapper) {
+		this.intermediateSchemas = new Schema[] { mapper.getOp().getSchema() };
+		this.processor = mapper;
 	}
 	
 	public TupleInput(TupleMapper processor, Schema... intermediateSchemas) {

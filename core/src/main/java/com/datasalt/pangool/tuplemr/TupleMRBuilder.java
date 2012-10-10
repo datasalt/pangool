@@ -20,9 +20,6 @@ import static com.datasalt.pangool.tuplemr.TupleMRException.failIfNull;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,15 +36,16 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import com.datasalt.pangool.io.DatumWrapper;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.tuplemr.MultipleInputsInterface.Input;
+import com.datasalt.pangool.tuplemr.NamedOutputsInterface.Output;
 import com.datasalt.pangool.tuplemr.mapred.GroupComparator;
-import com.datasalt.pangool.tuplemr.mapred.TupleHashPartitioner;
 import com.datasalt.pangool.tuplemr.mapred.RollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.SimpleCombiner;
 import com.datasalt.pangool.tuplemr.mapred.SimpleReducer;
 import com.datasalt.pangool.tuplemr.mapred.SortComparator;
+import com.datasalt.pangool.tuplemr.mapred.TupleHashPartitioner;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.PangoolMultipleInputs;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat;
-import com.datasalt.pangool.tuplemr.mapred.lib.output.PangoolMultipleOutputs;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
@@ -104,40 +102,6 @@ import com.datasalt.pangool.utils.DCUtils;
 @SuppressWarnings("rawtypes")
 public class TupleMRBuilder extends TupleMRConfigBuilder {
 
-	private static final class Output {
-
-		private String name;
-		private OutputFormat outputFormat;
-		private Class keyClass;
-		private Class valueClass;
-
-		private Map<String, String> specificContext = new HashMap<String, String>();
-
-		private Output(String name, OutputFormat outputFormat, Class keyClass,
-		    Class valueClass, Map<String, String> specificContext) {
-			this.outputFormat = outputFormat;
-			this.keyClass = keyClass;
-			this.valueClass = valueClass;
-			this.name = name;
-			if(specificContext != null) {
-				this.specificContext = specificContext;
-			}
-		}
-	}
-
-	private static final class Input {
-
-		private Path path;
-		private InputFormat inputFormat;
-		private TupleMapper inputProcessor;
-
-		Input(Path path, InputFormat inputFormat, TupleMapper inputProcessor) {
-			this.path = path;
-			this.inputFormat = inputFormat;
-			this.inputProcessor = inputProcessor;
-		}
-	}
-
 	private Configuration conf;
 
 	private TupleReducer tupleReducer;
@@ -150,11 +114,13 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 
 	private Path outputPath;
 
-	private List<Input> multiInputs = new ArrayList<Input>();
-	private List<Output> namedOutputs = new ArrayList<Output>();
-
+	private MultipleInputsInterface multipleInputs;
+	private NamedOutputsInterface namedOutputs;
+	
 	public TupleMRBuilder(Configuration conf) {
 		this.conf = conf;
+		multipleInputs = new MultipleInputsInterface(conf);
+		namedOutputs = new NamedOutputsInterface(conf);
 	}
 
 	/**
@@ -162,7 +128,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	 * @param name Job's name as in {@link Job}
 	 */
 	public TupleMRBuilder(Configuration conf, String name) {
-		this.conf = conf;
+		this(conf);
 		this.jobName = name;
 	}
 
@@ -184,9 +150,24 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	 * @see PangoolMultipleInputs
 	 */
 	public void addTupleInput(Path path, TupleMapper<ITuple, NullWritable> tupleMapper) {
-		this.multiInputs.add(new Input(path, new TupleInputFormat(), tupleMapper));
+		multipleInputs.getMultiInputs().add(new Input(path, new TupleInputFormat(), tupleMapper));
 		AvroUtils.addAvroSerialization(conf);
+	}
 
+	public void addNamedOutput(String namedOutput, OutputFormat outputFormat, Class keyClass,
+	    Class valueClass) throws TupleMRException {
+		addNamedOutput(namedOutput, outputFormat, keyClass, valueClass, null);
+	}
+
+	public void addNamedOutput(String namedOutput, OutputFormat outputFormat, Class keyClass,
+	    Class valueClass, Map<String, String> specificContext) throws TupleMRException {
+		namedOutputs.add(new Output(namedOutput, outputFormat, keyClass, valueClass, specificContext));
+	}
+
+	public void addNamedTupleOutput(String namedOutput, Schema outputSchema) throws TupleMRException {
+		Output output = new Output(namedOutput, new TupleOutputFormat(outputSchema.toString()),
+		    ITuple.class, NullWritable.class, null);
+		namedOutputs.add(output);
 	}
 
 	/**
@@ -195,7 +176,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	 * @see PangoolMultipleInputs
 	 */
 	public void addInput(Path path, InputFormat inputFormat, TupleMapper inputProcessor) {
-		this.multiInputs.add(new Input(path, inputFormat, inputProcessor));
+		multipleInputs.getMultiInputs().add(new Input(path, inputFormat, inputProcessor));
 	}
 
 	/**
@@ -225,42 +206,10 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		this.tupleReducer = tupleReducer;
 	}
 
-	public void addNamedOutput(String namedOutput, OutputFormat outputFormat,
-	    Class keyClass, Class valueClass) throws TupleMRException {
-		addNamedOutput(namedOutput, outputFormat, keyClass, valueClass, null);
-	}
-
-	public void addNamedOutput(String namedOutput, OutputFormat outputFormat,
-	    Class keyClass, Class valueClass, Map<String, String> specificContext)
-	    throws TupleMRException {
-		validateNamedOutput(namedOutput);
-		namedOutputs.add(new Output(namedOutput, outputFormat, keyClass, valueClass,
-		    specificContext));
-	}
-
-	public void addNamedTupleOutput(String namedOutput, Schema outputSchema)
-	    throws TupleMRException {
-		validateNamedOutput(namedOutput);
-		Output output = new Output(namedOutput,
-		    new TupleOutputFormat(outputSchema.toString()), ITuple.class, NullWritable.class,
-		    null);
-		AvroUtils.addAvroSerialization(conf);
-		namedOutputs.add(output);
-	}
-
-	private void validateNamedOutput(String namedOutput) throws TupleMRException {
-		PangoolMultipleOutputs.validateOutputName(namedOutput);
-		for(Output existentNamedOutput : namedOutputs) {
-			if(existentNamedOutput.name.equals(namedOutput)) {
-				throw new TupleMRException("Duplicate named output: " + namedOutput);
-			}
-		}
-	}
-
 	public Job createJob() throws IOException, TupleMRException {
 
 		failIfNull(tupleReducer, "Need to set a group handler");
-		failIfEmpty(multiInputs, "Need to add at least one input");
+		failIfEmpty(multipleInputs.getMultiInputs(), "Need to add at least one input");
 		failIfNull(outputFormat, "Need to set output format");
 		failIfNull(outputKeyClass, "Need to set outputKeyClass");
 		failIfNull(outputValueClass, "Need to set outputValueClass");
@@ -309,22 +258,8 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);
-		for(Input input : multiInputs) {
-			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat,
-			    input.inputProcessor);
-		}
-		for(Output output : namedOutputs) {
-			try {
-				PangoolMultipleOutputs.addNamedOutput(job, output.name, output.outputFormat,
-				    output.keyClass, output.valueClass);
-			} catch(URISyntaxException e1) {
-				throw new TupleMRException(e1);
-			}
-			for(Map.Entry<String, String> contextKeyValue : output.specificContext.entrySet()) {
-				PangoolMultipleOutputs.addNamedOutputContext(job, output.name,
-				    contextKeyValue.getKey(), contextKeyValue.getValue());
-			}
-		}
+		multipleInputs.configureJob(job);
+		namedOutputs.configureJob(job);
 		// Configure a {@link ProxyOutputFormat} for Pangool's Multiple Outputs to
 		// work: {@link PangoolMultipleOutput}
 		String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";

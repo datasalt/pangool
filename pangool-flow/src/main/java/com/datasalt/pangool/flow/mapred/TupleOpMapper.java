@@ -21,7 +21,6 @@ import org.apache.hadoop.io.NullWritable;
 
 import com.datasalt.pangool.flow.io.TupleInput;
 import com.datasalt.pangool.flow.ops.ChainOp;
-import com.datasalt.pangool.flow.ops.Op;
 import com.datasalt.pangool.flow.ops.ReturnCallback;
 import com.datasalt.pangool.flow.ops.TupleOp;
 import com.datasalt.pangool.io.ITuple;
@@ -34,16 +33,20 @@ import com.datasalt.pangool.tuplemr.TupleMapper;
 @SuppressWarnings("serial")
 public class TupleOpMapper extends TupleMapper<ITuple, NullWritable> {
 
-	Op<ITuple, ITuple>  op;
+	TupleOp<ITuple>  op;
 	Collector collector;
 
-	public TupleOpMapper(Op<ITuple, ITuple> op) {
+	public TupleOpMapper(TupleOp<ITuple> op) {
 		this.op = op;
 	}
 	
 	public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
 		this.collector = collector;
 	}
+
+	public TupleOp<ITuple> getOp() {
+  	return op;
+  }
 
 	ReturnCallback<ITuple> callback = new ReturnCallback<ITuple>() {
 
