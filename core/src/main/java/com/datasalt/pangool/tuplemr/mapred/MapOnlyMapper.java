@@ -50,5 +50,6 @@ public abstract class MapOnlyMapper<I1, I2, O1, O2> extends Mapper<I1, I2, O1, O
 
 	protected void cleanup(Mapper<I1, I2, O1, O2>.Context context) throws java.io.IOException,
 	    InterruptedException {
+		collector.close();
 	}
 }

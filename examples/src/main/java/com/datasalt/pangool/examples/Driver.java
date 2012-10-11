@@ -17,7 +17,6 @@ package com.datasalt.pangool.examples;
 
 import org.apache.hadoop.util.ProgramDriver;
 
-import com.datasalt.pangool.examples.asf.ASFExample;
 import com.datasalt.pangool.examples.gameoflife.GameOfLifeJob;
 import com.datasalt.pangool.examples.movingaverage.MovingAverage;
 import com.datasalt.pangool.examples.movingaverage.MovingAverageGenerateData;
@@ -69,8 +68,6 @@ public class Driver extends ProgramDriver {
 		addClass("game_of_life", GameOfLifeJob.class, "Game Of Life M/R Job.");
 		//
 		addClass("multi_shakespeare_indexer", MultiShakespeareIndexer.class, "Create four SOLR indexes out of Shakespeare's plays");
-		// 
-		addClass("asfexample", ASFExample.class, "ASF Example");
 	}
 
 	public static void main(String[] args) throws Throwable {
