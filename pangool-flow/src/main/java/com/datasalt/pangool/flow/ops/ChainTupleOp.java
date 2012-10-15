@@ -7,7 +7,8 @@ import com.datasalt.pangool.io.ITuple;
 /**
  * Wraps a {@link ChainOp} where the last Op is a TupleOp.
  */
-public class ChainTupleOp<K> extends TupleOp {
+@SuppressWarnings({ "serial", "rawtypes" })
+public class ChainTupleOp<K> extends TupleOp<K> {
 
 	ChainOp<K, ITuple> chain;
 	
@@ -16,7 +17,8 @@ public class ChainTupleOp<K> extends TupleOp {
 		chain = new ChainOp<K, ITuple>(ops);
   }
 
-	@Override
+	@SuppressWarnings("unchecked")
+  @Override
   public void process(Object input, ReturnCallback callback) throws IOException, InterruptedException {
 		chain.process((K) input, callback);
 	}
