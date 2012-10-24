@@ -56,7 +56,35 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 	private final char separatorCharacter;
 	private final char quoteCharacter;
 	private final char escapeCharacter;
+	private final FieldSelector fieldSelector;
 
+	/**
+	 * When provided, will use it as a mapping between the text file columns and the provided Schema.
+	 * This is useful if the text file has a lot of columns but we only care about some of them.
+	 * For example if we provide a 3-field Schema we then could provide 3 indexes here that will map
+	 * to the schema by column index.
+	 * <p>
+	 * Remember that indexes go from [0 to n - 1]
+	 */
+	public static class FieldSelector implements Serializable {
+	
+		private Integer[] fieldIndexesToSelect;
+		
+		public FieldSelector(Integer... fieldIndexesToSelect) {
+			this.fieldIndexesToSelect = fieldIndexesToSelect;
+		}
+
+		public int select(int index) {
+			if(fieldIndexesToSelect.length > 0) {
+				return fieldIndexesToSelect[index];
+			}
+			return index;
+		}
+		
+		// Use this for bypassing Field selection
+		public static final FieldSelector NONE = new FieldSelector();
+	}
+	
 	/**
 	 * You must specify the Schema that will be used for Tuples being read so that automatic type conversions can be
 	 * applied (i.e. parsing) and the CSV semantics (if any). Use {@link #NO_ESCAPE_CHARACTER} and
@@ -64,7 +92,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 	 * of any file will be skipped.
 	 */
 	public TupleTextInputFormat(final Schema schema, boolean hasHeader, Character separator, Character quoteCharacter,
-	    Character escapeCharacter) {
+	    Character escapeCharacter, FieldSelector fieldSelector) {
 		this.schema = schema;
 		for(Field field : schema.getFields()) {
 			if(field.getType().equals(Type.OBJECT) || field.getType().equals(Type.BYTES)) {
@@ -76,6 +104,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 		this.separatorCharacter = separator;
 		this.quoteCharacter = quoteCharacter;
 		this.escapeCharacter = escapeCharacter;
+		this.fieldSelector = fieldSelector;
 	}
 
 	public static class TupleTextInputReader extends RecordReader<ITuple, NullWritable> {
@@ -85,7 +114,8 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 		private final Character quote;
 		private final Character escape;
 		private final boolean hasHeader;
-
+		private final FieldSelector fieldSelector;
+		
 		private long start = 0;
 		private long end = Integer.MAX_VALUE;
 		private long position = 0;
@@ -93,12 +123,13 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 		private final Schema schema;
 		private final ITuple tuple;
 
-		public TupleTextInputReader(Schema schema, boolean hasHeader, Character separator, Character quote, Character escape) {
+		public TupleTextInputReader(Schema schema, boolean hasHeader, Character separator, Character quote, Character escape, FieldSelector fieldSelector) {
 			this.separator = separator;
 			this.quote = quote;
 			this.escape = escape;
 			this.schema = schema;
 			this.hasHeader = hasHeader;
+			this.fieldSelector = fieldSelector;
 			this.tuple = new Tuple(schema);
 		}
 
@@ -156,36 +187,35 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 			if(readLine == null) {
 				return false;
 			}
-			if(readLine.length != schema.getFields().size()) {
-				throw new IOException("Read line [" + Arrays.toString(readLine) + "] with [" + readLine.length
-				    + "] fields which is less than specified Schema [" + schema + "] fields [" + schema.getFields().size()
-				    + "]");
-			}
 			for(int i = 0; i < schema.getFields().size(); i++) {
+				int index = i;
+				if(fieldSelector != null) {
+					index = fieldSelector.select(i);
+				}
 				Field field = schema.getFields().get(i);
 				try {
 					switch(field.getType()) {
 					case DOUBLE:
-						tuple.set(i, Double.parseDouble(readLine[i]));
+						tuple.set(i, Double.parseDouble(readLine[index]));
 						break;
 					case FLOAT:
-						tuple.set(i, Float.parseFloat(readLine[i]));
+						tuple.set(i, Float.parseFloat(readLine[index]));
 						break;
 					case ENUM:
 						Class clazz = field.getObjectClass();
-						tuple.set(i, Enum.valueOf(clazz, readLine[i]));
+						tuple.set(i, Enum.valueOf(clazz, readLine[index]));
 						break;
 					case INT:
-						tuple.set(i, Integer.parseInt(readLine[i]));
+						tuple.set(i, Integer.parseInt(readLine[index]));
 						break;
 					case LONG:
-						tuple.set(i, Long.parseLong(readLine[i]));
+						tuple.set(i, Long.parseLong(readLine[index]));
 						break;
 					case STRING:
-						tuple.set(i, readLine[i]);
+						tuple.set(i, readLine[index]);
 						break;
 					case BOOLEAN:
-						tuple.set(i, Boolean.parseBoolean(readLine[i]));
+						tuple.set(i, Boolean.parseBoolean(readLine[index]));
 						break;
 					}
 				} catch(Throwable t) {
@@ -221,6 +251,6 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 	@Override
 	public RecordReader<ITuple, NullWritable> createRecordReader(InputSplit iS, TaskAttemptContext context)
 	    throws IOException, InterruptedException {
-		return new TupleTextInputReader(schema, hasHeader, separatorCharacter, quoteCharacter, escapeCharacter);
+		return new TupleTextInputReader(schema, hasHeader, separatorCharacter, quoteCharacter, escapeCharacter, fieldSelector);
 	}
 }

@@ -42,10 +42,12 @@ import com.datasalt.pangool.tuplemr.IdentityTupleReducer;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleTextInputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleTextInputFormat.FieldSelector;
 import com.datasalt.pangool.utils.CommonUtils;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.google.common.io.Files;
 
+@SuppressWarnings("rawtypes")
 public class TestTupleTextInputOutputFormat extends BaseTest {
 
 	public static String OUT = TestTupleTextInputOutputFormat.class.getName() + "-out";
@@ -55,7 +57,6 @@ public class TestTupleTextInputOutputFormat extends BaseTest {
 		MICKEY, MOUSE, MINIE;
 	}
 
-	@SuppressWarnings("rawtypes")
   @Test
 	public void test() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
 
@@ -91,7 +92,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest {
 		 * Define the Input Format and the Output Format!
 		 */
 		InputFormat inputFormat = new TupleTextInputFormat(schema, false, ' ', TupleTextOutputFormat.NO_QUOTE_CHARACTER,
-				TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
+				TupleTextOutputFormat.NO_ESCAPE_CHARACTER, FieldSelector.NONE);
 		OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, ' ', TupleTextOutputFormat.NO_QUOTE_CHARACTER,
 				TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
 
@@ -107,5 +108,61 @@ public class TestTupleTextInputOutputFormat extends BaseTest {
 
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
+	}
+	
+	@Test
+	public void testFieldSelection() throws IOException, TupleMRException, InterruptedException, ClassNotFoundException {
+		String line1 = "foo1 10.0 bar1 1.0 100 1000000 true MICKEY";
+		String line2 = "foo2 20.0 bar2 2.0 200 2000000 false MOUSE";
+		String line3 = "foo3 30.0 bar3 3.0 300 3000000 true MINIE";
+
+		// The input is a simple space-separated file with no quotes
+		CommonUtils.writeTXT(line1 + "\n" + line2 + "\n" + line3, new File(IN));
+		Configuration conf = getConf();
+		FileSystem fS = FileSystem.get(conf);
+		Path outPath = new Path(OUT);
+		Path inPath = new Path(IN);
+		HadoopUtils.deleteIfExists(fS, outPath);
+
+		// Define the Schema according to the text file
+		// We will only select a subset of the file columns
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("floatField", Type.FLOAT));
+		fields.add(Field.create("intField", Type.INT));
+		fields.add(Field.create("booleanField", Type.BOOLEAN));
+
+		Schema schema = new Schema("schema", fields);
+
+		// Define a FieldSelector to select only columns 1, 4, 6
+		// 0 is the first column
+		FieldSelector selector = new FieldSelector(1, 4, 6);
+		
+		TupleMRBuilder builder = new TupleMRBuilder(conf);
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("floatField"); // but we don't care, really
+		// Define the Input Format and the Output Format!
+		// Add the selector to the input format
+		InputFormat inputFormat = new TupleTextInputFormat(schema, false, ' ', TupleTextOutputFormat.NO_QUOTE_CHARACTER,
+				TupleTextOutputFormat.NO_ESCAPE_CHARACTER, selector);
+		OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, ' ', TupleTextOutputFormat.NO_QUOTE_CHARACTER,
+				TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
+
+		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
+		builder.setTupleReducer(new IdentityTupleReducer());
+		builder.setOutput(outPath, outputFormat, ITuple.class, NullWritable.class);
+		builder.createJob().waitForCompletion(true);
+		Job job = builder.createJob();
+		assertRun(job);
+
+		// This is what we expect as output after field selection
+		line1 = "10.0 100 true";
+		line2 = "20.0 200 false";
+		line3 = "30.0 300 true";
+		
+		Assert.assertEquals(line1 + "\n" + line2 + "\n" + line3,
+		    Files.toString(new File(OUT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
+
+		HadoopUtils.deleteIfExists(fS, inPath);
+		HadoopUtils.deleteIfExists(fS, outPath);		
 	}
 }
