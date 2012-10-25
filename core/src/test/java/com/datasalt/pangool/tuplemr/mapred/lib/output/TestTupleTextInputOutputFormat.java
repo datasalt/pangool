@@ -33,6 +33,7 @@ import org.apache.hadoop.mapreduce.OutputFormat;
 import org.junit.Test;
 
 import com.datasalt.pangool.BaseTest;
+import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
@@ -109,7 +110,54 @@ public class TestTupleTextInputOutputFormat extends BaseTest {
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
-	
+
+  @Test
+	public void test2() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
+
+		String line1 = "1,\"Kabul\",\"AFG\",\"Kabol\",1780000";
+		String line2 = "2,\"Qandahar\",\"AFG\",\"Qandahar\",237500";
+
+		String line1out = "\"1\",\"Kabul\",\"AFG\",\"Kabol\",\"1780000\"";
+		String line2out = "\"2\",\"Qandahar\",\"AFG\",\"Qandahar\",\"237500\"";
+
+		
+		// The input is a simple space-separated file with no quotes
+		CommonUtils.writeTXT(line1 + "\n" + line2, new File(IN));
+		Configuration conf = getConf();
+		FileSystem fS = FileSystem.get(conf);
+		Path outPath = new Path(OUT);
+		Path inPath = new Path(IN);
+		HadoopUtils.deleteIfExists(fS, outPath);
+
+		// Define the Schema according to the text file
+		Schema schema = new Schema("schema", Fields.parse("id:int,name:string,country_code:string,district:string,population:int"));
+
+		TupleMRBuilder builder = new TupleMRBuilder(conf);
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("id"); // but we don't care, really
+		/*
+		 * Define the Input Format and the Output Format!
+		 */
+		InputFormat inputFormat = new TupleTextInputFormat(schema, false, ',', '"',
+				'\\', FieldSelector.NONE);
+		OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, ',', '"',
+				'\\');
+
+		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
+		builder.setTupleReducer(new IdentityTupleReducer());
+		builder.setOutput(outPath, outputFormat, ITuple.class, NullWritable.class);
+		builder.createJob().waitForCompletion(true);
+		Job job = builder.createJob();
+		assertRun(job);
+
+		Assert.assertEquals(line1out + "\n" + line2out,
+		    Files.toString(new File(OUT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
+
+		HadoopUtils.deleteIfExists(fS, inPath);
+		HadoopUtils.deleteIfExists(fS, outPath);
+	}
+
+  
 	@Test
 	public void testFieldSelection() throws IOException, TupleMRException, InterruptedException, ClassNotFoundException {
 		String line1 = "foo1 10.0 bar1 1.0 100 1000000 true MICKEY";
