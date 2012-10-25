@@ -3,6 +3,13 @@ Pangool Change Log
 
 Pangool 0.43.4 (development)
 
+ BUG FIXES
+ - 2012-10-25 - Solved a bug in TupleTextInputFormat with headers. Headers was not properly
+                skipped
+
+ IMPROVEMENTS
+ - 2012-10-24 - Added Field Selection to TupleTextInputFormat
+
  CHANGES
  - 2012-10-09 - Migrated to Solr 4.0.0-BETA
 

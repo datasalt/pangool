@@ -174,7 +174,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 			if(start == 0) {
 				// Watch out possible header line!
 				if(hasHeader) {
-					reader.skip(1);
+					reader.readLine();
 				}
 			}
 			this.reader = new CSVReader(reader, separator, quote, escape);
