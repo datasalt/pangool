@@ -1,7 +1,9 @@
 Pangool Change Log
 ====================
 
-Pangool 0.43.4 (development)
+Pangool 0.43.5 (development)
+
+Pangool 0.43.4
 
  BUG FIXES
  - 2012-10-25 - Solved a bug in TupleTextInputFormat with headers. Headers was not properly
