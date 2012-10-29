@@ -263,6 +263,9 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		    NullWritable.class);
 		Job job = mO.createJob();
 		assertTrue(job.waitForCompletion(true));
+
+		HadoopUtils.deleteIfExists(fS, inPath);
+		HadoopUtils.deleteIfExists(fS, outPath);
 	}
 	
 	@Test
@@ -321,6 +324,8 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		Job job = mO.createJob();
 		assertTrue(job.waitForCompletion(true));
 		
+		HadoopUtils.deleteIfExists(fS, inPath);
+		HadoopUtils.deleteIfExists(fS, outPath);
 	}
 
 	@Test
