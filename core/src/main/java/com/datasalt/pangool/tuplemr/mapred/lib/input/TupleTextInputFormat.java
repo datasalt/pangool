@@ -30,8 +30,8 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.mortbay.log.Log;
 
-import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
 import com.datasalt.pangool.io.ITuple;
@@ -39,6 +39,10 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
+import com.googlecode.jcsv.CSVStrategy;
+import com.googlecode.jcsv.reader.CSVReader;
+import com.googlecode.jcsv.reader.internal.CSVReaderBuilder;
+import com.googlecode.jcsv.reader.internal.DefaultCSVEntryParser;
 
 /**
  * A special input format that supports reading text lines into {@link ITuple}. It supports CSV-like semantics such as
@@ -50,13 +54,16 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 
 	public static final char NO_QUOTE_CHARACTER = CSVWriter.NO_QUOTE_CHARACTER;
 	public static final char NO_ESCAPE_CHARACTER = CSVWriter.NO_ESCAPE_CHARACTER;
-
+	public static final String NO_NULL_STRING = null;
+	
 	private final Schema schema;
 	private final boolean hasHeader;
+	private final boolean strictQuotes;
 	private final char separatorCharacter;
 	private final char quoteCharacter;
 	private final char escapeCharacter;
 	private final FieldSelector fieldSelector;
+	private String nullString;
 
 	/**
 	 * When provided, will use it as a mapping between the text file columns and the provided Schema.
@@ -91,8 +98,8 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 	 * {@link #NO_QUOTE_CHARACTER} if the input files don't have any such semantics. If hasHeader is true, the first line
 	 * of any file will be skipped.
 	 */
-	public TupleTextInputFormat(final Schema schema, boolean hasHeader, Character separator, Character quoteCharacter,
-	    Character escapeCharacter, FieldSelector fieldSelector) {
+	public TupleTextInputFormat(final Schema schema, boolean hasHeader, boolean strictQuotes, Character separator, Character quoteCharacter,
+	    Character escapeCharacter, FieldSelector fieldSelector, String nullString) {
 		this.schema = schema;
 		for(Field field : schema.getFields()) {
 			if(field.getType().equals(Type.OBJECT) || field.getType().equals(Type.BYTES)) {
@@ -100,21 +107,25 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 				    + " or " + Type.BYTES);
 			}
 		}
+		this.strictQuotes = strictQuotes;
 		this.hasHeader = hasHeader;
 		this.separatorCharacter = separator;
 		this.quoteCharacter = quoteCharacter;
 		this.escapeCharacter = escapeCharacter;
 		this.fieldSelector = fieldSelector;
+		this.nullString = nullString;
 	}
 
 	public static class TupleTextInputReader extends RecordReader<ITuple, NullWritable> {
 
-		private CSVReader reader;
+		private CSVReader<String[]> csvParser;
 		private final Character separator;
 		private final Character quote;
 		private final Character escape;
 		private final boolean hasHeader;
+		private final boolean strictQuotes;
 		private final FieldSelector fieldSelector;
+		private final String nullString;
 		
 		private long start = 0;
 		private long end = Integer.MAX_VALUE;
@@ -123,19 +134,21 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 		private final Schema schema;
 		private final ITuple tuple;
 
-		public TupleTextInputReader(Schema schema, boolean hasHeader, Character separator, Character quote, Character escape, FieldSelector fieldSelector) {
+		public TupleTextInputReader(Schema schema, boolean hasHeader, boolean strictQuotes, Character separator, Character quote, Character escape, FieldSelector fieldSelector, String nullString) {
 			this.separator = separator;
 			this.quote = quote;
 			this.escape = escape;
 			this.schema = schema;
 			this.hasHeader = hasHeader;
+			this.strictQuotes = strictQuotes;
 			this.fieldSelector = fieldSelector;
+			this.nullString = nullString;
 			this.tuple = new Tuple(schema);
 		}
 
 		@Override
 		public void close() throws IOException {
-			reader.close();
+			csvParser.close();
 		}
 
 		@Override
@@ -169,21 +182,18 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 		public void init(Path pathToRead, Configuration conf) throws IOException {
 			FileSystem fS = pathToRead.getFileSystem(conf);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(fS.open(pathToRead)));
-			// Skip start lines?
 			reader.skip(start);
-			if(start == 0) {
-				// Watch out possible header line!
-				if(hasHeader) {
-					reader.readLine();
-				}
-			}
-			this.reader = new CSVReader(reader, separator, quote, escape);
+			csvParser =
+			new CSVReaderBuilder<String[]>(reader)
+				.strategy(new CSVStrategy(separator, quote, '#', hasHeader, true))
+				.tokenizer(new NullableCSVTokenizer(escape, strictQuotes, nullString))
+				.entryParser(new DefaultCSVEntryParser()).build();
 		}
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
 		public boolean nextKeyValue() throws IOException, InterruptedException {
-			String[] readLine = reader.readNext();
+			String[] readLine =	csvParser.readNext();
 			if(readLine == null) {
 				return false;
 			}
@@ -192,36 +202,38 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 				if(fieldSelector != null) {
 					index = fieldSelector.select(i);
 				}
+				String currentValue = readLine[index];
 				Field field = schema.getFields().get(i);
 				try {
 					switch(field.getType()) {
 					case DOUBLE:
-						tuple.set(i, Double.parseDouble(readLine[index]));
+						tuple.set(i, Double.parseDouble(currentValue));
 						break;
 					case FLOAT:
-						tuple.set(i, Float.parseFloat(readLine[index]));
+						tuple.set(i, Float.parseFloat(currentValue));
 						break;
 					case ENUM:
 						Class clazz = field.getObjectClass();
-						tuple.set(i, Enum.valueOf(clazz, readLine[index]));
+						tuple.set(i, Enum.valueOf(clazz, currentValue));
 						break;
 					case INT:
-						tuple.set(i, Integer.parseInt(readLine[index]));
+						tuple.set(i, Integer.parseInt(currentValue));
 						break;
 					case LONG:
-						tuple.set(i, Long.parseLong(readLine[index]));
+						tuple.set(i, Long.parseLong(currentValue));
 						break;
 					case STRING:
-						tuple.set(i, readLine[index]);
+						tuple.set(i, currentValue);
 						break;
 					case BOOLEAN:
-						tuple.set(i, Boolean.parseBoolean(readLine[index]));
+						tuple.set(i, Boolean.parseBoolean(currentValue));
 						break;
 					}
 				} catch(Throwable t) {
-					t.printStackTrace();
-					throw new IOException("Data mismatch reading line [" + Arrays.toString(readLine)
-					    + "] when trying to parse field [" + i + "] of schema [" + schema + "]", t);
+					Log.warn("Error parsing value: (" + currentValue + ") in text line: (" + Arrays.toString(readLine) + ")", t);
+					// On any failure we assume null
+					// The user is responsible for handling nulls afterwards
+					tuple.set(i, null);
 				}
 			}
 			return true;
@@ -251,6 +263,6 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 	@Override
 	public RecordReader<ITuple, NullWritable> createRecordReader(InputSplit iS, TaskAttemptContext context)
 	    throws IOException, InterruptedException {
-		return new TupleTextInputReader(schema, hasHeader, separatorCharacter, quoteCharacter, escapeCharacter, fieldSelector);
+		return new TupleTextInputReader(schema, hasHeader, strictQuotes, separatorCharacter, quoteCharacter, escapeCharacter, fieldSelector, nullString);
 	}
 }
