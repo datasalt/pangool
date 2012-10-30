@@ -232,46 +232,48 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 				newSize = in.readLine(line, maxLineLength,
 				    Math.max((int) Math.min(Integer.MAX_VALUE, end - position), maxLineLength));
 
-				List<String> readLine = csvTokenizer.tokenizeLine(line.toString(), csvStrategy, null);
-
-				for(int i = 0; i < schema.getFields().size(); i++) {
-					int index = i;
-					if(fieldSelector != null) {
-						index = fieldSelector.select(i);
-					}
-					String currentValue = "";
-					try {
-						currentValue = readLine.get(index);
-						Field field = schema.getFields().get(i);
-						switch(field.getType()) {
-						case DOUBLE:
-							tuple.set(i, Double.parseDouble(currentValue));
-							break;
-						case FLOAT:
-							tuple.set(i, Float.parseFloat(currentValue));
-							break;
-						case ENUM:
-							Class clazz = field.getObjectClass();
-							tuple.set(i, Enum.valueOf(clazz, currentValue));
-							break;
-						case INT:
-							tuple.set(i, Integer.parseInt(currentValue));
-							break;
-						case LONG:
-							tuple.set(i, Long.parseLong(currentValue));
-							break;
-						case STRING:
-							tuple.set(i, currentValue);
-							break;
-						case BOOLEAN:
-							tuple.set(i, Boolean.parseBoolean(currentValue));
-							break;
+				if(newSize < maxLineLength && newSize > 0) {
+					List<String> readLine = csvTokenizer.tokenizeLine(line.toString(), csvStrategy, null);
+	
+					for(int i = 0; i < schema.getFields().size(); i++) {
+						int index = i;
+						if(fieldSelector != null) {
+							index = fieldSelector.select(i);
 						}
-					} catch(Throwable t) {
-						LOG.warn("Error parsing value: (" + currentValue + ") in text line: (" + readLine + ")", t);
-						// On any failure we assume null
-						// The user is responsible for handling nulls afterwards
-						tuple.set(i, null);
+						String currentValue = "";
+						try {
+							currentValue = readLine.get(index);
+							Field field = schema.getFields().get(i);
+							switch(field.getType()) {
+							case DOUBLE:
+								tuple.set(i, Double.parseDouble(currentValue));
+								break;
+							case FLOAT:
+								tuple.set(i, Float.parseFloat(currentValue));
+								break;
+							case ENUM:
+								Class clazz = field.getObjectClass();
+								tuple.set(i, Enum.valueOf(clazz, currentValue));
+								break;
+							case INT:
+								tuple.set(i, Integer.parseInt(currentValue));
+								break;
+							case LONG:
+								tuple.set(i, Long.parseLong(currentValue));
+								break;
+							case STRING:
+								tuple.set(i, currentValue);
+								break;
+							case BOOLEAN:
+								tuple.set(i, Boolean.parseBoolean(currentValue));
+								break;
+							}
+						} catch(Throwable t) {
+							LOG.warn("Error parsing value: (" + currentValue + ") in text line: (" + readLine + ")", t);
+							// On any failure we assume null
+							// The user is responsible for handling nulls afterwards
+							tuple.set(i, null);
+						}
 					}
 				}
 				
@@ -294,14 +296,6 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 				return true;
 			}
 		}
-
-		// String[] readLine = csvParser.readNext();
-		// if(readLine == null) {
-		// return false;
-		// }
-		//
-		// }
-		// return true;
 	}
 
 	public Schema getSchema() {
