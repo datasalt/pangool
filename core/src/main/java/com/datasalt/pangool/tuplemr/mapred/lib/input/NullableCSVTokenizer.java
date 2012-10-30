@@ -71,11 +71,11 @@ public class NullableCSVTokenizer implements CSVTokenizer {
 					} else {
 						token.add(str);
 					}
+					lastValueQuoted = false;
+					sb.delete(0, sb.length());
 					if(c == NEW_LINE) {
 						return token;
 					}
-					lastValueQuoted = false;
-					sb.delete(0, sb.length());
 				} else if(c == QUOTE && useQuotes) {
 					if(sb.length() == 0) {
 						state = State.QUOTED;
@@ -97,7 +97,7 @@ public class NullableCSVTokenizer implements CSVTokenizer {
 					pointer++;
 					sb.append(line.charAt(pointer));
 					break;
-				} else if(c == NEW_LINE) {
+				} else if(c == NEW_LINE && reader != null) {
 					sb.append(NEW_LINE);
 					pointer = -1;
 					line = reader.readLine();

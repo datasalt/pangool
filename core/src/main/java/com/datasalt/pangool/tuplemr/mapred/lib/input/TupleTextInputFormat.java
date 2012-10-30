@@ -15,17 +15,18 @@
  */
 package com.datasalt.pangool.tuplemr.mapred.lib.input;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.util.Arrays;
+import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -34,7 +35,7 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.mortbay.log.Log;
+import org.apache.hadoop.util.LineReader;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
@@ -44,9 +45,6 @@ import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
 import com.googlecode.jcsv.CSVStrategy;
-import com.googlecode.jcsv.reader.CSVReader;
-import com.googlecode.jcsv.reader.internal.CSVReaderBuilder;
-import com.googlecode.jcsv.reader.internal.DefaultCSVEntryParser;
 
 /**
  * A special input format that supports reading text lines into {@link ITuple}. It supports CSV-like semantics such as
@@ -128,41 +126,44 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 
 	public static class TupleTextInputReader extends RecordReader<ITuple, NullWritable> {
 
+		private static final Log LOG = LogFactory.getLog(TupleTextInputReader.class);
+
 		private CompressionCodecFactory compressionCodecs = null;
-		
-		private CSVReader<String[]> csvParser;
+
+		private NullableCSVTokenizer csvTokenizer;
+		private CSVStrategy csvStrategy;
 		private final Character separator;
 		private final Character quote;
-		private final Character escape;
 		private final boolean hasHeader;
-		private final boolean strictQuotes;
 		private final FieldSelector fieldSelector;
-		private final String nullString;
+		private Text line;
+
+		private LineReader in;
+		private int maxLineLength;
 
 		private long start = 0;
 		private long end = Integer.MAX_VALUE;
 		private long position = 0;
 
 		private final Schema schema;
-		private final ITuple tuple;
+		private ITuple tuple;
 
 		public TupleTextInputReader(Schema schema, boolean hasHeader, boolean strictQuotes,
 		    Character separator, Character quote, Character escape, FieldSelector fieldSelector,
 		    String nullString) {
 			this.separator = separator;
 			this.quote = quote;
-			this.escape = escape;
 			this.schema = schema;
 			this.hasHeader = hasHeader;
-			this.strictQuotes = strictQuotes;
 			this.fieldSelector = fieldSelector;
-			this.nullString = nullString;
-			this.tuple = new Tuple(schema);
+			csvTokenizer = new NullableCSVTokenizer(escape, strictQuotes, nullString);
 		}
 
 		@Override
 		public void close() throws IOException {
-			csvParser.close();
+			if(in != null) {
+				in.close();
+			}
 		}
 
 		@Override
@@ -184,89 +185,123 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 			}
 		}
 
-		@Override
-		public void initialize(InputSplit split, TaskAttemptContext context) throws IOException,
-		    InterruptedException {
-			
+		public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException {
+			FileSplit split = (FileSplit) genericSplit;
 			Configuration job = context.getConfiguration();
+			this.maxLineLength = job.getInt("mapred.linerecordreader.maxlength", Integer.MAX_VALUE);
+			start = split.getStart();
+
+			csvStrategy = new CSVStrategy(separator, quote, '#', hasHeader && start == 0, true);
+
+			end = start + split.getLength();
+			final Path file = split.getPath();
 			compressionCodecs = new CompressionCodecFactory(job);
-			FileSplit fileSplit = (FileSplit) split;
-			Path pathToRead = fileSplit.getPath();
-			
-			this.start = fileSplit.getStart();
-			this.end = fileSplit.getStart() + split.getLength();
+			final CompressionCodec codec = compressionCodecs.getCodec(file);
 
-			final CompressionCodec codec = compressionCodecs.getCodec(pathToRead);
-			init(pathToRead, codec, context.getConfiguration());
-		}
-
-		public void init(Path pathToRead, CompressionCodec codec, Configuration conf) throws IOException {
-			FileSystem fS = pathToRead.getFileSystem(conf);
-			InputStream iS = fS.open(pathToRead);
-			BufferedReader reader;
+			// open the file and seek to the start of the split
+			FileSystem fs = file.getFileSystem(job);
+			FSDataInputStream fileIn = fs.open(split.getPath());
+			boolean skipFirstLine = false;
 			if(codec != null) {
-				reader = new BufferedReader(new InputStreamReader(codec.createInputStream(iS)));
+				in = new LineReader(codec.createInputStream(fileIn), job);
+				end = Long.MAX_VALUE;
 			} else {
-				reader = new BufferedReader(new InputStreamReader(iS));
+				if(start != 0) {
+					skipFirstLine = true;
+					--start;
+					fileIn.seek(start);
+				}
+				in = new LineReader(fileIn, job);
 			}
-			 
-			reader.skip(start);
-			csvParser = new CSVReaderBuilder<String[]>(reader)
-			    .strategy(new CSVStrategy(separator, quote, '#', hasHeader, true))
-			    .tokenizer(new NullableCSVTokenizer(escape, strictQuotes, nullString))
-			    .entryParser(new DefaultCSVEntryParser()).build();
+			if(skipFirstLine) { // skip first line and re-establish "start".
+				start += in.readLine(new Text(), 0, (int) Math.min((long) Integer.MAX_VALUE, end - start));
+			}
+			this.position = start;
 		}
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
-		@Override
-		public boolean nextKeyValue() throws IOException, InterruptedException {
-			String[] readLine = csvParser.readNext();
-			if(readLine == null) {
-				return false;
+    public boolean nextKeyValue() throws IOException {
+			int newSize = 0;
+			if(line == null) {
+				this.line = new Text();
 			}
-			for(int i = 0; i < schema.getFields().size(); i++) {
-				int index = i;
-				if(fieldSelector != null) {
-					index = fieldSelector.select(i);
-				}
-				String currentValue = readLine[index];
-				Field field = schema.getFields().get(i);
-				try {
-					switch(field.getType()) {
-					case DOUBLE:
-						tuple.set(i, Double.parseDouble(currentValue));
-						break;
-					case FLOAT:
-						tuple.set(i, Float.parseFloat(currentValue));
-						break;
-					case ENUM:
-						Class clazz = field.getObjectClass();
-						tuple.set(i, Enum.valueOf(clazz, currentValue));
-						break;
-					case INT:
-						tuple.set(i, Integer.parseInt(currentValue));
-						break;
-					case LONG:
-						tuple.set(i, Long.parseLong(currentValue));
-						break;
-					case STRING:
-						tuple.set(i, currentValue);
-						break;
-					case BOOLEAN:
-						tuple.set(i, Boolean.parseBoolean(currentValue));
-						break;
+			if(tuple == null) {
+				this.tuple = new Tuple(schema);
+			}
+			while(position < end) {
+				newSize = in.readLine(line, maxLineLength,
+				    Math.max((int) Math.min(Integer.MAX_VALUE, end - position), maxLineLength));
+
+				List<String> readLine = csvTokenizer.tokenizeLine(line.toString(), csvStrategy, null);
+
+				for(int i = 0; i < schema.getFields().size(); i++) {
+					int index = i;
+					if(fieldSelector != null) {
+						index = fieldSelector.select(i);
 					}
-				} catch(Throwable t) {
-					Log.warn(
-					    "Error parsing value: (" + currentValue + ") in text line: (" + Arrays.toString(readLine)
-					        + ")", t);
-					// On any failure we assume null
-					// The user is responsible for handling nulls afterwards
-					tuple.set(i, null);
+					String currentValue = "";
+					try {
+						currentValue = readLine.get(index);
+						Field field = schema.getFields().get(i);
+						switch(field.getType()) {
+						case DOUBLE:
+							tuple.set(i, Double.parseDouble(currentValue));
+							break;
+						case FLOAT:
+							tuple.set(i, Float.parseFloat(currentValue));
+							break;
+						case ENUM:
+							Class clazz = field.getObjectClass();
+							tuple.set(i, Enum.valueOf(clazz, currentValue));
+							break;
+						case INT:
+							tuple.set(i, Integer.parseInt(currentValue));
+							break;
+						case LONG:
+							tuple.set(i, Long.parseLong(currentValue));
+							break;
+						case STRING:
+							tuple.set(i, currentValue);
+							break;
+						case BOOLEAN:
+							tuple.set(i, Boolean.parseBoolean(currentValue));
+							break;
+						}
+					} catch(Throwable t) {
+						LOG.warn("Error parsing value: (" + currentValue + ") in text line: (" + readLine + ")", t);
+						// On any failure we assume null
+						// The user is responsible for handling nulls afterwards
+						tuple.set(i, null);
+					}
 				}
+				
+				if(newSize == 0) {
+					break;
+				}
+				position += newSize;
+				if(newSize < maxLineLength) {
+					break;
+				}
+
+				// line too long. try again
+				LOG.info("Skipped line of size " + newSize + " at pos " + (position - newSize));
 			}
-			return true;
+			if(newSize == 0) {
+				line = null;
+				tuple = null;
+				return false;
+			} else {
+				return true;
+			}
 		}
+
+		// String[] readLine = csvParser.readNext();
+		// if(readLine == null) {
+		// return false;
+		// }
+		//
+		// }
+		// return true;
 	}
 
 	public Schema getSchema() {

@@ -18,7 +18,9 @@ package com.datasalt.pangool.tuplemr.mapred.lib.output;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URISyntaxException;
@@ -67,6 +69,51 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		MICKEY, MOUSE, MINIE;
 	}
 
+	/*
+	 * A test for finding race conditions in initializing InputSplits
+	 */
+	@Test
+	public void testSplits() throws Exception {
+		
+		BufferedWriter writer = new BufferedWriter(new FileWriter(IN));
+		for(int i = 0;i < 10000; i++) {
+			writer.write("str1" + " " + "str2" + " " + "30" + " " + "4000" + "\n"); 
+		}
+		writer.close();
+		
+		Schema schema = new Schema("schema", Fields.parse( "a:string, b:string, c:int, d:long" ));
+		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ' ', TupleTextInputFormat.NO_QUOTE_CHARACTER, TupleTextInputFormat.NO_ESCAPE_CHARACTER, FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING);
+		
+		Configuration conf = getConf();
+		conf.setLong("mapred.min.split.size", 10*1024);
+		conf.setLong("dfs.block.size", 10*1024);
+		conf.setLong("mapred.max.split.size", 10*1024);
+		
+		FileSystem fS = FileSystem.get(conf);
+		Path outPath = new Path(OUT);
+		
+		MapOnlyJobBuilder mapOnly = new MapOnlyJobBuilder(conf);
+		mapOnly.addInput(new Path(IN), inputFormat, new MapOnlyMapper<ITuple, NullWritable, NullWritable, NullWritable>() {
+			
+			protected void map(ITuple key, NullWritable value, Context context) throws IOException, InterruptedException {
+				Assert.assertEquals("str1", key.get("a").toString());
+				Assert.assertEquals("str2", key.get("b").toString());
+				Assert.assertEquals((Integer)30, (Integer)key.get("c"));
+				Assert.assertEquals((Long)4000l, (Long)key.get("d"));
+				context.getCounter("stats", "nlines").increment(1);
+			};
+		});
+		
+		HadoopUtils.deleteIfExists(fS, outPath);
+		mapOnly.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class, NullWritable.class);
+		Job job = mapOnly.createJob();
+		assertTrue(job.waitForCompletion(true));
+		
+		HadoopUtils.deleteIfExists(fS, new Path(IN));
+		
+		assertEquals(10000, job.getCounters().getGroup("stats").findCounter("nlines").getValue());
+	}
+	
 	@Test
 	public void testInputCompression() throws Exception {
 		Schema schema = new Schema("schema", Fields.parse( "a:string, b:string, c:int, d:long" ));
@@ -92,6 +139,8 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		mapOnly.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class, NullWritable.class);
 		Job job = mapOnly.createJob();
 		assertTrue(job.waitForCompletion(true));
+		
+		HadoopUtils.deleteIfExists(fS, new Path(IN));
 		
 		assertEquals(100, job.getCounters().getGroup("stats").findCounter("nlines").getValue());
 	}
@@ -244,7 +293,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		Job job = builder.createJob();
 		assertRun(job);
 
-		Assert.assertEquals(outHeader + "\n" + line2 + "\n" + line3,
+		Assert.assertEquals(outHeader + "\n" + line1 + "\n" + line2 + "\n" + line3,
 		    Files.toString(new File(OUT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
 
 		HadoopUtils.deleteIfExists(fS, inPath);
