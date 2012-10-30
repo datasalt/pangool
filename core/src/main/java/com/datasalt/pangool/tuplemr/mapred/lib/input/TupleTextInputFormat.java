@@ -17,6 +17,7 @@ package com.datasalt.pangool.tuplemr.mapred.lib.input;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -25,7 +26,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -55,7 +59,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 	public static final char NO_QUOTE_CHARACTER = CSVWriter.NO_QUOTE_CHARACTER;
 	public static final char NO_ESCAPE_CHARACTER = CSVWriter.NO_ESCAPE_CHARACTER;
 	public static final String NO_NULL_STRING = null;
-	
+
 	private final Schema schema;
 	private final boolean hasHeader;
 	private final boolean strictQuotes;
@@ -65,18 +69,23 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 	private final FieldSelector fieldSelector;
 	private String nullString;
 
+	@Override
+	protected boolean isSplitable(JobContext context, Path file) {
+		CompressionCodec codec = new CompressionCodecFactory(context.getConfiguration()).getCodec(file);
+		return codec == null;
+	}
+
 	/**
-	 * When provided, will use it as a mapping between the text file columns and the provided Schema.
-	 * This is useful if the text file has a lot of columns but we only care about some of them.
-	 * For example if we provide a 3-field Schema we then could provide 3 indexes here that will map
-	 * to the schema by column index.
+	 * When provided, will use it as a mapping between the text file columns and the provided Schema. This is useful if
+	 * the text file has a lot of columns but we only care about some of them. For example if we provide a 3-field Schema
+	 * we then could provide 3 indexes here that will map to the schema by column index.
 	 * <p>
 	 * Remember that indexes go from [0 to n - 1]
 	 */
 	public static class FieldSelector implements Serializable {
-	
+
 		private Integer[] fieldIndexesToSelect;
-		
+
 		public FieldSelector(Integer... fieldIndexesToSelect) {
 			this.fieldIndexesToSelect = fieldIndexesToSelect;
 		}
@@ -87,24 +96,25 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 			}
 			return index;
 		}
-		
+
 		// Use this for bypassing Field selection
 		public static final FieldSelector NONE = new FieldSelector();
 	}
-	
+
 	/**
 	 * You must specify the Schema that will be used for Tuples being read so that automatic type conversions can be
 	 * applied (i.e. parsing) and the CSV semantics (if any). Use {@link #NO_ESCAPE_CHARACTER} and
 	 * {@link #NO_QUOTE_CHARACTER} if the input files don't have any such semantics. If hasHeader is true, the first line
 	 * of any file will be skipped.
 	 */
-	public TupleTextInputFormat(final Schema schema, boolean hasHeader, boolean strictQuotes, Character separator, Character quoteCharacter,
-	    Character escapeCharacter, FieldSelector fieldSelector, String nullString) {
+	public TupleTextInputFormat(final Schema schema, boolean hasHeader, boolean strictQuotes,
+	    Character separator, Character quoteCharacter, Character escapeCharacter,
+	    FieldSelector fieldSelector, String nullString) {
 		this.schema = schema;
 		for(Field field : schema.getFields()) {
 			if(field.getType().equals(Type.OBJECT) || field.getType().equals(Type.BYTES)) {
-				throw new IllegalArgumentException(this.getClass().getName() + " doesn't support Pangool types " + Type.OBJECT
-				    + " or " + Type.BYTES);
+				throw new IllegalArgumentException(this.getClass().getName() + " doesn't support Pangool types "
+				    + Type.OBJECT + " or " + Type.BYTES);
 			}
 		}
 		this.strictQuotes = strictQuotes;
@@ -118,6 +128,8 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 
 	public static class TupleTextInputReader extends RecordReader<ITuple, NullWritable> {
 
+		private CompressionCodecFactory compressionCodecs = null;
+		
 		private CSVReader<String[]> csvParser;
 		private final Character separator;
 		private final Character quote;
@@ -126,7 +138,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 		private final boolean strictQuotes;
 		private final FieldSelector fieldSelector;
 		private final String nullString;
-		
+
 		private long start = 0;
 		private long end = Integer.MAX_VALUE;
 		private long position = 0;
@@ -134,7 +146,9 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 		private final Schema schema;
 		private final ITuple tuple;
 
-		public TupleTextInputReader(Schema schema, boolean hasHeader, boolean strictQuotes, Character separator, Character quote, Character escape, FieldSelector fieldSelector, String nullString) {
+		public TupleTextInputReader(Schema schema, boolean hasHeader, boolean strictQuotes,
+		    Character separator, Character quote, Character escape, FieldSelector fieldSelector,
+		    String nullString) {
 			this.separator = separator;
 			this.quote = quote;
 			this.escape = escape;
@@ -171,29 +185,42 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 		}
 
 		@Override
-		public void initialize(InputSplit split, TaskAttemptContext context) throws IOException, InterruptedException {
+		public void initialize(InputSplit split, TaskAttemptContext context) throws IOException,
+		    InterruptedException {
+			
+			Configuration job = context.getConfiguration();
+			compressionCodecs = new CompressionCodecFactory(job);
 			FileSplit fileSplit = (FileSplit) split;
 			Path pathToRead = fileSplit.getPath();
-			init(pathToRead, context.getConfiguration());
+			
 			this.start = fileSplit.getStart();
 			this.end = fileSplit.getStart() + split.getLength();
+
+			final CompressionCodec codec = compressionCodecs.getCodec(pathToRead);
+			init(pathToRead, codec, context.getConfiguration());
 		}
-		
-		public void init(Path pathToRead, Configuration conf) throws IOException {
+
+		public void init(Path pathToRead, CompressionCodec codec, Configuration conf) throws IOException {
 			FileSystem fS = pathToRead.getFileSystem(conf);
-			BufferedReader reader = new BufferedReader(new InputStreamReader(fS.open(pathToRead)));
+			InputStream iS = fS.open(pathToRead);
+			BufferedReader reader;
+			if(codec != null) {
+				reader = new BufferedReader(new InputStreamReader(codec.createInputStream(iS)));
+			} else {
+				reader = new BufferedReader(new InputStreamReader(iS));
+			}
+			 
 			reader.skip(start);
-			csvParser =
-			new CSVReaderBuilder<String[]>(reader)
-				.strategy(new CSVStrategy(separator, quote, '#', hasHeader, true))
-				.tokenizer(new NullableCSVTokenizer(escape, strictQuotes, nullString))
-				.entryParser(new DefaultCSVEntryParser()).build();
+			csvParser = new CSVReaderBuilder<String[]>(reader)
+			    .strategy(new CSVStrategy(separator, quote, '#', hasHeader, true))
+			    .tokenizer(new NullableCSVTokenizer(escape, strictQuotes, nullString))
+			    .entryParser(new DefaultCSVEntryParser()).build();
 		}
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
 		public boolean nextKeyValue() throws IOException, InterruptedException {
-			String[] readLine =	csvParser.readNext();
+			String[] readLine = csvParser.readNext();
 			if(readLine == null) {
 				return false;
 			}
@@ -230,7 +257,9 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 						break;
 					}
 				} catch(Throwable t) {
-					Log.warn("Error parsing value: (" + currentValue + ") in text line: (" + Arrays.toString(readLine) + ")", t);
+					Log.warn(
+					    "Error parsing value: (" + currentValue + ") in text line: (" + Arrays.toString(readLine)
+					        + ")", t);
 					// On any failure we assume null
 					// The user is responsible for handling nulls afterwards
 					tuple.set(i, null);
@@ -263,6 +292,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 	@Override
 	public RecordReader<ITuple, NullWritable> createRecordReader(InputSplit iS, TaskAttemptContext context)
 	    throws IOException, InterruptedException {
-		return new TupleTextInputReader(schema, hasHeader, strictQuotes, separatorCharacter, quoteCharacter, escapeCharacter, fieldSelector, nullString);
+		return new TupleTextInputReader(schema, hasHeader, strictQuotes, separatorCharacter, quoteCharacter,
+		    escapeCharacter, fieldSelector, nullString);
 	}
 }

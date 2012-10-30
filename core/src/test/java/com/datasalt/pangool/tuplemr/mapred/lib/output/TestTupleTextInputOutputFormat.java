@@ -15,6 +15,7 @@
  */
 package com.datasalt.pangool.tuplemr.mapred.lib.output;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -66,6 +67,35 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		MICKEY, MOUSE, MINIE;
 	}
 
+	@Test
+	public void testInputCompression() throws Exception {
+		Schema schema = new Schema("schema", Fields.parse( "a:string, b:string, c:int, d:long" ));
+		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ' ', TupleTextInputFormat.NO_QUOTE_CHARACTER, TupleTextInputFormat.NO_ESCAPE_CHARACTER, FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING);
+		
+		Configuration conf = getConf();
+		FileSystem fS = FileSystem.get(conf);
+		Path outPath = new Path(OUT);
+		
+		MapOnlyJobBuilder mapOnly = new MapOnlyJobBuilder(conf);
+		mapOnly.addInput(new Path("src/test/resources/*.gz"), inputFormat, new MapOnlyMapper<ITuple, NullWritable, NullWritable, NullWritable>() {
+			
+			protected void map(ITuple key, NullWritable value, Context context) throws IOException, InterruptedException {
+				Assert.assertNotNull(key.get("a").toString());
+				Assert.assertNotNull(key.get("b").toString());
+				Assert.assertTrue((Integer)key.get("c") > 0);
+				Assert.assertTrue((Long)key.get("d") > 0);
+				context.getCounter("stats", "nlines").increment(1);
+			};
+		});
+		
+		HadoopUtils.deleteIfExists(fS, outPath);
+		mapOnly.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class, NullWritable.class);
+		Job job = mapOnly.createJob();
+		assertTrue(job.waitForCompletion(true));
+		
+		assertEquals(100, job.getCounters().getGroup("stats").findCounter("nlines").getValue());
+	}
+	
 	@Test
 	public void test() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
 
