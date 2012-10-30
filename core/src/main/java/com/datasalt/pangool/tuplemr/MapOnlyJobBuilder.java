@@ -134,6 +134,9 @@ public class MapOnlyJobBuilder {
 		job.getConfiguration().set(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, uniqueName);
 		job.setOutputFormatClass(ProxyOutputFormat.class);
 
+		if(outputKeyClass == null) {
+			throw new TupleMRException("Output spec must be defined, use setOutput()");
+		}
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);

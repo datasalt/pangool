@@ -86,9 +86,6 @@ public class TestTupleInputOutputFormat extends BaseTest {
 			}
 		}
 	}
-
-	
-	
 	
 	@Test
 	public void test() throws TupleMRException, IOException, InterruptedException,
