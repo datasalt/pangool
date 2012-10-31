@@ -26,6 +26,10 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>pangool-examples</artifactId>
+		<properties>
+			<hadoop.version>0.20.2</hadoop.version>
+			<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		</properties>    
 
     <dependencies>
         <dependency>
@@ -33,12 +37,14 @@
             <version>${project.version}</version>
             <artifactId>pangool-core</artifactId>
         </dependency>
-        <!--
-        <dependency>
-            <groupid>org.apache.hadoop</groupid>
-            <artifactId>hadoop-core</artifactId>
-        </dependency>
-        -->
+        
+				<dependency>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-core</artifactId>
+					<version>${hadoop.version}</version>
+					<scope>provided</scope>
+				</dependency>
+        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -123,9 +129,6 @@
                 </properties>
             </profile>
         </profiles> -->
-        <properties>
-            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        </properties>
 
         <!-- ///////////////// -->
 
