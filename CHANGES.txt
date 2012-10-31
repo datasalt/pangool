@@ -4,7 +4,7 @@ Pangool Change Log
 Pangool 0.43.5 (development)
 
  BUG FIXES
- - 2012-10-30 - Solr 4.0 depedency introduced jcl-over-slf4j as depedency.
+ - 2012-10-30 - Solr 4.0 dependency introduced jcl-over-slf4j as depedency.
                 That is completely incompatible with Hadoop, as Hadoop uses
                 a very old version of commons-logging.
 
@@ -13,7 +13,9 @@ Pangool 0.43.5 (development)
  - 2012-10-29 - Improved TupleTextInputFormat wiht a custom CSV Tokenizer for being able to handle nulls and differentiate them from empty strings.
 
  CHANGES
- - 2012-10-30 - Mark Solr as optional dependency on pom.xml
+ - 2012-10-30 - Mark Solr as optional dependency on pom.xml. That means 
+                that projetcs using this functionality should explicitely
+                declare Solr as dependency.
  - 2012-10-30 - Change Hadoop dependency scope to "provided" in order to
                 reduce conflicts with other Hadoop library versions.
 

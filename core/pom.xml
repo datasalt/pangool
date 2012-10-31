@@ -167,7 +167,7 @@
 				<exclusion>
 					<groupId>org.apache.commons</groupId>
 					<artifactId>commons-io</artifactId>
-				</exclusion>				
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
