@@ -220,7 +220,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 		}
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
-    public boolean nextKeyValue() throws IOException {
+		public boolean nextKeyValue() throws IOException {
 			int newSize = 0;
 			if(line == null) {
 				this.line = new Text();
@@ -234,7 +234,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 
 				if(newSize < maxLineLength && newSize > 0) {
 					List<String> readLine = csvTokenizer.tokenizeLine(line.toString(), csvStrategy, null);
-	
+
 					for(int i = 0; i < schema.getFields().size(); i++) {
 						int index = i;
 						if(fieldSelector != null) {
@@ -243,30 +243,34 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 						String currentValue = "";
 						try {
 							currentValue = readLine.get(index);
-							Field field = schema.getFields().get(i);
-							switch(field.getType()) {
-							case DOUBLE:
-								tuple.set(i, Double.parseDouble(currentValue));
-								break;
-							case FLOAT:
-								tuple.set(i, Float.parseFloat(currentValue));
-								break;
-							case ENUM:
-								Class clazz = field.getObjectClass();
-								tuple.set(i, Enum.valueOf(clazz, currentValue));
-								break;
-							case INT:
-								tuple.set(i, Integer.parseInt(currentValue));
-								break;
-							case LONG:
-								tuple.set(i, Long.parseLong(currentValue));
-								break;
-							case STRING:
-								tuple.set(i, currentValue);
-								break;
-							case BOOLEAN:
-								tuple.set(i, Boolean.parseBoolean(currentValue));
-								break;
+							if(currentValue != null) {
+								Field field = schema.getFields().get(i);
+								switch(field.getType()) {
+								case DOUBLE:
+									tuple.set(i, Double.parseDouble(currentValue));
+									break;
+								case FLOAT:
+									tuple.set(i, Float.parseFloat(currentValue));
+									break;
+								case ENUM:
+									Class clazz = field.getObjectClass();
+									tuple.set(i, Enum.valueOf(clazz, currentValue));
+									break;
+								case INT:
+									tuple.set(i, Integer.parseInt(currentValue));
+									break;
+								case LONG:
+									tuple.set(i, Long.parseLong(currentValue));
+									break;
+								case STRING:
+									tuple.set(i, currentValue);
+									break;
+								case BOOLEAN:
+									tuple.set(i, Boolean.parseBoolean(currentValue));
+									break;
+								}
+							} else {
+								tuple.set(i, null);
 							}
 						} catch(Throwable t) {
 							LOG.warn("Error parsing value: (" + currentValue + ") in text line: (" + readLine + ")", t);
@@ -276,7 +280,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 						}
 					}
 				}
-				
+
 				if(newSize == 0) {
 					break;
 				}
