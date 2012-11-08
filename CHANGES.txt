@@ -11,6 +11,8 @@ Pangool 0.43.5 (development)
  IMPROVEMENTS
  - 2012-10-30 - Changed TupleTextInputFormat for being able to support compression in input files and added a unit test for it.
  - 2012-10-29 - Improved TupleTextInputFormat wiht a custom CSV Tokenizer for being able to handle nulls and differentiate them from empty strings.
+ - 2012-11-08 - TupleTextInputFormat now supports fixed width fields input
+                files.
 
  CHANGES
  - 2012-10-30 - Mark Solr as optional dependency on pom.xml. That means 
