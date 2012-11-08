@@ -104,6 +104,14 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 	 * applied (i.e. parsing) and the CSV semantics (if any). Use {@link #NO_ESCAPE_CHARACTER} and
 	 * {@link #NO_QUOTE_CHARACTER} if the input files don't have any such semantics. If hasHeader is true, the first line
 	 * of any file will be skipped.
+	 * <p>
+	 * Additional options for parsing the input file are:
+	 * <ul>
+	 *   <li>A {@link FieldSelector} in case only a subset of the columns are needed.</li>
+	 *   <li>A "strict quotes" flag which means any value which is not quoted will be returned as null.</li>
+	 *   <li>A "null string" text which will be substituted by null if found. For example, the sequence "\N" used by MySQL dumps. The null string
+	 *   can be null itself which means this feature is disabled.</li>
+	 * </ul> 
 	 */
 	public TupleTextInputFormat(final Schema schema, boolean hasHeader, boolean strictQuotes,
 	    Character separator, Character quoteCharacter, Character escapeCharacter,

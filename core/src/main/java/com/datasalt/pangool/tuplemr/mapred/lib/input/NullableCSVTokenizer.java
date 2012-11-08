@@ -12,6 +12,8 @@ import com.googlecode.jcsv.reader.CSVTokenizer;
  * A custom CSVTokenizer policy that detects and provides null values if needed.
  * Null values can happen in two ways: 1) If strict quoting mode is enabled, anything that is not quoted means null.
  * 2) If a null string is provided, if it is found without quotes then it is null.
+ * <p>
+ * The null string provided can be null which means there will be no null string at all.
  */
 public class NullableCSVTokenizer implements CSVTokenizer {
 
