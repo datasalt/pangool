@@ -463,4 +463,167 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
+	
+	@Test
+	public void testInputFixedWidth() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
+
+		String line1 = "foo1 +10.0 bar1 1.0 100 1000000  true MICKEY";
+		String line2 = "foo2 20.0  bar2 2.0 200 2000000 false MOUSE ";
+		String line3 = "foo3  30.0 bar3 3.0 300 3000000 true   MINIE";
+    //             "01234567890123456789012345678901234567890123"
+		int fieldsPos [] = new int[] {0,3, 5,9, 11,14, 16,18, 20,22, 24,30, 32,36, 38,43};
+		
+		String line1out = "foo1 10.0 bar1 1.0 100 1000000 true MICKEY";
+		String line2out = "foo2 20.0 bar2 2.0 200 2000000 false MOUSE";
+		String line3out = "foo3 30.0 bar3 3.0 300 3000000 true MINIE";
+		
+		// The input is a simple space-separated file with no quotes
+		CommonUtils.writeTXT(line1 + "\n" + line2 + "\n" + line3, new File(IN));
+		Configuration conf = getConf();
+		FileSystem fS = FileSystem.get(conf);
+		Path outPath = new Path(OUT);
+		Path inPath = new Path(IN);
+		HadoopUtils.deleteIfExists(fS, outPath);
+
+		// Define the Schema according to the text file
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("strField1", Type.STRING));
+		fields.add(Field.create("floatField", Type.FLOAT));
+		fields.add(Field.create("strField2", Type.STRING));
+		fields.add(Field.create("doubleField", Type.DOUBLE));
+		fields.add(Field.create("intField", Type.INT));
+		fields.add(Field.create("longField", Type.LONG));
+		fields.add(Field.create("booleanField", Type.BOOLEAN));
+		fields.add(Field.createEnum("enumField", TestEnum.class));
+
+		Schema schema = new Schema("schema", fields);
+
+		TupleMRBuilder builder = new TupleMRBuilder(conf);
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("strField1"); // but we don't care, really
+		/*
+		 * Define the Input Format and the Output Format!
+		 */
+		
+		InputFormat inputFormat = new TupleTextInputFormat(schema, fieldsPos, false, null);
+		OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, ' ',
+		    TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
+
+		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
+		builder.setTupleReducer(new IdentityTupleReducer());
+		builder.setOutput(outPath, outputFormat, ITuple.class, NullWritable.class);
+		builder.createJob().waitForCompletion(true);
+		Job job = builder.createJob();
+		assertRun(job);
+
+		Assert.assertEquals(line1out + "\n" + line2out + "\n" + line3out,
+		    Files.toString(new File(OUT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
+
+		HadoopUtils.deleteIfExists(fS, inPath);
+		HadoopUtils.deleteIfExists(fS, outPath);
+	}
+	
+	@Test
+	public void testInputFixedWidthNull() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
+
+		String line1 = "foo1 +10.0 bar1 1.0 100 1000000  true MICKEY";
+		String line2 = "foo2 20.0  bar2 2.0 200 2000000 false MOUSE ";
+		String line3 = "foo3  30.0 bar3 3.0 300 3000000 true   MINIE";
+    //             "01234567890123456789012345678901234567890123"
+		int fieldsPos [] = new int[] {0,3, 5,9, 11,14, 16,18, 20,22, 24,30, 32,36, 38,43};
+		
+		String line1out = "foo1 10.0 bar1 1.0 100 1000000 true MICKEY";
+		String line2out = "foo2 20.0 bar2 2.0 200 2000000 false MOUSE";
+		String line3out = "foo3 30.0 bar3 3.0 300 3000000 true MINIE";
+		
+		// The input is a simple space-separated file with no quotes
+		CommonUtils.writeTXT(line1 + "\n" + line2 + "\n" + line3, new File(IN));
+		Configuration conf = getConf();
+		FileSystem fS = FileSystem.get(conf);
+		Path outPath = new Path(OUT);
+		Path inPath = new Path(IN);
+		HadoopUtils.deleteIfExists(fS, outPath);
+
+		// Define the Schema according to the text file
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("strField1", Type.STRING));
+		fields.add(Field.create("floatField", Type.FLOAT));
+		fields.add(Field.create("strField2", Type.STRING));
+		fields.add(Field.create("doubleField", Type.DOUBLE));
+		fields.add(Field.create("intField", Type.INT));
+		fields.add(Field.create("longField", Type.LONG));
+		fields.add(Field.create("booleanField", Type.BOOLEAN));
+		fields.add(Field.createEnum("enumField", TestEnum.class));
+
+		Schema schema = new Schema("schema", fields);
+
+		TupleMRBuilder builder = new TupleMRBuilder(conf);
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("strField1"); // but we don't care, really
+		/*
+		 * Define the Input Format and the Output Format!
+		 */
+		
+		InputFormat inputFormat = new TupleTextInputFormat(schema, fieldsPos, false, null);
+		OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, ' ',
+		    TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
+
+		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
+		builder.setTupleReducer(new IdentityTupleReducer());
+		builder.setOutput(outPath, outputFormat, ITuple.class, NullWritable.class);
+		builder.createJob().waitForCompletion(true);
+		Job job = builder.createJob();
+		assertRun(job);
+
+		Assert.assertEquals(line1out + "\n" + line2out + "\n" + line3out,
+		    Files.toString(new File(OUT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
+
+		HadoopUtils.deleteIfExists(fS, inPath);
+		HadoopUtils.deleteIfExists(fS, outPath);
+	}
+	
+	@Test
+	public void testFixedWidthNulls() throws IOException, InterruptedException, ClassNotFoundException, TupleMRException, URISyntaxException {
+		
+		String line1 = "1000  - ";	
+		int fieldsPos [] = new int[] {0,3, 5,7};
+		
+		CommonUtils.writeTXT(line1, new File(IN));
+		Configuration conf = getConf();
+		FileSystem fS = FileSystem.get(conf);
+		Path outPath = new Path(OUT);
+		Path inPath = new Path(IN);
+		HadoopUtils.deleteIfExists(fS, outPath);
+
+		Schema schema = new Schema(
+		    "schema",
+		    Fields
+		        .parse("name:string,name2:string"));
+
+		MapOnlyJobBuilder mO = new MapOnlyJobBuilder(conf);
+		mO.addInput(inPath, new TupleTextInputFormat(schema, fieldsPos, false, "-"),
+		    new MapOnlyMapper<ITuple, NullWritable, NullWritable, NullWritable>() {
+
+			    protected void map(ITuple key, NullWritable value, Context context,
+			        MultipleOutputsCollector collector) throws IOException, InterruptedException {
+			    	
+			    	try {
+				    	Assert.assertNull(key.get("name2"));
+				    	Assert.assertEquals("1000", key.get("name"));
+			    	} catch(Throwable t) {
+			    		t.printStackTrace();
+			    		throw new RuntimeException(t);
+			    	}
+			    }
+		    });
+		
+		mO.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class,
+		    NullWritable.class);
+		Job job = mO.createJob();
+		assertTrue(job.waitForCompletion(true));
+
+		HadoopUtils.deleteIfExists(fS, inPath);
+		HadoopUtils.deleteIfExists(fS, outPath);
+	}
+
 }
