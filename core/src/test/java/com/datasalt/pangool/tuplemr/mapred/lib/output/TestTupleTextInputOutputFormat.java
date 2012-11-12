@@ -148,9 +148,9 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 	@Test
 	public void test() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
 
-		String line1 = "foo1 10.0 bar1 1.0 100 1000000 true MICKEY";
-		String line2 = "foo2 20.0 bar2 2.0 200 2000000 false MOUSE";
-		String line3 = "foo3 30.0 bar3 3.0 300 3000000 true MINIE";
+		String line1 = "foo1\t10.0\t ar \t1.0\t100\t1000000\ttrue\tMICKEY";
+		String line2 = "foo2\t20.0\tbar2\t2.0\t200\t2000000\tfalse\tMOUSE";
+		String line3 = "foo3\t30.0\tbar3\t3.0\t300\t3000000\ttrue\tMINIE";
 
 		// The input is a simple space-separated file with no quotes
 		CommonUtils.writeTXT(line1 + "\n" + line2 + "\n" + line3, new File(IN));
@@ -179,10 +179,10 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		/*
 		 * Define the Input Format and the Output Format!
 		 */
-		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ' ',
+		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, '\t',
 		    TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER,
 		    FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING);
-		OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, ' ',
+		OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, '\t',
 		    TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
 
 		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
@@ -467,13 +467,13 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 	@Test
 	public void testInputFixedWidth() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
 
-		String line1 = "foo1 +10.0 bar1 1.0 100 1000000  true MICKEY";
+		String line1 = "foo1 +10.0  ar  1.0 100 1000000  true MICKEY";
 		String line2 = "foo2 20.0  bar2 2.0 200 2000000 false MOUSE ";
 		String line3 = "foo3  30.0 bar3 3.0 300 3000000 true   MINIE";
     //             "01234567890123456789012345678901234567890123"
 		int fieldsPos [] = new int[] {0,3, 5,9, 11,14, 16,18, 20,22, 24,30, 32,36, 38,43};
 		
-		String line1out = "foo1 10.0 bar1 1.0 100 1000000 true MICKEY";
+		String line1out = "foo1 10.0 ar 1.0 100 1000000 true MICKEY";
 		String line2out = "foo2 20.0 bar2 2.0 200 2000000 false MOUSE";
 		String line3out = "foo3 30.0 bar3 3.0 300 3000000 true MINIE";
 		

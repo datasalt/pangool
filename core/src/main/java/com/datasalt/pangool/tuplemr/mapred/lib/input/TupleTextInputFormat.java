@@ -194,12 +194,13 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 
 		private CompressionCodecFactory compressionCodecs = null;
 
-		private CSVTokenizer csvTokenizer;
+		private CSVTokenizer tokenizer;
 		private CSVStrategy csvStrategy;
+		private final InputType type;
 		private final Character separator;
 		private final Character quote;
 		private final boolean hasHeader;
-		private final FieldSelector fieldSelector;
+		private final FieldSelector fieldSelector;	
 		private Text line;
 
 		private LineReader in;
@@ -215,21 +216,23 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 		public TupleTextInputReader(Schema schema, boolean hasHeader, boolean strictQuotes,
 		    Character separator, Character quote, Character escape, FieldSelector fieldSelector,
 		    String nullString) {
+			this.type = InputType.CSV;
 			this.separator = separator;
 			this.quote = quote;
 			this.schema = schema;
 			this.hasHeader = hasHeader;
 			this.fieldSelector = fieldSelector;
-			csvTokenizer = new NullableCSVTokenizer(escape, strictQuotes, nullString);
+			tokenizer = new NullableCSVTokenizer(escape, strictQuotes, nullString);
 		}
 		
 		public TupleTextInputReader(Schema schema, int[] fields, boolean hasHeader, String nullString) {
+			this.type = InputType.FIXED_WIDTH;
 			this.separator = NO_SEPARATOR_CHARACTER;
 			this.quote = NO_QUOTE_CHARACTER;
 			this.schema = schema;
 			this.hasHeader = hasHeader;
 			this.fieldSelector = null;
-			csvTokenizer = new FixedWidthCSVTokenizer(fields, nullString);
+			tokenizer = new FixedWidthCSVTokenizer(fields, nullString);
 		}
 		
 		@Override
@@ -313,7 +316,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 				    Math.max((int) Math.min(Integer.MAX_VALUE, end - position), maxLineLength));
 
 				if(newSize < maxLineLength && newSize > 0) {
-					List<String> readLine = csvTokenizer.tokenizeLine(line.toString(), csvStrategy, null);
+					List<String> readLine = tokenizer.tokenizeLine(line.toString(), csvStrategy, null);
 
 					for(int i = 0; i < schema.getFields().size(); i++) {
 						int index = i;
@@ -327,23 +330,27 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 								Field field = schema.getFields().get(i);
 								switch(field.getType()) {
 								case DOUBLE:
-									tuple.set(i, Double.parseDouble(currentValue));
+									tuple.set(i, Double.parseDouble(currentValue.trim()));
 									break;
 								case FLOAT:
-									tuple.set(i, Float.parseFloat(currentValue));
+									tuple.set(i, Float.parseFloat(currentValue.trim()));
 									break;
 								case ENUM:
 									Class clazz = field.getObjectClass();
 									tuple.set(i, Enum.valueOf(clazz, currentValue.trim()));
 									break;
 								case INT:
-									tuple.set(i, Integer.parseInt(currentValue));
+									tuple.set(i, Integer.parseInt(currentValue.trim()));
 									break;
 								case LONG:
-									tuple.set(i, Long.parseLong(currentValue));
+									tuple.set(i, Long.parseLong(currentValue.trim()));
 									break;
 								case STRING:
-									tuple.set(i, currentValue);
+									if (type == InputType.CSV) {
+										tuple.set(i, currentValue);
+									} else {
+										tuple.set(i, currentValue.trim());
+									}
 									break;
 								case BOOLEAN:
 									tuple.set(i, Boolean.parseBoolean(currentValue.trim()));
