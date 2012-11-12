@@ -260,33 +260,40 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 
 		public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException {
 			FileSplit split = (FileSplit) genericSplit;
-			Configuration job = context.getConfiguration();
-			this.maxLineLength = job.getInt("mapred.linerecordreader.maxlength", Integer.MAX_VALUE);
-			start = split.getStart();
-
+			Configuration conf = context.getConfiguration();
+			this.maxLineLength = conf.getInt("mapred.linerecordreader.maxlength", Integer.MAX_VALUE);
+			
+			boolean skipFirstLine = false;
 			csvStrategy = new CSVStrategy(separator, quote, '#', hasHeader && start == 0, true);
 
+			// Skip txt header
+			skipFirstLine = (hasHeader && start == 0);
+			
+			start = split.getStart();
 			end = start + split.getLength();
+			
 			final Path file = split.getPath();
-			compressionCodecs = new CompressionCodecFactory(job);
+			compressionCodecs = new CompressionCodecFactory(conf);
 			final CompressionCodec codec = compressionCodecs.getCodec(file);
 
 			// open the file and seek to the start of the split
-			FileSystem fs = file.getFileSystem(job);
+			FileSystem fs = file.getFileSystem(conf);
 			FSDataInputStream fileIn = fs.open(split.getPath());
-			boolean skipFirstLine = false;
 			if(codec != null) {
-				in = new LineReader(codec.createInputStream(fileIn), job);
+				in = new LineReader(codec.createInputStream(fileIn), conf);
 				end = Long.MAX_VALUE;
 			} else {
 				if(start != 0) {
+					// Skipping first line because we are not the first split, so start could not be
+					// the start of the record
 					skipFirstLine = true;
 					--start;
 					fileIn.seek(start);
 				}
-				in = new LineReader(fileIn, job);
+				in = new LineReader(fileIn, conf);
 			}
-			if(skipFirstLine) { // skip first line and re-establish "start".
+			if (skipFirstLine) {
+				// skip the line and re-establish "start".
 				start += in.readLine(new Text(), 0, (int) Math.min((long) Integer.MAX_VALUE, end - start));
 			}
 			this.position = start;

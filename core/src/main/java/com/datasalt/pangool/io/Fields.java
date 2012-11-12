@@ -17,6 +17,7 @@ package com.datasalt.pangool.io;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -44,15 +45,20 @@ public class Fields {
 		if(serialized == null || serialized.isEmpty()) {
 			return null;
 		}
+		HashSet<String> already = new HashSet<String>();
 		String[] fieldsStr = serialized.split(",");
 		List<Field> fields = new ArrayList<Field>();
 		for(String field : fieldsStr) {
 			String[] nameType = field.split(":");
 			if(nameType.length != 2) {
-				throw new RuntimeException("Incorrect fields description " + serialized);
+				throw new RuntimeException("Too many or too few colon separators at " + field + ". Incorrect fields description " + serialized);
 			}
 			String fieldName = nameType[0].trim();
 			String fieldType = nameType[1].trim();
+			if (already.contains(fieldName)) {
+				throw new IllegalArgumentException("Duplicated field name [" + fieldName + "] in description [" + serialized +"]");
+			}
+			already.add(fieldName);
 			Type type = strToType.get(fieldType);
 			try {
 				if(type != null) {

@@ -198,7 +198,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
-
+	
 	@Test
 	public void test2() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
 
@@ -254,7 +254,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		String outHeader = "strField1 floatField strField2 doubleField intField longField booleanField enumField";
 
 		// The input is a simple space-separated file with no quotes
-		CommonUtils.writeTXT(line1 + "\n" + line2 + "\n" + line3, new File(IN));
+		CommonUtils.writeTXT(outHeader + "\n" + line1 + "\n" + line2 + "\n" + line3, new File(IN));
 		Configuration conf = getConf();
 		FileSystem fS = FileSystem.get(conf);
 		Path outPath = new Path(OUT);
