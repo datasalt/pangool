@@ -467,15 +467,15 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 	@Test
 	public void testInputFixedWidth() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
 
-		String line1 = "foo1 +10.0  ar  1.0 100 1000000  true MICKEY";
-		String line2 = "foo2 20.0  bar2 2.0 200 2000000 false MOUSE ";
-		String line3 = "foo3  30.0 bar3 3.0 300 3000000 true   MINIE";
+		String line1 = "foo1 +10.0  ar  1.0 +10  +10000  true MICKEY";
+		String line2 = "foo2 20.0  bar2 2.0 -20 +20000  false MOUSE ";
+		String line3 = "foo3  30.0 bar3 3.0 30  3000000 true   MINIE";
     //             "01234567890123456789012345678901234567890123"
 		int fieldsPos [] = new int[] {0,3, 5,9, 11,14, 16,18, 20,22, 24,30, 32,36, 38,43};
 		
-		String line1out = "foo1 10.0 ar 1.0 100 1000000 true MICKEY";
-		String line2out = "foo2 20.0 bar2 2.0 200 2000000 false MOUSE";
-		String line3out = "foo3 30.0 bar3 3.0 300 3000000 true MINIE";
+		String line1out = "foo1 10.0 ar 1.0 10 10000 true MICKEY";
+		String line2out = "foo2 20.0 bar2 2.0 -20 20000 false MOUSE";
+		String line3out = "foo3 30.0 bar3 3.0 30 3000000 true MINIE";
 		
 		// The input is a simple space-separated file with no quotes
 		CommonUtils.writeTXT(line1 + "\n" + line2 + "\n" + line3, new File(IN));

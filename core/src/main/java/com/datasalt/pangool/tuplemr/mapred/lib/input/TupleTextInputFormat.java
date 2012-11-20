@@ -340,10 +340,10 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 									tuple.set(i, Enum.valueOf(clazz, currentValue.trim()));
 									break;
 								case INT:
-									tuple.set(i, Integer.parseInt(currentValue.trim()));
+									tuple.set(i, Integer.parseInt(adaptNumber(currentValue)));
 									break;
 								case LONG:
-									tuple.set(i, Long.parseLong(currentValue.trim()));
+									tuple.set(i, Long.parseLong(adaptNumber(currentValue)));
 									break;
 								case STRING:
 									if (type == InputType.CSV) {
@@ -391,6 +391,15 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 		}
 	}
 
+	private static String adaptNumber(String number) {
+		String n = number.trim();
+		if (n.startsWith("+")) {
+			return n.substring(1);
+		} else {
+			return n;
+		}
+	}
+	
 	public Schema getSchema() {
 		return schema;
 	}
