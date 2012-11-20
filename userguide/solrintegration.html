@@ -21,31 +21,29 @@ you are using maven. Probable you'll need to exclude some thirty party
 dependencies, as can conflict with Hadoop:</p>
 
 <pre class="prettyprint" id="java">
-<![CDATA[
-<dependency>
-	<groupId>org.apache.solr</groupId>
-	<artifactId>solr-core</artifactId>
-	<version>4.0.0-BETA</version>
-		<exclusions>
-			<exclusion>
-				<artifactId>jcl-over-slf4j</artifactId>
-				<groupId>org.slf4j</groupId>
-			</exclusion>
-			<exclusion>
-				<groupId>org.apache.zookeeper</groupId>
-				<artifactId>zookeeper</artifactId>
-			</exclusion>
-			<exclusion>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-jdk14</artifactId>
-			</exclusion>
-			<exclusion>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-io</artifactId>
-			</exclusion>				
-			</exclusions>	
-</dependency>
-]]>
+&lt;dependency&gt;
+	&lt;groupId&gt;org.apache.solr&lt;/groupId&gt;
+	&lt;artifactId&gt;solr-core&lt;/artifactId&gt;
+	&lt;version&gt;4.0.0-BETA&lt;/version&gt;
+		&lt;exclusions&gt;
+			&lt;exclusion&gt;
+				&lt;artifactId&gt;jcl-over-slf4j&lt;/artifactId&gt;
+				&lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+			&lt;/exclusion&gt;
+			&lt;exclusion&gt;
+				&lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt;
+				&lt;artifactId&gt;zookeeper&lt;/artifactId&gt;
+			&lt;/exclusion&gt;
+			&lt;exclusion&gt;
+				&lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+				&lt;artifactId&gt;slf4j-jdk14&lt;/artifactId&gt;
+			&lt;/exclusion&gt;
+			&lt;exclusion&gt;
+				&lt;groupId&gt;org.apache.commons&lt;/groupId&gt;
+				&lt;artifactId&gt;commons-io&lt;/artifactId&gt;
+			&lt;/exclusion&gt;				
+			&lt;/exclusions&gt;	
+&lt;/dependency&gt;
 </pre>
 
 <p>
