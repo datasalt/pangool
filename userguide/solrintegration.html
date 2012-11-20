@@ -16,6 +16,36 @@ Let's see how to use it.
 
 <h3>Configuring a TupleSolrOutputFormat</h3>
 
+<p>First of all is that you have to include it into your project depedencies if
+you are using maven. Probable you'll need to exclude some thirty party
+dependencies, as can conflict with Hadoop:</p>
+
+<pre class="prettyprint" id="java">
+<dependency>
+	<groupId>org.apache.solr</groupId>
+	<artifactId>solr-core</artifactId>
+	<version>4.0.0-BETA</version>
+		<exclusions>
+			<exclusion>
+				<artifactId>jcl-over-slf4j</artifactId>
+				<groupId>org.slf4j</groupId>
+			</exclusion>
+			<exclusion>
+				<groupId>org.apache.zookeeper</groupId>
+				<artifactId>zookeeper</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-jdk14</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-io</artifactId>
+			</exclusion>				
+			</exclusions>	
+</dependency>
+</pre>
+
 <p>
 The following code instantiates a <a href='http://pangool.net/apidocs/com/datasalt/pangool/solr/TupleSolrOutputFormat.html'>TupleSolrOutputFormat</a> with a certain Hadoop Configuration and a File pointing to "SOLR Home". 
 "SOLR Home" must be a folder that contains a sub-folder "conf" with, at least, files "schema.xml" and "solrconfig.xml". These files will be used for creating the SOLR index. For those who used it, the idea is the same than that of <a href='https://issues.apache.org/jira/browse/SOLR-1301'>SOLR-1301</a>.
