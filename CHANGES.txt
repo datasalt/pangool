@@ -6,6 +6,8 @@ Pangool 0.43.6 (Development)
  BUG FIXES
  - 2012-11-20 - Integers or longs with "+" at the start failed with
                 TupleTextInputFormat
+ - 2012-11-21 - Improved TupleTextInputFormat. Better handling of escaping
+                and quotes
 
 Pangool 0.43.5
 

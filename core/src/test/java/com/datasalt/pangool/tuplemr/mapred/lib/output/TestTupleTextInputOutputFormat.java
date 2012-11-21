@@ -346,7 +346,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
-	
+		
 	@Test
 	public void testQuotes() throws IOException, InterruptedException, ClassNotFoundException,
 	    TupleMRException, URISyntaxException {

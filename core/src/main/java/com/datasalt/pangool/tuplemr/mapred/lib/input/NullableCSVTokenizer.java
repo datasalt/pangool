@@ -33,12 +33,15 @@ import com.googlecode.jcsv.reader.CSVTokenizer;
 public class NullableCSVTokenizer implements CSVTokenizer {
 
 	enum State {
-		NORMAL, QUOTED
+		NORMAL, QUOTED, QUOTED_FINISHED
 	}
 
 	final private boolean strictQuotes;
 	final private char escapeCharacter;
 	final private String nullString;
+	
+	// 200 Mb maximun record size
+	private int maxFieldSize = 1024*1024*200; 
 
 	/**
 	 * Escaping wasn't handled by the provided JSCV tokenizer so we add it here.
@@ -73,6 +76,22 @@ public class NullableCSVTokenizer implements CSVTokenizer {
 		while(true) {
 			final char c = line.charAt(pointer);
 
+			// Check max record size
+			if (sb.length() >= maxFieldSize) {
+				throw new IOException("Field too long: " + sb.length() + " bytes. Did you close properly the quotes on records?");
+			}
+			
+			// Escaping characters.
+			if(c == escapeCharacter && useEscape) {
+				pointer++;
+				char next = line.charAt(pointer);
+				if (next != NEW_LINE) {
+					sb.append(next);
+					pointer++;
+				}
+				continue;
+			}
+			
 			switch(state) {
 			case NORMAL:
 				if(c == DELIMITER || c == NEW_LINE) {
@@ -80,13 +99,19 @@ public class NullableCSVTokenizer implements CSVTokenizer {
 					if(useQuotes && !lastValueQuoted) {
 						if(strictQuotes) {
 							token.add(null);
-						} else if(nullString != null && str.equals(nullString)) {
+						} else if (nullString != null && (nullString.equals(str) || ("".equals(nullString) && "".equals(str.trim()))) ) {
 							token.add(null);
 						} else {
 							token.add(str);
 						}
 					} else {
-						token.add(str);
+						if (useQuotes && lastValueQuoted) {
+							token.add(str);
+						} else if (nullString != null && (nullString.equals(str) || ("".equals(nullString) && "".equals(str.trim()))) ) {
+							token.add(null);
+						} else {
+							token.add(str);
+						}
 					}
 					lastValueQuoted = false;
 					sb.delete(0, sb.length());
@@ -94,27 +119,16 @@ public class NullableCSVTokenizer implements CSVTokenizer {
 						return token;
 					}
 				} else if(c == QUOTE && useQuotes) {
-					if(sb.length() == 0) {
-						state = State.QUOTED;
-						lastValueQuoted = true;
-					} else if(line.charAt(pointer + 1) == QUOTE && sb.length() > 0) {
-						sb.append(c);
-						pointer++;
-					} else if(line.charAt(pointer + 1) != QUOTE) {
-						state = State.QUOTED;
-						lastValueQuoted = true;
-					}
+					sb.delete(0, sb.length());
+					state = State.QUOTED;
+					lastValueQuoted = true;
 				} else {
 					sb.append(c);
 				}
 				break;
 
 			case QUOTED:
-				if(c == escapeCharacter && useEscape) {
-					pointer++;
-					sb.append(line.charAt(pointer));
-					break;
-				} else if(c == NEW_LINE && reader != null) {
+				if(c == NEW_LINE && reader != null) {
 					sb.append(NEW_LINE);
 					pointer = -1;
 					line = reader.readLine();
@@ -123,14 +137,30 @@ public class NullableCSVTokenizer implements CSVTokenizer {
 					}
 					line += NEW_LINE;
 				} else if(c == QUOTE) {
-					state = State.NORMAL;
+					state = State.QUOTED_FINISHED;
 				} else {
 					sb.append(c);
 				}
 				break;
-			}
+				
+			case QUOTED_FINISHED:
+				// just skipping characters after the quotes
+				if(c == DELIMITER || c == NEW_LINE) {
+					state = State.NORMAL;
+					continue;
+				} 
+				break;
+			}			
 
 			pointer++;
 		}
 	}
+
+	public int getMaxFieldSize() {
+		return maxFieldSize;
+	}
+
+	public void setMaxFieldSize(int maxRecordSize) {
+		this.maxFieldSize = maxRecordSize;
+	}		
 }
