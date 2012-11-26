@@ -129,7 +129,7 @@ public class MapOnlyJobBuilder {
 
 	public Job createJob() throws IOException, TupleMRException, URISyntaxException {
     Job job;
-    if (jobName != null) {
+    if (jobName == null) {
 		  job = new Job(conf);
     } else {
       job = new Job(conf, jobName);
