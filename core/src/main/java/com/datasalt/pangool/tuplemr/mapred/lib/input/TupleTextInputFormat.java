@@ -329,21 +329,15 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 							if(currentValue != null) {
 								Field field = schema.getFields().get(i);
 								switch(field.getType()) {
-								case DOUBLE:
-									tuple.set(i, Double.parseDouble(currentValue.trim()));
-									break;
+								case INT:
+								case LONG:
 								case FLOAT:
-									tuple.set(i, Float.parseFloat(currentValue.trim()));
+								case DOUBLE:
+									processNumber(field.getType(), tuple, i, currentValue);
 									break;
 								case ENUM:
 									Class clazz = field.getObjectClass();
 									tuple.set(i, Enum.valueOf(clazz, currentValue.trim()));
-									break;
-								case INT:
-									tuple.set(i, Integer.parseInt(adaptNumber(currentValue)));
-									break;
-								case LONG:
-									tuple.set(i, Long.parseLong(adaptNumber(currentValue)));
 									break;
 								case STRING:
 									if (type == InputType.CSV) {
@@ -361,7 +355,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 							} else {
 								tuple.set(i, null);
 							}
-						} catch(Throwable t) {
+						} catch(Throwable t) {						
 							LOG.warn("Error parsing value: (" + currentValue + ") in text line: (" + readLine + ")", t);
 							// On any failure we assume null
 							// The user is responsible for handling nulls afterwards
@@ -389,8 +383,45 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 				return true;
 			}
 		}
+		
+		/**
+		 * Process numeric values only. 
+		 */
+		private static void processNumber(Type type, ITuple tuple, int pos, String value) {
+			value = value.trim();
+			value = adaptNumber(value);
+			if ("".equals(value)) {
+				tuple.set(pos, null);
+				return;
+			}
+			try {
+				switch (type) {
+					case DOUBLE:									
+						tuple.set(pos, Double.parseDouble(value));
+						break;
+					case FLOAT:
+						tuple.set(pos, Float.parseFloat(value));
+						break;
+					case INT:
+						tuple.set(pos, Integer.parseInt(value));
+						break;
+					case LONG:
+						tuple.set(pos, Long.parseLong(value));
+						break;
+					default:
+						throw new RuntimeException("Imposible case. You find a bug!");	
+				}
+			} catch (NumberFormatException e) {
+				LOG.warn("Invalid number [" + value + "]. Using null.");
+				tuple.set(pos, null);
+			}
+		}
 	}
 
+	/**
+	 * Adapt a number for being able to be parsed by
+	 * Integer and Long
+	 */
 	private static String adaptNumber(String number) {
 		String n = number.trim();
 		if (n.startsWith("+")) {
