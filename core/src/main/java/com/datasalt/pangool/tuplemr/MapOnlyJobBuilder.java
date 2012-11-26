@@ -58,8 +58,9 @@ public class MapOnlyJobBuilder {
 	private NamedOutputsInterface namedOutputs;
 
 	private MapOnlyMapper mapOnlyMapper;
+  private String jobName = null;
 
-	public MapOnlyJobBuilder setJarByClass(Class<?> jarByClass) {
+  public MapOnlyJobBuilder setJarByClass(Class<?> jarByClass) {
 		this.jarByClass = jarByClass;
 		return this;
 	}
@@ -115,14 +116,24 @@ public class MapOnlyJobBuilder {
 		return this;
 	}
 
-	public MapOnlyJobBuilder(Configuration conf) {
+  public MapOnlyJobBuilder(Configuration conf) {
+    this(conf, null);
+  }
+
+  public MapOnlyJobBuilder(Configuration conf, String jobName) {
 		this.conf = conf;
+    this.jobName = jobName;
 		this.multipleInputs = new MultipleInputsInterface(conf);
 		this.namedOutputs = new NamedOutputsInterface(conf);
 	}
 
 	public Job createJob() throws IOException, TupleMRException, URISyntaxException {
-		Job job = new Job(conf);
+    Job job;
+    if (jobName != null) {
+		  job = new Job(conf);
+    } else {
+      job = new Job(conf, jobName);
+    }
 		job.setNumReduceTasks(0);
 
 		String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
