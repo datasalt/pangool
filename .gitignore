@@ -21,3 +21,7 @@ benchmark/.classpath
 benchmark/.project
 benchmark/.settings
 benchmark/target
+*.iml
+*.ipr
+*.iws
+*~
