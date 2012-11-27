@@ -20,25 +20,30 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
+import com.datasalt.pangool.io.*;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat;
 import junit.framework.Assert;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Test;
 
 import com.datasalt.pangool.BaseTest;
-import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.IdentityTupleMapper;
 import com.datasalt.pangool.tuplemr.IdentityTupleReducer;
@@ -52,7 +57,11 @@ import com.datasalt.pangool.utils.CommonUtils;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.google.common.io.Files;
 
+import static org.junit.Assert.assertEquals;
+
 public class TestTupleInputOutputFormat extends BaseTest {
+
+  private final static Log logger = LogFactory.getLog(TestTupleInputOutputFormat.class);
 
 	public static String OUT = TestTupleInputOutputFormat.class.getName() + "-out";
 	public static String OUT_TEXT = TestTupleInputOutputFormat.class.getName() + "-out-text";
@@ -135,4 +144,58 @@ public class TestTupleInputOutputFormat extends BaseTest {
 		HadoopUtils.deleteIfExists(fS, outPath);
 		HadoopUtils.deleteIfExists(fS, outPathText);
 	}
+
+  @Test
+  public void testSplits() throws IOException, InterruptedException {
+    testSplits(Long.MAX_VALUE, 20);
+    testSplits(1, 20);
+    testSplits(20, 40);
+  }
+
+  public void testSplits(long maxSplitSize, int generatedRows) throws IOException, InterruptedException {
+    logger.info("Testing maxSplitSize: " + maxSplitSize + " and generatedRows:" + generatedRows);
+    FileSystem fS = FileSystem.get(getConf());
+    Random r = new Random(1);
+    Schema schema = new Schema("schema", Fields.parse("i:int,s:string"));
+    ITuple tuple = new Tuple(schema);
+
+    Path outPath = new Path(OUT);
+    TupleFile.Writer writer = new TupleFile.Writer(FileSystem.get(getConf()), getConf(), outPath,
+        schema);
+    for (int i=0; i<generatedRows; i++) {
+      tuple.set("i", r.nextInt());
+      tuple.set("s", r.nextLong() + "");
+      writer.append(tuple);
+    }
+    writer.close();
+
+    TupleInputFormat format = ReflectionUtils.newInstance(TupleInputFormat.class, getConf());
+    Job job = new Job(getConf());
+    FileInputFormat.setInputPaths(job, outPath);
+    logger.info("Using max input split size: " + maxSplitSize);
+    FileInputFormat.setMaxInputSplitSize(job, maxSplitSize);
+    job.setInputFormatClass(FileInputFormat.class);
+
+    // Read all the splits and count. The number of read rows must
+    // be the same than the written ones.
+    int count = 0;
+    for(InputSplit split : format.getSplits(job)) {
+      TaskAttemptID attemptId = new TaskAttemptID(new TaskID(), 1);
+      TaskAttemptContext attemptContext = new TaskAttemptContext(getConf(), attemptId);
+      logger.info("Sampling split: " + split);
+      RecordReader<ITuple, NullWritable> reader = format.createRecordReader(split,
+          attemptContext);
+      reader.initialize(split, attemptContext);
+      while(reader.nextKeyValue()) {
+        tuple = reader.getCurrentKey();
+        count ++;
+      }
+      reader.close();
+    }
+
+    assertEquals(generatedRows, count);
+
+    HadoopUtils.deleteIfExists(fS, outPath);
+  }
+
 }
