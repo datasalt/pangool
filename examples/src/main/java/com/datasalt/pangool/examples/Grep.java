@@ -69,9 +69,8 @@ public class Grep extends BaseExampleJob {
 		delete(output);
 		
 		MapOnlyJobBuilder b = new MapOnlyJobBuilder(conf);
-		b.setMapper(new GrepHandler(regex));
 		b.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		b.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class));
+		b.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new GrepHandler(regex));
 		b.createJob().waitForCompletion(true);
 		
 		return 0;

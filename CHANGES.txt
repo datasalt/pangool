@@ -3,6 +3,11 @@ Pangool Change Log
 
 Pangool 0.43.6 (Development)
 
+ IMPROVEMENTS
+ - 2012-11-27 - TupleFile for reading SequenceFiles with Tuples, natively, without using
+                Avro. So, from this version Avro is not mandatory anymore.
+              - Rewritten TupleInputFormat y TupleOutputFormat to use the new TupleFile
+
  BUG FIXES
  - 2012-11-20 - Integers or longs with "+" at the start failed with
                 TupleTextInputFormat

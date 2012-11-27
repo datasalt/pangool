@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.TupleFile;
 import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -26,7 +28,6 @@ import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.tuplemr.MapOnlyJobBuilder;
 import com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
-import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 
 /**
@@ -54,11 +55,10 @@ public class NaiveBayesClassifier extends BaseExampleJob implements Serializable
 		Set<String> vocabulary = new HashSet<String>();
 		// Read tuples from generate job
 		for(FileStatus fileStatus : fileSystem.globStatus(generatedModel)) {
-			TupleInputReader reader = new TupleInputReader(conf);
-			reader.initialize(fileStatus.getPath(), conf);
-			while(reader.nextKeyValueNoSync()) {
+      TupleFile.Reader reader = new TupleFile.Reader(fileSystem, conf, fileStatus.getPath());
+      Tuple tuple = new Tuple(reader.getSchema());
+			while(reader.next(tuple)) {
 				// Read Tuple
-				ITuple tuple = reader.getCurrentKey();
 				Integer count = (Integer) tuple.get("count");
 				Category category = (Category) tuple.get("category");
 				String word = tuple.get("word").toString();
@@ -110,14 +110,13 @@ public class NaiveBayesClassifier extends BaseExampleJob implements Serializable
 		init(conf, new Path(modelFolder));
 		
 		MapOnlyJobBuilder job = new MapOnlyJobBuilder(conf);
-		job.setMapper(new MapOnlyMapper<LongWritable, Text, Text, NullWritable>() {
-			protected void map(LongWritable key, Text value, Context context) throws IOException ,InterruptedException {
-				value.set(value.toString() + "\t" + classify(value.toString()));
-				context.write(value, NullWritable.get());
-			}
-		});
 		job.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		job.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class));
+		job.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new MapOnlyMapper<LongWritable, Text, Text, NullWritable>() {
+      protected void map(LongWritable key, Text value, Context context) throws IOException ,InterruptedException {
+        value.set(value.toString() + "\t" + classify(value.toString()));
+        context.write(value, NullWritable.get());
+      }
+    });
 		job.createJob().waitForCompletion(true);
 		
 		return 1;

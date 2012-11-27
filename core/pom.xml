@@ -42,13 +42,17 @@
 			<groupId>org.apache.avro</groupId>
 			<artifactId>avro</artifactId>
 			<version>${avro.version}</version>
+            <optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.avro</groupId>
-			<artifactId>avro-mapred</artifactId>
-			<version>${avro.version}</version>
-		</dependency>
-		<!-- Very usefull Google's guava - Nice collections API -->
+
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro-mapred</artifactId>
+            <version>${avro.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Very usefull Google's guava - Nice collections API -->
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>

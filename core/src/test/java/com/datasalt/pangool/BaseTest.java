@@ -78,8 +78,8 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 
 	static Random random = new Random(1);
 	
-	protected static void fillTuple(boolean random,ITuple tuple){
-		fillTuple(random,tuple,0,tuple.getSchema().getFields().size()-1);
+	protected static ITuple fillTuple(boolean random,ITuple tuple){
+		return fillTuple(random,tuple,0,tuple.getSchema().getFields().size()-1);
 	}
 	
 	/**
@@ -87,7 +87,7 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 	 * 
 	 */
 
-	protected static void fillTuple(boolean isRandom,ITuple tuple, int minIndex, int maxIndex) {
+	protected static ITuple fillTuple(boolean isRandom,ITuple tuple, int minIndex, int maxIndex) {
 		try {
 			for(int i = minIndex; i <= maxIndex; i++) {
 				Field field = tuple.getSchema().getField(i);
@@ -104,6 +104,7 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 					default: throw new IllegalArgumentException("Not supported type " + field.getType());
 				}
 			}
+      return tuple;
 		} catch(Exception e) {
 			throw new RuntimeException(e);
 		}

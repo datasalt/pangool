@@ -20,6 +20,7 @@
 	<artifactId>pangool-examples</artifactId>
 	<properties>
 		<hadoop.version>0.20.2</hadoop.version>
+        <avro.version>1.6.3</avro.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -37,7 +38,14 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro-mapred</artifactId>
+            <version>${avro.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8.2</version>

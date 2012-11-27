@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.TupleFile;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -42,7 +44,6 @@ import org.junit.Assert;
 import org.junit.Before;
 
 import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 import com.datasalt.pangool.utils.HadoopUtils;
 import com.datasalt.pangool.utils.Pair;
 
@@ -166,10 +167,9 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 	 * Read the Tuples from a TupleOutput using TupleInputReader.
 	 */
 	public static void readTuples(Path file, Configuration conf, TupleVisitor iterator) throws IOException, InterruptedException {
-		TupleInputReader reader = new TupleInputReader(conf);
-		reader.initialize(new Path(file + ""), conf);
-		while(reader.nextKeyValueNoSync()) {
-			ITuple tuple = reader.getCurrentKey();
+    TupleFile.Reader reader = new TupleFile.Reader(FileSystem.get(file.toUri(), conf), conf, file);
+    Tuple tuple = new Tuple(reader.getSchema());
+		while(reader.next(tuple)) {
 			iterator.onTuple(tuple);
 		}
 		reader.close();

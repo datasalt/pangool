@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.datasalt.pangool.io.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -15,18 +16,13 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.junit.Test;
 
-import com.datasalt.pangool.io.Fields;
-import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.tuplemr.IdentityTupleReducer;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
-import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 
 /**
  * Test that asserts that we can serialize Tuples inside Tuples and that there is no limit in the depth of such a tree of Tuples.
@@ -92,16 +88,14 @@ public class TupleOfTupleOfTuples {
 
 		Path toRead = new Path(out, "part-r-00000");
 		assertTrue(fS.exists(toRead));
-		TupleInputReader reader = new TupleInputReader(conf);
-		reader.initialize(toRead, conf);
-		reader.nextKeyValueNoSync();
+    TupleFile.Reader reader = new TupleFile.Reader(fS, conf, toRead);
+    Tuple tuple = new Tuple(reader.getSchema());
 			
 		char base = 'a';
 		for(int i = 0; i < 7; i++) {
-			ITuple tuple = reader.getCurrentKey();
+			reader.next(tuple);
 			assertEquals((char)(base + (char)i) + "", tuple.get("group").toString());
 			assertEquals((char)(base + (char)i) + "", ((ITuple)(((ITuple)tuple.get("metatuple")).get("tuple"))).get("b").toString());
-			reader.nextKeyValueNoSync();
 		}
 		
 		fS.delete(out, true);

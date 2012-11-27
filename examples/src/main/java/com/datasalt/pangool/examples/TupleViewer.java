@@ -2,12 +2,12 @@ package com.datasalt.pangool.examples;
 
 import java.io.IOException;
 
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.TupleFile;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-
-import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 
 public class TupleViewer {
 
@@ -24,11 +24,12 @@ public class TupleViewer {
 		}
 		
 		for(FileStatus fStatus: fS.globStatus(path)) {
-			TupleInputReader reader = new TupleInputReader(conf);
-			reader.initialize(fStatus.getPath(), conf);
-			while(reader.nextKeyValueNoSync()) {
-				System.out.println(fStatus.getPath() + "\t" + reader.getCurrentKey());
+      TupleFile.Reader reader = new TupleFile.Reader(fS,  conf, fStatus.getPath());
+      Tuple tuple = new Tuple(reader.getSchema());
+			while(reader.next(tuple)) {
+				System.out.println(fStatus.getPath() + "\t" + tuple);
 			}
+      reader.close();
 		}
 	}
 }

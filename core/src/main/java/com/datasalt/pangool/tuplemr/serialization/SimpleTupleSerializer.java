@@ -50,12 +50,13 @@ public class SimpleTupleSerializer implements Serializer<ITuple> {
   private Serializer[] customSerializers;
 
 	// A SimpleTupleSerializer that doesn't serialize a specified Schema
-  SimpleTupleSerializer(HadoopSerialization ser) {
+  public SimpleTupleSerializer(HadoopSerialization ser) {
 		this.ser = ser;
 	}
 	
-	// A SimpelTupleSerializer that serializes a certain Schema
-	SimpleTupleSerializer(Schema schemaToSerialize, HadoopSerialization ser, Configuration conf) {
+	// A SimpelTupleSerializer that serializes a certain Schema. Needed
+  // when using custom stateful serialization.
+	public SimpleTupleSerializer(Schema schemaToSerialize, HadoopSerialization ser, Configuration conf) {
 		this(ser);
 		this.customSerializers = SerializationInfo.getSerializers(schemaToSerialize, conf);
 	}
@@ -83,7 +84,7 @@ public class SimpleTupleSerializer implements Serializer<ITuple> {
 		return out;
 	}
 
-	public void write(Schema destinationSchema, ITuple tuple, int[] translationTable, Serializer[] customSerializers)
+	void write(Schema destinationSchema, ITuple tuple, int[] translationTable, Serializer[] customSerializers)
 	    throws IOException {
 		for(int i = 0; i < destinationSchema.getFields().size(); i++) {
 			Field field = destinationSchema.getField(i);

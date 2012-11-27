@@ -49,12 +49,16 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	private Deserializer[] deserializers; 
 	private Schema schemaToDeserialize;
 	
-	SimpleTupleDeserializer(HadoopSerialization ser, Configuration conf) {
+	public SimpleTupleDeserializer(HadoopSerialization ser, Configuration conf) {
 		this.ser = ser;
 		this.conf = conf;
 	}
 
-	SimpleTupleDeserializer(Schema schemaToDeserialize, HadoopSerialization ser, Configuration conf) {
+  /**
+   * Constructor where you must include the scheme. Mandatory if you are
+   * using custom stateful serializers.
+   */
+	public SimpleTupleDeserializer(Schema schemaToDeserialize, HadoopSerialization ser, Configuration conf) {
 		this(ser, conf);
 		this.schemaToDeserialize = schemaToDeserialize;
 		deserializers = SerializationInfo.getDeserializers(schemaToDeserialize, conf);

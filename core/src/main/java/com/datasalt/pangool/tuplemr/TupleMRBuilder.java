@@ -165,7 +165,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	}
 
 	public void addNamedTupleOutput(String namedOutput, Schema outputSchema) throws TupleMRException {
-		Output output = new Output(namedOutput, new TupleOutputFormat(outputSchema.toString()),
+		Output output = new Output(namedOutput, new TupleOutputFormat(outputSchema),
 		    ITuple.class, NullWritable.class, null);
 		namedOutputs.add(output);
 	}
@@ -196,7 +196,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 
 	public void setTupleOutput(Path outputPath, Schema schema) {
 		this.outputPath = outputPath;
-		this.outputFormat = new TupleOutputFormat(schema.toString());
+		this.outputFormat = new TupleOutputFormat(schema);
 		this.outputKeyClass = ITuple.class;
 		this.outputValueClass = NullWritable.class;
 		AvroUtils.addAvroSerialization(conf);

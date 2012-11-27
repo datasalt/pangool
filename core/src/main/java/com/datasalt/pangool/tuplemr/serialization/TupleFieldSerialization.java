@@ -29,6 +29,9 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field.FieldConfigurable;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 
+/**
+ * Serializes a Tuple withing a Pangool field. Allows for tuples inside tuples.
+ */
 public class TupleFieldSerialization implements Serialization<ITuple>, FieldConfigurable, Configurable {
 
 	private Schema schema;

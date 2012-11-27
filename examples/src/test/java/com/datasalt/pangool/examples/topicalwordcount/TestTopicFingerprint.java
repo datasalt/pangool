@@ -15,32 +15,21 @@
  */
 package com.datasalt.pangool.examples.topicalwordcount;
 
-import static org.junit.Assert.*;
-
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.avro.file.DataFileWriter;
-import org.apache.avro.generic.GenericData.Record;
-import org.apache.avro.reflect.ReflectDatumWriter;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.TupleFile;
+import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.util.ToolRunner;
 import org.junit.Test;
 
-import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.serialization.HadoopSerialization;
-import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
-import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat.TupleRecordWriter;
-import com.datasalt.pangool.utils.AvroUtils;
-import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestTopicFingerprint extends AbstractHadoopTestLibrary {
-	
-	public static NullWritable nothing = NullWritable.get();
 
 	public final static String INPUT = TestTopicFingerprint.class.getName() + "-input";
 	public final static String OUTPUT = TestTopicFingerprint.class.getName() + "-output";
@@ -53,48 +42,41 @@ public class TestTopicFingerprint extends AbstractHadoopTestLibrary {
 		
 		createInput(INPUT, conf);
 		ToolRunner.run(getConf(), new TopicFingerprint(), new String[] {  INPUT, OUTPUT, 2 + "" } );
-		
-		TupleInputReader reader = new TupleInputReader(conf);
-		reader.initialize(new Path(OUTPUT + "/part-r-00000"), conf);
-		reader.nextKeyValueNoSync();
-		ITuple tuple = reader.getCurrentKey();
-		
+
+    Path outPath = new Path(OUTPUT + "/part-r-00000");
+    FileSystem fs = FileSystem.get(outPath.toUri(), conf);
+    TupleFile.Reader reader = new TupleFile.Reader(fs, conf, outPath);
+    Tuple tuple = new Tuple(reader.getSchema());
+
 		// The order in the output file is deterministic (we have sorted by topic, count)
+    reader.next(tuple);
 		assertEquals(1, tuple.get("topic"));
 		assertEquals("a", tuple.get("word").toString());
 		
-		reader.nextKeyValueNoSync();
-		tuple = reader.getCurrentKey();
-		
+		reader.next(tuple);
 		assertEquals(1, tuple.get("topic"));
 		assertEquals("c", tuple.get("word").toString());
 
-		reader.nextKeyValueNoSync();
-		tuple = reader.getCurrentKey();
-		
+    reader.next(tuple);
 		assertEquals(2, tuple.get("topic"));
 		assertEquals("a", tuple.get("word").toString());
 
-		reader.nextKeyValueNoSync();
-		tuple = reader.getCurrentKey();
-		
+    reader.next(tuple);
 		assertEquals(2, tuple.get("topic"));
 		assertEquals("b", tuple.get("word").toString());
 		
 		// Check the named output
 	
 		reader.close();
-		reader = new TupleInputReader(conf);
-		reader.initialize(new Path(OUTPUT + "/" + TopicFingerprint.OUTPUT_TOTALCOUNT + "/" + "part-r-00000"), conf);
-		reader.nextKeyValueNoSync();
-		tuple = reader.getCurrentKey();
-		
+    outPath = new Path(OUTPUT + "/" + TopicFingerprint.OUTPUT_TOTALCOUNT + "/" + "part-r-00000");
+		reader = new TupleFile.Reader(fs, conf, outPath);
+    tuple = new Tuple(reader.getSchema());
+
+    reader.next(tuple);
 		assertEquals(1, tuple.get("topic"));
 		assertEquals(15, tuple.get("totalcount"));
-		
-		reader.nextKeyValueNoSync();
-		tuple = reader.getCurrentKey();
-		
+
+    reader.next(tuple);
 		assertEquals(2, tuple.get("topic"));
 		assertEquals(19, tuple.get("totalcount"));
 
@@ -103,16 +85,11 @@ public class TestTopicFingerprint extends AbstractHadoopTestLibrary {
 		trash(INPUT, OUTPUT);
 	}
 	
-	public static TupleRecordWriter getTupleWriter(Configuration conf, String file, Schema schema) throws IOException {
-		org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(schema);
-		DataFileWriter<Record> writer = new DataFileWriter<Record>(new ReflectDatumWriter<Record>());
-		writer.create(avroSchema, new File(file));
-		return new TupleRecordWriter(schema, writer,conf);
-	}
-	
+
 	public void createInput(String input, Configuration conf) throws IOException, InterruptedException {
-		
-		TupleRecordWriter writer = getTupleWriter(conf, input, TopicalWordCount.getSchema());
+    Path inPath = new Path(input);
+    FileSystem fs = FileSystem.get(inPath.toUri(), conf);
+		TupleFile.Writer writer = new TupleFile.Writer(fs, conf, inPath, TopicalWordCount.getSchema());
 
 		// Topic 1, words: { a, 10 } { b, 1 } , { c, 5 }
 		// Top 2 words = a(10), c(5)
@@ -120,35 +97,35 @@ public class TestTopicFingerprint extends AbstractHadoopTestLibrary {
 		tuple.set("word", "a");
 		tuple.set("topic", 1);
 		tuple.set("count", 10);
-		writer.write(tuple, nothing);
+		writer.append(tuple);
 		
 		tuple.set("word", "b");
 		tuple.set("topic", 1);
 		tuple.set("count", 1);
-		writer.write(tuple, nothing);
+    writer.append(tuple);
 
 		tuple.set("word", "c");
 		tuple.set("topic", 1);
 		tuple.set("count", 5);
-		writer.write(tuple, nothing);
+    writer.append(tuple);
 		
 		// Topic 2, words: { a, 10 } { b, 9 } , { c, 5 }
 		// Top 2 words = a(10), b(9)
 		tuple.set("word", "a");
 		tuple.set("topic", 2);
 		tuple.set("count", 10);
-		writer.write(tuple, nothing);
+    writer.append(tuple);
 		
 		tuple.set("word", "b");
 		tuple.set("topic", 2);
 		tuple.set("count", 9);
-		writer.write(tuple, nothing);
+    writer.append(tuple);
 
 		tuple.set("word", "c");
 		tuple.set("topic", 2);
 		tuple.set("count", 5);
-		writer.write(tuple, nothing);
+    writer.append(tuple);
 
-		writer.close(null);
+		writer.close();
 	}
 }

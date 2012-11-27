@@ -23,15 +23,17 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.TupleFile;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
 import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
 public class TestAvroTopicalWordCount extends AbstractHadoopTestLibrary {
@@ -52,11 +54,12 @@ public class TestAvroTopicalWordCount extends AbstractHadoopTestLibrary {
 	
 	public static int assertOutput(String output, Configuration conf) throws NumberFormatException, IOException, InterruptedException {
 		int validatedOutputLines = 0;
-				
-		TupleInputReader reader = new TupleInputReader(conf);
-		reader.initialize(new Path(output), conf);
-		while(reader.nextKeyValueNoSync()) {
-			ITuple tuple = reader.getCurrentKey();
+
+    Path outPath = new Path(output);
+    TupleFile.Reader reader = new TupleFile.Reader(FileSystem.get(outPath.toUri(), conf), conf, outPath);
+    Tuple tuple = new Tuple(reader.getSchema());
+
+		while(reader.next(tuple)) {
 			Record record = (Record)tuple.get("my_avro");
 			int topicId = (Integer) record.get("topic");
 			String word = (record.get("word")).toString();
