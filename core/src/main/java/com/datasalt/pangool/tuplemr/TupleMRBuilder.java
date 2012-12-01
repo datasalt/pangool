@@ -151,7 +151,6 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	 */
 	public void addTupleInput(Path path, TupleMapper<ITuple, NullWritable> tupleMapper) {
 		multipleInputs.getMultiInputs().add(new Input(path, new TupleInputFormat(), tupleMapper));
-		AvroUtils.addAvroSerialization(conf);
 	}
 
 	public void addNamedOutput(String namedOutput, OutputFormat outputFormat, Class keyClass,
@@ -199,7 +198,6 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		this.outputFormat = new TupleOutputFormat(schema);
 		this.outputKeyClass = ITuple.class;
 		this.outputValueClass = NullWritable.class;
-		AvroUtils.addAvroSerialization(conf);
 	}
 
 	public void setTupleReducer(TupleReducer tupleReducer) {

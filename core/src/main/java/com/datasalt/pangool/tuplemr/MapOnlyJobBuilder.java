@@ -101,7 +101,6 @@ public class MapOnlyJobBuilder {
     this.outputFormat = new TupleOutputFormat(schema);
     this.outputKeyClass = ITuple.class;
     this.outputValueClass = NullWritable.class;
-    AvroUtils.addAvroSerialization(conf);
     return this;
   }
 

@@ -54,9 +54,6 @@ public class NamedOutputsInterface {
 
 	public void add(Output output) throws TupleMRException {
 		NamedOutputsInterface.validateNamedOutput(output.name, namedOutputs);
-		if(output.outputFormat.getClass().equals(TupleOutputFormat.class)) {
-			AvroUtils.addAvroSerialization(conf);
-		}
 		namedOutputs.add(output);
 	}
 	
