@@ -277,8 +277,8 @@
 
         <distributionManagement>
             <snapshotRepository>
-                <id>pangool-snapshots</id>
-                <url>http://clinker.pangool.net/nexus/content/repositories/snapshots</url>
+                <id>datasalt-snapshots</id>
+                <url>http://clinker.datasalt.com/nexus/content/repositories/snapshots</url>
             </snapshotRepository>
         </distributionManagement>
 
