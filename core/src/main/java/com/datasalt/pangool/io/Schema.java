@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.avro.AvroRuntimeException;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
@@ -111,16 +110,16 @@ public class Schema implements Serializable {
 	    }
 	    public void add(String name, String value) {
 	      if (reserved.contains(name))
-	        throw new AvroRuntimeException("Can't set reserved property: " + name);
+	        throw new RuntimeException("Can't set reserved property: " + name);
 	      
 	      if (value == null)
-	        throw new AvroRuntimeException("Can't set a property to null: " + name);
+	        throw new RuntimeException("Can't set a property to null: " + name);
 	    
 	      String old = get(name);
 	      if (old == null)
 	        put(name, value);
 	      else if (!old.equals(value))
-	        throw new AvroRuntimeException("Can't overwrite property: " + name);
+	        throw new RuntimeException("Can't overwrite property: " + name);
 	    }
 
 	    public void write(JsonGenerator gen) throws IOException {
