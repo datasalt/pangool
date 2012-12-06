@@ -55,6 +55,9 @@ public abstract class Step implements Configurable, Tool, Serializable {
 
 	protected transient Configuration hadoopConf;
 
+	// Specifies the number of reducers to use in this Job
+	protected transient int nReducers = -1;
+	
 	public Step(String name, Inputs inputs) {
 		this(new Output(name), inputs, Params.NONE, NamedOutputs.NONE, null);
 	}
@@ -191,6 +194,9 @@ public abstract class Step implements Configurable, Tool, Serializable {
 	    ClassNotFoundException {
 
 		Job job = coGrouper.createJob();
+		if(nReducers > 0) {
+			job.getConfiguration().setInt("mapred.reduce.tasks", nReducers);
+		}
 		if(job.waitForCompletion(true)) {
 			return 1;
 		}
@@ -233,5 +239,9 @@ public abstract class Step implements Configurable, Tool, Serializable {
 
 	public String toString() {
 		return output.name;
+	}
+	
+	public void setNReducers(int nReducers) {
+		this.nReducers = nReducers;
 	}
 }
