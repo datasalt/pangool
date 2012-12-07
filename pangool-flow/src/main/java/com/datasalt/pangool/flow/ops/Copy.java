@@ -32,6 +32,10 @@ public class Copy extends TupleOp<ITuple> {
 	Tuple tuple;
 	Schema copySchema;
 
+	public Copy(Schema schema) {
+		this(schema, schema);
+	}
+	
 	public Copy(Schema schema, Schema copySchema) {
 		super(schema);
 		this.copySchema = copySchema;

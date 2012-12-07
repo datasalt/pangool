@@ -12,6 +12,14 @@ public class IntSum extends TupleReduceOp {
 	String origField;
 	String destField;
 	Schema copySchema;
+	
+	public IntSum(String field, Schema schema) {
+		this(field, field, schema, schema);
+	}
+	
+	public IntSum(String field, Schema outSchema, Schema copySchema) {
+		this(field, field, outSchema, copySchema);
+	}
 
 	public IntSum(String origField, String destField, Schema outSchema, Schema copySchema) {
 		super(outSchema);

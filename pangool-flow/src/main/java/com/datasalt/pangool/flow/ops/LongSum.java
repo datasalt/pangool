@@ -13,6 +13,18 @@ public class LongSum extends TupleReduceOp {
 	String destField;
 	Schema copySchema;
 
+	public LongSum(String field, Schema outSchema) {
+		this(field, field, outSchema, outSchema);
+	}
+	
+	public LongSum(String origField, String destField, Schema outSchema) {
+		this(origField, destField, outSchema, outSchema);
+	}
+	
+	public LongSum(String field, Schema outSchema, Schema copySchema) {
+		this(field, field, outSchema, copySchema);
+	}
+	
 	public LongSum(String origField, String destField, Schema outSchema, Schema copySchema) {
 		super(outSchema);
 		this.origField = origField;
