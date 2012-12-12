@@ -128,14 +128,14 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	}
 
 	protected void readUtf8(DataInputStream input, ITuple tuple, int index) throws IOException {
-		// this method is safe because tuple is internal, the tuple is not the final one
-		Utf8 t = (Utf8) tuple.get(index);
-		if(t == null) {
-			t = new Utf8();
-			tuple.set(index, t);
-		}
-		t.readFields(input);
-	}
+    Object t = tuple.get(index);
+    if(t == null || !(t instanceof Utf8)) {
+      t = new Utf8();
+      tuple.set(index, t);
+    }
+    ((Utf8) t).readFields(input);
+
+  }
 
 	protected void readCustomObject(DataInputStream input, ITuple tuple, Class<?> expectedType, int index,
 	    Deserializer customDeser) throws IOException {

@@ -49,7 +49,7 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 
 	public final static  Schema SCHEMA;
 	public final static org.apache.avro.Schema AVRO_SCHEMA;
-	
+
 	static{
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("int_field",Type.INT));
@@ -127,7 +127,6 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 	}
 	
 	protected static void fillBytes(boolean isRandom,ITuple tuple,int index) throws Exception {
-		Random random = new Random();
 		int BYTES_SIZE=8;
 		Object ob = tuple.get(index);
 		if (ob == null || !(ob instanceof ByteBuffer)){
@@ -137,7 +136,7 @@ public abstract class BaseTest extends AbstractHadoopTestLibrary {
 		ByteBuffer buffer = (ByteBuffer)ob;
 		if (isRandom){
 			random.nextBytes(buffer.array());
-			int newLimit = random.nextInt(buffer.capacity());
+			int newLimit = random.nextInt(Math.max(1,buffer.capacity()));
 			buffer.limit(newLimit);
 		} else {
 			int newLimit=0;

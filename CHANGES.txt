@@ -1,7 +1,13 @@
 Pangool Change Log
 ====================
 
-Pangool 0.43.6 (Development)
+Pangool 0.5.1 (Development)
+
+ BUG FIXES
+ - 2012-12-12 - On mappers, when user overwritting a "string" field with a String,
+                there were a casting exception. Now it is detected and a new Utf8 is created.
+
+Pangool 0.5
 
  IMPROVEMENTS
  - 2012-11-27 - TupleFile for reading SequenceFiles with Tuples, natively, without using

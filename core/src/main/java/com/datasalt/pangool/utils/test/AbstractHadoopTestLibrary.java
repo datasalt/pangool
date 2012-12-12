@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.TupleFile;
 import org.apache.hadoop.conf.Configuration;
@@ -55,7 +56,7 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 	protected FileSystem fS;
 
 	protected Map<String, List<Pair<Object, Object>>> outputs = new HashMap<String, List<Pair<Object, Object>>>();
-	protected Map<String, SequenceFile.Writer> inputs = new HashMap<String, SequenceFile.Writer>();
+	protected Map<String, Object> inputs = new HashMap<String, Object>();
 
 	@Before
 	public void initHadoop() throws IOException {
@@ -66,6 +67,10 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 	private SequenceFile.Writer openWriter(String path, Class key, Class value) throws IOException {
 		return new SequenceFile.Writer(fS, getConf(), new Path(path), key, value);
 	}
+
+  private TupleFile.Writer openTupleWriter(String path, Schema schema) throws IOException {
+    return new TupleFile.Writer(fS, getConf(), new Path(path), schema);
+  }
 
 	public Writable writable(Object obj) {
 		if(obj instanceof Integer) {
@@ -88,8 +93,13 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 		FileSystem fs = FileSystem.get(job.getConfiguration());
 		HadoopUtils.deleteIfExists(fs, FileOutputFormat.getOutputPath(job));
 		// Close input writers first
-		for(Map.Entry<String, SequenceFile.Writer> entry : inputs.entrySet()) {
-			entry.getValue().close();
+		for(Map.Entry<String, Object> entry : inputs.entrySet()) {
+      Object in = entry.getValue();
+      if (in instanceof SequenceFile.Writer) {
+         ((SequenceFile.Writer) in).close();
+      } else if (in instanceof TupleFile.Writer) {
+        ((TupleFile.Writer) in).close();
+      }
 		}
 		job.waitForCompletion(true);
 		Assert.assertTrue(job.isSuccessful());
@@ -97,7 +107,7 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 	}
 
 	public void cleanUp() throws IOException {
-		for(Map.Entry<String, SequenceFile.Writer> entry : inputs.entrySet()) {
+		for(Map.Entry<String, Object> entry : inputs.entrySet()) {
 			trash(entry.getKey());
 		}
 		for(Map.Entry<String, List<Pair<Object, Object>>> entry : outputs.entrySet()) {
@@ -132,7 +142,7 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 	}
 
 	public AbstractHadoopTestLibrary withInput(String input, Object key, Object value) throws IOException {
-		SequenceFile.Writer writer = inputs.get(input);
+		SequenceFile.Writer writer = (SequenceFile.Writer) inputs.get(input);
 		if(writer == null) {
 			writer = openWriter(input, key.getClass(), value.getClass());
 			inputs.put(input, writer);
@@ -144,6 +154,16 @@ public abstract class AbstractHadoopTestLibrary extends AbstractBaseTest {
 	public AbstractHadoopTestLibrary withInput(String input, Object key) throws IOException {
 		return withInput(input, key, NullWritable.get());
 	}
+
+  public AbstractHadoopTestLibrary withTupleInput(String input, ITuple tuple) throws IOException {
+    TupleFile.Writer writer = (TupleFile.Writer) inputs.get(input);
+    if(writer == null) {
+      writer = openTupleWriter(input, tuple.getSchema());
+      inputs.put(input, writer);
+    }
+    writer.append(tuple);
+    return this;
+  }
 
 	public void withOutput(String output, Object key) throws IOException, ClassNotFoundException, InstantiationException,
 	    IllegalAccessException {
