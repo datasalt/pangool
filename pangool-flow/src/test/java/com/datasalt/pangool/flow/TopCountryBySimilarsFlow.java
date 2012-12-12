@@ -97,7 +97,7 @@ public class TopCountryBySimilarsFlow extends LinearFlow {
 							if(tuple.getSchema().getName().equals("countryInfo")) {
 								country = tuple.get("country").toString();
 							} else if(country != null) {
-								Utils.shallowCopy(tuple, getOutputTuple(), similaritySchema);
+								Utils.shallowCopy(tuple, getOutputTuple(), "first", "second", "score");
 								getOutputTuple().set("country", country);
 								collector.write(getOutputTuple(), NullWritable.get());
 							} else { // write users that don't have country

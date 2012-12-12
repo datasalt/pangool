@@ -16,14 +16,16 @@
 package com.datasalt.pangool.flow;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.tuplemr.TupleMapper.TupleMRContext;
 import com.datasalt.pangool.utils.HadoopUtils;
 
@@ -36,10 +38,18 @@ public class Utils {
 		return tuple;
 	}
 	
-	public static void shallowCopy(ITuple tupleOrig, ITuple tupleDest, Schema copySchema) {
-		for(Field field: copySchema.getFields()) {
-			tupleDest.set(field.getName(), tupleOrig.get(field.getName()));
+	public static void shallowCopy(ITuple tupleOrig, ITuple tupleDest, String... fields) {
+		for(String field: fields) {
+			tupleDest.set(field, tupleOrig.get(field));
 		}
+	}
+	
+	public static String[] getFieldNames(Schema schema) {
+		List<String> fieldNames = new ArrayList<String>();
+		for(Field field: schema.getFields()) {
+			fieldNames.add(field.getName());
+		}
+		return fieldNames.toArray(new String[0]);
 	}
 	
 	public static void delete(Path path, Configuration conf) throws IOException {

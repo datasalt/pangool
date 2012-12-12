@@ -3,6 +3,7 @@ package com.datasalt.pangool.flow.ops;
 import java.io.IOException;
 import java.util.Map;
 
+import com.datasalt.pangool.flow.Mutator;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
@@ -19,8 +20,8 @@ public class OneToNJoinOp extends TupleReduceOp {
 	private Schema rightSchema;
 	private Map<String, Object> defaultValues; // this is not a Tuple because it might be a part of a schema
 
-	public OneToNJoinOp(Schema jointSchema, Schema leftSchema, Schema rightSchema, Map<String, Object> defaultValues) {
-		super(jointSchema);
+	public OneToNJoinOp(Schema leftSchema, Schema rightSchema, Map<String, Object> defaultValues) {
+		super(Mutator.jointSchema(leftSchema, rightSchema));
 		this.leftSchema = leftSchema;
 		this.rightSchema = rightSchema;
 		this.defaultValues = defaultValues;

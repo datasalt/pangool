@@ -20,7 +20,6 @@ import java.io.IOException;
 import com.datasalt.pangool.flow.Utils;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
 
 /**
  * Operation that shallow-copies one Tuple's content to another. It caches the destination tuple and accepts a "copy"
@@ -29,22 +28,20 @@ import com.datasalt.pangool.io.Tuple;
 @SuppressWarnings("serial")
 public class Copy extends TupleOp<ITuple> {
 
-	Tuple tuple;
-	Schema copySchema;
+	String[] fieldsToCopy;
 
 	public Copy(Schema schema) {
-		this(schema, schema);
+		this(schema, Utils.getFieldNames(schema));
 	}
 	
-	public Copy(Schema schema, Schema copySchema) {
-		super(schema);
-		this.copySchema = copySchema;
-		this.tuple = new Tuple(schema);
+	public Copy(Schema outSchema, String... fieldsToCopy) {
+		super(outSchema);
+		this.fieldsToCopy = fieldsToCopy;
 	}
 
 	@Override
 	public void process(ITuple input, ReturnCallback<ITuple> callback) throws IOException, InterruptedException {
-		Utils.shallowCopy(input, tuple, copySchema);
+		Utils.shallowCopy(input, tuple, fieldsToCopy);
 		callback.onReturn(tuple);
 	}
 }

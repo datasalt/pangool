@@ -16,7 +16,6 @@
 package com.datasalt.pangool.flow.ops;
 
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
 
 /**
  * Operation that copies an input Tuple A with Schema(A) to a Tuple B with Schema(B). Schema(B) must be a subset of
@@ -25,10 +24,7 @@ import com.datasalt.pangool.io.Tuple;
 @SuppressWarnings("serial")
 public class SubsetCopy extends Copy {
 
-	Tuple tuple;
-
 	public SubsetCopy(Schema schema) {
-		super(schema, schema);
-		tuple = new Tuple(schema);
+		super(schema);
 	}
 }

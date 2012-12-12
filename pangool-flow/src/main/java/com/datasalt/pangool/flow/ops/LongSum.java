@@ -11,25 +11,25 @@ public class LongSum extends TupleReduceOp {
 
 	String origField;
 	String destField;
-	Schema copySchema;
+	String[] copyFields;
 
 	public LongSum(String field, Schema outSchema) {
-		this(field, field, outSchema, outSchema);
+		this(field, field, outSchema, Utils.getFieldNames(outSchema));
 	}
 	
 	public LongSum(String origField, String destField, Schema outSchema) {
-		this(origField, destField, outSchema, outSchema);
+		this(origField, destField, outSchema, Utils.getFieldNames(outSchema));
 	}
 	
-	public LongSum(String field, Schema outSchema, Schema copySchema) {
-		this(field, field, outSchema, copySchema);
+	public LongSum(String field, Schema outSchema, String... copyFields) {
+		this(field, field, outSchema, copyFields);
 	}
 	
-	public LongSum(String origField, String destField, Schema outSchema, Schema copySchema) {
+	public LongSum(String origField, String destField, Schema outSchema, String... copyFields) {
 		super(outSchema);
 		this.origField = origField;
 		this.destField = destField;
-		this.copySchema = copySchema;
+		this.copyFields = copyFields;
 	}
 
 	public void process(Iterable<ITuple> tuples, ReturnCallback<ITuple> callback) throws IOException,
@@ -41,7 +41,7 @@ public class LongSum extends TupleReduceOp {
 			count += (Long) tuple.get(origField);
 			lastTuple = tuple;
 		}
-		Utils.shallowCopy(lastTuple, tuple, copySchema);
+		Utils.shallowCopy(lastTuple, tuple, copyFields);
 		tuple.set(destField, count);
 		callback.onReturn(tuple);
 	}

@@ -10,12 +10,16 @@ import com.datasalt.pangool.io.Schema;
 public class Count extends TupleReduceOp {
 
 	String destField;
-	Schema copySchema;
+	String[] copyFields;
 	
-	public Count(String destField, Schema outSchema, Schema copySchema) {
+	public Count(String destField, Schema outSchema) {
+		this(destField, outSchema, Utils.getFieldNames(outSchema));
+	}
+	
+	public Count(String destField, Schema outSchema, String... copyFields) {
 		super(outSchema);
 		this.destField = destField;
-		this.copySchema = copySchema;
+		this.copyFields = copyFields;
 	}
 
 	public void process(Iterable<ITuple> tuples, ReturnCallback<ITuple> callback) throws IOException,
@@ -27,7 +31,7 @@ public class Count extends TupleReduceOp {
 			count ++;
 			lastTuple = tuple;
 		}
-		Utils.shallowCopy(lastTuple, tuple, copySchema);
+		Utils.shallowCopy(lastTuple, tuple, copyFields);
 		tuple.set(destField, count);
 		callback.onReturn(tuple);
 	}

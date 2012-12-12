@@ -68,12 +68,20 @@ public class MRStep {
 		extraDependencies.add(operativeStep);
 	}
 	
+	public void addInput(MRInput mrInput, Schema tupleSchemaInput) {
+		addInput(mrInput, new TupleInput(tupleSchemaInput));
+	}
+	
 	public void addInput(MRInput mrInput, RichInput inputSpec) {
 		String inputName = "input" + bindedInputs.keySet().size();
 		bindedInputs.put(inputName, inputSpec);
 		bindings.put(inputName, mrInput);
 	}
 
+	public MRInput setOutput(Schema outputSchema) {
+		return setOutput(new TupleOutput(outputSchema));
+	}
+	
 	public MRInput setOutput(RichOutput outputSpec) {
 		jobOutput = outputSpec;
 		return new JobOutputMRInput(name);
