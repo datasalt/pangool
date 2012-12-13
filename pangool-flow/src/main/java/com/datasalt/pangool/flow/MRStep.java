@@ -41,14 +41,16 @@ public class MRStep {
 	
 	String name;
 	String help;
+	Class jarByClass;
 
-	public MRStep(String name) {
-		this(name, null);
+	public MRStep(String name, Class jarByClass) {
+		this(name, null, jarByClass);
 	}
 
-	public MRStep(String name, String help) {
+	public MRStep(String name, String help, Class jarByClass) {
 		this.name = name;
 		this.help = help;
+		this.jarByClass = jarByClass;
 		this.reducer = new IdentityTupleReducer();
 	}
 
@@ -128,7 +130,7 @@ public class MRStep {
 			    Map<String, Object> parsedParameters) throws Exception {
 
 				mr = new TupleMRBuilder(hadoopConf, getName());
-				mr.setJarByClass(this.getClass());
+				mr.setJarByClass(jarByClass);
 
 				if(MRStep.this.nReducers > 0) {
 					setNReducers(MRStep.this.nReducers);

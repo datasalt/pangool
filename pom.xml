@@ -237,7 +237,12 @@
 
         <!-- Maven Environment -->
 
-        <repositories />
+	<repositories>
+	    <repository>
+	      <id>Apache Snapshot</id>
+	      <url>https://repository.apache.org/content/groups/snapshots/</url>
+	    </repository>
+	 </repositories>
 
         <pluginRepositories />
 
