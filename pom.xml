@@ -240,7 +240,7 @@
 	<repositories>
 	    <repository>
 	        <id>apache-snapshots</id>
-		<releases>
+                <releases>
                     <enabled>false</enabled>
                 </releases>
                 <snapshots>
