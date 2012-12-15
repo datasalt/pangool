@@ -240,6 +240,12 @@
 	<repositories>
 	    <repository>
 	        <id>apache-snapshots</id>
+		<releases>
+                    <enabled>false</enabled>
+                </releases>
+                <snapshots>
+                    <enabled>true</enabled>
+                </snapshots>
 	        <url>http://repository.apache.org/content/groups/snapshots</url>
 	    </repository>
 	 </repositories>
