@@ -35,7 +35,6 @@ import com.datasalt.pangool.tuplemr.NamedOutputsInterface.Output;
 import com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat;
-import com.datasalt.pangool.utils.AvroUtils;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**

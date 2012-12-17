@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 /** An {@link org.apache.hadoop.mapreduce.OutputFormat} that writes {@link com.datasalt.pangool.io.ITuple}s. */
+@SuppressWarnings("serial")
 public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> implements Serializable {
 
   private Schema outputSchema;

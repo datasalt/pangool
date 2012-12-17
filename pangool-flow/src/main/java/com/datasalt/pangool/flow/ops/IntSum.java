@@ -2,30 +2,26 @@ package com.datasalt.pangool.flow.ops;
 
 import java.io.IOException;
 
-import com.datasalt.pangool.flow.Utils;
 import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Schema;
 
+/**
+ * Operation that sums a certain integer field from a group of Tuples and sets the result of the sum into a certain field.
+ */
 @SuppressWarnings("serial")
 public class IntSum extends TupleReduceOp {
 
-	String origField;
-	String destField;
-	String[] copyFields;
+	private String origField;
+	private String destField;
 	
-	public IntSum(String field, Schema schema) {
-		this(field, field, schema, Utils.getFieldNames(schema));
+	public IntSum(String field) {
 	}
 	
-	public IntSum(String field, Schema outSchema, String... copyFields) {
-		this(field, field, outSchema, copyFields);
-	}
-
-	public IntSum(String origField, String destField, Schema outSchema, String... copyFields) {
-		super(outSchema);
+	/**
+	 * The destination field is the same than the field we use to sum.
+	 */
+	public IntSum(String origField, String destField) {
 		this.origField = origField;
 		this.destField = destField;
-		this.copyFields = copyFields;
 	}
 
 	public void process(Iterable<ITuple> tuples, ReturnCallback<ITuple> callback) throws IOException,
@@ -37,8 +33,7 @@ public class IntSum extends TupleReduceOp {
 			count += (Integer) tuple.get(origField);
 			lastTuple = tuple;
 		}
-		Utils.shallowCopy(lastTuple, tuple, copyFields);
-		tuple.set(destField, count);
+		lastTuple.set(destField, count);
 		callback.onReturn(tuple);
 	}
 }

@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.io.TupleFile;
 import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -24,7 +22,8 @@ import org.apache.hadoop.util.ToolRunner;
 
 import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.examples.naivebayes.NaiveBayesGenerate.Category;
-import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.TupleFile;
 import com.datasalt.pangool.tuplemr.MapOnlyJobBuilder;
 import com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;

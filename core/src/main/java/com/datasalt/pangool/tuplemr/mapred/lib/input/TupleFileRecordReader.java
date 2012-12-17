@@ -65,7 +65,6 @@ public class TupleFileRecordReader extends RecordReader<ITuple, NullWritable> {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public boolean nextKeyValue() throws IOException, InterruptedException {
     if (!more) {
       return false;

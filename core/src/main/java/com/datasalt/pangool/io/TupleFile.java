@@ -60,6 +60,7 @@ public class TupleFile {
    */
   public static class Writer implements java.io.Closeable {
 
+    @SuppressWarnings("rawtypes")
     private static Class UNUSED = Text.class;
 
     private SequenceFile.Writer innerWriter;
@@ -278,7 +279,6 @@ public class TupleFile {
     private SequenceFile.Reader innerReader;
     private Schema schema;
     private Path file;
-    private Configuration conf;
 
     private SimpleTupleDeserializer deser;
     private DataInputBuffer inBuffer = new DataInputBuffer();
@@ -291,7 +291,6 @@ public class TupleFile {
     public Reader(FileSystem fs, Configuration conf, Path file)
         throws IOException {
       this.file = file;
-      this.conf = conf;
       innerReader = new SequenceFile.Reader(fs, file, conf);
       loadSchema();
 

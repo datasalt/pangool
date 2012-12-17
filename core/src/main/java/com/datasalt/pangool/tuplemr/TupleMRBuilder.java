@@ -49,7 +49,6 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
-import com.datasalt.pangool.utils.AvroUtils;
 import com.datasalt.pangool.utils.DCUtils;
 
 /**

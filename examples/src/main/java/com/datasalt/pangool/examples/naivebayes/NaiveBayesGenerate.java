@@ -30,7 +30,7 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
  * <p>
  * The output model can later be read by {@link NaiveBayesClassifier}.
  */
-@SuppressWarnings({ "rawtypes", "serial", "unchecked" })
+@SuppressWarnings({ "rawtypes", "serial" })
 public class NaiveBayesGenerate extends BaseExampleJob implements Serializable {
 
 	// These categories describe a simple sentiment analysis task: a text is either "POSITIVE" or "NEGATIVE"

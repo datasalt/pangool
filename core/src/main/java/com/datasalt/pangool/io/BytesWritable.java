@@ -141,7 +141,7 @@ public class BytesWritable extends BinaryComparable
    */
   public void replace(byte [] newArray, int size) {
     bytes = newArray;
-    size = size;
+    this.size = size;
   }
 
   /**

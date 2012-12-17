@@ -2,34 +2,27 @@ package com.datasalt.pangool.flow.ops;
 
 import java.io.IOException;
 
-import com.datasalt.pangool.flow.Utils;
 import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Schema;
 
+/**
+ * Operation that sums a certain long field from a group of Tuples and sets the result of the sum into a certain field.
+ */
 @SuppressWarnings("serial")
 public class LongSum extends TupleReduceOp {
 
-	String origField;
-	String destField;
-	String[] copyFields;
+	private String origField;
+	private String destField;
 
-	public LongSum(String field, Schema outSchema) {
-		this(field, field, outSchema, Utils.getFieldNames(outSchema));
+	/**
+	 * The destination field is the same than the field we use to sum.
+	 */
+	public LongSum(String field) {
+		this(field, field);
 	}
 	
-	public LongSum(String origField, String destField, Schema outSchema) {
-		this(origField, destField, outSchema, Utils.getFieldNames(outSchema));
-	}
-	
-	public LongSum(String field, Schema outSchema, String... copyFields) {
-		this(field, field, outSchema, copyFields);
-	}
-	
-	public LongSum(String origField, String destField, Schema outSchema, String... copyFields) {
-		super(outSchema);
+	public LongSum(String origField, String destField) {
 		this.origField = origField;
-		this.destField = destField;
-		this.copyFields = copyFields;
+		this.destField = destField;		
 	}
 
 	public void process(Iterable<ITuple> tuples, ReturnCallback<ITuple> callback) throws IOException,
@@ -41,8 +34,7 @@ public class LongSum extends TupleReduceOp {
 			count += (Long) tuple.get(origField);
 			lastTuple = tuple;
 		}
-		Utils.shallowCopy(lastTuple, tuple, copyFields);
-		tuple.set(destField, count);
-		callback.onReturn(tuple);
+		lastTuple.set(destField, count);
+		callback.onReturn(lastTuple);
 	}
 }

@@ -68,6 +68,8 @@ public class Driver extends ProgramDriver {
 		addClass("game_of_life", GameOfLifeJob.class, "Game Of Life M/R Job.");
 		//
 		addClass("multi_shakespeare_indexer", MultiShakespeareIndexer.class, "Create four SOLR indexes out of Shakespeare's plays");
+		// 
+		addClass("hcatalog_integration_test", HCatalogIntegrationTest.class, "Reads an HCatalog table, converts it into Tuples and prints the Tuples to System.out.");
 	}
 
 	public static void main(String[] args) throws Throwable {

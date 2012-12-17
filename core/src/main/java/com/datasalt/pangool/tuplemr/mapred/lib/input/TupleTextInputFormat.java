@@ -36,6 +36,8 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
@@ -55,6 +57,8 @@ import com.googlecode.jcsv.reader.CSVTokenizer;
 @SuppressWarnings("serial")
 public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> implements Serializable {
 
+	private final static Logger log = LoggerFactory.getLogger(TupleTextInputFormat.class);
+	
 	public static final char NO_QUOTE_CHARACTER = CSVWriter.NO_QUOTE_CHARACTER;
 	public static final char NO_ESCAPE_CHARACTER = CSVWriter.NO_ESCAPE_CHARACTER;
 	public static final char NO_SEPARATOR_CHARACTER = '\u0000';
@@ -276,6 +280,8 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 			end = start + split.getLength();
 			
 			final Path file = split.getPath();
+			log.info("Initializing input split from path: " + file + " , start: " + start + ", end: " + end);
+			
 			compressionCodecs = new CompressionCodecFactory(conf);
 			final CompressionCodec codec = compressionCodecs.getCodec(file);
 

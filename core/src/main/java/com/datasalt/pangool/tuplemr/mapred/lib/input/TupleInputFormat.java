@@ -29,6 +29,7 @@ import java.io.Serializable;
 /** An {@link org.apache.hadoop.mapreduce.InputFormat} for reading
  * {@link com.datasalt.pangool.io.TupleFile}s containing {@link com.datasalt.pangool.io.ITuple}
  */
+@SuppressWarnings("serial")
 public class TupleInputFormat extends FileInputFormat<ITuple, NullWritable> implements Serializable {
 
   @Override

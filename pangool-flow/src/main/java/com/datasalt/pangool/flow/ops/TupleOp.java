@@ -25,8 +25,12 @@ import com.datasalt.pangool.io.Tuple;
 @SuppressWarnings("serial")
 public abstract class TupleOp<K> extends Op<K, ITuple> {
 
-	protected final Tuple tuple; // to be used by concrete ops
-	private final Schema schema;
+	protected Tuple tuple;
+	private Schema schema;
+	
+	public TupleOp() {
+		
+	}
 	
 	public TupleOp(Schema schema) {
 		this.tuple = new Tuple(schema);

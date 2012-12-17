@@ -13,8 +13,6 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.OutputFormat;
 
 import com.datasalt.pangool.tuplemr.mapred.lib.output.PangoolMultipleOutputs;
-import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat;
-import com.datasalt.pangool.utils.AvroUtils;
 
 /**
  * This class encapsulates the functionality of a builder such as {@link TupleMRBuilder} that provides Named Outputs.

@@ -2,24 +2,18 @@ package com.datasalt.pangool.flow.ops;
 
 import java.io.IOException;
 
-import com.datasalt.pangool.flow.Utils;
 import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Schema;
 
+/**
+ * Operation that counts the number of tuples that are in a group of tuples and sets the result as a long Object in the specified tuple field.
+ */
 @SuppressWarnings("serial")
 public class Count extends TupleReduceOp {
 
 	String destField;
-	String[] copyFields;
 	
-	public Count(String destField, Schema outSchema) {
-		this(destField, outSchema, Utils.getFieldNames(outSchema));
-	}
-	
-	public Count(String destField, Schema outSchema, String... copyFields) {
-		super(outSchema);
+	public Count(String destField) {
 		this.destField = destField;
-		this.copyFields = copyFields;
 	}
 
 	public void process(Iterable<ITuple> tuples, ReturnCallback<ITuple> callback) throws IOException,
@@ -31,8 +25,7 @@ public class Count extends TupleReduceOp {
 			count ++;
 			lastTuple = tuple;
 		}
-		Utils.shallowCopy(lastTuple, tuple, copyFields);
-		tuple.set(destField, count);
-		callback.onReturn(tuple);
+		lastTuple.set(destField, count);
+		callback.onReturn(lastTuple);
 	}
 }
