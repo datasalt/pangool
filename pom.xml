@@ -230,7 +230,7 @@
 
         <ciManagement>
             <system>Jenkins CI</system>
-            <url>http://clinker.pangool.net/jenkins</url>
+            <url>http://clinker.datasalt.com/jenkins</url>
         </ciManagement>
 
         <!-- /////////////////////// -->
@@ -239,8 +239,14 @@
 
 	<repositories>
 	    <repository>
-	      <id>Apache Snapshot</id>
-	      <url>https://repository.apache.org/content/groups/snapshots/</url>
+	        <id>apache-snapshots</id>
+                <releases>
+                    <enabled>false</enabled>
+                </releases>
+                <snapshots>
+                    <enabled>true</enabled>
+                </snapshots>
+	        <url>http://repository.apache.org/content/groups/snapshots</url>
 	    </repository>
 	 </repositories>
 
