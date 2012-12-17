@@ -40,31 +40,31 @@ import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Tuple;
 
 /**
- * A bridge between HCatalog and Pangool that makes any HCatInputFormat compatible with Pangool.
- * It delegates to HCatInputFormat and returns a Pangool Tuple mapped from an HCatRecord.
+ * A bridge between HCatalog and Pangool that makes any HCatInputFormat compatible with Pangool. It delegates to
+ * HCatInputFormat and returns a Pangool Tuple mapped from an HCatRecord.
  * <p>
  * See: http://incubator.apache.org/hcatalog/docs/r0.4.0/inputoutput.html
  */
 @SuppressWarnings("serial")
 public class HCatTupleInputFormat extends InputFormat<ITuple, NullWritable> implements Serializable {
-	
-	private HCatSchema schema ;
-	private Schema pangoolSchema ;
-	
+
+	private HCatSchema schema;
+	private Schema pangoolSchema;
+
 	public HCatTupleInputFormat(String dbName, String tableName, Configuration conf) throws IOException {
-    HCatInputFormat.setInput(conf, dbName, tableName);
-    schema = HCatInputFormat.getTableSchema(conf);
-    List<Field> pangoolSchemaFields = new ArrayList<Field>();
-    for(HCatFieldSchema fieldSchema: schema.getFields()) {
+		HCatInputFormat.setInput(conf, dbName, tableName);
+		schema = HCatInputFormat.getTableSchema(conf);
+		List<Field> pangoolSchemaFields = new ArrayList<Field>();
+		for(HCatFieldSchema fieldSchema : schema.getFields()) {
 			switch(fieldSchema.getType()) {
 			case BIGINT:
-				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.LONG));				
+				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.LONG));
 				break;
 			case BOOLEAN:
 				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.BOOLEAN));
 				break;
 			case DOUBLE:
-				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.DOUBLE));				
+				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.DOUBLE));
 				break;
 			case FLOAT:
 				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.FLOAT));
@@ -81,74 +81,78 @@ public class HCatTupleInputFormat extends InputFormat<ITuple, NullWritable> impl
 			case TINYINT:
 				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.INT));
 				break;
+			default:
+				throw new IllegalArgumentException("Field type not supported (" + fieldSchema.getType()
+				    + ") only primitive types can be bridged between HCatalog and Pangool.");
 			}
 		}
-    // Instantiate a Pangool schema with the same name than the HCatalog table name
-    this.pangoolSchema = new Schema(tableName, pangoolSchemaFields);
+		// Instantiate a Pangool schema with the same name than the HCatalog table name
+		this.pangoolSchema = new Schema(tableName, pangoolSchemaFields);
 	}
-	
+
 	public HCatSchema getSchema() {
-  	return schema;
-  }
+		return schema;
+	}
 
 	public Schema getPangoolSchema() {
-  	return pangoolSchema;
-  }
+		return pangoolSchema;
+	}
 
 	@Override
 	public RecordReader<ITuple, NullWritable> createRecordReader(InputSplit split,
 	    TaskAttemptContext taskContext) throws IOException, InterruptedException {
-	 
-    HCatInputFormat iF = new HCatInputFormat();
 
-    @SuppressWarnings("rawtypes")
-    final RecordReader<WritableComparable, HCatRecord> hCatRecordReader = iF.createRecordReader(split, taskContext);
-    
+		HCatInputFormat iF = new HCatInputFormat();
+
+		@SuppressWarnings("rawtypes")
+		final RecordReader<WritableComparable, HCatRecord> hCatRecordReader = iF.createRecordReader(split,
+		    taskContext);
+
 		return new RecordReader<ITuple, NullWritable>() {
 
 			ITuple tuple = new Tuple(pangoolSchema);
-			
-			@Override
-      public void close() throws IOException {
-				hCatRecordReader.close();
-      }
 
 			@Override
-      public ITuple getCurrentKey() throws IOException, InterruptedException {
+			public void close() throws IOException {
+				hCatRecordReader.close();
+			}
+
+			@Override
+			public ITuple getCurrentKey() throws IOException, InterruptedException {
 				HCatRecord record = hCatRecordReader.getCurrentValue();
 				// Perform conversion between HCatRecord and Tuple
 				for(int pos = 0; pos < schema.size(); pos++) {
 					tuple.set(pos, record.get(pos));
 				}
-	      return tuple;
-      }
+				return tuple;
+			}
 
 			@Override
-      public NullWritable getCurrentValue() throws IOException, InterruptedException {
-	      return NullWritable.get();
-      }
+			public NullWritable getCurrentValue() throws IOException, InterruptedException {
+				return NullWritable.get();
+			}
 
 			@Override
-      public float getProgress() throws IOException, InterruptedException {
+			public float getProgress() throws IOException, InterruptedException {
 				return hCatRecordReader.getProgress();
-      }
+			}
 
 			@Override
-      public void initialize(InputSplit iS, TaskAttemptContext context) throws IOException,
-          InterruptedException {
+			public void initialize(InputSplit iS, TaskAttemptContext context) throws IOException,
+			    InterruptedException {
 				hCatRecordReader.initialize(iS, context);
-      }
+			}
 
 			@Override
-      public boolean nextKeyValue() throws IOException, InterruptedException {
-	      return hCatRecordReader.nextKeyValue();
-      }
+			public boolean nextKeyValue() throws IOException, InterruptedException {
+				return hCatRecordReader.nextKeyValue();
+			}
 		};
 	}
 
 	@Override
-  public List<InputSplit> getSplits(JobContext jobcontext) throws IOException, InterruptedException {
-    HCatInputFormat iF = new HCatInputFormat();
-    return iF.getSplits(jobcontext);
-  }
+	public List<InputSplit> getSplits(JobContext jobcontext) throws IOException, InterruptedException {
+		HCatInputFormat iF = new HCatInputFormat();
+		return iF.getSplits(jobcontext);
+	}
 }
