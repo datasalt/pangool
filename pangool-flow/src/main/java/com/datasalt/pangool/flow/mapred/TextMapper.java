@@ -43,6 +43,9 @@ public class TextMapper extends TupleMapper<Object, Text> {
 	public TextMapper(TupleOp<String> op) {
 		this.op = op;
 		this.intermediateSchema = op.getSchema();
+		if(intermediateSchema == null) {
+			throw new IllegalArgumentException("TupleOp must return a schema for the Job to be properly configured with addIntermediateSchema()!");
+		}
 	}
 
 	public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {

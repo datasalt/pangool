@@ -24,6 +24,7 @@ import com.datasalt.pangool.flow.ops.ChainOp;
 import com.datasalt.pangool.flow.ops.ReturnCallback;
 import com.datasalt.pangool.flow.ops.TupleOp;
 import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.TupleMapper;
 
 /**
@@ -35,9 +36,11 @@ public class TupleOpMapper extends TupleMapper<ITuple, NullWritable> {
 
 	TupleOp<ITuple>  op;
 	Collector collector;
-
+	Schema intermediateSchema;
+	
 	public TupleOpMapper(TupleOp<ITuple> op) {
 		this.op = op;
+		this.intermediateSchema = op.getSchema();
 	}
 	
 	public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
@@ -70,5 +73,9 @@ public class TupleOpMapper extends TupleMapper<ITuple, NullWritable> {
 		
 		op.process(key, callback);
 	}
+	
+	public Schema getIntermediateSchema() {
+  	return intermediateSchema;
+  }
 }
 

@@ -34,7 +34,10 @@ public class TupleInput implements RichInput {
 	}
 	
 	public TupleInput(TupleOpMapper mapper) {
-		this.intermediateSchemas = new Schema[] { mapper.getOp().getSchema() };
+		if(mapper.getIntermediateSchema() == null) {
+			throw new IllegalArgumentException("TupleOpMapper must have a explicit intermediate schema. If you are using Ops that don't declare an explicit Schema then use alternate constructor this(TupleMapper, Schema...)");
+		}
+		this.intermediateSchemas = new Schema[] { mapper.getIntermediateSchema() };
 		this.processor = mapper;
 	}
 	

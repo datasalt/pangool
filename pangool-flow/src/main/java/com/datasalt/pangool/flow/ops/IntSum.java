@@ -14,6 +14,7 @@ public class IntSum extends TupleReduceOp {
 	private String destField;
 	
 	public IntSum(String field) {
+		this(field, field);
 	}
 	
 	/**
@@ -34,6 +35,6 @@ public class IntSum extends TupleReduceOp {
 			lastTuple = tuple;
 		}
 		lastTuple.set(destField, count);
-		callback.onReturn(tuple);
+		callback.onReturn(lastTuple);
 	}
 }

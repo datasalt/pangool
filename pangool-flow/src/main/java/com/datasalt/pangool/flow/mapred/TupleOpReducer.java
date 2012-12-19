@@ -37,7 +37,7 @@ public class TupleOpReducer extends SingleSchemaReducer {
 	Collector collector;
 	
 	public TupleOpReducer(TupleReduceOp op) {
-	  super(op.getSchema());
+	  super();
 	  this.op = (Op<Iterable<ITuple>, ITuple>)op;
   }
 	

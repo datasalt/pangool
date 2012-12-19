@@ -29,8 +29,12 @@ import com.datasalt.pangool.tuplemr.TupleReducer;
 @SuppressWarnings("serial")
 public abstract class SingleSchemaReducer extends TupleReducer<ITuple, NullWritable> {
 
-	protected final Tuple outTuple;
-	protected final Schema outputSchema;
+	protected Tuple outTuple;
+	protected Schema outputSchema;
+	
+	public SingleSchemaReducer() {
+		
+	}
 	
 	public SingleSchemaReducer(Schema outputSchema) {
 		this.outputSchema = outputSchema;
