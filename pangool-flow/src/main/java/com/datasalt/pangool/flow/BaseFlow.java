@@ -23,7 +23,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hadoop.conf.Configuration;
@@ -132,14 +134,15 @@ public abstract class BaseFlow implements Serializable {
 			stepDependencies.put(orig, deps);
 		}
 
-		int level = 0;
 		Log.info("Steps to execute and dependencies: " + stepDependencies);
 		Set<Step> completedSteps = new HashSet<Step>();
+		ExecutorService executor = Executors.newCachedThreadPool();
+		Set<Future<Step>> stepsBeingExecuted = new HashSet<Future<Step>>();
+		final AtomicBoolean flowFailed = new AtomicBoolean(false);
 
 		while(stepDependencies.keySet().size() > 0) {
-			level++;
 			// gather all steps at this level
-			// steps to be executed at current level are steps whose dependencies are only dependencies that already have been
+			// steps to be executed at each moment are steps whose dependencies are only dependencies that already have been
 			// executed
 			Set<Step> stepsToExecuteInParallel = new HashSet<Step>();
 			for(Map.Entry<Step, Set<Step>> entry : stepDependencies.entrySet()) {
@@ -155,85 +158,117 @@ public abstract class BaseFlow implements Serializable {
 				}
 			}
 
-			Log.info("Level " + level + ", parallel steps [" + stepsToExecuteInParallel + "]");
-			final CountDownLatch latch = new CountDownLatch(stepsToExecuteInParallel.size());
-			final AtomicBoolean flowFailed = new AtomicBoolean(false);
-			
-			for(final Step job : stepsToExecuteInParallel) {
-				Thread jobStep = new Thread() {
-
-					public void run() {
-						try {
-							List<String> args = new ArrayList<String>();
-							for(Param param : job.getParameters()) {
-								String paramName = job.getName() + "." + param.getName();
-								args.add("-D");
-								Object val = bindings.get(paramName);
-								if(val == null) {
-									val = conf.get(paramName);
+			if(stepsToExecuteInParallel.size() > 0) {
+				Log.info("Launching parallel steps [" + stepsToExecuteInParallel + "]");
+				
+				for(final Step job : stepsToExecuteInParallel) {
+					stepsBeingExecuted.add(executor.submit(new Runnable() {
+						@Override
+	          public void run() {
+							try {
+								List<String> args = new ArrayList<String>();
+								for(Param param : job.getParameters()) {
+									String paramName = job.getName() + "." + param.getName();
+									args.add("-D");
+									Object val = bindings.get(paramName);
 									if(val == null) {
-										throw new RuntimeException("Unresolved parameter: " + paramName
-										    + " not present in bindings or Hadoop conf.");
-									}
-								}
-								args.add(paramName + "=" + val);
-							}
-							for(Input input : job.getInputs()) {
-								String inputName = job.getName() + "." + input.name;
-								args.add("--" + input.name);
-								String bindedTo = bindings.get(inputName);
-								Step jOutput = jobOutputBindings.get(inputName);
-								if(jOutput != null) {
-									// sometimes we need to rewrite the path expression to avoid conflicts
-									if(jOutput.namedOutputs.size() > 0) {
-										if(bindedTo.endsWith(".output")) { // main output of a named output job
-											// rebind to glob expression
-											bindedTo = bindedTo + "/part*";
-										} else { // a named output
-											// rebind to glob expression
-											int lastPoint = bindedTo.lastIndexOf(".");
-											String namedOutput = bindedTo.substring(lastPoint + 1, bindedTo.length());
-											bindedTo = bindedTo.substring(0, lastPoint) + "/" + namedOutput;
+										val = conf.get(paramName);
+										if(val == null) {
+											throw new RuntimeException("Unresolved parameter: " + paramName
+											    + " not present in bindings or Hadoop conf.");
 										}
 									}
+									args.add(paramName + "=" + val);
+								}
+								for(Input input : job.getInputs()) {
+									String inputName = job.getName() + "." + input.name;
+									args.add("--" + input.name);
+									String bindedTo = bindings.get(inputName);
+									Step jOutput = jobOutputBindings.get(inputName);
+									if(jOutput != null) {
+										// sometimes we need to rewrite the path expression to avoid conflicts
+										if(jOutput.namedOutputs.size() > 0) {
+											if(bindedTo.endsWith(".output")) { // main output of a named output job
+												// rebind to glob expression
+												bindedTo = bindedTo + "/part*";
+											} else { // a named output
+												// rebind to glob expression
+												int lastPoint = bindedTo.lastIndexOf(".");
+												String namedOutput = bindedTo.substring(lastPoint + 1, bindedTo.length());
+												bindedTo = bindedTo.substring(0, lastPoint) + "/" + namedOutput;
+											}
+										}
+									}
+									args.add(bindedTo);
+								}
+								args.add("--output");
+								// Output = outputName if it's not binded
+								String bindedTo = bindings.get(job.getOutputName());
+								if(bindedTo == null) {
+									bindedTo = job.getOutputName();
 								}
 								args.add(bindedTo);
+								if(mode.equals(EXECUTION_MODE.OVERWRITE)) {
+									Path p = new Path(bindedTo);
+									HadoopUtils.deleteIfExists(p.getFileSystem(conf), p);
+								}
+								Log.info("Executing [" + job.getName() + "], args: " + args);
+								if(ToolRunner.run(conf, job, args.toArray(new String[0])) < 0) {
+									throw new RuntimeException("Flow failed at step [" + job.getName() + "]");
+								}
+							} catch(Throwable t) {
+								t.printStackTrace();
+								flowFailed.set(true);
 							}
-							args.add("--output");
-							// Output = outputName if it's not binded
-							String bindedTo = bindings.get(job.getOutputName());
-							if(bindedTo == null) {
-								bindedTo = job.getOutputName();
-							}
-							args.add(bindedTo);
-							if(mode.equals(EXECUTION_MODE.OVERWRITE)) {
-								Path p = new Path(bindedTo);
-								HadoopUtils.deleteIfExists(p.getFileSystem(conf), p);
-							}
-							Log.info("Executing [" + job.getName() + "], args: " + args);
-							if(ToolRunner.run(conf, job, args.toArray(new String[0])) < 0) {
-								throw new RuntimeException("Flow failed at step [" + job.getName() + "]");
-							}
-						} catch(Throwable t) {
-							t.printStackTrace();
-							flowFailed.set(true);
-						} finally {
-							latch.countDown();
-						}
-					};
-				};
-				jobStep.start();
-			}
-
-			latch.await();
-			if(flowFailed.get()) {
-				throw new RuntimeException("Flow failed at level [" + level + "]");				
+	          }
+					}, job));
+					stepDependencies.remove(job);
+				}
 			}
 			
-			for(Step job : stepsToExecuteInParallel) {
-				completedSteps.add(job);
-				stepDependencies.remove(job);
-			}
+			// Wait until some job finishes, whichever one
+			Set<Future<Step>> stepsThatFinished = new HashSet<Future<Step>>();
+
+			while(stepsThatFinished.size() == 0) {
+				Thread.sleep(1000);
+
+				if(flowFailed.get()) {
+					throw new RuntimeException("Flow failed!");				
+				}
+
+				for(Future<Step> stepBeingExecuted: stepsBeingExecuted) {
+					if(stepBeingExecuted.isDone()) {
+						Step doneStep = stepBeingExecuted.get();
+						Log.info("Step done: [" + doneStep + "]");
+						completedSteps.add(doneStep);
+						stepsThatFinished.add(stepBeingExecuted);
+					}
+				}
+				
+				stepsBeingExecuted.removeAll(stepsThatFinished);
+			};
 		}
+		
+		// Wait until everything is finished
+		// This is not very DRY - can it be improved?
+		Set<Future<Step>> stepsThatFinished = new HashSet<Future<Step>>();
+
+		while(stepsBeingExecuted.size() > 0) {
+			Thread.sleep(1000);
+
+			if(flowFailed.get()) {
+				throw new RuntimeException("Flow failed!");				
+			}
+
+			for(Future<Step> stepBeingExecuted: stepsBeingExecuted) {
+				if(stepBeingExecuted.isDone()) {
+					Step doneStep = stepBeingExecuted.get();
+					Log.info("Step done: [" + doneStep + "]");
+					stepsThatFinished.add(stepBeingExecuted);
+				}
+			}
+			
+			stepsBeingExecuted.removeAll(stepsThatFinished);
+		};
 	}
 }
