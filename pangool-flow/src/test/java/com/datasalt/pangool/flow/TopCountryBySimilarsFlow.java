@@ -45,7 +45,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
  * list of similarities between users and a user-country map. It shows the usage of {@link MapReduceStep}.
  */
 @SuppressWarnings("serial")
-public class TopCountryBySimilarsFlow extends LinearFlow {
+public class TopCountryBySimilarsFlow extends BaseFlow {
 
 	public TopCountryBySimilarsFlow(String similarityFile, String countryInfoFile, Integer topSize, String output)
 	    throws TupleMRException {

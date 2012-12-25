@@ -58,7 +58,7 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
  * 
  */
 @SuppressWarnings("serial")
-public class StandardDeviationFlow extends LinearFlow {
+public class StandardDeviationFlow extends BaseFlow {
 
 	public StandardDeviationFlow(String studentsFile, String scoresFile, String output, int minAge)
 	    throws TupleMRException {

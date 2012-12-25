@@ -15,6 +15,9 @@
  */
 package com.datasalt.pangool.flow;
 
+/**
+ * Specifies a Pangool group-by clause. Fields must be present in all intermediate Tuple schemas.
+ */
 public class GroupBy {
 
 	String[] groupByFields;

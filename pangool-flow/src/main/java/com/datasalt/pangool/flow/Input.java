@@ -15,6 +15,9 @@
  */
 package com.datasalt.pangool.flow;
 
+/**
+ * Abstraction of an input in pangool-flow: every input has a String ID.
+ */
 public class Input {
 
 	String name;

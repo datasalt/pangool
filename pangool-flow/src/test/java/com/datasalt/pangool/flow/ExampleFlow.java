@@ -25,7 +25,7 @@ import org.apache.hadoop.fs.Path;
  * It shows the usage of {@link Step}.
  */
 @SuppressWarnings("serial")
-public class ExampleFlow extends LinearFlow {
+public class ExampleFlow extends BaseFlow {
 
 	ArrayList<String> executedJobs = new ArrayList<String>();
 

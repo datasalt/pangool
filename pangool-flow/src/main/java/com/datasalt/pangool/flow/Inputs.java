@@ -18,6 +18,9 @@ package com.datasalt.pangool.flow;
 
 import java.util.ArrayList;
 
+/**
+ * Abstraction of a set of {@link Input} in pangool-flow.
+ */
 @SuppressWarnings("serial")
 public class Inputs extends ArrayList<Input> {
 

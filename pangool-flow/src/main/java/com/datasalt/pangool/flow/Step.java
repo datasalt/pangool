@@ -32,14 +32,14 @@ import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 
 /**
- * This is the base class that executable jobs must extend for being used with {@link LinearFlow}.
+ * This is the base low-level class that executable jobs must extend for being used with {@link BaseFlow}.
  * <p>
  * Each job must declare in its constructor its input paths, named outputs and its input parameters with {@link Inputs},
  * {@link NamedOutputs} and {@link Params}.
  * <p>
  * Each job must have a unique name which is also specified in the constructor. The name is used for locating input /
  * output resources of a job. For instance, the output of a job is located as "name.output". These unique strings can
- * then be binded in {@link LinearFlow} for making connections between resources.
+ * then be binded in {@link BaseFlow} for making connections between resources.
  * <p>
  * Jobs execute method {@link #run(Path, Map, Map)}. Parameters / input / output paths are parsed automatically and
  * passed as parameters of this method. Help and parameter error handling is handled transparently.

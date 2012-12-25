@@ -21,7 +21,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
-import com.datasalt.pangool.flow.LinearFlow.EXECUTION_MODE;
+import com.datasalt.pangool.flow.BaseFlow.EXECUTION_MODE;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat.TupleInputReader;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;

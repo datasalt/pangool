@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Test;
 
-import com.datasalt.pangool.flow.LinearFlow.EXECUTION_MODE;
+import com.datasalt.pangool.flow.BaseFlow.EXECUTION_MODE;
 
 public class TestFlow {
 
