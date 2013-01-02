@@ -17,12 +17,11 @@ package com.datasalt.pangool.tuplemr.mapred.lib.input;
 
 import java.io.IOException;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-
-import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * This is a delegating RecordReader, which delegates the functionality to the
@@ -48,9 +47,9 @@ public class DelegatingRecordReader<K, V> extends RecordReader<K, V> {
 		// Find the InputFormat and then the RecordReader from the
 		// TaggedInputSplit.
 		TaggedInputSplit taggedInputSplit = (TaggedInputSplit) split;
-		InputFormat<K, V> inputFormat = (InputFormat<K, V>) DCUtils.loadSerializedObjectInDC(
-		    context.getConfiguration(), InputFormat.class,
-		    taggedInputSplit.getInputFormatFile(), true);
+		InputFormat<K, V> inputFormat = (InputFormat<K, V>) InstancesDistributor.loadInstance(
+        context.getConfiguration(), InputFormat.class,
+        taggedInputSplit.getInputFormatFile(), true);
 		originalRR = inputFormat
 		    .createRecordReader(taggedInputSplit.getInputSplit(), context);
 	}

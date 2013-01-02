@@ -20,6 +20,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.UUID;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
@@ -35,7 +36,6 @@ import com.datasalt.pangool.tuplemr.NamedOutputsInterface.Output;
 import com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat;
-import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * The MapOnlyJobBuilder is a simple Pangool primitive that executes map-only Jobs. You must implement
@@ -144,7 +144,7 @@ public class MapOnlyJobBuilder {
 
     String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
     try {
-      DCUtils.serializeToDC(outputFormat, uniqueName, conf);
+      InstancesDistributor.distribute(outputFormat, uniqueName, conf);
     } catch (URISyntaxException e1) {
       throw new TupleMRException(e1);
     }

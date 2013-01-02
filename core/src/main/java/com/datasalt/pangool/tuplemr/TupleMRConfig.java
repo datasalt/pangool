@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 import org.codehaus.jackson.JsonFactory;
@@ -43,7 +44,6 @@ import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.GroupComparator;
 import com.datasalt.pangool.tuplemr.mapred.RollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.SortComparator;
-import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * TupleMRConfig contains the entire configuration parameters from a Tuple-based
@@ -393,7 +393,7 @@ public class TupleMRConfig {
 				String ref = prefix + "|" + element.getName();
 				String uniqueName = UUID.randomUUID().toString() + '.' + "comparator.dat";
 				try {
-					DCUtils.serializeToDC(comparator, uniqueName, conf);
+					InstancesDistributor.distribute(comparator, uniqueName, conf);
 				} catch(Exception e) {
 					throw new TupleMRException("The class " + comparator.getClass().getName() + 
 							" can't be serialized"
@@ -422,8 +422,8 @@ public class TupleMRConfig {
 
 				// Here we use "false" as last parameter because otherwise it could be
 				// an infinite loop. We will call setConf() later.
-				RawComparator<?> comparator = DCUtils.loadSerializedObjectInDC(conf,
-				    RawComparator.class, instanceFile, false);
+				RawComparator<?> comparator = InstancesDistributor.loadInstance(conf,
+            RawComparator.class, instanceFile, false);
 
 				if(ref[0].equals(COMMON)) {
 					setComparator(mrConfig.getCommonCriteria(), ref[1], comparator);

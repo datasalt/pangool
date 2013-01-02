@@ -23,6 +23,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.UUID;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
@@ -49,7 +50,6 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
-import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * 
@@ -223,7 +223,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 			// Set Combiner Handler
 			String uniqueName = UUID.randomUUID().toString() + '.' + "combiner-handler.dat";
 			try {
-				DCUtils.serializeToDC(tupleCombiner, uniqueName, job.getConfiguration());
+				InstancesDistributor.distribute(tupleCombiner, uniqueName, job.getConfiguration());
 				job.getConfiguration().set(SimpleCombiner.CONF_COMBINER_HANDLER, uniqueName);
 			} catch(URISyntaxException e1) {
 				throw new TupleMRException(e1);
@@ -233,7 +233,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		// Set Group Handler
 		try {
 			String uniqueName = UUID.randomUUID().toString() + '.' + "group-handler.dat";
-			DCUtils.serializeToDC(tupleReducer, uniqueName, job.getConfiguration());
+			InstancesDistributor.distribute(tupleReducer, uniqueName, job.getConfiguration());
 			job.getConfiguration().set(SimpleReducer.CONF_REDUCER_HANDLER, uniqueName);
 		} catch(URISyntaxException e1) {
 			throw new TupleMRException(e1);
@@ -257,7 +257,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		// work: {@link PangoolMultipleOutput}
 		String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
 		try {
-			DCUtils.serializeToDC(outputFormat, uniqueName, conf);
+			InstancesDistributor.distribute(outputFormat, uniqueName, conf);
 		} catch(URISyntaxException e1) {
 			throw new TupleMRException(e1);
 		}

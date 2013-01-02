@@ -17,6 +17,7 @@ package com.datasalt.pangool.tuplemr.mapred.lib.output;
 
 import java.io.IOException;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -27,8 +28,6 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-
-import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * This special implementation of {@link FileOutputFormat} is used as a proxy
@@ -87,9 +86,9 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 
 	private void createOutputFormatIfNeeded(JobContext context) throws IOException {
 		if(outputFormat == null) {
-			outputFormat = DCUtils.loadSerializedObjectInDC(context.getConfiguration(),
-			    OutputFormat.class,
-			    context.getConfiguration().get(PROXIED_OUTPUT_FORMAT_CONF, null), true);
+			outputFormat = InstancesDistributor.loadInstance(context.getConfiguration(),
+          OutputFormat.class,
+          context.getConfiguration().get(PROXIED_OUTPUT_FORMAT_CONF, null), true);
 		}
 	}
 

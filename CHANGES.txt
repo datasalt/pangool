@@ -7,6 +7,8 @@ Pangool 0.5.1 (Development)
  - 2012-12-24 - TupleMRBuilder was not creating a copy of the Configuration object it received.
 		While this may seem irrelevant, it is important as you might want to execute Jobs
 		in parallel and share some common Configuration. But it wasn't possible to do that.
+ - 2013-01-02 - DCUtils refactored to InstancesDistributor. No more use of postfixing.
+
  BUG FIXES
  - 2012-12-12 - On mappers, when user overwritting a "string" field with a String,
                 there were a casting exception. Now it is detected and a new Utf8 is created.

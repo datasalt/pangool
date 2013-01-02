@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
@@ -39,7 +40,6 @@ import org.apache.hadoop.mapreduce.TaskInputOutputContext;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat.ProxyOutputCommitter;
-import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * This class is inspired by the MultipleOutputs class of Hadoop. The difference
@@ -185,7 +185,7 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 		checkNamedOutputName(job, namedOutput, true);
 		Configuration conf = job.getConfiguration();
 		String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
-		DCUtils.serializeToDC(outputFormat, uniqueName, conf);
+		InstancesDistributor.distribute(outputFormat, uniqueName, conf);
 		conf.set(MULTIPLE_OUTPUTS, conf.get(MULTIPLE_OUTPUTS, "") + " " + namedOutput);
 		conf.set(MO_PREFIX + namedOutput + FORMAT_INSTANCE_FILE, uniqueName);
 		conf.setClass(MO_PREFIX + namedOutput + KEY, keyClass, Object.class);
@@ -407,9 +407,9 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			context.taskAttemptContext = taskContext;
 
 			// Load the OutputFormat instance
-			OutputFormat outputFormat = DCUtils.loadSerializedObjectInDC(
-			    context.taskAttemptContext.getConfiguration(), OutputFormat.class,
-			    getNamedOutputFormatInstanceFile(this.context, baseFileName), true);
+			OutputFormat outputFormat = InstancesDistributor.loadInstance(
+          context.taskAttemptContext.getConfiguration(), OutputFormat.class,
+          getNamedOutputFormatInstanceFile(this.context, baseFileName), true);
 			// We have to create a JobContext for meeting the contract of the
 			// OutputFormat
 			JobContext jobContext = new JobContext(taskContext.getConfiguration(),

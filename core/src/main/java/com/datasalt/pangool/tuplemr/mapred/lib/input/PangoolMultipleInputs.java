@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.InputFormat;
@@ -31,7 +32,6 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import com.datasalt.pangool.tuplemr.TupleMapper;
-import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * This class supports MapReduce jobs that have multiple input paths with a different {@link InputFormat} and
@@ -62,14 +62,14 @@ public class PangoolMultipleInputs {
 		// Serialize the Mapper instance
 		String uniqueNameMapper = UUID.randomUUID().toString() + '.' + "mapper.dat";
 		try {
-			DCUtils.serializeToDC(mapperInstance, uniqueNameMapper, job.getConfiguration());
+			InstancesDistributor.distribute(mapperInstance, uniqueNameMapper, job.getConfiguration());
 		} catch(URISyntaxException e) {
 			throw new IOException(e);
 		}
 		// Serialize the Input Format
 		String uniqueNameInputFormat = UUID.randomUUID().toString() + '.' + "inputFormat.dat";
 		try {
-			DCUtils.serializeToDC(inputFormat, uniqueNameInputFormat, job.getConfiguration());
+			InstancesDistributor.distribute(inputFormat, uniqueNameInputFormat, job.getConfiguration());
 		} catch(URISyntaxException e) {
 			throw new IOException(e);
 		}

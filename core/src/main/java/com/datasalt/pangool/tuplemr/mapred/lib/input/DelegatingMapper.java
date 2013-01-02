@@ -17,13 +17,12 @@ package com.datasalt.pangool.tuplemr.mapred.lib.input;
 
 import java.io.IOException;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * An {@link Mapper} that delegates behavior of paths to multiple other mappers.
@@ -44,8 +43,8 @@ public class DelegatingMapper extends Mapper {
 		if(delegate == null) {
 			TaggedInputSplit inputSplit = (TaggedInputSplit) context.getInputSplit();
 			log.info("[profile] Got input split. Going to look at DC.");
-			delegate = DCUtils.loadSerializedObjectInDC(context.getConfiguration(),
-			    Mapper.class, inputSplit.getInputProcessorFile(), true);
+			delegate = InstancesDistributor.loadInstance(context.getConfiguration(),
+          Mapper.class, inputSplit.getInputProcessorFile(), true);
 			log.info("[profile] Finished. Calling run() on delegate.");
 		}
 		delegate.run(context);

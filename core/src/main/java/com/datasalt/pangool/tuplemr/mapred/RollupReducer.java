@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.mapreduce.ReduceContext;
@@ -37,7 +38,6 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.TupleReducer.TupleMRContext;
 import com.datasalt.pangool.tuplemr.TupleRollupReducer;
-import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * 
@@ -105,8 +105,8 @@ public class RollupReducer<OUTPUT_KEY, OUTPUT_VALUE> extends
 	private void initHandlerContextAndCollector(Context context) throws IOException,
 	    InterruptedException, TupleMRException {
 		String fileName = context.getConfiguration().get(SimpleReducer.CONF_REDUCER_HANDLER);
-		handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(),
-		    TupleRollupReducer.class, fileName, true);
+		handler = InstancesDistributor.loadInstance(context.getConfiguration(),
+        TupleRollupReducer.class, fileName, true);
 		collector = handler.new Collector(
 		    (ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context);
 		this.context = new TupleMRContext(

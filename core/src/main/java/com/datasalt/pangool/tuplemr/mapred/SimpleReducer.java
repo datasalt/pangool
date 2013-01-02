@@ -19,6 +19,7 @@ package com.datasalt.pangool.tuplemr.mapred;
 import java.io.IOException;
 import java.util.Iterator;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -32,7 +33,6 @@ import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.TupleReducer.TupleMRContext;
-import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * This is a proxy {@link Reducer} implementation that delegates its
@@ -77,8 +77,8 @@ public class SimpleReducer<OUTPUT_KEY, OUTPUT_VALUE> extends
 			// setting handler
 			String fileName = context.getConfiguration()
 			    .get(SimpleReducer.CONF_REDUCER_HANDLER);
-			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(),
-			    TupleReducer.class, fileName, true);
+			handler = InstancesDistributor.loadInstance(context.getConfiguration(),
+          TupleReducer.class, fileName, true);
 
 			this.collector = handler.new Collector(
 			    (ReduceContext<DatumWrapper<ITuple>, NullWritable, Object, Object>) context);

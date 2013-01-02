@@ -18,6 +18,7 @@ package com.datasalt.pangool.tuplemr.mapred;
 import java.io.IOException;
 import java.util.Iterator;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.ReduceContext;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -30,7 +31,6 @@ import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.TupleReducer.TupleMRContext;
-import com.datasalt.pangool.utils.DCUtils;
 
 public class SimpleCombiner extends
     Reducer<DatumWrapper<ITuple>, NullWritable, DatumWrapper<ITuple>, NullWritable> {
@@ -65,8 +65,8 @@ public class SimpleCombiner extends
 
 			String fileName = context.getConfiguration().get(
 			    SimpleCombiner.CONF_COMBINER_HANDLER);
-			handler = DCUtils.loadSerializedObjectInDC(context.getConfiguration(),
-			    TupleReducer.class, fileName, true);
+			handler = InstancesDistributor.loadInstance(context.getConfiguration(),
+          TupleReducer.class, fileName, true);
 
 			@SuppressWarnings("rawtypes")
 			ReduceContext castedContext = context;

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.InputFormat;
@@ -29,8 +30,6 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-
-import com.datasalt.pangool.utils.DCUtils;
 
 /**
  * An {@link InputFormat} that delegates behavior of paths to multiple other
@@ -55,8 +54,8 @@ public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
 
 		for(Map.Entry<Path, String> entry : formatMap.entrySet()) {
 			FileInputFormat.setInputPaths(jobCopy, entry.getKey());
-			InputFormat inputFormat = DCUtils.loadSerializedObjectInDC(conf, InputFormat.class,
-			    entry.getValue(), true);
+			InputFormat inputFormat = InstancesDistributor.loadInstance(conf, InputFormat.class,
+          entry.getValue(), true);
 			List<InputSplit> pathSplits = inputFormat.getSplits(jobCopy);
 			for(InputSplit pathSplit : pathSplits) {
 				splits.add(new TaggedInputSplit(pathSplit, conf, entry.getValue(), mapperMap
