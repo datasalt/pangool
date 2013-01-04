@@ -318,6 +318,12 @@ public class SerializationInfo {
 		return false;
 	}
 
+  /**
+   * Checks that the field with the given name is in all schemas, and
+   * select a representative field that will be used for serializing. In the case of
+   * having a mixture of fields, some of them nullable and some others no nullables,
+   * a nullable Field will be returned.
+   */
 	private Field checkFieldInAllSchemas(String name) throws TupleMRException {
 		Field field = null;
 		for(int i = 0; i < mrConfig.getIntermediateSchemas().size(); i++) {
@@ -327,8 +333,11 @@ public class SerializationInfo {
 			} else if(field.getType() != fieldInSource.getType() || field.getObjectClass() != fieldInSource.getObjectClass()) {
 				throw new TupleMRException("The type for field '" + name
 				    + "' is not the same in all the sources");
-			}
-		}
+			} else if(fieldInSource.isNullable()) {
+        // IMPORTANT CASE. Nullable fields must be returned when present nullable and non nullable fields mixed
+        field = fieldInSource;
+      }
+    }
 		return field;
 	}
 

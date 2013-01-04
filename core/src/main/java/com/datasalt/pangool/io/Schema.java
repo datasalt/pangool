@@ -70,7 +70,7 @@ public class Schema implements Serializable {
 	 * A field can be constructed using one of its static <tt>createXXX</tt>
 	 * methods. A field object is <b>immutable</b>.
 	 */
-	public static class Field implements Serializable{
+	public static class Field implements Serializable {
 		/**
 		 *	Interface that allows to receive {@link ITuple} field's metadata.
 		 *  Used to allow stateful custom serialization for fields. 
@@ -93,7 +93,7 @@ public class Schema implements Serializable {
 		public static final String METADATA_OBJECT_SERIALIZATION="pangool.object.java-serialization-class";
 		//this is to mark a BYTES Avro type as pangool OBJECT
 		public static final String METADATA_BYTES_AS_OBJECT="pangool.object.mark";
-		
+
 		static {
 			Set <String> reserved = new HashSet<String>();
 			Collections.addAll(reserved, 
@@ -131,7 +131,8 @@ public class Schema implements Serializable {
 
 		private final String name;
 		private final Type type;
-		
+    private final boolean nullable;
+
 		private final Props props= new Props(RESERVED_KEYWORDS);
 		
 		//special properties in props 
@@ -150,21 +151,51 @@ public class Schema implements Serializable {
 		public String getProp(String name){
 			return props.get(name);
 		}
-		
-		
-		public static Field create(String name, Type type) {
-			if(type == Type.ENUM) {
-				throw new IllegalArgumentException(
-				    "Not allowed 'ENUM' type. Use 'Field.createEnum' method");
-			} else if(type == Type.OBJECT) {
-				throw new IllegalArgumentException(
-				    "Not allowed 'OBJECT' type. Use 'Field.createObject' method");
-			}
-			return new Field(name, type, null);
+
+    /**
+     * Crates a field of the given type.
+     *
+     * @param name Field's name
+     * @param type {@link Type} of the field
+     * @param nullable  True if null values are allowed for this field
+     */
+    public static Field create(String name, Type type, boolean nullable) {
+      if(type == Type.ENUM) {
+        throw new IllegalArgumentException(
+            "Not allowed 'ENUM' type. Use 'Field.createEnum' method");
+      } else if(type == Type.OBJECT) {
+        throw new IllegalArgumentException(
+            "Not allowed 'OBJECT' type. Use 'Field.createObject' method");
+      }
+      return new Field(name, type, null, nullable);
+    }
+
+    /**
+     * Crates a non nullable field of the given type.
+     *
+     * @param name Field's name
+     * @param type {@link Type} of the field
+     */
+    public static Field create(String name, Type type) {
+      return create(name, type, false);
 		}
 
-		/**
-		 * Creates an <i>object</i> field.
+    /**
+     * Creates an <i>object</i> field.
+     *
+     * @param name
+     *          Field's name
+     * @param clazz
+     *          Object's instance class
+     * @param nullable
+     *          True if null values are allowed for this field
+     */
+    public static Field createObject(String name, Class<?> clazz, boolean nullable) {
+      return new Field(name, Type.OBJECT, clazz, nullable);
+    }
+
+    /**
+		 * Creates a non nullable <i>object</i> field.
 		 * 
 		 * @param name
 		 *          Field's name
@@ -173,30 +204,46 @@ public class Schema implements Serializable {
 		 * @return
 		 */
 		public static Field createObject(String name, Class<?> clazz) {
-			return new Field(name, Type.OBJECT, clazz);
+			return new Field(name, Type.OBJECT, clazz, false);
 		}
-		
-		
+
+    /**
+     * Clones a Field with a new name. Useful for mutating schemas.
+     * @param field The field to clone.
+     * @param newName The new name of the field.
+     * @param nullable If the new field must be nullable or not
+     * @return The cloned field.
+     */
+    public static Field cloneField(Field field, String newName, boolean nullable) {
+      Field result;
+      switch(field.getType()){
+        case OBJECT:
+          result = Field.createObject(newName,field.getObjectClass(), nullable);
+          result.setObjectSerialization(field.getObjectSerialization());
+          break;
+        case ENUM:
+          result =  Field.createEnum(newName,field.getObjectClass(), nullable);
+          break;
+        default:
+          result= Field.create(newName,field.getType(), nullable);
+      }
+
+      for(Map.Entry<String,String> entry : field.getProps().entrySet()){
+        if (!RESERVED_KEYWORDS.contains(entry.getKey())){
+          result.addProp(entry.getKey(),entry.getValue());
+        }
+      }
+      return result;
+    }
+
+    /**
+     * Clones a Field with a new name. Useful for mutating schemas.
+     * @param field The field to clone.
+     * @param newName The new name of the field.
+     * @return The cloned field.
+     */
 		public static Field cloneField(Field field, String newName){
-			Field result;
-			switch(field.getType()){
-			case OBJECT:
-					result = Field.createObject(newName,field.getObjectClass());
-					result.setObjectSerialization(field.getObjectSerialization());
-				 break;
-			case ENUM:
-				result =  Field.createEnum(newName,field.getObjectClass());
-				break;
-				default:
-					result= Field.create(newName,field.getType());
-			}
-			
-			for(Map.Entry<String,String> entry : field.getProps().entrySet()){
-				if (!RESERVED_KEYWORDS.contains(entry.getKey())){
-					result.addProp(entry.getKey(),entry.getValue());
-				}
-			}
-			return result;
+      return cloneField(field, newName, field.isNullable());
 		}
 
 		/**
@@ -206,13 +253,29 @@ public class Schema implements Serializable {
 		 *          Field's name
 		 * @param clazz
 		 *          Enum class
+     * @param nullable
+     *          True if null values are allowed for this field.
 		 * @return
 		 */
-		public static Field createEnum(String name, Class<?> clazz) {
-			return new Field(name, Type.ENUM, clazz);
+		public static Field createEnum(String name, Class<?> clazz, boolean nullable) {
+			return new Field(name, Type.ENUM, clazz, nullable);
 		}
 
-		private Field(String name, Type type, Class<?> clazz) {
+    /**
+     * Creates a non nullable enum field, based in a enum class
+     *
+     * @param name
+     *          Field's name
+     * @param clazz
+     *          Enum class
+     * @return
+     */
+    public static Field createEnum(String name, Class<?> clazz) {
+      return new Field(name, Type.ENUM, clazz, false);
+    }
+
+
+    private Field(String name, Type type, Class<?> clazz, boolean nullable) {
 			if(name == null) {
 				throw new IllegalArgumentException("Field name can't be null");
 			}
@@ -239,6 +302,7 @@ public class Schema implements Serializable {
 			this.objectClass = clazz;
 			this.name = name;
 			this.type = type;
+      this.nullable = nullable;
 		}
 
 		public Type getType() {
@@ -252,6 +316,10 @@ public class Schema implements Serializable {
 		public Class<?> getObjectClass() {
 			return objectClass;
 		}
+
+    public boolean isNullable() {
+      return nullable;
+    }
 		
 		@SuppressWarnings("rawtypes")
     public Class<? extends Serialization> getObjectSerialization(){
@@ -322,6 +390,7 @@ public class Schema implements Serializable {
 			try {
 				String name = node.get("name").getTextValue();
 				String typeStr = node.get("type").getTextValue();
+        boolean nullable = node.get("nullable").getBooleanValue();
 				Type type = Type.valueOf(typeStr);
 				
 				Field field;
@@ -329,7 +398,7 @@ public class Schema implements Serializable {
 				case OBJECT:{
 					JsonNode clazzNode = node.get("object_class");
 					String clazz = clazzNode.getTextValue();
-					field = Field.createObject(name,Class.forName(clazz));
+					field = Field.createObject(name,Class.forName(clazz), nullable);
 					if (node.get("serialization") != null){
 						Class ser = Class.forName(node.get("serialization").getTextValue());
 						field.setObjectSerialization(ser);
@@ -338,11 +407,11 @@ public class Schema implements Serializable {
 				}
 				case ENUM:{
 					String clazz = node.get("object_class").getTextValue();
-					field =  Field.createEnum(name, Class.forName(clazz));
+					field =  Field.createEnum(name, Class.forName(clazz), nullable);
 					break;
 				}
 				default:
-					field =  Field.create(name, type);
+					field =  Field.create(name, type, nullable);
 				}
 				if (node.get("properties") != null){
 					JsonNode propNode = node.get("properties");
@@ -362,6 +431,7 @@ public class Schema implements Serializable {
 			gen.writeStartObject();
 			gen.writeStringField("name", getName());
 			gen.writeStringField("type", getType().toString());
+      gen.writeBooleanField("nullable", nullable);
 			if(getType() == Type.ENUM) {
 				gen.writeStringField("object_class", getObjectClass().getName());
 			} else if (getType() == Type.OBJECT){
@@ -384,7 +454,10 @@ public class Schema implements Serializable {
 	private final List<Field> fields;
 	private final String name;
 
-	private Map<String, Integer> indexByFieldName = new HashMap<String, Integer>();
+	private final Map<String, Integer> indexByFieldName;
+  private final List<Integer> nullableFields;
+  // It is true that for a given i, indexByNullablePosition[nullableFields.get(i)] == i
+  private final int[] nullablePositionByIndex;
 
 	public Schema(String name, List<Field> fields) {
 		if(name == null || name.isEmpty()) {
@@ -394,10 +467,19 @@ public class Schema implements Serializable {
 		this.fields = Collections.unmodifiableList(new ArrayList<Field>(fields));
 
 		int index = 0;
+    HashMap<String, Integer> indexByFieldName = new HashMap<String, Integer>();
+    ArrayList<Integer> nullableFields = new ArrayList<Integer>();
+    nullablePositionByIndex = new int[fields.size()];
 		for(Field field : this.fields) {
-			this.indexByFieldName.put(field.getName(), index);
+			indexByFieldName.put(field.getName(), index);
+      if (field.isNullable()) {
+        nullableFields.add(index);
+        nullablePositionByIndex[index] = nullableFields.size()-1;
+      }
 			index++;
 		}
+    this.indexByFieldName = Collections.unmodifiableMap(indexByFieldName);
+    this.nullableFields = Collections.unmodifiableList(nullableFields);
 	}
 
 	public List<Field> getFields() {
@@ -424,9 +506,33 @@ public class Schema implements Serializable {
 	public boolean containsField(String fieldName) {
 		return indexByFieldName.containsKey(fieldName);
 	}
-	
-	
-	
+
+  /**
+   * @return A list of indexes to fields that are nullable on that schema
+   */
+	public List<Integer> getNullableFieldsIdx() {
+    return nullableFields;
+  }
+
+  /**
+   * @return true if this schema contains at least one field that is nullable. False otherwise.
+   */
+  public boolean containsNullableFields() {
+    return nullableFields.size() != 0;
+  }
+
+  /**
+   * Return the position on the array returned by {@link #getNullableFieldsIdx()} for a given
+   * field's index. In other words, the following is always true.
+   * getNullablePositionFromIndex(getNullableFieldsIdx().get(i)) == 1.
+   * <br/>
+   * Be careful, as this is only available for nullable fields. If an index of a non nullable field
+   * is given, 0 is returned always.
+   */
+  public int getNullablePositionFromIndex(int idx) {
+    return nullablePositionByIndex[idx];
+  }
+
 	@Override
 	public String toString() {
 		return toString(true);

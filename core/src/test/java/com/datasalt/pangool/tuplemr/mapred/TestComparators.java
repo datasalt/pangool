@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import com.datasalt.pangool.tuplemr.*;
 import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
@@ -42,10 +43,6 @@ import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.thrift.test.A;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
-import com.datasalt.pangool.tuplemr.OrderBy;
-import com.datasalt.pangool.tuplemr.TupleMRConfig;
-import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
-import com.datasalt.pangool.tuplemr.TupleMRException;
 
 /**
  * This tests either {@link SortComparator} or {@link GroupComparator}.It checks
@@ -88,14 +85,29 @@ public class TestComparators extends ComparatorsBaseTest {
 		assertNegative(c, getTuple2(true, 10, 10), getTuple2(true, 10, 0));
 	}
 
-	@Test
-	public void testCrossValidationOneSchema() throws TupleMRException, IOException {
+  @Test
+  public void testCrossValidationOneSchema() throws TupleMRException, IOException {
+    testCrossValidationOneSchema(false);
+  }
+
+  /**
+   * Comparator validation allowing nulls.
+   */
+  @Test
+  public void testCrossValidationOneSchemaWithNulls() throws TupleMRException, IOException {
+    testCrossValidationOneSchema(true);
+  }
+
+	public void testCrossValidationOneSchema(boolean withNulls) throws TupleMRException, IOException {
 		Configuration conf = getConf();
 
 		int maxIndex = SCHEMA.getFields().size() - 1;
 
 		for(int randomSchema = 0; randomSchema < MAX_RANDOM_SCHEMAS; randomSchema++) {
 			Schema schema = permuteSchema(SCHEMA);
+      if (withNulls) {
+        schema = decorateWithNullables(schema);
+      }
 			OrderBy sortCriteria = createRandomSortCriteria(schema, maxIndex + 1);
 			// TODO could we get empty group fields ??
 			String[] groupFields = getFirstFields(sortCriteria,
@@ -247,11 +259,13 @@ public class TestComparators extends ComparatorsBaseTest {
 			if (field.getType() == Type.OBJECT && field.getName().equals("my_avro") && random.nextBoolean()) {
 				// With custom comparator
 				builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC
-				    : Order.DESC, new DummyComparator()));
+				    : Order.DESC,
+            random.nextBoolean() ? Criteria.NullOrder.NULLS_FIRST : Criteria.NullOrder.NULLS_LAST,
+            new DummyComparator()));
 			} else {
 				// Without custom comparator
 				builder.add(new SortElement(field.getName(), random.nextBoolean() ? Order.ASC
-				    : Order.DESC));
+				    : Order.DESC, random.nextBoolean() ? Criteria.NullOrder.NULLS_FIRST : Criteria.NullOrder.NULLS_LAST));
 			}
 		}
 		return new OrderBy(builder);

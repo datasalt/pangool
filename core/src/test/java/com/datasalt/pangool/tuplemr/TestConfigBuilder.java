@@ -74,20 +74,20 @@ public class TestConfigBuilder extends BaseTest {
 		config.getSerializationInfo();
 		{
 			List<SortElement> expectedCommon = new ArrayList<SortElement>();
-			expectedCommon.add(new SortElement("b", Order.ASC));
-			expectedCommon.add(new SortElement("c", Order.DESC));
+			expectedCommon.add(new SortElement("b", Order.ASC, Criteria.NullOrder.NULLS_FIRST));
+			expectedCommon.add(new SortElement("c", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
 			Assert.assertEquals(new Criteria(expectedCommon), config.getCommonCriteria());
 		}
 		{
 			List<SortElement> expectedSchema1 = new ArrayList<SortElement>();
-			expectedSchema1.add(new SortElement("a", Order.DESC));
-			expectedSchema1.add(new SortElement("blabla", Order.DESC));
+			expectedSchema1.add(new SortElement("a", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
+			expectedSchema1.add(new SortElement("blabla", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
 			Assert.assertEquals(new Criteria(expectedSchema1), config.getSpecificOrderBys()
 			    .get(0));
 		}
 		{
 			List<SortElement> expectedSchema2 = new ArrayList<SortElement>();
-			expectedSchema2.add(new SortElement("a", Order.DESC));
+			expectedSchema2.add(new SortElement("a", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
 			Assert.assertEquals(new Criteria(expectedSchema2), config.getSpecificOrderBys()
 			    .get(1));
 		}
@@ -131,20 +131,20 @@ public class TestConfigBuilder extends BaseTest {
 		
 		{
 			List<SortElement> expectedCommon = new ArrayList<SortElement>();
-			expectedCommon.add(new SortElement("b", Order.ASC));
-			expectedCommon.add(new SortElement("c", Order.DESC));
+			expectedCommon.add(new SortElement("b", Order.ASC, Criteria.NullOrder.NULLS_FIRST));
+			expectedCommon.add(new SortElement("c", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
 			Assert.assertEquals(new Criteria(expectedCommon), config.getCommonCriteria());
 		}
 		{
 			List<SortElement> expectedSchema1 = new ArrayList<SortElement>();
-			expectedSchema1.add(new SortElement("a", Order.DESC));
-			expectedSchema1.add(new SortElement("blabla", Order.DESC));
+			expectedSchema1.add(new SortElement("a", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
+			expectedSchema1.add(new SortElement("blabla", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
 			Assert.assertEquals(new Criteria(expectedSchema1), config.getSpecificOrderBys()
 			    .get(0));
 		}
 		{
 			List<SortElement> expectedSchema2 = new ArrayList<SortElement>();
-			expectedSchema2.add(new SortElement("a", Order.DESC));
+			expectedSchema2.add(new SortElement("a", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
 			Assert.assertEquals(new Criteria(expectedSchema2), config.getSpecificOrderBys()
 			    .get(1));
 		}
@@ -162,8 +162,8 @@ public class TestConfigBuilder extends BaseTest {
 		config.getSerializationInfo();
 		{
 			List<SortElement> expectedCommon = new ArrayList<SortElement>();
-			expectedCommon.add(new SortElement("c", Order.ASC));
-			expectedCommon.add(new SortElement("b", Order.ASC));
+			expectedCommon.add(new SortElement("c", Order.ASC, Criteria.NullOrder.NULLS_FIRST));
+			expectedCommon.add(new SortElement("b", Order.ASC, Criteria.NullOrder.NULLS_FIRST));
 			Assert.assertEquals(new Criteria(expectedCommon), config.getCommonCriteria());
 		}
 	}

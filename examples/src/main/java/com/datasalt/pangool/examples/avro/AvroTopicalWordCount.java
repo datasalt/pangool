@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import com.datasalt.pangool.tuplemr.*;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.fs.Path;
@@ -44,11 +45,6 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
-import com.datasalt.pangool.tuplemr.OrderBy;
-import com.datasalt.pangool.tuplemr.TupleMRBuilder;
-import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.TupleMapper;
-import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization;
 import com.datasalt.pangool.tuplemr.serialization.AvroFieldSerialization.AvroFieldDeserializer;
@@ -219,7 +215,7 @@ public class AvroTopicalWordCount extends BaseExampleJob {
 		mr.setGroupByFields("my_avro");
 		//here the custom comparator that groups by "topic,word" is used. 
 		MyAvroComparator customComp = new MyAvroComparator(getAvroSchema(),"topic","word");
-		mr.setOrderBy(new OrderBy().add("my_avro",Order.ASC,customComp));
+		mr.setOrderBy(new OrderBy().add("my_avro",Order.ASC, Criteria.NullOrder.NULLS_FIRST, customComp));
 		mr.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), new TokenizeMapper());
 		// We'll use a TupleOutputFormat with the same schema than the intermediate schema
 		mr.setTupleOutput(new Path(args[1]), getSchema());

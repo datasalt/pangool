@@ -393,7 +393,7 @@ public class TupleMRConfigBuilder {
 			// then the common sortBy is by default the group fields in ASC order
 			List<SortElement> elements = new ArrayList<SortElement>();
 			for(String groupField : groupByFields) {
-				elements.add(new SortElement(groupField, Order.ASC));
+				elements.add(new SortElement(groupField, Order.ASC, Criteria.NullOrder.NULLS_FIRST));
 			}
 			return new Criteria(elements);
 		} else if(orderBy.getSchemaOrderIndex() == null

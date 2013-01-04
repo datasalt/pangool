@@ -104,7 +104,7 @@ public class TestConfigParsing {
 		    .add("boolean_field", Order.DESC));
 		b.setRollupFrom("int_field");
 		b.setSpecificOrderBy(schema3.getName(),
-		    new OrderBy().add("thrift_field", Order.ASC, new DummyComparator()));
+		    new OrderBy().add("thrift_field", Order.ASC, Criteria.NullOrder.NULLS_FIRST, new DummyComparator()));
 
 		TupleMRConfig conf = b.buildConf();
 		Configuration hconf = new Configuration();

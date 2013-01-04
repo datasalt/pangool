@@ -22,6 +22,7 @@ import org.apache.hadoop.io.RawComparator;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.Criteria.NullOrder;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 
 /**
@@ -65,6 +66,8 @@ public class OrderBy {
 	
 	/**
 	 * Adds a new field to order by and its specified order.
+   * <br/>
+   * The default @{link NullOrder} used is for nullable fields is @{link NullOrder#NULLS_FIRST}
 	 * 
 	 * @param name Field's name
 	 * @param order Field's order
@@ -73,32 +76,57 @@ public class OrderBy {
 	 */
 	public OrderBy add(String name, Order order) {
 		failIfFieldNamePresent(name);
-		this.elements.add(new SortElement(name, order));
+		this.elements.add(new SortElement(name, order, NullOrder.NULLS_FIRST));
 		return this;
 	}
+
+  /**
+   * Adds a new field to order by and its specified order.
+   *
+   * @param name Field's name
+   * @param order Field's order
+   * @param nullOrder
+   *          Sorting of null values in nullable fields. {@link NullOrder#NULLS_FIRST} if you want
+   *          nulls to appears before the rest of values or {@link NullOrder#NULLS_LAST} if you want
+   *          nulls to appear the last. Ignored if fields are not nullable. Cannot be null.
+   *
+   * @see Order
+   * @see NullOrder
+   */
+  public OrderBy add(String name, Order order, NullOrder nullOrder) {
+    failIfFieldNamePresent(name);
+    this.elements.add(new SortElement(name, order, nullOrder));
+    return this;
+  }
 
 	/**
 	 * Same as {@link OrderBy#add(String, Order)} but adding the possibility to
 	 * specify a custom comparator for that field.
-	 * 
+	 *
 	 * @param name
 	 *          Field's name
 	 * @param order
 	 *          Field's order
+   * @param nullOrder
+   *          Sorting of null values in nullable fields. {@link NullOrder#NULLS_FIRST} if you want
+   *          nulls to appears before the rest of values or {@link NullOrder#NULLS_LAST} if you want
+   *          nulls to appear the last. Ignored if fields are not nullable. Cannot be null.
 	 * @param comparator
 	 *          Custom comparator instance
-	 * 
+	 *
 	 * @see Order
+   * @see NullOrder
 	 */
-	public OrderBy add(String name, Order order, RawComparator<?> comparator) {
+	public OrderBy add(String name, Order order, NullOrder nullOrder, RawComparator<?> comparator) {
 		failIfFieldNamePresent(name);
-		this.elements.add(new SortElement(name, order, comparator));
+		this.elements.add(new SortElement(name, order, nullOrder, comparator));
 		return this;
 	}
 
+
 	/**
 	 * This method,unlike the traditional
-	 * {@link OrderBy#add(String, Order, RawComparator)} method, adds a symbolic
+	 * {@link OrderBy#add(String, Order, NullOrder, RawComparator)} method, adds a symbolic
 	 * elements to order by.<p>
 	 * 
 	 * This method only works in a multi-schema scenario, and it specifies that

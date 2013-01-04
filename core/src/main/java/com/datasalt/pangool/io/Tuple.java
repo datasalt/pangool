@@ -63,7 +63,11 @@ public class Tuple implements ITuple, Serializable {
 				b.append(",");
 			}
 			b.append("\"").append(f.getName()).append("\"").append(":");
-			switch(f.getType()) {
+      if (tuple.get(i) == null) {
+        b.append("null");
+        continue;
+      }
+      switch(f.getType()) {
 			case INT:
 			case LONG:
 			case FLOAT:

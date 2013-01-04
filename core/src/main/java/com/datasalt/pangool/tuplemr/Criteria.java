@@ -53,6 +53,10 @@ public class Criteria {
 		}
 	}
 
+  public static enum NullOrder {
+    NULLS_FIRST, NULLS_LAST
+  }
+
 	private List<SortElement> elements;
 
 	public Criteria(List<SortElement> elements) {
@@ -72,8 +76,9 @@ public class Criteria {
 	 * 
 	 */
 	public static class SortElement {
-		private String name;
-		private Order order;
+		private final String name;
+		private final Order order;
+    private final NullOrder nullOrder;
 		private RawComparator<?> customComparator;
 
 		public RawComparator<?> getCustomComparator() {
@@ -92,6 +97,10 @@ public class Criteria {
 			return order;
 		}
 
+    public NullOrder getNullOrder() {
+      return nullOrder;
+    }
+
 		@Override
 		public boolean equals(Object a) {
 			if(!(a instanceof SortElement)) {
@@ -108,7 +117,8 @@ public class Criteria {
 				return false;
 			}
 			return this.getName().equals(that.getName())
-			    && this.getOrder().equals(that.getOrder());
+			    && this.getOrder().equals(that.getOrder())
+          && this.getNullOrder().equals(that.getNullOrder());
 		}
 		
 		@Override
@@ -116,13 +126,29 @@ public class Criteria {
 			return getName().hashCode();
 		}
 
-		public SortElement(String name, Order order) {
-			this.name = name;
-			this.order = order;
-		}
+    public SortElement(String name, Order order, NullOrder nullOrder) {
+      boolean exception = false;
+      String param = "";
+      if (name == null) {
+        exception = true;
+        param = "name";
+      } else if (order == null) {
+        exception = true;
+        param = "order";
+      } else if (nullOrder == null) {
+        exception = true;
+        param = "nullOrder";
+      }
+      if (exception) {
+        throw new IllegalArgumentException("Parameter " + param + " cannot be null");
+      }
+      this.name = name;
+      this.order = order;
+      this.nullOrder = nullOrder;
+    }
 
-		public SortElement(String name, Order order, RawComparator<?> comparator) {
-			this(name, order);
+		public SortElement(String name, Order order, NullOrder nullOrder, RawComparator<?> comparator) {
+			this(name, order, nullOrder);
 			this.customComparator = comparator;
 		}
 
@@ -130,13 +156,15 @@ public class Criteria {
 			gen.writeStartObject();
 			gen.writeStringField("name", name);
 			gen.writeStringField("order", order.toString());
+      gen.writeStringField("nullOrder", nullOrder.toString());
 			gen.writeEndObject();
 		}
 
 		static SortElement parse(JsonNode node) throws IOException {
 			String name = node.get("name").getTextValue();
 			Order order = Order.valueOf(node.get("order").getTextValue());
-			return new SortElement(name, order);
+      NullOrder nullOrder = NullOrder.valueOf(node.get("nullOrder").getTextValue());
+			return new SortElement(name, order, nullOrder);
 		}
 
 		@Override

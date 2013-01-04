@@ -20,7 +20,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.List;
 
+import com.datasalt.pangool.io.BitField;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
@@ -45,6 +47,7 @@ public class SimpleTupleSerializer implements Serializer<ITuple> {
 	private DataOutputStream out;
 	private final HadoopSerialization ser;
 	private final Utf8 HELPER_TEXT = new Utf8();
+  private final BitField nulls = new BitField();
 	private final DataOutputBuffer tmpOutputBuffer = new DataOutputBuffer();
 
   private Serializer[] customSerializers;
@@ -84,17 +87,45 @@ public class SimpleTupleSerializer implements Serializer<ITuple> {
 		return out;
 	}
 
+  /**
+   * @return A value in the tuple represented by the idx. If a translationTable is given,
+   * then idx is translated before being applied to obtain the value from the tuple.
+   */
+  protected Object valueAt(int idx, ITuple tuple, int[] translationTable) {
+    if(translationTable == null) {
+      return tuple.get(idx);
+    } else {
+      return tuple.get(translationTable[idx]);
+    }
+  }
+
 	void write(Schema destinationSchema, ITuple tuple, int[] translationTable, Serializer[] customSerializers)
 	    throws IOException {
+    // If can be null values, we compose a bit set with the null information and write it the first.
+    if (destinationSchema.containsNullableFields()) {
+      List<Integer> nullableFields = destinationSchema.getNullableFieldsIdx();
+      nulls.clear();
+      for (int i = 0; i < nullableFields.size(); i++) {
+        int nField = nullableFields.get(i);
+        if (valueAt(nField, tuple, translationTable) == null) {
+          nulls.set(i);
+        }
+      }
+      nulls.ser(out);
+    }
+
 		for(int i = 0; i < destinationSchema.getFields().size(); i++) {
 			Field field = destinationSchema.getField(i);
 			Type fieldType = field.getType();
-			Object element;
-			if(translationTable == null) {
-				element = tuple.get(i);
-			} else {
-			  element = tuple.get(translationTable[i]);
-			}
+			Object element = valueAt(i, tuple, translationTable);
+      if (element == null) {
+        if (field.isNullable()) {
+          // Nullable null fields don't need serialization.
+          continue;
+        } else {
+          raiseUnexpectedNullException(field, element);
+        }
+      }
 			try {
 				switch(fieldType) {
 				case INT:
@@ -116,7 +147,7 @@ public class SimpleTupleSerializer implements Serializer<ITuple> {
 						HELPER_TEXT.set((String) element);
 						HELPER_TEXT.write(out);
 					} else {
-						raiseClassCastException(null, field, element);
+						raisedClassCastException(null, field, element);
 					}
 					break;
 				case BOOLEAN:
@@ -134,27 +165,30 @@ public class SimpleTupleSerializer implements Serializer<ITuple> {
 				default:
 					throw new IOException("Not supported type:" + fieldType);
 				}
-				// TODO this shouldn't be here because customSerializer can throw these exceptions
 			} catch(ClassCastException e) {
-				raiseClassCastException(e, field, element);
-			} catch(NullPointerException e) {
-				raiseNullInstanceException(e, field, element);
-			}
+				raisedClassCastException(e, field, element);
+			} catch(CustomObjectSerializationException e) {
+        raisedCustomObjectException(e, field, element, customSerializers[i]);
+      }
 		} // End for
 	}
 
-	private void writeCustomObject(Object element, DataOutput output, Serializer customSer) throws IOException {
-		tmpOutputBuffer.reset();
-		if(customSer != null) {
-			customSer.open(tmpOutputBuffer);
-			customSer.serialize(element);
-			customSer.close();
-		} else {
-			// If no custom serializer defined then use Hadoop Serialization by default
-			ser.ser(element, tmpOutputBuffer);
-		}
-		WritableUtils.writeVInt(output, tmpOutputBuffer.getLength());
-		output.write(tmpOutputBuffer.getData(), 0, tmpOutputBuffer.getLength());
+	private void writeCustomObject(Object element, DataOutput output, Serializer customSer) throws CustomObjectSerializationException {
+    try {
+      tmpOutputBuffer.reset();
+      if(customSer != null) {
+        customSer.open(tmpOutputBuffer);
+        customSer.serialize(element);
+        customSer.close();
+      } else {
+        // If no custom serializer defined then use Hadoop Serialization by default
+        ser.ser(element, tmpOutputBuffer);
+      }
+      WritableUtils.writeVInt(output, tmpOutputBuffer.getLength());
+      output.write(tmpOutputBuffer.getData(), 0, tmpOutputBuffer.getLength());
+    } catch (Throwable e) {
+      throw new CustomObjectSerializationException(e);
+    }
 	}
 
 	private void writeBytes(Object bytes, DataOutput output) throws IOException {
@@ -171,7 +205,6 @@ public class SimpleTupleSerializer implements Serializer<ITuple> {
 		} else {
 			throw new IOException("Not allowed " + bytes.getClass() + " for type " + Type.BYTES);
 		}
-
 	}
 
 	private void writeEnum(Enum<?> element, Field field, DataOutput output) throws IOException {
@@ -184,13 +217,40 @@ public class SimpleTupleSerializer implements Serializer<ITuple> {
 		WritableUtils.writeVInt(output, e.ordinal());
 	}
 
-	private void raiseClassCastException(ClassCastException cause, Field field, Object element) throws IOException {
+	private void raisedClassCastException(ClassCastException cause, Field field, Object element) throws IOException {
 		throw new IOException("Field '" + field.getName() + "' with type: '" + field.getType() + "' can't contain '"
 		    + element + "' which is " + element.getClass().getName(), cause);
 	}
 
-	private void raiseNullInstanceException(NullPointerException cause, Field field, Object element) throws IOException {
-		throw new IOException("Field '" + field.getName() + "' with type " + field.getType() + " can't contain null value",
+  private void raiseUnexpectedNullException(Field field, Object element) throws IOException {
+    throw new IOException("Field '" + field.getName() + "' with type " + field.getType() +
+        " can't contain null value");
+  }
+
+  private void raisedCustomObjectException(CustomObjectSerializationException cause, Field field, Object element, Serializer serializer) throws IOException {
+		throw new IOException("Custom object field '" + field.getName() + " with value " + element +
+        " of type " + ((element != null) ? element.getClass().getCanonicalName() : "null") +
+        " using serializer " + serializer + " thrown an exception.",
 		    cause);
 	}
+
+  /**
+   * Thrown when an unexpected exception happens when serializing a custom object.
+   */
+  public static class CustomObjectSerializationException extends Exception {
+    public CustomObjectSerializationException() {
+    }
+
+    public CustomObjectSerializationException(String message) {
+      super(message);
+    }
+
+    public CustomObjectSerializationException(String message, Throwable cause) {
+      super(message, cause);
+    }
+
+    public CustomObjectSerializationException(Throwable cause) {
+      super(cause);
+    }
+  }
 }

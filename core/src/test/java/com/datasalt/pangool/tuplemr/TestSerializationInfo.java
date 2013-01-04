@@ -26,6 +26,9 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 public class TestSerializationInfo {
 
 	@Test
@@ -47,10 +50,10 @@ public class TestSerializationInfo {
 		
 		{
 			List<SortElement> expectedCommon = new ArrayList<SortElement>();
-			expectedCommon.add(new SortElement("b", Order.ASC));
-			expectedCommon.add(new SortElement("c", Order.DESC));
-			expectedCommon.add(new SortElement("a", Order.DESC));
-			Assert.assertEquals(new Criteria(expectedCommon), config.getCommonCriteria());
+			expectedCommon.add(new SortElement("b", Order.ASC, Criteria.NullOrder.NULLS_FIRST));
+			expectedCommon.add(new SortElement("c", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
+			expectedCommon.add(new SortElement("a", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
+			assertEquals(new Criteria(expectedCommon), config.getCommonCriteria());
 		}
 		
 //		{
@@ -67,7 +70,7 @@ public class TestSerializationInfo {
 			Schema groupSchema = serInfo.getGroupSchema();
 			Schema expectedGroupSchema = 
 				new Schema(groupSchema.getName(),Fields.parse("b:string,c:string"));
-			Assert.assertEquals(expectedGroupSchema,groupSchema);
+			assertEquals(expectedGroupSchema, groupSchema);
 		}
 		Assert.assertArrayEquals(new int[]{1,2,0,3,4},serInfo.getCommonSchemaIndexTranslation(0));
 		Assert.assertArrayEquals(new int[]{4},serInfo.getFieldsToPartition(0));
@@ -111,7 +114,7 @@ public class TestSerializationInfo {
 		commonOrderBy.add("a", Order.DESC);
 		b.setOrderBy(commonOrderBy);
 		b.setRollupFrom("b");
-		b.setSpecificOrderBy("schema1", new OrderBy().add("blabla", Order.DESC));
+		b.setSpecificOrderBy("schema1", new OrderBy().add("blabla", Order.DESC, Criteria.NullOrder.NULLS_LAST));
 		b.setSpecificOrderBy("schema2", new OrderBy().add("bloblo", Order.DESC));
 		b.setCustomPartitionFields("p");
 		TupleMRConfig config = b.buildConf();
@@ -119,36 +122,36 @@ public class TestSerializationInfo {
 		
 		{
 			List<SortElement> expectedCommon = new ArrayList<SortElement>();
-			expectedCommon.add(new SortElement("b", Order.ASC));
-			expectedCommon.add(new SortElement("c", Order.DESC));
-			Assert.assertEquals(new Criteria(expectedCommon), config.getCommonCriteria());
+			expectedCommon.add(new SortElement("b", Order.ASC, Criteria.NullOrder.NULLS_FIRST));
+			expectedCommon.add(new SortElement("c", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
+			assertEquals(new Criteria(expectedCommon), config.getCommonCriteria());
 		}
 		{
 			List<SortElement> expectedSchema1 = new ArrayList<SortElement>();
-			expectedSchema1.add(new SortElement("a", Order.DESC));
-			expectedSchema1.add(new SortElement("blabla", Order.DESC));
-			Assert.assertEquals(new Criteria(expectedSchema1), config.getSpecificOrderBys()
-			    .get(0));
+			expectedSchema1.add(new SortElement("a", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
+			expectedSchema1.add(new SortElement("blabla", Order.DESC, Criteria.NullOrder.NULLS_LAST));
+			assertEquals(new Criteria(expectedSchema1), config.getSpecificOrderBys()
+          .get(0));
 		}
 		{
 			List<SortElement> expectedSchema2 = new ArrayList<SortElement>();
-			expectedSchema2.add(new SortElement("a", Order.DESC));
-			expectedSchema2.add(new SortElement("bloblo", Order.DESC));
-			Assert.assertEquals(new Criteria(expectedSchema2), config.getSpecificOrderBys()
-			    .get(1));
+			expectedSchema2.add(new SortElement("a", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
+			expectedSchema2.add(new SortElement("bloblo", Order.DESC, Criteria.NullOrder.NULLS_FIRST));
+			assertEquals(new Criteria(expectedSchema2), config.getSpecificOrderBys()
+          .get(1));
 		}
 		
 		{
 		Schema groupSchema = serInfo.getGroupSchema();
 		Schema expectedGroupSchema = 
 				new Schema(groupSchema.getName(),Fields.parse("b:string,c:string"));
-		Assert.assertEquals(expectedGroupSchema,groupSchema);
+		assertEquals(expectedGroupSchema, groupSchema);
 		}
 		{
 		Schema commonSchema = serInfo.getCommonSchema();
 		Schema expectedCommonSchema = 
 				new Schema(commonSchema.getName(),Fields.parse("b:string,c:string"));
-		Assert.assertEquals(expectedCommonSchema,commonSchema);
+		assertEquals(expectedCommonSchema, commonSchema);
 		}
 //		{
 //		Schema specificSchema1 = serInfo.getSpecificSchema(0);
@@ -173,8 +176,63 @@ public class TestSerializationInfo {
 		
 		Assert.assertArrayEquals(new int[]{0,3,4},serInfo.getSpecificSchemaIndexTranslation(0));
 		Assert.assertArrayEquals(new int[]{0,4,3},serInfo.getSpecificSchemaIndexTranslation(1));
-		
-		
+
 	}
+
+  /**
+   * Checks that the method {@link SerializationInfo#checkFieldInAllSchemas(String)} is
+   * selecting properly nullable fields when several (nullable and non nullable) are
+   * present.
+   * @throws TupleMRException
+   */
+  @Test
+  public void testCheckFieldInAllSchemas() throws TupleMRException {
+    TupleMRConfigBuilder b = new TupleMRConfigBuilder();
+    b.addIntermediateSchema(new Schema("schema1", Fields
+        .parse("ax:int,bx:string,cx:string")));
+    b.addIntermediateSchema(new Schema("schema2", Fields
+        .parse("ay:int,cy:string,by:string")));
+    b.addIntermediateSchema(new Schema("schema3", Fields
+        .parse("a:int?,c:string,b:string?")));
+    {
+      Aliases aliases1 = new Aliases();
+      aliases1.add("a","ax");
+      aliases1.add("b","bx");
+      aliases1.add("c","cx");
+      b.setFieldAliases("schema1", aliases1);
+    }
+    {
+      Aliases aliases2 = new Aliases();
+      aliases2.add("a","ay");
+      aliases2.add("b","by");
+      aliases2.add("c","cy");
+      b.setFieldAliases("schema2", aliases2);
+    }
+
+    b.setGroupByFields("b", "c");
+    OrderBy commonOrderBy = new OrderBy();
+    commonOrderBy.add("b", Order.ASC);
+    commonOrderBy.add("c", Order.DESC);
+    commonOrderBy.addSchemaOrder(Order.DESC);
+    commonOrderBy.add("a", Order.DESC);
+    b.setOrderBy(commonOrderBy);
+
+    TupleMRConfig config = b.buildConf();
+    SerializationInfo serInfo = config.getSerializationInfo();
+    Schema common = serInfo.getCommonSchema();
+    System.out.println(common);
+    Schema.Field field = common.getField(0);
+    assertEquals("b", field.getName());
+    Assert.assertTrue(field.isNullable());
+    field = common.getField(1);
+    assertEquals("c", field.getName());
+    assertFalse(field.isNullable());
+
+    for (Schema schema : serInfo.getSpecificSchemas()) {
+      assertEquals("a", schema.getField(0).getName());
+      assertEquals(false, schema.getField(0).isNullable());
+    }
+  }
 	
 }
+

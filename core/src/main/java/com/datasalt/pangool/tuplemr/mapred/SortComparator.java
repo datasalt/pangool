@@ -24,6 +24,7 @@ import static org.apache.hadoop.io.WritableComparator.readVLong;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.datasalt.pangool.io.BitField;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
@@ -66,8 +67,15 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		protected int offset2 = 0;
 	}
 
-	protected Offsets offsets = new Offsets();
+  private static final class Nulls {
+    protected BitField nulls1 = new BitField();
+    protected BitField nulls2 = new BitField();
+  }
+
+  protected Offsets offsets = new Offsets();
+  protected Nulls nulls = new Nulls();
 	protected boolean isMultipleSources;
+
 
 	public TupleMRConfig getConfig() {
 		return tupleMRConf;
@@ -110,7 +118,6 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 	}
 
-
 	public int compare(Schema schema, Criteria c, ITuple w1, int[] index1, ITuple w2,
 	    int[] index2,Serializer[] serializers) {
 		for(int i = 0; i < c.getElements().size(); i++) {
@@ -118,6 +125,18 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			SortElement e = c.getElements().get(i);
 			Object o1 = w1.get(index1[i]);
 			Object o2 = w2.get(index2[i]);
+
+      // Handling with null values
+      if (o1 == null || o2 == null) {
+        int cmp = nullCompare(o1, o2, e);
+        if (cmp != 0) {
+          return cmp;
+        } else {
+          continue;
+        }
+      }
+
+      // At this point we know that both values are not null.
 			Serializer serializer = (serializers == null) ? null : serializers[i];
 			int comparison = compareObjects(o1, o2, e.getCustomComparator(), field.getType(),serializer);
 			if(comparison != 0) {
@@ -199,7 +218,20 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 			} 
 		}
 	}
-	
+
+  public int nullCompare(Object o1, Object o2, SortElement se) {
+    int res = -2;
+    if (o1 == null) {
+      res = (o2 == null) ? 0 : -1;
+    } else if (o2 == null) {
+      res = 1;
+    }
+    if (res == -2) {
+      throw new IllegalArgumentException("None of the two object passed as parameters are null. " +
+          "That is not allowed");
+    }
+    return (se.getNullOrder() == Criteria.NullOrder.NULLS_FIRST) ? res : -res;
+  }
 
 	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
@@ -216,7 +248,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 		Schema commonSchema = serInfo.getCommonSchema();
 		Criteria commonOrder = tupleMRConf.getCommonCriteria();
 
-		int comparison = compare(b1, s1, b2, s2, commonSchema, commonOrder, offsets);
+		int comparison = compare(b1, s1, b2, s2, commonSchema, commonOrder, offsets, nulls);
 		if(comparison != 0) {
 			return comparison;
 		}
@@ -240,7 +272,7 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 
 		Schema specificSchema = serInfo.getSpecificSchema(schemaId1);
 		return compare(b1, offsets.offset1, b2, offsets.offset2, specificSchema, criteria,
-		    offsets);
+		    offsets, nulls);
 
 	}
 
@@ -248,19 +280,41 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
 	    throws IOException {
 		Schema commonSchema = serInfo.getCommonSchema();
 		Criteria commonOrder = tupleMRConf.getCommonCriteria();
-		return compare(b1, s1, b2, s2, commonSchema, commonOrder, offsets);
+		return compare(b1, s1, b2, s2, commonSchema, commonOrder, offsets, nulls);
 	}
 
 	protected int compare(byte[] b1, int s1, byte[] b2, int s2, Schema schema,
-	    Criteria criteria, Offsets o) throws IOException {
+	    Criteria criteria, Offsets o, Nulls n) throws IOException {
 		o.offset1 = s1;
 		o.offset2 = s2;
+
+    if (schema.containsNullableFields()) {
+      o.offset1 += n.nulls1.deser(b1, s1);
+      o.offset2 += n.nulls2.deser(b2, s2);
+    }
+
 		for(int depth = 0; depth < criteria.getElements().size(); depth++) {
 			Field field = schema.getField(depth);
 			Field.Type type = field.getType();
 			SortElement sortElement = criteria.getElements().get(depth);
 			Order sort = sortElement.getOrder();
 			RawComparator comparator = sortElement.getCustomComparator();
+
+      if (field.isNullable()) {
+        Criteria.NullOrder nullOrder = sortElement.getNullOrder();
+        if (n.nulls1.isSet(schema.getNullablePositionFromIndex(depth))) {
+          if (n.nulls2.isSet(schema.getNullablePositionFromIndex(depth))) {
+            // Both are null, so both are equal. No space is used. Continue.
+            continue;
+          } else {
+            // First is null
+            return (nullOrder == Criteria.NullOrder.NULLS_FIRST) ? -1 : 1;
+          }
+        } else if (n.nulls2.isSet(schema.getNullablePositionFromIndex(depth))) {
+          // Second is null
+          return (nullOrder == Criteria.NullOrder.NULLS_FIRST) ? 1 : -1;
+        }
+      }
 
 			if(comparator != null) {
 				//custom comparator for OBJECT

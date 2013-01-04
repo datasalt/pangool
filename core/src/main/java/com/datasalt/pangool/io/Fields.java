@@ -41,6 +41,32 @@ public class Fields {
 		strToType.put("utf8",Type.STRING);
 	}
 
+  public static char NULLABLE_CHAR = '?';
+
+  /**
+   * Parses schemas represented comma separated lists of:
+   * (field_name):(field_type)
+   * <br/>
+   * Available types are:
+   * <ul>
+   *   <li>int</li>
+   *   <li>long</li>
+   *   <li>boolean</li>
+   *   <li>float</li>
+   *   <li>double</li>
+   *   <li>string</li>
+   *   <li>Class name (Any class that already supports Hadoop serialization)</li>
+   * </ul>
+   * <br/>
+   * Example of schema:
+   * <code> name:string,age:int,weight:float</code>
+   * <br/>
+   * Additionally, fields can handle null values. In this case,
+   * an '?' must be added to the end of the type name. For example, if
+   * age can have null values, the schema would be:
+   * <br/>
+   * <code> name:string,age:int?,weight:float</code>
+   */
 	public static List<Field> parse(String serialized) {
 		if(serialized == null || serialized.isEmpty()) {
 			return null;
@@ -55,6 +81,11 @@ public class Fields {
 			}
 			String fieldName = nameType[0].trim();
 			String fieldType = nameType[1].trim();
+      boolean nullable = false;
+      if (fieldType.charAt(fieldType.length()-1) == NULLABLE_CHAR) {
+        nullable = true;
+        fieldType = fieldType.substring(0, fieldType.length()-1);
+      }
 			if (already.contains(fieldName)) {
 				throw new IllegalArgumentException("Duplicated field name [" + fieldName + "] in description [" + serialized +"]");
 			}
@@ -62,13 +93,13 @@ public class Fields {
 			Type type = strToType.get(fieldType);
 			try {
 				if(type != null) {
-					fields.add(Field.create(fieldName, type));
+					fields.add(Field.create(fieldName, type, nullable));
 				} else {
 					Class<?> objectClazz = Class.forName(fieldType);
 					if(objectClazz.isEnum()) {
-						fields.add(Field.createEnum(fieldName, objectClazz));
+						fields.add(Field.createEnum(fieldName, objectClazz, nullable));
 					} else {
-						fields.add(Field.createObject(fieldName, objectClazz));
+						fields.add(Field.createObject(fieldName, objectClazz, nullable));
 					}
 				}
 			} catch(ClassNotFoundException e) {
