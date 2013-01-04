@@ -1,6 +1,0 @@
-Greg	US
-Peter	UK
-Ivan	ES
-Pere	ES
-Eric	FR
-Silvia	UK
