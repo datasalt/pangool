@@ -1,7 +1,7 @@
 Pangool Change Log
 ====================
 
-Pangool 0.5.1 (Development)
+Pangool 0.50.1
 
  IMPROVEMENTS
  - 2012-12-24 - TupleMRBuilder was not creating a copy of the Configuration object it received.
