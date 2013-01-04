@@ -43,25 +43,25 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 
 /**
- * Like original Hadoop's SecondarySort example. Reads a space-separated text file with two numbers, groups by the first and
- * sorts by both.
+ * Like original Hadoop's SecondarySort example. Reads a space-separated text file with two numbers, groups by the first
+ * and sorts by both.
  */
 public class SimpleSecondarySort extends BaseExampleJob {
-	
+
 	static Schema getSchema() {
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(Field.create("first",Type.INT));
-		fields.add(Field.create("second",Type.INT));
-		
-		return new Schema("my_schema",fields);		
+		fields.add(Field.create("first", Type.INT));
+		fields.add(Field.create("second", Type.INT));
+
+		return new Schema("my_schema", fields);
 	}
 
 	@SuppressWarnings("serial")
-  private static class IProcessor extends TupleMapper<LongWritable, Text> {
+	private static class IProcessor extends TupleMapper<LongWritable, Text> {
 
 		private Tuple tuple = new Tuple(getSchema());
-				
+
 		@Override
 		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
@@ -73,7 +73,7 @@ public class SimpleSecondarySort extends BaseExampleJob {
 	}
 
 	@SuppressWarnings("serial")
-  public static class Handler extends TupleReducer<Text, NullWritable> {
+	public static class Handler extends TupleReducer<Text, NullWritable> {
 
 		@Override
 		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
@@ -88,7 +88,7 @@ public class SimpleSecondarySort extends BaseExampleJob {
 	public SimpleSecondarySort() {
 		super("Usage: [input] [output]");
 	}
-	
+
 	@Override
 	public int run(String[] args) throws Exception {
 		if(args.length != 2) {
@@ -97,22 +97,28 @@ public class SimpleSecondarySort extends BaseExampleJob {
 		}
 		String input = args[0];
 		String output = args[1];
-		
+
 		delete(output);
-		
+
 		TupleMRBuilder builder = new TupleMRBuilder(conf);
 		builder.addIntermediateSchema(getSchema());
 		builder.setGroupByFields("first");
-		builder.setOrderBy(new OrderBy().add("first",Order.ASC).add("second",Order.ASC));
+		builder.setOrderBy(new OrderBy().add("first", Order.ASC).add("second", Order.ASC));
 		// Input / output and such
 		builder.setTupleReducer(new Handler());
-		builder.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+		builder.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
+		    NullWritable.class);
 		builder.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new IProcessor());
-		builder.createJob().waitForCompletion(true);
+
+		try {
+			builder.createJob().waitForCompletion(true);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 
 		return 1;
 	}
-	
+
 	public static void main(String args[]) throws Exception {
 		ToolRunner.run(new SimpleSecondarySort(), args);
 	}

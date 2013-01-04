@@ -54,8 +54,8 @@ public class SecondarySort extends BaseExampleJob {
 		private Tuple tuple;
 
 		@Override
-		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException,
-		    InterruptedException {
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException {
 			if(tuple == null) {
 				tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
 			}
@@ -75,8 +75,8 @@ public class SecondarySort extends BaseExampleJob {
 		private Text outputKey;
 		private DoubleWritable outputValue;
 
-		public void setup(TupleMRContext coGrouperContext, Collector collector) throws IOException, InterruptedException,
-		    TupleMRException {
+		public void setup(TupleMRContext coGrouperContext, Collector collector) throws IOException,
+		    InterruptedException, TupleMRException {
 			outputKey = new Text();
 			outputValue = new DoubleWritable();
 		}
@@ -124,12 +124,18 @@ public class SecondarySort extends BaseExampleJob {
 		TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Secondary Sort");
 		mr.addIntermediateSchema(schema);
 		mr.setGroupByFields("intField", "strField");
-		mr.setOrderBy(new OrderBy().add("intField", Order.ASC).add("strField", Order.ASC).add("longField", Order.ASC));
+		mr.setOrderBy(new OrderBy().add("intField", Order.ASC).add("strField", Order.ASC)
+		    .add("longField", Order.ASC));
 		mr.setTupleReducer(new Handler());
 		mr.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new IProcessor());
 		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
 		    DoubleWritable.class);
-		mr.createJob().waitForCompletion(true);
+
+		try {
+			mr.createJob().waitForCompletion(true);
+		} finally {
+			mr.cleanUpInstanceFiles();
+		}
 		return 1;
 	}
 

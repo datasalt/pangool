@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
-import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.RawComparator;
@@ -46,6 +46,7 @@ import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
+import com.datasalt.pangool.utils.InstancesDistributor;
 
 /**
  * This tests either {@link SortComparator} or {@link GroupComparator}.It checks
@@ -107,15 +108,13 @@ public class TestComparators extends ComparatorsBaseTest {
 
 			for(int minIndex = maxIndex; minIndex >= 0; minIndex--) {
 				conf = createConf();
-				/* trick for speeding up the tests */
-				InstancesDistributor.removeFromTemporalFolder(conf, "comparator.dat");
 				TupleMRConfigBuilder builder = new TupleMRConfigBuilder();
 				builder.addIntermediateSchema(schema);
 				builder.setGroupByFields(groupFields);
 				builder.setOrderBy(sortCriteria);
 
 				TupleMRConfig tupleMRConf = builder.buildConf();
-				TupleMRConfig.set(tupleMRConf, conf);
+				Set<String> instanceFiles = TupleMRConfig.set(tupleMRConf, conf);
 
 				// tupleMRConf has changed -> we need a new Serialization object
 				try{
@@ -142,6 +141,10 @@ public class TestComparators extends ComparatorsBaseTest {
 						assertSameComparison("Group comparator", groupComparator, tuple1, tuple2);
 						assertOppositeOrEqualsComparison(groupComparator, tuple1, tuple2);
 					}
+				}
+				
+				for(String filename: instanceFiles) {
+					InstancesDistributor.removeFromCache(conf, filename);
 				}
 			}
 		}

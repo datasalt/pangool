@@ -81,7 +81,8 @@ public class UserActivityNormalizer extends BaseExampleJob {
 
 		private Tuple tuple;
 
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			this.tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("my_schema"));
 		}
 
@@ -111,7 +112,8 @@ public class UserActivityNormalizer extends BaseExampleJob {
 
 		private Tuple tuple;
 
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("my_schema"));
 		}
 
@@ -142,16 +144,16 @@ public class UserActivityNormalizer extends BaseExampleJob {
 
 		int totalClicks;
 
-		public void onOpenGroup(int depth, String field, ITuple firstElement, TupleMRContext context, Collector collector)
-		    throws IOException, InterruptedException, TupleMRException {
+		public void onOpenGroup(int depth, String field, ITuple firstElement, TupleMRContext context,
+		    Collector collector) throws IOException, InterruptedException, TupleMRException {
 
 			if(field.equals("user")) { // New user: reset count
 				totalClicks = 0;
 			}
 		};
 
-		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
-		    Collector collector) throws IOException, InterruptedException, TupleMRException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 
 			int featureClicks = 0;
 			// Sum total clicks for this feature
@@ -169,8 +171,8 @@ public class UserActivityNormalizer extends BaseExampleJob {
 
 			// Otherwise we can normalize the clicks for this feature because we already aggregated the total clicks
 			double normalizedActivity = featureClicks / (double) totalClicks;
-			collector.write(new Text(group.get("user") + "\t" + group.get("feature") + "\t" + normalizedActivity),
-			    NullWritable.get());
+			collector.write(new Text(group.get("user") + "\t" + group.get("feature") + "\t"
+			    + normalizedActivity), NullWritable.get());
 		};
 	}
 
@@ -182,14 +184,14 @@ public class UserActivityNormalizer extends BaseExampleJob {
 		}
 		String input = args[0];
 		String output = args[1];
-		
+
 		delete(output);
-		
+
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("user", Type.STRING));
 		fields.add(Field.create("feature", Type.STRING));
-		fields.add(Field.create("all",Type.BOOLEAN));
+		fields.add(Field.create("all", Type.BOOLEAN));
 		fields.add(Field.create("clicks", Type.INT));
 
 		Schema schema = new Schema("my_schema", fields);
@@ -203,17 +205,23 @@ public class UserActivityNormalizer extends BaseExampleJob {
 		// Input / output and such
 		mr.setTupleCombiner(new CountCombinerHandler());
 		mr.setTupleReducer(new NormalizingHandler());
-		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		mr.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new UserActivityProcessor());
-		mr.createJob().waitForCompletion(true);
-		
+		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
+		    NullWritable.class);
+		mr.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class),
+		    new UserActivityProcessor());
+
+		try {
+			mr.createJob().waitForCompletion(true);
+		} finally {
+			mr.cleanUpInstanceFiles();
+		}
 		return 1;
 	}
-	
+
 	public UserActivityNormalizer() {
 		super("Usage: [input_path] [output_path]");
 	}
-	
+
 	public static void main(String args[]) throws Exception {
 		ToolRunner.run(new UserActivityNormalizer(), args);
 	}

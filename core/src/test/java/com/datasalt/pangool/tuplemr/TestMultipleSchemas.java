@@ -61,8 +61,8 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		}
 
 		@Override
-		public void map(LongWritable key, Text value, TupleMRContext context,
-		    Collector collector) throws IOException, InterruptedException {
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException {
 			user.set("name", "Pere");
 			user.set("money", 100);
 			user.set("my_country", "ES");
@@ -96,8 +96,8 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		private Map<String, List<String>> records = new HashMap<String, List<String>>();
 
 		@Override
-		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
-		    Collector collector) throws IOException, InterruptedException, TupleMRException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 
 			String groupString = group.get(0).toString();
 			if(groupString.equals("FR")) {
@@ -118,8 +118,8 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 			}
 		}
 
-		public void cleanup(TupleMRContext tupleMRContext, Collector collector)
-		    throws IOException, InterruptedException, TupleMRException {
+		public void cleanup(TupleMRContext tupleMRContext, Collector collector) throws IOException,
+		    InterruptedException, TupleMRException {
 			/*
 			 * Validate test conditions
 			 */
@@ -131,20 +131,16 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 			}
 			List<String> frTuples = records.get("FR");
 			List<String> esTuples = records.get("ES");
-			Assert.assertTrue(frTuples.get(0).contains("Eric")
-			    && frTuples.get(0).contains("150"));
+			Assert.assertTrue(frTuples.get(0).contains("Eric") && frTuples.get(0).contains("150"));
 			Assert.assertTrue(frTuples.get(1).contains("1500"));
-			Assert.assertTrue(esTuples.get(0).contains("Iván")
-			    && esTuples.get(0).contains("50"));
-			Assert.assertTrue(esTuples.get(1).contains("Pere")
-			    && esTuples.get(1).contains("100"));
+			Assert.assertTrue(esTuples.get(0).contains("Iván") && esTuples.get(0).contains("50"));
+			Assert.assertTrue(esTuples.get(1).contains("Pere") && esTuples.get(1).contains("100"));
 			Assert.assertTrue(esTuples.get(2).contains("1000"));
 		};
 	}
 
 	@Test
-	public void test() throws TupleMRException, IOException, InterruptedException,
-	    ClassNotFoundException {
+	public void test() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
 		CommonUtils.writeTXT("foo", new File("test-input"));
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 
@@ -154,19 +150,23 @@ public class TestMultipleSchemas extends AbstractHadoopTestLibrary {
 		builder.addIntermediateSchema(new Schema("user", Fields
 		    .parse("name:string, money:int, my_country:string")));
 
-		builder.setFieldAliases("user",new Aliases().add("country","my_country"));
+		builder.setFieldAliases("user", new Aliases().add("country", "my_country"));
 		builder.setGroupByFields("country");
 		builder.setOrderBy(new OrderBy().add("country", Order.ASC).addSchemaOrder(Order.DESC));
 		builder.setSpecificOrderBy("user", new OrderBy().add("money", Order.ASC));
 
-		builder.addInput(new Path("test-input"),
-		    new HadoopInputFormat(TextInputFormat.class), new FirstInputProcessor());
+		builder.addInput(new Path("test-input"), new HadoopInputFormat(TextInputFormat.class),
+		    new FirstInputProcessor());
 		builder.setTupleReducer(new MyGroupHandler());
-		builder.setOutput(new Path("test-output"), new HadoopOutputFormat(
-		    TextOutputFormat.class), NullWritable.class, NullWritable.class);
+		builder.setOutput(new Path("test-output"), new HadoopOutputFormat(TextOutputFormat.class),
+		    NullWritable.class, NullWritable.class);
 
 		Job job = builder.createJob();
-		assertRun(job);
+		try {
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-output"));
 		HadoopUtils.deleteIfExists(FileSystem.get(getConf()), new Path("test-input"));

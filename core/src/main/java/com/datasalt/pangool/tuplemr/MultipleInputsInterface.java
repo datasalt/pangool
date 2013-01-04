@@ -3,7 +3,9 @@ package com.datasalt.pangool.tuplemr;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -44,12 +46,15 @@ public class MultipleInputsInterface {
 
 	/**
 	 * Use this method for configuring a Job instance according to the multiple input specs that has been specified.
+	 * Returns the instance files created.
 	 */
-	public void configureJob(Job job) throws FileNotFoundException, IOException {
+	public Set<String> configureJob(Job job) throws FileNotFoundException, IOException {
+		Set<String> instanceFiles = new HashSet<String>();
 		for(Input input : getMultiInputs()) {
-			PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat,
-			    input.inputProcessor);
+			instanceFiles.addAll(PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat,
+			    input.inputProcessor));
 		}
+		return instanceFiles;
 	}
 	
 	public List<Input> getMultiInputs() {

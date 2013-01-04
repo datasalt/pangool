@@ -89,8 +89,9 @@ public class GameOfLifeJob extends BaseExampleJob implements Serializable {
 		final int maxX = conf.getInt("gol.max_x", 32);
 		final int maxY = conf.getInt("gol.max_y", 32);
 		final int iterations = conf.getInt("gol.iterations", 1000);
-		Log.info("using parameters: maxX grid: " + maxX + " maxY grid: " + maxY + " max #iterations: " + iterations);
-		
+		Log.info("using parameters: maxX grid: " + maxX + " maxY grid: " + maxY + " max #iterations: "
+		    + iterations);
+
 		// Define the intermediate schema: a pair of ints
 		final Schema schema = new Schema("minMax", Fields.parse("min:int, max:int"));
 
@@ -100,19 +101,20 @@ public class GameOfLifeJob extends BaseExampleJob implements Serializable {
 		job.setCustomPartitionFields("min");
 		// Define the input and its associated mapper
 		// The mapper will just emit the (min, max) pairs to the reduce stage
-		job.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new TupleMapper<LongWritable, Text>() {
+		job.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class),
+		    new TupleMapper<LongWritable, Text>() {
 
-			Tuple tuple = new Tuple(schema);
+			    Tuple tuple = new Tuple(schema);
 
-			@Override
-			public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException,
-			    InterruptedException {
-				String[] fields = value.toString().split("\t");
-				tuple.set("min", Integer.parseInt(fields[0]));
-				tuple.set("max", Integer.parseInt(fields[1]));
-				collector.write(tuple);
-			}
-		});
+			    @Override
+			    public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
+			        throws IOException, InterruptedException {
+				    String[] fields = value.toString().split("\t");
+				    tuple.set("min", Integer.parseInt(fields[0]));
+				    tuple.set("max", Integer.parseInt(fields[1]));
+				    collector.write(tuple);
+			    }
+		    });
 
 		// Define the reducer
 		// The reducer will run as many games of life as (max - min) for each interval it receives
@@ -120,13 +122,14 @@ public class GameOfLifeJob extends BaseExampleJob implements Serializable {
 		// Note that inputs that produce grid overflow are ignored (but may have longer iteration convergence)
 		job.setTupleReducer(new TupleReducer<Text, NullWritable>() {
 
-			public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
-			    throws IOException, InterruptedException, TupleMRException {
+			public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
+			    Collector collector) throws IOException, InterruptedException, TupleMRException {
 
 				int min = (Integer) group.get("min"), max = (Integer) group.get("max");
 				for(int i = min; i < max; i++) {
 					try {
-						GameOfLife gameOfLife = new GameOfLife(gridSize, GameOfLife.longToBytes((long) i), maxX, maxY, iterations);
+						GameOfLife gameOfLife = new GameOfLife(gridSize, GameOfLife.longToBytes((long) i), maxX,
+						    maxY, iterations);
 						while(true) {
 							gameOfLife.nextCycle();
 						}
@@ -134,7 +137,8 @@ public class GameOfLifeJob extends BaseExampleJob implements Serializable {
 						context.getHadoopContext().progress();
 						context.getHadoopContext().getCounter("stats", e.getCauseMessage() + "").increment(1);
 						if(e.getCauseMessage().equals(CauseMessage.CONVERGENCE_REACHED)) {
-							collector.write(new Text(Arrays.toString(GameOfLife.longToBytes((long) i)) + "\t" + e.getIterations()),
+							collector.write(
+							    new Text(Arrays.toString(GameOfLife.longToBytes((long) i)) + "\t" + e.getIterations()),
 							    NullWritable.get());
 						}
 					}
@@ -142,8 +146,13 @@ public class GameOfLifeJob extends BaseExampleJob implements Serializable {
 			};
 		});
 
-		job.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		job.createJob().waitForCompletion(true);
+		job.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
+		    NullWritable.class);
+		try {
+			job.createJob().waitForCompletion(true);
+		} finally {
+			job.cleanUpInstanceFiles();
+		}
 		delete(input);
 		return 0;
 	}

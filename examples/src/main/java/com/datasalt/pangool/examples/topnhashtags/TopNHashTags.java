@@ -49,8 +49,8 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 
 /**
- * This example shows an advanced use of the Rollup feature for calculating the top N hashtags from a set of tweets
- * per each (location, date) pair.
+ * This example shows an advanced use of the Rollup feature for calculating the top N hashtags from a set of tweets per
+ * each (location, date) pair.
  */
 public class TopNHashTags extends BaseExampleJob {
 
@@ -60,19 +60,21 @@ public class TopNHashTags extends BaseExampleJob {
 		private ObjectMapper jsonMapper;
 		private Tuple tuple;
 
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			jsonMapper = new ObjectMapper();
 			jsonMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("my_schema"));
 		}
 
 		@Override
-		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException,
-		    InterruptedException {
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException {
 
 			SimpleTweet tweet = jsonMapper.readValue(value.toString(), SimpleTweet.class);
 			DateTime dateTime = new DateTime(tweet.getCreated_at_date());
-			tuple.set("date", dateTime.getYear() + "-" + dateTime.getMonthOfYear() + "-" + dateTime.getDayOfMonth());
+			tuple.set("date",
+			    dateTime.getYear() + "-" + dateTime.getMonthOfYear() + "-" + dateTime.getDayOfMonth());
 			tuple.set("location", tweet.getUser().getLocation());
 			for(HashTag hashTag : tweet.getEntities().getHashtags()) {
 				tuple.set("hashtag", hashTag.getText());
@@ -81,7 +83,7 @@ public class TopNHashTags extends BaseExampleJob {
 			}
 		}
 	}
-	
+
 	@SuppressWarnings("serial")
 	public static class TweetsHandler extends TupleRollupReducer<Text, NullWritable> {
 
@@ -105,7 +107,8 @@ public class TopNHashTags extends BaseExampleJob {
 			topNHashtags = new PriorityQueue<HashTagCount>(n);
 		}
 
-		public void onCloseGroup(int depth, String field, ITuple lastElement, TupleMRContext context, Collector collector) throws IOException ,InterruptedException ,TupleMRException {
+		public void onCloseGroup(int depth, String field, ITuple lastElement, TupleMRContext context,
+		    Collector collector) throws IOException, InterruptedException, TupleMRException {
 			if(field.equals("hashtag")) {
 				// Add the count for this hashtag to the top-n Heap
 				HashTagCount hashTagCount = new HashTagCount();
@@ -123,8 +126,8 @@ public class TopNHashTags extends BaseExampleJob {
 						textToEmit = new Text();
 					}
 					HashTagCount hashTagCount = topNHashtags.poll();
-					textToEmit.set(lastElement.get("location") + "\t" + lastElement.get("date") + "\t" + hashTagCount.hashTag
-					    + "\t" + hashTagCount.count);
+					textToEmit.set(lastElement.get("location") + "\t" + lastElement.get("date") + "\t"
+					    + hashTagCount.hashTag + "\t" + hashTagCount.count);
 					collector.write(textToEmit, NullWritable.get());
 				}
 			}
@@ -141,7 +144,8 @@ public class TopNHashTags extends BaseExampleJob {
 	}
 
 	public TopNHashTags() {
-		super("Usage: [input_path] [output_path] [n] . The n parameter is the size of the top hashtags to be calculated.");
+		super(
+		    "Usage: [input_path] [output_path] [n] . The n parameter is the size of the top hashtags to be calculated.");
 	}
 
 	@Override
@@ -153,9 +157,9 @@ public class TopNHashTags extends BaseExampleJob {
 		String input = args[0];
 		String output = args[1];
 		int n = Integer.parseInt(args[2]);
-		
+
 		delete(output);
-		
+
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("location", Type.STRING));
@@ -167,16 +171,23 @@ public class TopNHashTags extends BaseExampleJob {
 		TupleMRBuilder mr = new TupleMRBuilder(conf);
 		mr.addIntermediateSchema(schema);
 		mr.setGroupByFields("location", "date", "hashtag");
-		mr.setOrderBy(new OrderBy().add("location", Order.ASC).add("date", Order.ASC).add("hashtag", Order.ASC));
+		mr.setOrderBy(new OrderBy().add("location", Order.ASC).add("date", Order.ASC)
+		    .add("hashtag", Order.ASC));
 		mr.setRollupFrom("date");
 		// Input / output and such
 		mr.setTupleReducer(new TweetsHandler(n));
-		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
+		    NullWritable.class);
 		mr.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new TweetsProcessor());
-		mr.createJob().waitForCompletion(true);
+		try {
+			mr.createJob().waitForCompletion(true);
+		} finally {
+			mr.cleanUpInstanceFiles();
+		}
+
 		return 0;
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		ToolRunner.run(new TopNHashTags(), args);
 	}

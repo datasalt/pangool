@@ -23,12 +23,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
-import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 import org.codehaus.jackson.JsonFactory;
@@ -44,6 +45,7 @@ import com.datasalt.pangool.tuplemr.Criteria.SortElement;
 import com.datasalt.pangool.tuplemr.mapred.GroupComparator;
 import com.datasalt.pangool.tuplemr.mapred.RollupReducer;
 import com.datasalt.pangool.tuplemr.mapred.SortComparator;
+import com.datasalt.pangool.utils.InstancesDistributor;
 
 /**
  * TupleMRConfig contains the entire configuration parameters from a Tuple-based
@@ -327,10 +329,13 @@ public class TupleMRConfig {
 		}
 	}
 
-	public static void set(TupleMRConfig mrConfig, Configuration conf)
+	/**
+	 * Returns the instance files generated.
+	 */
+	public static Set<String> set(TupleMRConfig mrConfig, Configuration conf)
 	    throws TupleMRException {
 		conf.set(CONF_PANGOOL_CONF, mrConfig.toString());
-		serializeComparators(mrConfig, conf);
+		return serializeComparators(mrConfig, conf);
 	}
 
 	// Stores the instances and the references to the instances (common|field or
@@ -348,21 +353,26 @@ public class TupleMRConfig {
 	 * sort on field1 for the schema with schemaId = 1. The other config property
 	 * stores the instance file paths where the instances are stored in the
 	 * distributed cache.
+	 * <p>
+	 * Returns the instance files created.
 	 */
-	static void serializeComparators(TupleMRConfig tupleMRConfig, Configuration conf)
+	static Set<String> serializeComparators(TupleMRConfig tupleMRConfig, Configuration conf)
 	    throws TupleMRException {
+		
+		Set<String> instanceFiles = new HashSet<String>();
+		
 		List<String> comparatorRefs = new ArrayList<String>();
 		List<String> comparatorInstanceFiles = new ArrayList<String>();
 
 		// We use "common" as the prefix for the common criteria
-		serializeComparators(tupleMRConfig.getCommonCriteria(), conf, comparatorRefs,
-		    comparatorInstanceFiles, COMMON);
+		instanceFiles.addAll(serializeComparators(tupleMRConfig.getCommonCriteria(), conf, comparatorRefs,
+		    comparatorInstanceFiles, COMMON));
 
 		List<Criteria> specificCriterias = tupleMRConfig.getSpecificOrderBys();
 		// We use the schemaId as prefix for the specific sorting.
 		for(int i = 0; i < specificCriterias.size(); i++) {
-			serializeComparators(specificCriterias.get(i), conf, comparatorRefs,
-			    comparatorInstanceFiles, i + "");
+			instanceFiles.addAll(serializeComparators(specificCriterias.get(i), conf, comparatorRefs,
+			    comparatorInstanceFiles, i + ""));
 		}
 
 		if(comparatorRefs.size() > 0) {
@@ -370,14 +380,21 @@ public class TupleMRConfig {
 			conf.setStrings(CONF_COMPARATOR_INSTANCES,
 			    comparatorInstanceFiles.toArray(new String[] {}));
 		}
+		
+		return instanceFiles;
 	}
 
-	static void serializeComparators(Criteria criteria, Configuration conf,
+	/**
+	 * Returns the instance files created
+	 */
+	static Set<String> serializeComparators(Criteria criteria, Configuration conf,
 	    List<String> comparatorRefs, List<String> comparatorInstanceFiles, String prefix)
 	    throws TupleMRException {
 
+		Set<String> instanceFiles = new HashSet<String>();
+		
 		if(criteria == null) {
-			return;
+			return instanceFiles;
 		}
 
 		for(SortElement element : criteria.getElements()) {
@@ -394,6 +411,7 @@ public class TupleMRConfig {
 				String uniqueName = UUID.randomUUID().toString() + '.' + "comparator.dat";
 				try {
 					InstancesDistributor.distribute(comparator, uniqueName, conf);
+					instanceFiles.add(uniqueName);
 				} catch(Exception e) {
 					throw new TupleMRException("The class " + comparator.getClass().getName() + 
 							" can't be serialized"
@@ -404,6 +422,8 @@ public class TupleMRConfig {
 				comparatorInstanceFiles.add(uniqueName);
 			}
 		}
+		
+		return instanceFiles;
 	}
 
 	static void deserializeComparators(Configuration conf, TupleMRConfig mrConfig)

@@ -42,9 +42,9 @@ import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 
 /**
- * This example is an extended wordcount. It counts the total appearances for each word within a topic.
- * Input data is JSON registers with "text" and "topicId". This example shows how easy it is to work with
- * compound registers in Pangool, specifically how easy it is to "group by" more than one field.
+ * This example is an extended wordcount. It counts the total appearances for each word within a topic. Input data is
+ * JSON registers with "text" and "topicId". This example shows how easy it is to work with compound registers in
+ * Pangool, specifically how easy it is to "group by" more than one field.
  */
 public class TopicalWordCount extends BaseExampleJob {
 
@@ -54,15 +54,16 @@ public class TopicalWordCount extends BaseExampleJob {
 		protected Tuple tuple;
 		protected ObjectMapper mapper;
 
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			this.mapper = new ObjectMapper();
 			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
 		};
 
 		@SuppressWarnings("rawtypes")
 		@Override
-		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException,
-		    InterruptedException {
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException {
 
 			// Parse the JSON
 			Map document = mapper.readValue(value.toString(), Map.class);
@@ -133,11 +134,15 @@ public class TopicalWordCount extends BaseExampleJob {
 		mr.setTupleReducer(new CountReducer());
 		mr.setTupleCombiner(new CountReducer());
 
-		mr.createJob().waitForCompletion(true);
+		try {
+			mr.createJob().waitForCompletion(true);
+		} finally {
+			mr.cleanUpInstanceFiles();
+		}
 
 		return 1;
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		ToolRunner.run(new TopicalWordCount(), args);
 	}

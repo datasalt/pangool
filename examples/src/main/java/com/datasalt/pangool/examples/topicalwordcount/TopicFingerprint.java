@@ -38,14 +38,14 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 
 /**
- * This example uses the output of {@link TopicalWordCount} for calculating the "top n" words per each topic.
- * It also outputs the total appearances of these words together into an extra (named) output. This example
- * show how easy it is to perform secondary sort in Pangool as well as the use of "named outputs".
+ * This example uses the output of {@link TopicalWordCount} for calculating the "top n" words per each topic. It also
+ * outputs the total appearances of these words together into an extra (named) output. This example show how easy it is
+ * to perform secondary sort in Pangool as well as the use of "named outputs".
  */
 public class TopicFingerprint extends BaseExampleJob {
 
 	public final static String OUTPUT_TOTALCOUNT = "totalcount";
-	
+
 	@SuppressWarnings("serial")
 	public static class TopNWords extends TupleReducer<ITuple, NullWritable> {
 
@@ -56,8 +56,8 @@ public class TopicFingerprint extends BaseExampleJob {
 			this.n = n;
 		}
 
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException,
-		    TupleMRException {
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException, TupleMRException {
 			outputCountTuple = new Tuple(getOutputCountSchema());
 		};
 
@@ -71,7 +71,7 @@ public class TopicFingerprint extends BaseExampleJob {
 				collector.write(tuple, NullWritable.get());
 				totalCount += (Integer) tuple.get("count");
 			}
-			
+
 			outputCountTuple.set("topic", group.get("topic"));
 			outputCountTuple.set("totalcount", totalCount);
 			collector.getNamedOutput(OUTPUT_TOTALCOUNT).write(outputCountTuple, NullWritable.get());
@@ -88,7 +88,7 @@ public class TopicFingerprint extends BaseExampleJob {
 		fields.add(Field.create("totalcount", Type.INT));
 		return new Schema("outputcount", fields);
 	}
-	
+
 	@Override
 	public int run(String[] args) throws Exception {
 		if(args.length != 3) {
@@ -100,7 +100,8 @@ public class TopicFingerprint extends BaseExampleJob {
 		// Parse the size of the Top
 		Integer n = Integer.parseInt(args[2]);
 
-		TupleMRBuilder builder = new TupleMRBuilder(conf, "Pangool Topic Fingerprint From Topical Word Count");
+		TupleMRBuilder builder = new TupleMRBuilder(conf,
+		    "Pangool Topic Fingerprint From Topical Word Count");
 		builder.addIntermediateSchema(TopicalWordCount.getSchema());
 		// We need to group the counts by (topic)
 		builder.setGroupByFields("topic");
@@ -110,18 +111,21 @@ public class TopicFingerprint extends BaseExampleJob {
 		// However, as we work with tuples, we don't need to write specific code for grouping the same data differently,
 		// Therefore an IdentityTupleMapper is sufficient for this Job.
 		builder.addTupleInput(new Path(args[0]), new IdentityTupleMapper()); // Note the use of "addTupleInput"
-		/*
-		 * TODO Add Combiner as same Reducer when possible
-		 */
+
 		builder.setTupleOutput(new Path(args[1]), TopicalWordCount.getSchema());
 		builder.addNamedTupleOutput(OUTPUT_TOTALCOUNT, getOutputCountSchema());
+		builder.setTupleCombiner(new TopNWords(n));
 		builder.setTupleReducer(new TopNWords(n));
 
-		builder.createJob().waitForCompletion(true);
+		try {
+			builder.createJob().waitForCompletion(true);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 
 		return 1;
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		ToolRunner.run(new TopicFingerprint(), args);
 	}

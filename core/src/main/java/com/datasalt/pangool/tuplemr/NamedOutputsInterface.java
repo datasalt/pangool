@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
@@ -21,10 +23,10 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.PangoolMultipleOutputs;
 @SuppressWarnings("rawtypes")
 public class NamedOutputsInterface {
 
-	private final Configuration conf;
+//	private final Configuration conf;
 
 	public NamedOutputsInterface(Configuration conf) {
-		this.conf = conf;
+//		this.conf = conf;
 	}
 
 	public static final class Output {
@@ -61,12 +63,14 @@ public class NamedOutputsInterface {
 	
 	/**
 	 * Use this method for configuring a Job instance according to the named outputs specs that has been specified.
+	 * Returns the instance files that have been created.
 	 */
-	public void configureJob(Job job) throws FileNotFoundException, IOException, TupleMRException {
+	public Set<String> configureJob(Job job) throws FileNotFoundException, IOException, TupleMRException {
+		Set<String> instanceFiles = new HashSet<String>();
 		for(Output output : getNamedOutputs()) {
 			try {
-				PangoolMultipleOutputs.addNamedOutput(job, output.name, output.outputFormat,
-				    output.keyClass, output.valueClass);
+				instanceFiles.add(PangoolMultipleOutputs.addNamedOutput(job, output.name, output.outputFormat,
+				    output.keyClass, output.valueClass));
 			} catch(URISyntaxException e1) {
 				throw new TupleMRException(e1);
 			}
@@ -75,6 +79,7 @@ public class NamedOutputsInterface {
 				    contextKeyValue.getKey(), contextKeyValue.getValue());
 			}
 		}
+		return instanceFiles;
 	}
 
 	private static void validateNamedOutput(String namedOutput, List<Output> namedOutputs)

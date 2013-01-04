@@ -49,20 +49,20 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 import com.datasalt.pangool.utils.test.AbstractHadoopTestLibrary;
 
-public class TestCombiner extends AbstractHadoopTestLibrary{
-
+public class TestCombiner extends AbstractHadoopTestLibrary {
 
 	@SuppressWarnings("serial")
 	public static class Split extends TupleMapper<Text, NullWritable> {
 
 		private Tuple tuple;
-		
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			Schema schema = context.getTupleMRConfig().getIntermediateSchema(0);
 			this.tuple = new Tuple(schema);
 			tuple.set("count", 1);
 		}
-		
+
 		@Override
 		public void map(Text key, NullWritable value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
@@ -78,8 +78,9 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 	public static class CountCombiner extends TupleReducer<ITuple, NullWritable> {
 
 		private Tuple tuple;
-		
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			Schema schema = context.getTupleMRConfig().getIntermediateSchema("schema");
 			this.tuple = new Tuple(schema);
 		}
@@ -101,9 +102,9 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 	public static class Count extends TupleReducer<Utf8, IntWritable> {
 
 		private transient IntWritable countToEmit;
-		
-		public void setup(TupleMRContext tupleMRContext, Collector collector) throws IOException, InterruptedException,
-		    TupleMRException {
+
+		public void setup(TupleMRContext tupleMRContext, Collector collector) throws IOException,
+		    InterruptedException, TupleMRException {
 			countToEmit = new IntWritable();
 		};
 
@@ -111,58 +112,62 @@ public class TestCombiner extends AbstractHadoopTestLibrary{
 		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException, TupleMRException {
 			Iterator<ITuple> iterator = tuples.iterator();
-			while(iterator.hasNext()){
+			while(iterator.hasNext()) {
 				ITuple tuple = iterator.next();
-				Utf8 text = (Utf8)tuple.get("word");
-				countToEmit.set((Integer)tuple.get("count"));
+				Utf8 text = (Utf8) tuple.get("word");
+				countToEmit.set((Integer) tuple.get("count"));
 				collector.write(text, countToEmit);
 				Assert.assertFalse(iterator.hasNext());
 			}
 		}
 	}
 
-	public Job getJob(Configuration conf, String input, String output) throws TupleMRException,
-	    IOException {
+	public TupleMRBuilder getBuilder(Configuration conf, String input, String output)
+	    throws TupleMRException, IOException {
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(output), true);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(Field.create("word",Type.STRING));
-		fields.add(Field.create("count",Type.INT));
-		
+		fields.add(Field.create("word", Type.STRING));
+		fields.add(Field.create("count", Type.INT));
+
 		TupleMRBuilder cg = new TupleMRBuilder(conf);
-		cg.addIntermediateSchema(new Schema("schema",fields));
+		cg.addIntermediateSchema(new Schema("schema", fields));
 		cg.setJarByClass(TestCombiner.class);
 		cg.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Split());
-		cg.setOutput(new Path(output), new HadoopOutputFormat(SequenceFileOutputFormat.class), Utf8.class, IntWritable.class);
+		cg.setOutput(new Path(output), new HadoopOutputFormat(SequenceFileOutputFormat.class), Utf8.class,
+		    IntWritable.class);
 		cg.setGroupByFields("word");
-		cg.setOrderBy(new OrderBy().add("word",Order.ASC));
+		cg.setOrderBy(new OrderBy().add("word", Order.ASC));
 		cg.setTupleReducer(new Count());
 		cg.setTupleCombiner(new CountCombiner());
 
-		return cg.createJob();
+		return cg;
 	}
-	
+
 	@Test
-	public void test() throws TupleMRException, IOException, InterruptedException,
-	    ClassNotFoundException {
-		
-		
+	public void test() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
+
 		Configuration conf = getConf();
 		String input = "combiner-input";
-		String output ="combiner-output";
-		
-		withInput(input,writable("hola don pepito hola don jose"));
+		String output = "combiner-output";
 
-		Job job = new TestCombiner().getJob(conf,input,output);
-		job.setNumReduceTasks(1);
-		assertRun(job);
-		
-		withOutput(output + "/part-r-00000",writable("don"),writable(2));
-		withOutput(output+ "/part-r-00000",writable("hola"),writable(2));
-		withOutput(output+ "/part-r-00000",writable("jose"),writable(1));
-		withOutput(output+ "/part-r-00000",writable("pepito"),writable(1));
-		
+		withInput(input, writable("hola don pepito hola don jose"));
+
+		TupleMRBuilder jobBuilder = new TestCombiner().getBuilder(conf, input, output);
+		try {
+			Job job = jobBuilder.createJob();
+			job.setNumReduceTasks(1);
+			assertRun(job);
+		} finally {
+			jobBuilder.cleanUpInstanceFiles();
+		}
+
+		withOutput(output + "/part-r-00000", writable("don"), writable(2));
+		withOutput(output + "/part-r-00000", writable("hola"), writable(2));
+		withOutput(output + "/part-r-00000", writable("jose"), writable(1));
+		withOutput(output + "/part-r-00000", writable("pepito"), writable(1));
+
 		trash(input);
 		trash(output);
 	}
