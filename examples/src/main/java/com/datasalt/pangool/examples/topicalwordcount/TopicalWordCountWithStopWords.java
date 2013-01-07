@@ -35,8 +35,8 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.google.common.io.Files;
 
 /**
- * Slightly modified version of {@link TopicalWordCount} that accepts a list of stop words.
- * This example shows how easy it is to manage trivial state in mapper and reducers with Pangool. 
+ * Slightly modified version of {@link TopicalWordCount} that accepts a list of stop words. This example shows how easy
+ * it is to manage trivial state in mapper and reducers with Pangool.
  */
 public class TopicalWordCountWithStopWords extends BaseExampleJob {
 
@@ -44,27 +44,26 @@ public class TopicalWordCountWithStopWords extends BaseExampleJob {
 	public static class StopWordMapper extends TokenizeMapper {
 
 		private Set<String> stopWords = new HashSet<String>();
-		
+
 		public StopWordMapper(List<String> stopWords) {
 			this.stopWords.addAll(stopWords);
 			this.stopWords = Collections.unmodifiableSet(this.stopWords);
 		}
 
-    @Override
-    protected void emitTuple(Collector collector)
-        throws IOException, InterruptedException {
-    	// Perform stop word filtering here
-    	if(stopWords.contains(tuple.get("word"))) {
-    		return;
-    	}
-    	super.emitTuple(collector);
-    }
+		@Override
+		protected void emitTuple(Collector collector) throws IOException, InterruptedException {
+			// Perform stop word filtering here
+			if(stopWords.contains(tuple.get("word"))) {
+				return;
+			}
+			super.emitTuple(collector);
+		}
 	}
-	
+
 	public TopicalWordCountWithStopWords() {
 		super("Usage: TopicalWordCountWithStopWords [input_path] [output_path] [stop_word_list]");
 	}
-	
+
 	@Override
 	public int run(String[] args) throws Exception {
 		if(args.length != 3) {
@@ -81,7 +80,8 @@ public class TopicalWordCountWithStopWords extends BaseExampleJob {
 		// Note that the order in which we defined the fields of the Schema is not relevant here
 		cg.setGroupByFields("topic", "word");
 		// Here we instantiate a mapper with stop words:
-		// Note that we don't need to use the DistributedCache for that becasuse mappers, reducers, etc themselves are instantiable
+		// Note that we don't need to use the DistributedCache for that becasuse mappers, reducers, etc themselves are
+		// instantiable
 		StopWordMapper mapper = new StopWordMapper(stopWords);
 		cg.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), mapper);
 		// We'll use a TupleOutputFormat with the same schema than the intermediate schema
@@ -89,11 +89,15 @@ public class TopicalWordCountWithStopWords extends BaseExampleJob {
 		cg.setTupleReducer(new CountReducer());
 		cg.setTupleCombiner(new CountReducer());
 
-		cg.createJob().waitForCompletion(true);
+		try {
+			cg.createJob().waitForCompletion(true);
+		} finally {
+			cg.cleanUpInstanceFiles();
+		}
 
 		return 1;
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		ToolRunner.run(new TopicalWordCountWithStopWords(), args);
 	}

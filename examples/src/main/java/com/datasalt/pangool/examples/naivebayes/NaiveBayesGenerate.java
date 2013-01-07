@@ -84,8 +84,8 @@ public class NaiveBayesGenerate extends BaseExampleJob implements Serializable {
 
 		TupleReducer countReducer = new TupleReducer<ITuple, NullWritable>() {
 
-			public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
-			    throws IOException, InterruptedException, TupleMRException {
+			public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
+			    Collector collector) throws IOException, InterruptedException, TupleMRException {
 				int count = 0;
 				ITuple outputTuple = null;
 				for(ITuple tuple : tuples) {
@@ -100,8 +100,12 @@ public class NaiveBayesGenerate extends BaseExampleJob implements Serializable {
 		job.setTupleReducer(countReducer);
 		job.setGroupByFields("word", "category");
 		job.setTupleOutput(new Path(output), INTERMEDIATE_SCHEMA);
-		if(job.createJob().waitForCompletion(true)) {
-			return 1;
+		try {
+			if(job.createJob().waitForCompletion(true)) {
+				return 1;
+			}
+		} finally {
+			job.cleanUpInstanceFiles();
 		}
 		return -1;
 	}

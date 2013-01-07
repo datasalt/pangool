@@ -59,15 +59,15 @@ import com.datasalt.pangool.utils.Pair;
  * ["url1", "2011-10-30", 30] <br>
  * ["url1", "2011-10-31", 40] <br>
  * <p>
- * For moving averages of 3 days we want to have, as output: 
+ * For moving averages of 3 days we want to have, as output:
  * <p>
  * ["url1", "2011-10-28", 10] <br>
  * ["url1", "2011-10-29", (20 + 10) / 2 = 15.0] <br>
  * ["url1", "2011-10-30", (30 + 20 + 10) / 3 = 20.0] <br>
  * ["url1", "2011-10-31", (40 + 30 + 20) / 3 = 30.0] <br>
  * <p>
- * With Pangool we can define an intermediate schema like ["url", "date", "clicks"], group by "url" and sort by "url", "date".
- * Then we can just keep a windowed stack of data points and compute the average per each date that we receive.  
+ * With Pangool we can define an intermediate schema like ["url", "date", "clicks"], group by "url" and sort by "url",
+ * "date". Then we can just keep a windowed stack of data points and compute the average per each date that we receive.
  */
 public class MovingAverage extends BaseExampleJob {
 
@@ -76,7 +76,8 @@ public class MovingAverage extends BaseExampleJob {
 
 		private Schema schema;
 
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			this.schema = context.getTupleMRConfig().getIntermediateSchema("my_schema");
 		}
 
@@ -129,17 +130,18 @@ public class MovingAverage extends BaseExampleJob {
 					average += dataPoint.getFirst();
 				}
 				double avg = average / (double) dataPoints.size();
-				collector.write(new Text(tuple.get("url") + "\t" + currentDate + "\t" + avg), NullWritable.get());
+				collector
+				    .write(new Text(tuple.get("url") + "\t" + currentDate + "\t" + avg), NullWritable.get());
 			}
 		}
 	}
 
 	public MovingAverage() {
-	  super("Usage: [input_path] [output_path] [num_days_average]");
-  }
+		super("Usage: [input_path] [output_path] [num_days_average]");
+	}
 
 	@Override
-  public int run(String[] args) throws Exception {
+	public int run(String[] args) throws Exception {
 		if(args.length != 3) {
 			failArguments("Invalid number of arguments");
 			return -1;
@@ -147,14 +149,14 @@ public class MovingAverage extends BaseExampleJob {
 		String input = args[0];
 		String output = args[1];
 		Integer nDaysAverage = Integer.parseInt(args[2]);
-		
+
 		delete(output);
-		
+
 		// Configure schema, sort and group by
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("url", Type.STRING));
 		fields.add(Field.create("date", Type.STRING));
-		fields.add(Field.create("visits",Type.INT));
+		fields.add(Field.create("visits", Type.INT));
 
 		Schema schema = new Schema("my_schema", fields);
 
@@ -164,12 +166,18 @@ public class MovingAverage extends BaseExampleJob {
 		mr.setOrderBy(new OrderBy().add("url", Order.ASC).add("date", Order.ASC));
 		// Input / output and such
 		mr.setTupleReducer(new MovingAverageHandler(nDaysAverage));
-		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
+		    NullWritable.class);
 		mr.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new URLVisitsProcessor());
-		mr.createJob().waitForCompletion(true);
-	  return 1;
-  }
-	
+
+		try {
+			mr.createJob().waitForCompletion(true);
+		} finally {
+			mr.cleanUpInstanceFiles();
+		}
+		return 1;
+	}
+
 	public static void main(String args[]) throws Exception {
 		ToolRunner.run(new MovingAverage(), args);
 	}

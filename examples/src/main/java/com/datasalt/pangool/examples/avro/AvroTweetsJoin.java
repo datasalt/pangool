@@ -64,12 +64,13 @@ public class AvroTweetsJoin extends BaseExampleJob {
 
 		private Tuple tuple;
 
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("tweet"));
 		};
 
-		public void map(AvroWrapper<Record> key, NullWritable value, TupleMRContext context, Collector collector)
-		    throws IOException, InterruptedException {
+		public void map(AvroWrapper<Record> key, NullWritable value, TupleMRContext context,
+		    Collector collector) throws IOException, InterruptedException {
 			Record tweet = key.datum();
 			tuple.set("tweet_id", tweet.get("id"));
 			tuple.set("tweet_hashtags", tweet.get("hashtags"));
@@ -81,12 +82,13 @@ public class AvroTweetsJoin extends BaseExampleJob {
 	private static class RetweetsMapper extends TupleMapper<LongWritable, Text> {
 		private Tuple tuple;
 
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema("retweet"));
 		};
 
-		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException,
-		    InterruptedException {
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException {
 			String[] tokens = value.toString().split("\t");
 			tuple.set("username", tokens[0]);
 			tuple.set("tweet_id", Integer.parseInt(tokens[1]));
@@ -100,7 +102,8 @@ public class AvroTweetsJoin extends BaseExampleJob {
 		private Record outputRecord;
 		private AvroWrapper<Record> wrapper;
 
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			outputRecord = new Record(getAvroOutputSchema());
 			wrapper = new AvroWrapper<Record>();
 		};
@@ -142,9 +145,12 @@ public class AvroTweetsJoin extends BaseExampleJob {
 
 	public static org.apache.avro.Schema getAvroTweetSchema() {
 		List<org.apache.avro.Schema.Field> avroFields = new ArrayList<org.apache.avro.Schema.Field>();
-		avroFields.add(new org.apache.avro.Schema.Field("id", org.apache.avro.Schema.create(Type.INT), null, null));
-		avroFields.add(new org.apache.avro.Schema.Field("text", org.apache.avro.Schema.create(Type.STRING), null, null));
-		avroFields.add(new org.apache.avro.Schema.Field("timestamp", org.apache.avro.Schema.create(Type.LONG), null, null));
+		avroFields.add(new org.apache.avro.Schema.Field("id", org.apache.avro.Schema.create(Type.INT), null,
+		    null));
+		avroFields.add(new org.apache.avro.Schema.Field("text", org.apache.avro.Schema.create(Type.STRING),
+		    null, null));
+		avroFields.add(new org.apache.avro.Schema.Field("timestamp", org.apache.avro.Schema
+		    .create(Type.LONG), null, null));
 		avroFields.add(new org.apache.avro.Schema.Field("hashtags", getAvroStringArraySchema(), null, null));
 		org.apache.avro.Schema result = org.apache.avro.Schema.createRecord("tweet", null, null, false);
 		result.setFields(avroFields);
@@ -154,8 +160,8 @@ public class AvroTweetsJoin extends BaseExampleJob {
 	public static org.apache.avro.Schema getAvroOutputSchema() {
 		org.apache.avro.Schema.Field retweeter = new org.apache.avro.Schema.Field("username",
 		    org.apache.avro.Schema.create(Type.STRING), null, null);
-		org.apache.avro.Schema.Field tweet = new org.apache.avro.Schema.Field("hashtags", getAvroStringArraySchema(), null,
-		    null);
+		org.apache.avro.Schema.Field tweet = new org.apache.avro.Schema.Field("hashtags",
+		    getAvroStringArraySchema(), null, null);
 
 		org.apache.avro.Schema result = org.apache.avro.Schema.createRecord("output", null, null, false);
 		result.setFields(Arrays.asList(retweeter, tweet));
@@ -185,12 +191,17 @@ public class AvroTweetsJoin extends BaseExampleJob {
 
 		mr.addInput(tweetsPath, new AvroInputFormat<Record>(getAvroTweetSchema()), new TweetsMapper());
 		mr.addInput(retweetsPath, new HadoopInputFormat(TextInputFormat.class), new RetweetsMapper());
-		mr.setOutput(outputPath, new AvroOutputFormat<Record>(getAvroOutputSchema()), AvroWrapper.class, NullWritable.class);
+		mr.setOutput(outputPath, new AvroOutputFormat<Record>(getAvroOutputSchema()), AvroWrapper.class,
+		    NullWritable.class);
 
 		mr.setTupleReducer(new Red());
 
-		Job job = mr.createJob();
-		job.waitForCompletion(true);
+		try {
+			Job job = mr.createJob();
+			job.waitForCompletion(true);
+		} finally {
+			mr.cleanUpInstanceFiles();
+		}
 
 		return 0;
 	}

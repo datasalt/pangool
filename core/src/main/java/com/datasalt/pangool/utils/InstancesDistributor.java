@@ -15,7 +15,6 @@
  */
 package com.datasalt.pangool.utils;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -96,7 +95,7 @@ public class InstancesDistributor {
 	public static <T> T loadInstance(Configuration conf, Class<T> objClass, String fileName,
                                    boolean callSetConf) throws IOException {
 
-		Path path = InstancesDistributor.locateFileInDC(conf, fileName);
+		Path path = InstancesDistributor.locateFileInCache(conf, fileName);
 		T obj;
 		ObjectInput in;
 		if (path == null){
@@ -122,25 +121,19 @@ public class InstancesDistributor {
 	 * @param conf
 	 *          The Hadoop Configuration.
 	 * @param filename
-	 *          The file post-fix.
+	 *          The file name.
 	 * @throws IOException
 	 */
-	static Path locateFileInDC(Configuration conf, String filename) throws IOException {
+	private static Path locateFileInCache(Configuration conf, String filename) throws IOException {
       return new Path(conf.get(HDFS_TMP_FOLDER_CONF, conf.get("hadoop.tmp.dir")),
           filename);
 	}
 
 	/**
-	 * The methods of this class creates some temporary files for serializing instances. This method
-   * removes them. Be careful, DO NOT USE THIS METHOD unless you know what you are doing.
+	 * Delete a file that has been distributed using {@link #distribute(Object, String, Configuration)}.
 	 */
-	public static void removeFromTemporalFolder(Configuration conf, String posfix) {
-		File cacheFolder = new File(conf.get(HDFS_TMP_FOLDER_CONF, conf.get("hadoop.tmp.dir")));
-		File[] files = cacheFolder.listFiles();
-		for(File f : files) {
-			if(f.getName().endsWith(posfix)) {
-				f.delete();
-			}
-		}
+	public static void removeFromCache(Configuration conf, String filename) throws IOException {
+    FileSystem fS = FileSystem.get(conf); 
+		fS.delete(locateFileInCache(conf, filename), true);
 	}
 }

@@ -20,10 +20,11 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
-import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.InputFormat;
@@ -32,6 +33,7 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import com.datasalt.pangool.tuplemr.TupleMapper;
+import com.datasalt.pangool.utils.InstancesDistributor;
 
 /**
  * This class supports MapReduce jobs that have multiple input paths with a different {@link InputFormat} and
@@ -47,7 +49,7 @@ public class PangoolMultipleInputs {
 	
 	/**
 	 * Add a {@link Path} with a custom {@link InputFormat} and {@link Mapper} to the list of inputs for the map-reduce
-	 * job.
+	 * job. Returns the instance files created.
 	 * 
 	 * @param job The {@link Job}
 	 * @param path {@link Path} to be added to the list of inputs for the job
@@ -56,13 +58,15 @@ public class PangoolMultipleInputs {
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
 	 */
-	public static void addInputPath(Job job, Path path, InputFormat inputFormat,
+	public static Set<String> addInputPath(Job job, Path path, InputFormat inputFormat,
 	     Mapper mapperInstance) throws FileNotFoundException, IOException {
 
+		Set<String> instanceFiles = new HashSet<String>();
 		// Serialize the Mapper instance
 		String uniqueNameMapper = UUID.randomUUID().toString() + '.' + "mapper.dat";
 		try {
 			InstancesDistributor.distribute(mapperInstance, uniqueNameMapper, job.getConfiguration());
+			instanceFiles.add(uniqueNameMapper);
 		} catch(URISyntaxException e) {
 			throw new IOException(e);
 		}
@@ -70,6 +74,7 @@ public class PangoolMultipleInputs {
 		String uniqueNameInputFormat = UUID.randomUUID().toString() + '.' + "inputFormat.dat";
 		try {
 			InstancesDistributor.distribute(inputFormat, uniqueNameInputFormat, job.getConfiguration());
+			instanceFiles.add(uniqueNameInputFormat);
 		} catch(URISyntaxException e) {
 			throw new IOException(e);
 		}
@@ -79,6 +84,7 @@ public class PangoolMultipleInputs {
 		String mappers = conf.get(PANGOOL_INPUT_DIR_MAPPERS_CONF);
 		conf.set(PANGOOL_INPUT_DIR_MAPPERS_CONF, mappers == null ? mapperMapping : mappers + "," + mapperMapping);
 		job.setMapperClass(DelegatingMapper.class);
+		return instanceFiles;
 	}
 
 	private static void addInputPath(Job job, Path path, String inputFormatInstance) {

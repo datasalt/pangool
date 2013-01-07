@@ -174,12 +174,9 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 
 	/**
 	 * Adds a named output for the job.
-	 * 
-	 * @throws URISyntaxException
-	 * @throws IOException
-	 * @throws FileNotFoundException
+	 * Returns the instance file that has been created.
 	 */
-	public static void addNamedOutput(Job job, String namedOutput,
+	public static String addNamedOutput(Job job, String namedOutput,
 	    OutputFormat outputFormat, Class<?> keyClass, Class<?> valueClass)
 	    throws FileNotFoundException, IOException, URISyntaxException {
 		checkNamedOutputName(job, namedOutput, true);
@@ -190,6 +187,7 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 		conf.set(MO_PREFIX + namedOutput + FORMAT_INSTANCE_FILE, uniqueName);
 		conf.setClass(MO_PREFIX + namedOutput + KEY, keyClass, Object.class);
 		conf.setClass(MO_PREFIX + namedOutput + VALUE, valueClass, Object.class);
+		return uniqueName;
 	}
 
 	/**

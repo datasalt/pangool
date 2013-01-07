@@ -17,6 +17,8 @@ package com.datasalt.pangool.tuplemr;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,6 +61,8 @@ public class MapOnlyJobBuilder {
   private MapOnlyMapper mapOnlyMapper;
   private String jobName = null;
 
+	private List<String> instanceFilesCreated = new ArrayList<String>();
+	
   public MapOnlyJobBuilder setJarByClass(Class<?> jarByClass) {
     this.jarByClass = jarByClass;
     return this;
@@ -133,6 +137,16 @@ public class MapOnlyJobBuilder {
     this.namedOutputs = new NamedOutputsInterface(conf);
   }
 
+	/**
+	 * Run this method after running your Job for instance files to be properly cleaned. 
+	 * @throws IOException 
+	 */
+	public void cleanUpInstanceFiles() throws IOException {
+		for(String instanceFile: instanceFilesCreated) {
+			InstancesDistributor.removeFromCache(conf, instanceFile);
+		}
+	}
+	
   public Job createJob() throws IOException, TupleMRException, URISyntaxException {
     Job job;
     if (jobName == null) {
@@ -145,6 +159,7 @@ public class MapOnlyJobBuilder {
     String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
     try {
       InstancesDistributor.distribute(outputFormat, uniqueName, conf);
+      instanceFilesCreated.add(uniqueName);
     } catch (URISyntaxException e1) {
       throw new TupleMRException(e1);
     }
@@ -175,8 +190,8 @@ public class MapOnlyJobBuilder {
     }
     job.setJarByClass((jarByClass != null) ? jarByClass : lastInput.inputProcessor.getClass());
 
-    multipleInputs.configureJob(job);
-    namedOutputs.configureJob(job);
+    instanceFilesCreated.addAll(multipleInputs.configureJob(job));
+    instanceFilesCreated.addAll(namedOutputs.configureJob(job));
 
     return job;
   }

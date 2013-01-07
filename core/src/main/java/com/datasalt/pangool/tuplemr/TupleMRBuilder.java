@@ -20,10 +20,11 @@ import static com.datasalt.pangool.tuplemr.TupleMRException.failIfNull;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
-import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
@@ -50,6 +51,7 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat;
 import com.datasalt.pangool.tuplemr.serialization.TupleSerialization;
+import com.datasalt.pangool.utils.InstancesDistributor;
 
 /**
  * 
@@ -110,6 +112,8 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 
 	private MultipleInputsInterface multipleInputs;
 	private NamedOutputsInterface namedOutputs;
+	
+	private Set<String> instanceFilesCreated = new HashSet<String>();
 
 	public TupleMRBuilder(Configuration conf) {
 		this.conf = new Configuration(conf);
@@ -199,6 +203,16 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		this.tupleReducer = tupleReducer;
 	}
 
+	/**
+	 * Run this method after running your Job for instance files to be properly cleaned. 
+	 * @throws IOException 
+	 */
+	public void cleanUpInstanceFiles() throws IOException {
+		for(String instanceFile: instanceFilesCreated) {
+			InstancesDistributor.removeFromCache(conf, instanceFile);
+		}
+	}
+	
 	public Job createJob() throws IOException, TupleMRException {
 
 		failIfNull(tupleReducer, "Need to set a group handler");
@@ -210,7 +224,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 
 		TupleMRConfig tupleMRConf = buildConf();
 		// Serialize PangoolConf in Hadoop Configuration
-		TupleMRConfig.set(tupleMRConf, conf);
+		instanceFilesCreated.addAll(TupleMRConfig.set(tupleMRConf, conf));
 		Job job = (jobName == null) ? new Job(conf) : new Job(conf, jobName);
 		if(tupleMRConf.getRollupFrom() != null) {
 			job.setReducerClass(RollupReducer.class);
@@ -224,16 +238,18 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 			String uniqueName = UUID.randomUUID().toString() + '.' + "combiner-handler.dat";
 			try {
 				InstancesDistributor.distribute(tupleCombiner, uniqueName, job.getConfiguration());
+				instanceFilesCreated.add(uniqueName);
 				job.getConfiguration().set(SimpleCombiner.CONF_COMBINER_HANDLER, uniqueName);
 			} catch(URISyntaxException e1) {
 				throw new TupleMRException(e1);
 			}
 		}
 
-		// Set Group Handler
+		// Set Tuple Reducer
 		try {
 			String uniqueName = UUID.randomUUID().toString() + '.' + "group-handler.dat";
 			InstancesDistributor.distribute(tupleReducer, uniqueName, job.getConfiguration());
+			instanceFilesCreated.add(uniqueName);
 			job.getConfiguration().set(SimpleReducer.CONF_REDUCER_HANDLER, uniqueName);
 		} catch(URISyntaxException e1) {
 			throw new TupleMRException(e1);
@@ -251,13 +267,14 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		job.setOutputKeyClass(outputKeyClass);
 		job.setOutputValueClass(outputValueClass);
 		FileOutputFormat.setOutputPath(job, outputPath);
-		multipleInputs.configureJob(job);
-		namedOutputs.configureJob(job);
+		instanceFilesCreated.addAll(multipleInputs.configureJob(job));
+		instanceFilesCreated.addAll(namedOutputs.configureJob(job));
 		// Configure a {@link ProxyOutputFormat} for Pangool's Multiple Outputs to
 		// work: {@link PangoolMultipleOutput}
 		String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
 		try {
 			InstancesDistributor.distribute(outputFormat, uniqueName, conf);
+			instanceFilesCreated.add(uniqueName);
 		} catch(URISyntaxException e1) {
 			throw new TupleMRException(e1);
 		}

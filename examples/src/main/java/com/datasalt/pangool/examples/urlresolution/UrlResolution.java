@@ -44,27 +44,28 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 
 /**
- * This example shows how to perform reduce-side joins using Pangool. We have one file with URL Registers: ["url", "timestamp", "ip"] and another file with
- * canonical URL mapping: ["url", "canonicalUrl"]. We want to obtain the URL Registers file with the url substituted with the
- * canonical one according to the mapping file: ["canonicalUrl", "timestamp", "ip"].
+ * This example shows how to perform reduce-side joins using Pangool. We have one file with URL Registers: ["url",
+ * "timestamp", "ip"] and another file with canonical URL mapping: ["url", "canonicalUrl"]. We want to obtain the URL
+ * Registers file with the url substituted with the canonical one according to the mapping file: ["canonicalUrl",
+ * "timestamp", "ip"].
  */
 public class UrlResolution extends BaseExampleJob {
 
 	static Schema getURLRegisterSchema() {
 		List<Field> urlRegisterFields = new ArrayList<Field>();
-		urlRegisterFields.add(Field.create("url",Type.STRING));
-		urlRegisterFields.add(Field.create("timestamp",Type.LONG));
-		urlRegisterFields.add(Field.create("ip",Type.STRING));
-		return new Schema("urlRegister", urlRegisterFields);		
+		urlRegisterFields.add(Field.create("url", Type.STRING));
+		urlRegisterFields.add(Field.create("timestamp", Type.LONG));
+		urlRegisterFields.add(Field.create("ip", Type.STRING));
+		return new Schema("urlRegister", urlRegisterFields);
 	}
 
 	static Schema getURLMapSchema() {
 		List<Field> urlMapFields = new ArrayList<Field>();
-		urlMapFields.add(Field.create("nonCanonicalUrl",Type.STRING));
-		urlMapFields.add(Field.create("canonicalUrl",Type.STRING));
+		urlMapFields.add(Field.create("nonCanonicalUrl", Type.STRING));
+		urlMapFields.add(Field.create("canonicalUrl", Type.STRING));
 		return new Schema("urlMap", urlMapFields);
 	}
-	
+
 	@SuppressWarnings("serial")
 	public static class UrlProcessor extends TupleMapper<LongWritable, Text> {
 
@@ -106,7 +107,7 @@ public class UrlResolution extends BaseExampleJob {
 		@Override
 		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException, TupleMRException {
-			if (result == null) {
+			if(result == null) {
 				result = new Text();
 			}
 			String cannonicalUrl = null;
@@ -124,7 +125,7 @@ public class UrlResolution extends BaseExampleJob {
 	public UrlResolution() {
 		super("UrlResolution: [input_url_mapping] [input_url_regs] [output]");
 	}
-	
+
 	@Override
 	public int run(String[] args) throws Exception {
 		if(args.length != 3) {
@@ -134,24 +135,30 @@ public class UrlResolution extends BaseExampleJob {
 		String input1 = args[0];
 		String input2 = args[1];
 		String output = args[2];
-	
+
 		delete(output);
-		
-		TupleMRBuilder mr = new TupleMRBuilder(conf,"Pangool Url Resolution");
+
+		TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Url Resolution");
 		mr.addIntermediateSchema(getURLMapSchema());
 		mr.addIntermediateSchema(getURLRegisterSchema());
-		mr.setFieldAliases("urlMap",new Aliases().add("url","nonCanonicalUrl"));
+		mr.setFieldAliases("urlMap", new Aliases().add("url", "nonCanonicalUrl"));
 		mr.setGroupByFields("url");
 		mr.setOrderBy(new OrderBy().add("url", Order.ASC).addSchemaOrder(Order.ASC));
 		mr.setTupleReducer(new Handler());
-		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
+		    NullWritable.class);
 		mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
 		mr.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
-		mr.createJob().waitForCompletion(true);
+
+		try {
+			mr.createJob().waitForCompletion(true);
+		} finally {
+			mr.cleanUpInstanceFiles();
+		}
 
 		return 1;
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		ToolRunner.run(new UrlResolution(), args);
 	}
