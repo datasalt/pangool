@@ -6,6 +6,8 @@ Pangool 0.60 (DEVELOPMENT)
   - 2012-01-07 - Nulls support. Now you can declare fields as nullable in schemas. Routines for
                  serializing and performing the proper comparison between nulls and objects
                  is properly provided.
+  - 2012-01-08 - Using TCompactProtocol instead of TBinaryProtocol on Thrift serialization because
+                 it is more compact.
 
 Pangool 0.50.1
 
