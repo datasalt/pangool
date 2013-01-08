@@ -36,7 +36,17 @@ Pangool’s performance is much closer to that (see <a href='benchmark.html'>our
 Pangool <strong>aims to be a replacement for the plain Hadoop MapReduce Java API</strong>. That means you would use Pangool for the same reasons you would use Hadoop Java MapReduce, the difference is that Pangool makes <a href='overview.html'>everything much easier and smoother</a> while allowing you to do the same things and retaining about <a href='benchmark.html'>the same performance</a> - so that you no longer need to use the Hadoop Java MapReduce API anymore. 
 </p>
  
-<h2>3 - Is Pangool a Serialization API? Doesn't it all look like <a href='http://avro.apache.org/'>Avro</a>?</h2>
+<h2>3 - Can I chain two or more Pangool Jobs in a flow easily?</h2>
+
+<p>
+Pangool is not a flow management library. You can chain Pangool Jobs just like you would chain plain Java Hadoop MapReduce Jobs. While this may be sufficient for some cases, in other cases it can be more convenient to use a flow management library, or higher-level tools.
+</p>
+
+<p>
+We have been working on an <a href='http://github.com/datasalt/pangool-flow'>experimental library called "Pangool-flow"</a> that adds higher-level constructs and operations, flow management and parallel Job execution. It is still in development and not ready for use in production, but you can try it at your own risk.  
+</p>
+
+<h2>4 - Is Pangool a Serialization API? Doesn't it all look like <a href='http://avro.apache.org/'>Avro</a>?</h2>
 
 <p>
 Whereas Pangool’s Tuples resemble Avro Records, they are not exactly the same. 
@@ -47,14 +57,9 @@ Pangool is not a serialization library.
 Pangool uses Tuples as an extension to the (Key, value) 
 model imposed by the traditional MapReduce model - <i>see <a href='http://www.datasalt.com/2012/02/tuple-mapreduce-beyond-the-classic-mapreduce/'>our post about Tuple MapReduce</a> for a reference on this</i>. 
 Although Pangool implements mappings for basic types, 
-Tuple fields are serialization-agnostic. They may contain arbitrary data types that are serialized by Hadoop’s or custom serialization.
+Tuple fields are serialization-agnostic. They may contain arbitrary data types that are serialized by Hadoop using custom serialization.
 </p>
 
-<p>
-On the other hand, it is true that Pangool uses <a href='http://avro.apache.org/'>Avro</a> for persisting Tuples and reading them back into new Jobs. We did so for convenience - we didn't want to reinvent the wheel here.
-We were also considering using Avro for all the intermediate serialization. We have <a href='https://github.com/datasalt/pangool/tree/avrool2'>a branch in our repo</a> with it.
-</p>
-
-<h2>4 - How does using Pangool compare to using the plain Hadoop Java MapRed API? Is there a performance penalty?</h2>
+<h2>5 - How does using Pangool compare to using the plain Hadoop Java MapRed API? Is there a performance penalty?</h2>
 
 <p>Our initial benchmark shows that the penalty of using Pangool compared to the plain Hadoop MapReduce API is <strong>between 5 and 8%</strong>. Higher-level tools may impose a penalties above 100%. That is why we say Pangool aims to be a replacement for the Hadoop Java API.</p>
