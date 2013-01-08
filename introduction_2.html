@@ -32,14 +32,14 @@ You can check the full code of this example on github <a href='https://github.co
 		
    public StopWordMapper(List<String> stopWords) {
      this.stopWords.addAll(stopWords);
-	 this.stopWords = Collections.unmodifiableSet(this.stopWords);
+     this.stopWords = Collections.unmodifiableSet(this.stopWords);
    }
 
    protected void emitTuple(Collector collector) throws IOException, InterruptedException {
      if(stopWords.contains(tuple.get("word"))) {
-	   return;
+       return;
      }
-	 super.emitTuple(collector);
+     super.emitTuple(collector);
    }
  }
 </pre>

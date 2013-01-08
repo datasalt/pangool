@@ -24,8 +24,18 @@ URL resolution example</a>:
  mr.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
  mr.setTupleReducer(new Handler());
  mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
- mr.createJob().waitForCompletion(true);
+ try {
+   mr.createJob().waitForCompletion(true);
+ } finally {
+   mr.cleanUpInstanceFiles();
+ }
 </pre>
+
+<div class="alert alert-info">
+<p>
+<strong>Important:</strong> The method cleanUpInstanceFiles() needs to be called to properly remove all serialized objects that Pangool uses for each Job. 
+</p>
+</div>
 
 <p>
 Let's analyze the code line by line. The following line creates the <code>TupleMRBuilder</code>.
