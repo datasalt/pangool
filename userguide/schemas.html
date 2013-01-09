@@ -10,7 +10,7 @@ title: Pangool - User guide - Tuples & Schemas
 
 <p>
 A Pangool Tuple is an ordered list of Objects with an associated Schema.
-Schemas have an associated name and a list of Fields. 
+Schemas have an associated name and a list of Fields.
 </p>
 <p>
 We can create an <code>Schema</code> in a strongly-typed fashion:
@@ -21,23 +21,23 @@ We can create an <code>Schema</code> in a strongly-typed fashion:
  fields.add(Field.create("string1", Type.STRING));
  fields.add(Field.create("string2", Type.STRING));
  Schema schema1 = new Schema("schema1", fields);
-</pre>	
+</pre>
 <p>
 Or we can also create it leveraging the <code>Fields.parse()</code> method:
 </p>
 
 <pre class="prettyprint" id="java">
  Schema schema1 = new Schema("schema1", Fields.parse("number1:int, string1:string, string2:string"));
-</pre>	
+</pre>
 <p>
 
 <h3>Types</h3>
 <p>
-Pangool supports any data type which is "Hadoop serializable" (<code>Writables</code>, 
+Pangool supports any data type which is "Hadoop serializable" (<code>Writables</code>,
 <a href="http://thrift.apache.org/">Thrift</a>, <a href="http://code.google.com/p/protostuff/">
 ProtoStuff</a>, etc). It natively supports some primitive types as well.
 </p>
- 
+
  <p>
 The following table
 summarizes the available field types:
@@ -48,14 +48,14 @@ summarizes the available field types:
 	<tr><th>Field Type</th><th>Accepted java types</th><th>Deserialized java type</th><th>Serialization</th></tr>
 </thead>
 <tbody>
-	<tr><td>Type.INT</td><td>Integer</td><td>Integer</td><td>32-bit integer (variable length encoded)</td></tr> 
-	<tr><td>Type.LONG</td><td>Long</td><td>Long</td><td>64-bit integer (variable length encoded)</td></tr> 
-	<tr><td>Type.FLOAT</td><td>Float</td><td>Float</td><td>32-bit floating number</td></tr> 
-	<tr><td>Type.DOUBLE</td><td>Double</td><td>Double</td><td>64-bit floating number</td></tr> 
-	<tr><td>Type.STRING</td><td>String, Utf8</td><td>Utf8</td><td>Integer encoded in variable length (size) + uft8 bytes</td></tr> 
-	<tr><td>Type.BOOLEAN</td><td>Boolean</td><td>Boolean</td><td>1-byte boolean type</td></tr> 
+	<tr><td>Type.INT</td><td>Integer</td><td>Integer</td><td>32-bit integer (variable length encoded)</td></tr>
+	<tr><td>Type.LONG</td><td>Long</td><td>Long</td><td>64-bit integer (variable length encoded)</td></tr>
+	<tr><td>Type.FLOAT</td><td>Float</td><td>Float</td><td>32-bit floating number</td></tr>
+	<tr><td>Type.DOUBLE</td><td>Double</td><td>Double</td><td>64-bit floating number</td></tr>
+	<tr><td>Type.STRING</td><td>String, Utf8</td><td>Utf8</td><td>Integer encoded in variable length (size) + uft8 bytes</td></tr>
+	<tr><td>Type.BOOLEAN</td><td>Boolean</td><td>Boolean</td><td>1-byte boolean type</td></tr>
 	<tr><td>Type.ENUM</td><td>Enum</td><td>Enum</td><td>As Type.INT</td></tr>
-	<tr><td>Type.BYTES</td><td>byte[],ByteBuffer</td><td>ByteBuffer</td><td>length encoded as Type.INT  + bytes</td> 
+	<tr><td>Type.BYTES</td><td>byte[],ByteBuffer</td><td>ByteBuffer</td><td>length encoded as Type.INT  + bytes</td>
 	<tr>
 		<td>Type.OBJECT</td>
 		<td>Any serializable object</td>
@@ -68,21 +68,21 @@ summarizes the available field types:
 </table>
 
 <p>
-<strong>Variable length integers and longs</strong> are encoded using less bytes for 
-smaller numbers than for bigger ones. The smallest numbers can fit in just one byte.  
+<strong>Variable length integers and longs</strong> are encoded using less bytes for
+smaller numbers than for bigger ones. The smallest numbers can fit in just one byte.
 </p>
 
 <h3>Objects</h3>
 
 <p><br>
 For non-primitive types you can use <code>Type.OBJECT</code> and set arbitrary objects.
-There are two ways of serializing OBJECT fields: 
+There are two ways of serializing OBJECT fields:
 <ul>
- <li><b>Using Hadoop's serialization:</b> The associated object's class will be used by Hadoop's serialization 
+ <li><b>Using Hadoop's serialization:</b> The associated object's class will be used by Hadoop's serialization
  factory to choose the right serializers and deserializers defined in <code>io.serialization</code>:</li>
 <p>
  <pre class="prettyprint" id="java">
-  List<Field> fields = new ArrayList<Field>(); 
+  List<Field> fields = new ArrayList<Field>();
   fields.add(Field.createObject("obj", IntWritable.class));
   Schema schema1 = new Schema("schema1", fields);
  </pre>
@@ -91,19 +91,19 @@ There are two ways of serializing OBJECT fields:
  specified in the field's properties:</li>
  <p>
  <pre class="prettyprint" id="java">
-  List<Field> fields = new ArrayList<Field>(); 
+  List<Field> fields = new ArrayList<Field>();
   Field field = Field.createObject("my_avro_field",Record.class);
   field.setSerialization(AvroFieldSerialization.class);
   field.addProps("avro.schema",myAvroSchema.toString());
   field.addProps("avro.reflection",false);
   Schema schema1 = new Schema("schema1", fields);
  </pre>
- </p> 
- 
+ </p>
+
  <p>
  To know more about custom serialization take a look at <a href="custom_serialization.html">this</a>
  </p>
-</ul> 
+</ul>
 </p>
 <br/>
 <p>
@@ -120,13 +120,13 @@ You can enable Thrift / ProtoStuff object serialization in Pangool with:
 </pre>
 
 <p>
-Where <code>conf</code> is the Hadoop job configuration. 
+Where <code>conf</code> is the Hadoop job configuration.
 </p>
 
 <h3>Tuples</h3>
 
 <p>
-Tuples meet the ITuple interface and can be instantiated via the Tuple class. 
+Tuples meet the ITuple interface and can be instantiated via the Tuple class.
 You can set tuple values by field name or field index.
 </p>
 
@@ -140,16 +140,12 @@ You can set tuple values by field name or field index.
 
 </p>
 
-<div class="alert">
-<strong>Important</strong>: Pangool <strong>does not support null values for fields</strong>.
-</div>
-
 <h4>Access by index</h4>
 
 <p>
 Tuples are just an ordered list of objects. You can access the elements
 in the tuple by the index of the field as it was defined in the schema:
-</p> 
+</p>
 
 <pre class="prettyprint" id="java">
  tuple.set(1, "foo");
@@ -171,7 +167,7 @@ An alternative way of setting strings is the following:
 </pre>
 
 <p>
-The following code is right: 
+The following code is right:
 </p>
 
 <pre class="prettyprint" id="java">
@@ -184,9 +180,54 @@ The following code is right:
 </pre>
 
 <div class="alert alert">
-<strong>Important:</strong> When Tuples come as an input of  
+<strong>Important:</strong> When Tuples come as an input of
 <code>TupleMapper</code> or <code>TupleReducer</code>, strings will
-always be wrapped by an <code>Utf8</code> object. 
+always be wrapped by an <code>Utf8</code> object.
+</div>
+
+<h3>Nulls support</h3>
+
+<p>
+    Pangool supports nulls values in tuples <strong>since version 0.60</strong>. Any field can support null values, but
+    it must be declared in the schema as nullable. The following example declares two fields,
+    <code>nullableField</code> and <code>nullableObj</code> as nullable:
+</p>
+
+<pre class="prettyprint" id="java">
+ List<Field> fields = new ArrayList<Field>();
+ fields.add(Field.create("nullableField", Type.INT, true));
+ fields.add(Field.createObject("nullableObj", IntWritable.class, true));
+ Schema schema2 = new Schema("schema2", fields);
+</pre>
+
+<p>
+    It is enough to add a <code>true</code> asn parameter at the end of the <code>Field.createX()</code> method
+    calls to declare a field as nullable. Also, nullable fields can be declared using the <code>parse</code>
+    method by adding the character <code>?</code> to the type declaration:
+</p>
+
+<pre class="prettyprint" id="java">
+ Schema schema2 = new Schema("schema2", Fields.parse("nullableField:int?, nullableObj:org.apache.hadoop.io.IntWritable?"));
+</pre>
+
+<p>
+    Nulls support can has some effect on <strong>serialization length of Tuples</strong>. If none of
+    the schema fields are nullable then there is not serialization overhead and Pangool uses
+    the same space to serialize Tuples as before supporting nullables.
+</p>
+
+<p>
+    If at least one field is nullable then Pangool adds a bit field to the serialized form. The bit field
+    length would variate depending on the number of nullable fields in the schema. 1 byte bit field is enough
+    for schemas with less than 8 nullable fields, 2 bytes for schemas between 8 and 14 nullable fields, and so on.
+</p>
+
+<div class="alert alert-info">
+    <strong>Advanced:</strong> The intermediate
+    schema could duplicate the number of bit fields used in intermediate serialization
+    when more than one schema is provided to the Tuple MapReduce Job. See
+    <a href="https://github.com/datasalt/pangool/issues/18">this page</a> for more information.
 </div>
 
 <p><a class="btn btn-primary btn-large" href="TupleMrBuilder.html">Next: Creating Pangool Jobs &raquo;</a></p>
+

@@ -43,7 +43,7 @@ as adding:
 </p>
 
 <p>
-As shown above, just adding a new line allows us to define the criteria (ASC / DESC) used to sort tuples.<br>
+As shown above, just adding a new line allows us to define the criteria (ASC / DESC) used to sort tuples.
 This is apparently straight-forward, however plain MapReduce usually forces you to 
 specify custom comparators to perform this simple task.
 </p>
@@ -51,7 +51,7 @@ specify custom comparators to perform this simple task.
 <p>
 Let's complicate things further. Imagine that you still want to group tuples
 by their <code>url</code> but you also need them be ordered by descending <code>timestamp</code>
-for each group.<br> 
+for each group.
 In this case the ordering criteria contains the fields <code>url</code> and <code>timestamp</code> which
 exceed those that we defined in "group by" (<code>url</code>).
 </p>
@@ -71,15 +71,15 @@ As shown in the snippet above, the fields defined in "order by" include those in
 in Pangool, where <i>Group-By</i> <b>must be a prefix</b> of <i>Order-By</i>.
 </p>
 Contrary to what it looks, this is tough to achieve in plain Map-Reduce, especially when  
-several fields are involved in grouping and ordering. <br>Programming in plain 
-Map-Reduce usually forces you to define custom logic for binary comparison, grouping and partitioning.<br> 
+several fields are involved in grouping and ordering. Programming in plain
+Map-Reduce usually forces you to define custom logic for binary comparison, grouping and partitioning.
 Pangool excels in this task, removing all this burden and offering it to you with no pain.
 </p>
 
 
 <div class="alert alert-info">
 <p><b>Note:</b>
-The partitioning strategy that Pangool chooses is coherent with the group-by / sort-by criterias.<br>
+The partitioning strategy that Pangool chooses is coherent with the group-by / sort-by criterias.
 In this case, Pangool will partition by the Group-by fields unless we modify the default 
 partitioning strategy. See the <a href="partitioner.html">Custom Partitioners</a> section for more about this.
 </p>
@@ -91,7 +91,7 @@ partitioning strategy. See the <a href="partitioner.html">Custom Partitioners</a
 <p>
 When multiple intermediate schemas are defined and a Reduce-side Join is performed 
 (see <a href="joins.html">joins</a> section) then Sort-By shows us more options and advanced 
-features. <br>Let's see the next example:
+features. Let's see the next example:
 </p>
 
 <p>
@@ -104,10 +104,10 @@ features. <br>Let's see the next example:
 </p>
 
 <p>
-Usually when performing Joins the desired behavior is to receive one data type before the 
-other.<br>
+Usually when performing Joins the desired behavior is to receive tuples from one data source before than
+tuples from the other.
 This eases programming and avoids having to keep data in memory before performing the actual
-join business logic. (For instance, in a Cross-Product)<br>
+join business logic. (For instance, in a Cross-Product).
 In Pangool this is achieved adding this:
 </p>
 
@@ -118,7 +118,7 @@ In Pangool this is achieved adding this:
 
 <p>
 The special method <code>addSchemaOrder</code> in <code>OrderBy</code> indicates that 
-tuples, after being ordered by <code>url</code>, they will be ordered according to the schema they belong.<br>
+tuples, after being ordered by <code>url</code>, they will be ordered according to the schema they belong.
 That is, given the dataset below: 
 </p>
 <p>
@@ -177,7 +177,7 @@ Any field used in <code>setOrderBy</code> must be present in every intermediate 
 
 <p>
 In some cases, when performing a Reduce-side join, we could be interested in ordering tuples within a particular schema in
-a specific criteria.<br> This is achieved by using the method <code>setSpecificOrderBy</code>.<br>
+a specific criteria. This is achieved by using the method <code>setSpecificOrderBy</code>.
 We can reuse the previous example to specify a particular ordering for the tuples from <code>urls_register</code>:
 </p>
 
@@ -210,5 +210,47 @@ Given the previous input dataset, the output would be :
 <p>
 Note how tuples from "urls_register" now come sorted by timestamp.
 </p>
- 
+
+<h2>Sorting null values</h2>
+
+<p>
+    Since version 0.60, some tuples could carry fields with nulls values. It is important to be able
+    to manage how null values are sorted when compared with a non null value. That can be controlled
+    by setting the proper <code>NullOrder</code> in the <code>OrderBy</code> definition. The possible
+    values are:
+</p>
+
+<table class="table table-striped">
+    <thead>
+    <tr><th>NullOrder value</th><th>Meaning</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>NullableOrder.NULL_SMALLEST</td>
+            <td>
+                Nulls are the smallest possible value.
+                Nulls will appear the first if Order.ASC is
+                defined or last if Order.DESC is defined. <strong>(Default behaviour)</strong>
+            </td>
+        </tr>
+        <tr>
+            <td>NullableOrder.NULL_BIGGEST</td>
+            <td>
+                Nulls are the biggest possible value. Nulls will appear the last if Order.ASC is
+                defined or first if Order.DESC is defined
+            </td>
+        </tr>
+    </body>
+</table>
+
+<p>
+    The following examples shows how to declare the <code>NullOrder</code> in <code>OrderBy</code>
+    definitions:
+</p>
+
+<pre class="prettyprint" id="java">
+ new OrderBy().add("url", Order.DESC, NullOrder.NULL_BIGGEST);
+</pre>
+
+
 <p><a class="btn btn-primary btn-large" href="named_outputs.html">Next: Named outputs &raquo;</a></p>
