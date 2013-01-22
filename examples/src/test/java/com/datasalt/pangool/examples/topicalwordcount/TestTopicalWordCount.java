@@ -80,7 +80,7 @@ public class TestTopicalWordCount extends AbstractHadoopTestLibrary {
 				}				
 			}
 		}
-		
+		reader.close();
 		return validatedOutputLines;
 	}
 	
