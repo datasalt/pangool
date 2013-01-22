@@ -83,6 +83,6 @@ public class TestSolrOutputFormat extends AbstractHadoopTestLibrary {
 
 		document = r.document(0).toString();
 
-//		trash(OUTPUT);
+		trash(OUTPUT);
 	}
 }
