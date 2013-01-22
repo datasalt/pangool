@@ -8,6 +8,13 @@ Pangool 0.60 (DEVELOPMENT)
                  is properly provided.
   - 2012-01-16 - Deep copy support for Tuples
 
+ BUG FIXES
+  - 2012-01-22 - Changed default instances folder to user-located folder ./pangool-instances . 
+		 Before it was /tmp which caused users who didn't have access to it in the HDFS
+		 to fail with this default value.
+  - 2012-01-22 - SolrOutputFormat needed to use an explicit absolute Path for a strange behavior 
+		 in Cygwin to be solved.
+
 Pangool 0.50.1
 
  IMPROVEMENTS
