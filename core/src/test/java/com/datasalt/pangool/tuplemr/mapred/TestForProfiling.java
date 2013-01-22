@@ -38,49 +38,54 @@ import java.io.Serializable;
  */
 public class TestForProfiling extends BaseTest implements Serializable {
 
-  int NUM_ROWS_TO_GENERATE = 30000;
+	int NUM_ROWS_TO_GENERATE = 30000;
 
-  public void runningIdentityJob(boolean withNulls) throws IOException, ClassNotFoundException, InterruptedException, TupleMRException {
+	public void runningIdentityJob(boolean withNulls) throws IOException, ClassNotFoundException,
+	    InterruptedException, TupleMRException {
 
-    Configuration conf = getConf();
-    String input = TestTupleMRJob.class + "-input";
-    String output = TestTupleMRJob.class + "-output";
+		Configuration conf = getConf();
+		String input = TestTupleMRJob.class + "-input";
+		String output = TestTupleMRJob.class + "-output";
 
-    Schema schema = SCHEMA;
-    if (withNulls) {
-      decorateWithNullables(schema);
-    }
+		Schema schema = SCHEMA;
+		if(withNulls) {
+			decorateWithNullables(schema);
+		}
 
-    ITuple tuple = new Tuple(schema);
-    for (int i = 0; i < NUM_ROWS_TO_GENERATE; i++) {
-      withTupleInput(input, fillTuple(true, tuple));
-    }
+		ITuple tuple = new Tuple(schema);
+		for(int i = 0; i < NUM_ROWS_TO_GENERATE; i++) {
+			withTupleInput(input, fillTuple(true, tuple));
+		}
 
-    TupleMRBuilder builder = new TupleMRBuilder(getConf(), "test");
-    builder.addTupleInput(new Path(input), new IdentityTupleMapper());
-    builder.setTupleReducer(new IdentityTupleReducer());
-    builder.addIntermediateSchema(schema);
-    builder.setGroupByFields(schema.getField(0).getName());
-    builder.setTupleOutput(new Path(output), schema);
+		TupleMRBuilder builder = new TupleMRBuilder(getConf(), "test");
+		builder.addTupleInput(new Path(input), new IdentityTupleMapper());
+		builder.setTupleReducer(new IdentityTupleReducer());
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields(schema.getField(0).getName());
+		builder.setTupleOutput(new Path(output), schema);
 
+		Job job = builder.createJob();
+		try {
+			job.setNumReduceTasks(1);
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
+		trash(input);
+		trash(output);
+	}
 
-    Job job = builder.createJob();
-    job.setNumReduceTasks(1);
-    assertRun(job);
+	@Test
+	@Ignore
+	public void runninIdentityJobWithNulls() throws IOException, TupleMRException, ClassNotFoundException,
+	    InterruptedException {
+		runningIdentityJob(true);
+	}
 
-    trash(input);
-    trash(output);
-  }
-
-  @Test
-  @Ignore
-  public void runninIdentityJobWithNulls() throws IOException, TupleMRException, ClassNotFoundException, InterruptedException {
-    runningIdentityJob(true);
-  }
-
-  @Test
-  @Ignore
-  public void runninIdentityJobNoNulls() throws IOException, TupleMRException, ClassNotFoundException, InterruptedException {
-    runningIdentityJob(false);
-  }
+	@Test
+	@Ignore
+	public void runninIdentityJobNoNulls() throws IOException, TupleMRException, ClassNotFoundException,
+	    InterruptedException {
+		runningIdentityJob(false);
+	}
 }

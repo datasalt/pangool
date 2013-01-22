@@ -61,7 +61,7 @@ import static org.junit.Assert.assertEquals;
 
 public class TestTupleInputOutputFormat extends BaseTest {
 
-  private final static Log logger = LogFactory.getLog(TestTupleInputOutputFormat.class);
+	private final static Log logger = LogFactory.getLog(TestTupleInputOutputFormat.class);
 
 	public static String OUT = TestTupleInputOutputFormat.class.getName() + "-out";
 	public static String OUT_TEXT = TestTupleInputOutputFormat.class.getName() + "-out-text";
@@ -69,12 +69,13 @@ public class TestTupleInputOutputFormat extends BaseTest {
 
 	public static class MyInputProcessor extends TupleMapper<LongWritable, Text> {
 
-    private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 		private Tuple tuple;
 
 		@Override
-		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector) throws IOException, InterruptedException {
-			if (tuple == null){
+		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException {
+			if(tuple == null) {
 				tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
 			}
 			tuple.set(0, "title");
@@ -85,20 +86,19 @@ public class TestTupleInputOutputFormat extends BaseTest {
 
 	public static class MyGroupHandler extends TupleReducer<Text, Text> {
 
-    private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
-    @Override
-		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
-		    Collector collector) throws IOException, InterruptedException, TupleMRException {
+		@Override
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException, TupleMRException {
 			for(ITuple tuple : tuples) {
-				collector.write((Text)tuple.get(0),(Text)tuple.get(1));
+				collector.write((Text) tuple.get(0), (Text) tuple.get(1));
 			}
 		}
 	}
-	
+
 	@Test
-	public void test() throws TupleMRException, IOException, InterruptedException,
-	    ClassNotFoundException {
+	public void test() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
 
 		CommonUtils.writeTXT("foo1 bar1\nbar2 foo2", new File(IN));
 		Configuration conf = getConf();
@@ -110,32 +110,43 @@ public class TestTupleInputOutputFormat extends BaseTest {
 		HadoopUtils.deleteIfExists(fS, outPathText);
 
 		List<Field> fields = new ArrayList<Field>();
-		fields.add(Field.create("title",Type.STRING));
-		fields.add(Field.create("content",Type.STRING));
-		Schema schema = new Schema("schema",fields);
-		
+		fields.add(Field.create("title", Type.STRING));
+		fields.add(Field.create("content", Type.STRING));
+		Schema schema = new Schema("schema", fields);
+
 		TupleMRBuilder builder = new TupleMRBuilder(conf);
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("title");
-		builder.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
+		builder.setOrderBy(new OrderBy().add("title", Order.ASC).add("content", Order.ASC));
 
 		builder.setTupleReducer(new IdentityTupleReducer());
 		builder.setTupleOutput(outPath, schema); // setTupleOutput method
 		builder.addInput(inPath, new HadoopInputFormat(TextInputFormat.class), new MyInputProcessor());
 
-		builder.createJob().waitForCompletion(true);
+		Job job = builder.createJob();
+		try {
+			job.waitForCompletion(true);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 
 		// Use output as input of new TupleMRBuilder
 
 		builder = new TupleMRBuilder(conf);
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("title");
-		builder.setOrderBy(new OrderBy().add("title",Order.ASC).add("content",Order.ASC));
+		builder.setOrderBy(new OrderBy().add("title", Order.ASC).add("content", Order.ASC));
 		builder.setTupleReducer(new MyGroupHandler());
-		builder.setOutput(outPathText, new HadoopOutputFormat(TextOutputFormat.class), Text.class, Text.class);
+		builder.setOutput(outPathText, new HadoopOutputFormat(TextOutputFormat.class), Text.class,
+		    Text.class);
 		builder.addTupleInput(outPath, new IdentityTupleMapper()); // addTupleInput method
-		Job job = builder.createJob();
-		assertRun(job);
+
+		job = builder.createJob();
+		try {
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 
 		Assert.assertEquals("title\tbar2 foo2\ntitle\tfoo1 bar1",
 		    Files.toString(new File(OUT_TEXT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
@@ -145,57 +156,55 @@ public class TestTupleInputOutputFormat extends BaseTest {
 		HadoopUtils.deleteIfExists(fS, outPathText);
 	}
 
-  @Test
-  public void testSplits() throws IOException, InterruptedException {
-    testSplits(Long.MAX_VALUE, 20);
-    testSplits(1, 20);
-    testSplits(20, 40);
-  }
+	@Test
+	public void testSplits() throws IOException, InterruptedException {
+		testSplits(Long.MAX_VALUE, 20);
+		testSplits(1, 20);
+		testSplits(20, 40);
+	}
 
-  public void testSplits(long maxSplitSize, int generatedRows) throws IOException, InterruptedException {
-    logger.info("Testing maxSplitSize: " + maxSplitSize + " and generatedRows:" + generatedRows);
-    FileSystem fS = FileSystem.get(getConf());
-    Random r = new Random(1);
-    Schema schema = new Schema("schema", Fields.parse("i:int,s:string"));
-    ITuple tuple = new Tuple(schema);
+	public void testSplits(long maxSplitSize, int generatedRows) throws IOException, InterruptedException {
+		logger.info("Testing maxSplitSize: " + maxSplitSize + " and generatedRows:" + generatedRows);
+		FileSystem fS = FileSystem.get(getConf());
+		Random r = new Random(1);
+		Schema schema = new Schema("schema", Fields.parse("i:int,s:string"));
+		ITuple tuple = new Tuple(schema);
 
-    Path outPath = new Path(OUT);
-    TupleFile.Writer writer = new TupleFile.Writer(FileSystem.get(getConf()), getConf(), outPath,
-        schema);
-    for (int i=0; i<generatedRows; i++) {
-      tuple.set("i", r.nextInt());
-      tuple.set("s", r.nextLong() + "");
-      writer.append(tuple);
-    }
-    writer.close();
+		Path outPath = new Path(OUT);
+		TupleFile.Writer writer = new TupleFile.Writer(FileSystem.get(getConf()), getConf(), outPath, schema);
+		for(int i = 0; i < generatedRows; i++) {
+			tuple.set("i", r.nextInt());
+			tuple.set("s", r.nextLong() + "");
+			writer.append(tuple);
+		}
+		writer.close();
 
-    TupleInputFormat format = ReflectionUtils.newInstance(TupleInputFormat.class, getConf());
-    Job job = new Job(getConf());
-    FileInputFormat.setInputPaths(job, outPath);
-    logger.info("Using max input split size: " + maxSplitSize);
-    FileInputFormat.setMaxInputSplitSize(job, maxSplitSize);
-    job.setInputFormatClass(FileInputFormat.class);
+		TupleInputFormat format = ReflectionUtils.newInstance(TupleInputFormat.class, getConf());
+		Job job = new Job(getConf());
+		FileInputFormat.setInputPaths(job, outPath);
+		logger.info("Using max input split size: " + maxSplitSize);
+		FileInputFormat.setMaxInputSplitSize(job, maxSplitSize);
+		job.setInputFormatClass(FileInputFormat.class);
 
-    // Read all the splits and count. The number of read rows must
-    // be the same than the written ones.
-    int count = 0;
-    for(InputSplit split : format.getSplits(job)) {
-      TaskAttemptID attemptId = new TaskAttemptID(new TaskID(), 1);
-      TaskAttemptContext attemptContext = new TaskAttemptContext(getConf(), attemptId);
-      logger.info("Sampling split: " + split);
-      RecordReader<ITuple, NullWritable> reader = format.createRecordReader(split,
-          attemptContext);
-      reader.initialize(split, attemptContext);
-      while(reader.nextKeyValue()) {
-        tuple = reader.getCurrentKey();
-        count ++;
-      }
-      reader.close();
-    }
+		// Read all the splits and count. The number of read rows must
+		// be the same than the written ones.
+		int count = 0;
+		for(InputSplit split : format.getSplits(job)) {
+			TaskAttemptID attemptId = new TaskAttemptID(new TaskID(), 1);
+			TaskAttemptContext attemptContext = new TaskAttemptContext(getConf(), attemptId);
+			logger.info("Sampling split: " + split);
+			RecordReader<ITuple, NullWritable> reader = format.createRecordReader(split, attemptContext);
+			reader.initialize(split, attemptContext);
+			while(reader.nextKeyValue()) {
+				tuple = reader.getCurrentKey();
+				count++;
+			}
+			reader.close();
+		}
 
-    assertEquals(generatedRows, count);
+		assertEquals(generatedRows, count);
 
-    HadoopUtils.deleteIfExists(fS, outPath);
-  }
+		HadoopUtils.deleteIfExists(fS, outPath);
+	}
 
 }

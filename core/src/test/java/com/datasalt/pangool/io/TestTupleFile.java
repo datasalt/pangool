@@ -37,5 +37,7 @@ public class TestTupleFile extends BaseTest {
       assertEquals(tuples[count++], inTuple);
     }
     reader.close();
+    
+    fs.delete(new Path(OUT), true);
   }
 }

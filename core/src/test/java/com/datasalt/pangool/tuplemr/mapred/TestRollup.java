@@ -53,28 +53,28 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 	public static final String TEST_OUT = "TEST-OUTPUT";
 	public static final org.apache.avro.Schema AVRO_SCHEMA;
 	static {
-		AVRO_SCHEMA =  org.apache.avro.Schema.createRecord("MyRecordSchema",null,null,false);
+		AVRO_SCHEMA = org.apache.avro.Schema.createRecord("MyRecordSchema", null, null, false);
 		List<org.apache.avro.Schema.Field> avroFields = new ArrayList<org.apache.avro.Schema.Field>();
-		avroFields.add(new org.apache.avro.Schema.Field
-				("my_int",org.apache.avro.Schema.create(org.apache.avro.Schema.Type.INT),null,null));
-		avroFields.add(new org.apache.avro.Schema.Field
-				("my_string",org.apache.avro.Schema.create(org.apache.avro.Schema.Type.STRING),null,null));	
+		avroFields.add(new org.apache.avro.Schema.Field("my_int", org.apache.avro.Schema
+		    .create(org.apache.avro.Schema.Type.INT), null, null));
+		avroFields.add(new org.apache.avro.Schema.Field("my_string", org.apache.avro.Schema
+		    .create(org.apache.avro.Schema.Type.STRING), null, null));
 		AVRO_SCHEMA.setFields(avroFields);
-		
+
 	}
-	
-	
+
 	private static class Map extends TupleMapper<Text, NullWritable> {
 
 		private Schema schema;
-		
+
 		/**
 		 * Called once at the start of the task. Override it to implement your custom logic.
 		 */
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			this.schema = context.getTupleMRConfig().getIntermediateSchema(0);
 		}
-		
+
 		/**
      * 
      */
@@ -83,7 +83,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		@Override
 		public void map(Text key, NullWritable value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
-			Tuple outputKey = createTuple(key.toString(),schema);
+			Tuple outputKey = createTuple(key.toString(), schema);
 			collector.write(outputKey);
 		}
 	}
@@ -128,8 +128,8 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		}
 
 		@Override
-		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context,
-		    Collector collector) throws IOException, InterruptedException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
+		    throws IOException, InterruptedException {
 			Iterator<ITuple> iterator = tuples.iterator();
 			outputKey.set("ELEMENT");
 			while(iterator.hasNext()) {
@@ -141,7 +141,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		}
 	}
 
-	private static Tuple createTuple(String text,Schema schema) {
+	private static Tuple createTuple(String text, Schema schema) {
 		Tuple tuple = new Tuple(schema);
 		String[] tokens = text.split("\\s+");
 		String country = tokens[0];
@@ -149,7 +149,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		String name = tokens[2];
 		Integer height = Integer.parseInt(tokens[3]);
 
-		tuple.set(0,country);
+		tuple.set(0, country);
 		tuple.set(1, age);
 		tuple.set(2, name);
 		tuple.set(3, height);
@@ -157,44 +157,43 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 	}
 
 	@Test
-	public void test1() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
-	    IllegalAccessException, TupleMRException {
+	public void test1() throws IOException, InterruptedException, ClassNotFoundException,
+	    InstantiationException, IllegalAccessException, TupleMRException {
 
 		String input = TEST_OUT + "/input";
 		String output = TEST_OUT + "/output";
 
-		String[] inputElements = new String[] { 
-				"ES 20 listo 250", 
-				"US 14 beber 202", 
-				"US 14 perro 180", 
-				"US 14 perro 170",
-		    "US 15 jauja 160", 
-		    "US 16 listo 160", 
-		    "XE 20 listo 230" 
-		    };
+		String[] inputElements = new String[] { "ES 20 listo 250", "US 14 beber 202", "US 14 perro 180",
+		    "US 14 perro 170", "US 15 jauja 160", "US 16 listo 160", "XE 20 listo 230" };
 
-		Schema schema = new Schema("schema",Fields.parse("country:string, age:int, name:string, height:int"));
+		Schema schema = new Schema("schema",
+		    Fields.parse("country:string, age:int, name:string, height:int"));
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {
 			withInput(input, writable(inputElement));
-			tuples[i++] = createTuple(inputElement,schema);
+			tuples[i++] = createTuple(inputElement, schema);
 		}
 		Path outputPath = new Path(output);
 
 		TupleMRBuilder builder = new TupleMRBuilder(getConf());
 		builder.addIntermediateSchema(schema);
-		builder.setGroupByFields("country","age","name");
-		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
+		builder.setGroupByFields("country", "age", "name");
+		builder.setOrderBy(new OrderBy().add("country", Order.ASC).add("age", Order.ASC)
+		    .add("name", Order.ASC));
 		builder.setRollupFrom("country");
 		builder.setTupleReducer(new IdentityRed());
-		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
+		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class,
+		    Text.class);
 		builder.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
 
 		Job job = builder.createJob();
-		job.setNumReduceTasks(1);
-
-		assertRun(job);
+		try {
+			job.setNumReduceTasks(1);
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 
 		FileSystem fs = FileSystem.get(getConf());
 		Path outputFile = new Path(output + "/part-r-00000");
@@ -246,46 +245,45 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		cleanUp();
 		trash(TEST_OUT);
 	}
-	
+
 	@Test
-	public void test2() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
-	    IllegalAccessException, TupleMRException {
+	public void test2() throws IOException, InterruptedException, ClassNotFoundException,
+	    InstantiationException, IllegalAccessException, TupleMRException {
 
 		String input = TEST_OUT + "/input";
 		String output = TEST_OUT + "/output";
 
-		String[] inputElements = new String[] { 
-				"ES 20 listo 250", 
-				"US 14 beber 202", 
-				"US 14 perro 180", 
-				"US 14 perro 170",
-		    "US 15 jauja 160", 
-		    "US 16 listo 160", 
-		    "XE 16 listo 230" 
-		    };
+		String[] inputElements = new String[] { "ES 20 listo 250", "US 14 beber 202", "US 14 perro 180",
+		    "US 14 perro 170", "US 15 jauja 160", "US 16 listo 160", "XE 16 listo 230" };
 
-		Schema schema = new Schema("schema",Fields.parse("country:string, age:int, name:string, height:int"));
+		Schema schema = new Schema("schema",
+		    Fields.parse("country:string, age:int, name:string, height:int"));
 		ITuple[] tuples = new ITuple[inputElements.length];
 		int i = 0;
 		for(String inputElement : inputElements) {
 			withInput(input, writable(inputElement));
-			tuples[i++] = createTuple(inputElement,schema);
+			tuples[i++] = createTuple(inputElement, schema);
 		}
 		Path outputPath = new Path(output);
 
 		TupleMRBuilder builder = new TupleMRBuilder(getConf());
 		builder.addIntermediateSchema(schema);
-		builder.setGroupByFields("age","name","country");
-		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
+		builder.setGroupByFields("age", "name", "country");
+		builder.setOrderBy(new OrderBy().add("country", Order.ASC).add("age", Order.ASC)
+		    .add("name", Order.ASC));
 		builder.setRollupFrom("age");
 		builder.setTupleReducer(new IdentityRed());
-		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
+		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class,
+		    Text.class);
 		builder.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new Map());
 
 		Job job = builder.createJob();
-		job.setNumReduceTasks(1);
-
-		assertRun(job);
+		try {
+			job.setNumReduceTasks(1);
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 
 		FileSystem fs = FileSystem.get(getConf());
 		Path outputFile = new Path(output + "/part-r-00000");
@@ -331,7 +329,6 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		cleanUp();
 		trash(TEST_OUT);
 	}
-	
 
 	private enum State {
 		OPEN, CLOSE, ELEMENT
@@ -339,12 +336,12 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 
 	/**
 	 * 
-	 * Checks that {@link RollupReducer} calls properly {@link TupleReducer#onOpenGroup}, {@link TupleReducer#onCloseGroup} and
-	 * {@link TupleReducer#onGroupElements} and checks that the elements (tuples) passed are coherent. This method assumes
-	 * an specific output from the {@link TupleReducer}. The output needs to be a Text,Text for key and value This will be
-	 * the format used : key("OPEN depth"), value("serialized value") key("CLOSE depth"), value("serialized value")
-	 * key("ELEMENT"),value("serialized element") (for every element received in onElements needs to contain a record like
-	 * this)
+	 * Checks that {@link RollupReducer} calls properly {@link TupleReducer#onOpenGroup},
+	 * {@link TupleReducer#onCloseGroup} and {@link TupleReducer#onGroupElements} and checks that the elements (tuples)
+	 * passed are coherent. This method assumes an specific output from the {@link TupleReducer}. The output needs to be a
+	 * Text,Text for key and value This will be the format used : key("OPEN depth"), value("serialized value")
+	 * key("CLOSE depth"), value("serialized value") key("ELEMENT"),value("serialized element") (for every element
+	 * received in onElements needs to contain a record like this)
 	 * 
 	 * For instance : key("OPEN 0"), value(" element1") key("OPEN 1"), value("element1 ") key("ELEMENT") , value
 	 * ("element1") key("ELEMENT"),value ("element2") key("CLOSE 1"),value ("element2") key("CLOSE 0"),value("element2")
@@ -375,10 +372,11 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 				Assert.assertEquals("OPEN needs to increase depth in +1 ", lastDepth + 1, currentDepth);
 				Assert.assertTrue("Too many OPENs, over maxDepth ", maxDepth >= currentDepth);
 				if(lastState == State.OPEN) {
-					Assert.assertEquals("First element in OPEN needs to match first element in previous OPEN", lastValue,
-					    currentValue);
+					Assert.assertEquals("First element in OPEN needs to match first element in previous OPEN",
+					    lastValue, currentValue);
 				} else if(lastState == State.CLOSE) {
-					Assert.assertNotSame("Element from new group needs to be different from last element from last group ",
+					Assert.assertNotSame(
+					    "Element from new group needs to be different from last element from last group ",
 					    lastValue, currentValue);
 				} else {
 					Assert.fail("Not allowed OPEN after ELEMENT");
@@ -389,18 +387,19 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 
 			} else if(currentKey.startsWith("CLOSE")) {
 				currentDepth = Integer.parseInt(currentKey.split(" ")[1]);
-				Assert.assertNotSame("Not allowed CLOSE after OPEN , needs at least one ELEMENT in between", State.OPEN,
-				    lastState);
+				Assert.assertNotSame("Not allowed CLOSE after OPEN , needs at least one ELEMENT in between",
+				    State.OPEN, lastState);
 				Assert.assertEquals("CLOSE depth needs to match previous OPEN depth", lastDepth, currentDepth);
-				Assert.assertEquals("Element in CLOSE needs to match lastElement in group", lastValue, currentValue);
+				Assert.assertEquals("Element in CLOSE needs to match lastElement in group", lastValue,
+				    currentValue);
 
 				lastState = State.CLOSE;
 				lastValue = currentValue;
 				lastDepth = currentDepth - 1;
 
 			} else if(currentKey.startsWith("ELEMENT")) {
-				Assert
-				    .assertNotSame("Not allowed ELEMENT after CLOSE, needs an OPEN or ELEMENT before", State.CLOSE, lastState);
+				Assert.assertNotSame("Not allowed ELEMENT after CLOSE, needs an OPEN or ELEMENT before",
+				    State.CLOSE, lastState);
 				lastState = State.ELEMENT;
 				lastValue = currentValue;
 			}
@@ -411,7 +410,8 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		reader.close();
 	}
 
-	private void assertOutput(SequenceFile.Reader reader, String expectedKey, ITuple expectedValue) throws IOException {
+	private void assertOutput(SequenceFile.Reader reader, String expectedKey, ITuple expectedValue)
+	    throws IOException {
 		Text actualKey = new Text();
 		Text actualValue = new Text();
 		reader.next(actualKey, actualValue);
@@ -419,10 +419,9 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		Assert.assertEquals(new Text(expectedKey), actualKey);
 		Assert.assertEquals(new Text(expectedValue.toString()), actualValue);
 	}
-	
-	
+
 	@SuppressWarnings("serial")
-  private static class DoNothingMap extends TupleMapper<Text, NullWritable> {	
+	private static class DoNothingMap extends TupleMapper<Text, NullWritable> {
 
 		@Override
 		public void map(Text key, NullWritable value, TupleMRContext context, Collector collector)
@@ -431,34 +430,41 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 	}
 
 	/**
-	 * Tests the case in which the reducer receives no data.  
+	 * Tests the case in which the reducer receives no data.
 	 */
 	@Test
-	public void testNoDataReducer() throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
-	    IllegalAccessException, TupleMRException {
+	public void testNoDataReducer() throws IOException, InterruptedException, ClassNotFoundException,
+	    InstantiationException, IllegalAccessException, TupleMRException {
 
 		String input = TEST_OUT + "/input";
 		String output = TEST_OUT + "/output";
 
 		withInput(input, writable("ES 20 listo 250"));
-		
-		Schema schema = new Schema("schema",Fields.parse("country:string, age:int, name:string, height:int"));
+
+		Schema schema = new Schema("schema",
+		    Fields.parse("country:string, age:int, name:string, height:int"));
 		Path outputPath = new Path(output);
 
 		TupleMRBuilder builder = new TupleMRBuilder(getConf());
 		builder.addIntermediateSchema(schema);
-		builder.setGroupByFields("age","name","country");
-		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("age",Order.ASC).add("name",Order.ASC));
+		builder.setGroupByFields("age", "name", "country");
+		builder.setOrderBy(new OrderBy().add("country", Order.ASC).add("age", Order.ASC)
+		    .add("name", Order.ASC));
 		builder.setRollupFrom("age");
 		builder.setTupleReducer(new IdentityRed());
-		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class, Text.class);
-		builder.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class), new DoNothingMap());
+		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class,
+		    Text.class);
+		builder.addInput(new Path(input), new HadoopInputFormat(SequenceFileInputFormat.class),
+		    new DoNothingMap());
 
 		Job job = builder.createJob();
-		job.setNumReduceTasks(1);
-
-		assertRun(job);
-				
+		try {
+			job.setNumReduceTasks(1);
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
+		
 		cleanUp();
 		trash(TEST_OUT);
 	}

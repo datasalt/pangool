@@ -15,22 +15,25 @@
  */
 package com.datasalt.pangool.tuplemr;
 
-import com.datasalt.pangool.io.Fields;
-import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.Type;
-import com.datasalt.pangool.thrift.test.A;
-import com.datasalt.pangool.tuplemr.Criteria.Order;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.RawComparator;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import com.datasalt.pangool.io.Fields;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.thrift.test.A;
+import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.utils.InstancesDistributor;
 
 public class TestConfigParsing {
 
@@ -104,7 +107,7 @@ public class TestConfigParsing {
     TupleMRConfig conf = b.buildConf();
     Configuration hconf = new Configuration();
 
-    TupleMRConfig.set(conf, hconf);
+    Set<String> instanceFiles = TupleMRConfig.set(conf, hconf);
     TupleMRConfig deserConf = TupleMRConfig.get(hconf);
     System.out.println(conf);
     System.out.println("------------");
@@ -112,9 +115,13 @@ public class TestConfigParsing {
 
     Assert.assertEquals(conf, deserConf);
     hconf = new Configuration();
-    TupleMRConfig.set(deserConf, hconf);
+    instanceFiles.addAll(TupleMRConfig.set(deserConf, hconf));
     TupleMRConfig deserConf2 = TupleMRConfig.get(hconf);
     Assert.assertEquals(conf, deserConf2);
+    
+    for(String instanceFile: instanceFiles) {
+    	InstancesDistributor.removeFromCache(hconf, instanceFile);
+    }
   }
 
   @Test

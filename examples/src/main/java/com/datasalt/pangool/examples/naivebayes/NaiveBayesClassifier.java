@@ -16,6 +16,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.ToolRunner;
@@ -116,7 +117,12 @@ public class NaiveBayesClassifier extends BaseExampleJob implements Serializable
         context.write(value, NullWritable.get());
       }
     });
-		job.createJob().waitForCompletion(true);
+		Job j = job.createJob();
+		try {
+			j.waitForCompletion(true);
+		} finally {
+			job.cleanUpInstanceFiles();
+		}
 		
 		return 1;
 	}

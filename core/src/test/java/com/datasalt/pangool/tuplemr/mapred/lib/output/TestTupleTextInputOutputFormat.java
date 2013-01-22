@@ -74,77 +74,95 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 	 */
 	@Test
 	public void testSplits() throws Exception {
-		
+
 		BufferedWriter writer = new BufferedWriter(new FileWriter(IN));
-		for(int i = 0;i < 10000; i++) {
-			writer.write("str1" + " " + "str2" + " " + "30" + " " + "4000" + "\n"); 
+		for(int i = 0; i < 10000; i++) {
+			writer.write("str1" + " " + "str2" + " " + "30" + " " + "4000" + "\n");
 		}
 		writer.close();
-		
-		Schema schema = new Schema("schema", Fields.parse( "a:string, b:string, c:int, d:long" ));
-		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ' ', TupleTextInputFormat.NO_QUOTE_CHARACTER, TupleTextInputFormat.NO_ESCAPE_CHARACTER, FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING);
-		
+
+		Schema schema = new Schema("schema", Fields.parse("a:string, b:string, c:int, d:long"));
+		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ' ',
+		    TupleTextInputFormat.NO_QUOTE_CHARACTER, TupleTextInputFormat.NO_ESCAPE_CHARACTER,
+		    FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING);
+
 		Configuration conf = getConf();
-		conf.setLong("mapred.min.split.size", 10*1024);
-		conf.setLong("dfs.block.size", 10*1024);
-		conf.setLong("mapred.max.split.size", 10*1024);
-		
+		conf.setLong("mapred.min.split.size", 10 * 1024);
+		conf.setLong("dfs.block.size", 10 * 1024);
+		conf.setLong("mapred.max.split.size", 10 * 1024);
+
 		FileSystem fS = FileSystem.get(conf);
 		Path outPath = new Path(OUT);
-		
+
 		MapOnlyJobBuilder mapOnly = new MapOnlyJobBuilder(conf);
-		mapOnly.addInput(new Path(IN), inputFormat, new MapOnlyMapper<ITuple, NullWritable, NullWritable, NullWritable>() {
-			
-			protected void map(ITuple key, NullWritable value, Context context) throws IOException, InterruptedException {
-				Assert.assertEquals("str1", key.get("a").toString());
-				Assert.assertEquals("str2", key.get("b").toString());
-				Assert.assertEquals((Integer)30, (Integer)key.get("c"));
-				Assert.assertEquals((Long)4000l, (Long)key.get("d"));
-				context.getCounter("stats", "nlines").increment(1);
-			};
-		});
-		
+		mapOnly.addInput(new Path(IN), inputFormat,
+		    new MapOnlyMapper<ITuple, NullWritable, NullWritable, NullWritable>() {
+
+			    protected void map(ITuple key, NullWritable value, Context context) throws IOException,
+			        InterruptedException {
+				    Assert.assertEquals("str1", key.get("a").toString());
+				    Assert.assertEquals("str2", key.get("b").toString());
+				    Assert.assertEquals((Integer) 30, (Integer) key.get("c"));
+				    Assert.assertEquals((Long) 4000l, (Long) key.get("d"));
+				    context.getCounter("stats", "nlines").increment(1);
+			    };
+		    });
+
 		HadoopUtils.deleteIfExists(fS, outPath);
-		mapOnly.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class, NullWritable.class);
+		mapOnly.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class,
+		    NullWritable.class);
 		Job job = mapOnly.createJob();
-		assertTrue(job.waitForCompletion(true));
-		
+		try {
+			assertTrue(job.waitForCompletion(true));
+		} finally {
+			mapOnly.cleanUpInstanceFiles();
+		}
+
 		HadoopUtils.deleteIfExists(fS, new Path(IN));
-		
+
 		assertEquals(10000, job.getCounters().getGroup("stats").findCounter("nlines").getValue());
 	}
-	
+
 	@Test
 	public void testInputCompression() throws Exception {
-		Schema schema = new Schema("schema", Fields.parse( "a:string, b:string, c:int, d:long" ));
-		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ' ', TupleTextInputFormat.NO_QUOTE_CHARACTER, TupleTextInputFormat.NO_ESCAPE_CHARACTER, FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING);
-		
+		Schema schema = new Schema("schema", Fields.parse("a:string, b:string, c:int, d:long"));
+		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ' ',
+		    TupleTextInputFormat.NO_QUOTE_CHARACTER, TupleTextInputFormat.NO_ESCAPE_CHARACTER,
+		    FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING);
+
 		Configuration conf = getConf();
 		FileSystem fS = FileSystem.get(conf);
 		Path outPath = new Path(OUT);
-		
+
 		MapOnlyJobBuilder mapOnly = new MapOnlyJobBuilder(conf);
-		mapOnly.addInput(new Path("src/test/resources/*.gz"), inputFormat, new MapOnlyMapper<ITuple, NullWritable, NullWritable, NullWritable>() {
-			
-			protected void map(ITuple key, NullWritable value, Context context) throws IOException, InterruptedException {
-				Assert.assertNotNull(key.get("a").toString());
-				Assert.assertNotNull(key.get("b").toString());
-				Assert.assertTrue((Integer)key.get("c") > 0);
-				Assert.assertTrue((Long)key.get("d") > 0);
-				context.getCounter("stats", "nlines").increment(1);
-			};
-		});
-		
+		mapOnly.addInput(new Path("src/test/resources/*.gz"), inputFormat,
+		    new MapOnlyMapper<ITuple, NullWritable, NullWritable, NullWritable>() {
+
+			    protected void map(ITuple key, NullWritable value, Context context) throws IOException,
+			        InterruptedException {
+				    Assert.assertNotNull(key.get("a").toString());
+				    Assert.assertNotNull(key.get("b").toString());
+				    Assert.assertTrue((Integer) key.get("c") > 0);
+				    Assert.assertTrue((Long) key.get("d") > 0);
+				    context.getCounter("stats", "nlines").increment(1);
+			    };
+		    });
+
 		HadoopUtils.deleteIfExists(fS, outPath);
-		mapOnly.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class, NullWritable.class);
+		mapOnly.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class,
+		    NullWritable.class);
 		Job job = mapOnly.createJob();
-		assertTrue(job.waitForCompletion(true));
-		
+		try {
+			assertTrue(job.waitForCompletion(true));
+		} finally {
+			mapOnly.cleanUpInstanceFiles();
+		}
+
 		HadoopUtils.deleteIfExists(fS, new Path(IN));
-		
+
 		assertEquals(100, job.getCounters().getGroup("stats").findCounter("nlines").getValue());
 	}
-	
+
 	@Test
 	public void test() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
 
@@ -188,9 +206,13 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
 		builder.setTupleReducer(new IdentityTupleReducer());
 		builder.setOutput(outPath, outputFormat, ITuple.class, NullWritable.class);
-		builder.createJob().waitForCompletion(true);
+
 		Job job = builder.createJob();
-		assertRun(job);
+		try {
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 
 		Assert.assertEquals(line1 + "\n" + line2 + "\n" + line3,
 		    Files.toString(new File(OUT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
@@ -198,7 +220,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
-	
+
 	@Test
 	public void test2() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
 
@@ -226,15 +248,19 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		/*
 		 * Define the Input Format and the Output Format!
 		 */
-		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ',', '"', '\\', FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING);
+		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ',', '"', '\\',
+		    FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING);
 		OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, ',', '"', '\\');
 
 		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
 		builder.setTupleReducer(new IdentityTupleReducer());
 		builder.setOutput(outPath, outputFormat, ITuple.class, NullWritable.class);
-		builder.createJob().waitForCompletion(true);
-		Job job = builder.createJob();
-		assertRun(job);
+		try {
+			Job job = builder.createJob();
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 
 		Assert.assertEquals(line1out + "\n" + line2out,
 		    Files.toString(new File(OUT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
@@ -289,10 +315,12 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
 		builder.setTupleReducer(new IdentityTupleReducer());
 		builder.setOutput(outPath, outputFormat, ITuple.class, NullWritable.class);
-		builder.createJob().waitForCompletion(true);
 		Job job = builder.createJob();
-		assertRun(job);
-
+		try {
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 		Assert.assertEquals(outHeader + "\n" + line1 + "\n" + line2 + "\n" + line3,
 		    Files.toString(new File(OUT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
 
@@ -301,8 +329,9 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 	}
 
 	@Test
-	public void testNulls() throws IOException, InterruptedException, ClassNotFoundException, TupleMRException, URISyntaxException {
-		
+	public void testNulls() throws IOException, InterruptedException, ClassNotFoundException,
+	    TupleMRException, URISyntaxException {
+
 		String line1 = "\"Joe\",\\N,,\"\\\"Joan\\\"\",\"\"";
 
 		CommonUtils.writeTXT(line1, new File(IN));
@@ -312,44 +341,47 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		Path inPath = new Path(IN);
 		HadoopUtils.deleteIfExists(fS, outPath);
 
-		Schema schema = new Schema(
-		    "schema",
-		    Fields
-		        .parse("name:string,name2:string,age:int,name3:string,emptystring:string"));
+		Schema schema = new Schema("schema",
+		    Fields.parse("name:string,name2:string,age:int,name3:string,emptystring:string"));
 
 		MapOnlyJobBuilder mO = new MapOnlyJobBuilder(conf);
-		mO.addInput(inPath, new TupleTextInputFormat(schema, false, true, ',', '"',
-		    '\\', FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING),
+		mO.addInput(inPath, new TupleTextInputFormat(schema, false, true, ',', '"', '\\',
+		    FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING),
 		    new MapOnlyMapper<ITuple, NullWritable, NullWritable, NullWritable>() {
 
 			    protected void map(ITuple key, NullWritable value, Context context,
 			        MultipleOutputsCollector collector) throws IOException, InterruptedException {
-			    	
-			    	try {
-				    	Assert.assertNull(key.get("name2"));
-				    	Assert.assertNull(key.get("age"));
-				    	Assert.assertEquals("Joe", key.get("name"));
-				    	Assert.assertEquals("\"Joan\"", key.get("name3"));
-				    	Assert.assertEquals("", key.get("emptystring"));
-			    	} catch(Throwable t) {
-			    		t.printStackTrace();
-			    		throw new RuntimeException(t);
-			    	}
+
+				    try {
+					    Assert.assertNull(key.get("name2"));
+					    Assert.assertNull(key.get("age"));
+					    Assert.assertEquals("Joe", key.get("name"));
+					    Assert.assertEquals("\"Joan\"", key.get("name3"));
+					    Assert.assertEquals("", key.get("emptystring"));
+				    } catch(Throwable t) {
+					    t.printStackTrace();
+					    throw new RuntimeException(t);
+				    }
 			    }
 		    });
-		
+
 		mO.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class,
 		    NullWritable.class);
 		Job job = mO.createJob();
-		assertTrue(job.waitForCompletion(true));
+		try {
+			assertTrue(job.waitForCompletion(true));
+		} finally {
+			mO.cleanUpInstanceFiles();
+		}
 
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
-	
+
 	@Test
-	public void testNumberNulls() throws IOException, InterruptedException, ClassNotFoundException, TupleMRException, URISyntaxException {
-		
+	public void testNumberNulls() throws IOException, InterruptedException, ClassNotFoundException,
+	    TupleMRException, URISyntaxException {
+
 		String line1 = ",-, ,.";
 
 		CommonUtils.writeTXT(line1, new File(IN));
@@ -359,45 +391,45 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		Path inPath = new Path(IN);
 		HadoopUtils.deleteIfExists(fS, outPath);
 
-		Schema schema = new Schema(
-		    "schema",
-		    Fields
-		        .parse("n1:int,n2:long,n3:float,n4:double"));
+		Schema schema = new Schema("schema", Fields.parse("n1:int,n2:long,n3:float,n4:double"));
 
 		MapOnlyJobBuilder mO = new MapOnlyJobBuilder(conf);
-		mO.addInput(inPath, new TupleTextInputFormat(schema, false, true, ',', '"',
-		    '\\', FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING),
+		mO.addInput(inPath, new TupleTextInputFormat(schema, false, true, ',', '"', '\\',
+		    FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING),
 		    new MapOnlyMapper<ITuple, NullWritable, NullWritable, NullWritable>() {
 
 			    protected void map(ITuple key, NullWritable value, Context context,
 			        MultipleOutputsCollector collector) throws IOException, InterruptedException {
-			    	
-			    	try {
-				    	Assert.assertNull(key.get("n1"));
-				    	Assert.assertNull(key.get("n2"));
-				    	Assert.assertNull(key.get("n3"));
-				    	Assert.assertNull(key.get("n4"));
-			    	} catch(Throwable t) {
-			    		t.printStackTrace();
-			    		throw new RuntimeException(t);
-			    	}
+
+				    try {
+					    Assert.assertNull(key.get("n1"));
+					    Assert.assertNull(key.get("n2"));
+					    Assert.assertNull(key.get("n3"));
+					    Assert.assertNull(key.get("n4"));
+				    } catch(Throwable t) {
+					    t.printStackTrace();
+					    throw new RuntimeException(t);
+				    }
 			    }
 		    });
-		
+
 		mO.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class,
 		    NullWritable.class);
 		Job job = mO.createJob();
-		assertTrue(job.waitForCompletion(true));
+		try {
+			assertTrue(job.waitForCompletion(true));
+		} finally {
+			mO.cleanUpInstanceFiles();
+		}
 
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
 
-		
 	@Test
 	public void testQuotes() throws IOException, InterruptedException, ClassNotFoundException,
 	    TupleMRException, URISyntaxException {
-		
+
 		String line1 = "\"MYS\",\"Malaysia\",\"Asia\",\"Southeast Asia\",329758.00,1957,22244000,70.8,69213.00,97884.00,\"Malaysia\",\"Constitutional Monarchy, Federation\",\"Salahuddin Abdul Aziz Shah Alhaj\",2464,\"MY\"";
 
 		CommonUtils.writeTXT(line1, new File(IN));
@@ -407,49 +439,41 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		Path inPath = new Path(IN);
 		HadoopUtils.deleteIfExists(fS, outPath);
 
-		Schema schema = new Schema(
-		    "schema",
-		    Fields
-		        .parse("code:string," +
-		        		"name:string," +
-		        		"continent:string," +
-		        		"region:string," +
-		        		"surface_area:double," +
-		        		"indep_year:int," +
-		        		"population:int," +
-		        		"life_expectancy:double," +
-		        		"gnp:double," +
-		        		"gnp_old:double," +
-		        		"local_name:string," +
-		        		"government_form:string," +
-		        		"head_of_state:string," +
-		        		"capital:int," +
-		        		"code2:string"));
+		Schema schema = new Schema("schema", Fields.parse("code:string," + "name:string,"
+		    + "continent:string," + "region:string," + "surface_area:double," + "indep_year:int,"
+		    + "population:int," + "life_expectancy:double," + "gnp:double," + "gnp_old:double,"
+		    + "local_name:string," + "government_form:string," + "head_of_state:string," + "capital:int,"
+		    + "code2:string"));
 
-		
 		MapOnlyJobBuilder mO = new MapOnlyJobBuilder(conf);
-		mO.addInput(inPath, new TupleTextInputFormat(schema, false, false, ',', '"',
-		    '\\', FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING),
+		mO.addInput(inPath, new TupleTextInputFormat(schema, false, false, ',', '"', '\\',
+		    FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING),
 		    new MapOnlyMapper<ITuple, NullWritable, NullWritable, NullWritable>() {
 
 			    protected void map(ITuple key, NullWritable value, Context context,
 			        MultipleOutputsCollector collector) throws IOException, InterruptedException {
-			    	
-			    	try {
-				    	Assert.assertEquals("Constitutional Monarchy, Federation", key.get("government_form").toString());
-				    	Assert.assertEquals("Salahuddin Abdul Aziz Shah Alhaj", key.get("head_of_state").toString());
-				    	Assert.assertEquals(2464, key.get("capital"));
-			    	} catch(Throwable t) {
-			    		t.printStackTrace();
-			    		throw new RuntimeException(t);
-			    	}
+
+				    try {
+					    Assert.assertEquals("Constitutional Monarchy, Federation", key.get("government_form")
+					        .toString());
+					    Assert.assertEquals("Salahuddin Abdul Aziz Shah Alhaj", key.get("head_of_state")
+					        .toString());
+					    Assert.assertEquals(2464, key.get("capital"));
+				    } catch(Throwable t) {
+					    t.printStackTrace();
+					    throw new RuntimeException(t);
+				    }
 			    }
 		    });
 		mO.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class,
 		    NullWritable.class);
 		Job job = mO.createJob();
-		assertTrue(job.waitForCompletion(true));
-		
+		try {
+			assertTrue(job.waitForCompletion(true));
+		} finally {
+			mO.cleanUpInstanceFiles();
+		}
+
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
@@ -488,17 +512,20 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		// Define the Input Format and the Output Format!
 		// Add the selector to the input format
 		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ' ',
-		    TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER, selector, TupleTextInputFormat.NO_NULL_STRING);
+		    TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER, selector,
+		    TupleTextInputFormat.NO_NULL_STRING);
 		OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, ' ',
 		    TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
 
 		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
 		builder.setTupleReducer(new IdentityTupleReducer());
 		builder.setOutput(outPath, outputFormat, ITuple.class, NullWritable.class);
-		builder.createJob().waitForCompletion(true);
 		Job job = builder.createJob();
-		assertRun(job);
-
+		try {
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 		// This is what we expect as output after field selection
 		line1 = "10.0 100 true";
 		line2 = "20.0 200 false";
@@ -510,20 +537,21 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
-	
+
 	@Test
-	public void testInputFixedWidth() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
+	public void testInputFixedWidth() throws TupleMRException, IOException, InterruptedException,
+	    ClassNotFoundException {
 
 		String line1 = "foo1 +10.0  ar  1.0 +10  +10000  true MICKEY";
 		String line2 = "foo2 20.0  bar2 2.0 -20 +20000  false MOUSE ";
 		String line3 = "foo3  30.0 bar3 3.0 30  3000000 true   MINIE";
-    //             "01234567890123456789012345678901234567890123"
-		int fieldsPos [] = new int[] {0,3, 5,9, 11,14, 16,18, 20,22, 24,30, 32,36, 38,43};
-		
+		// "01234567890123456789012345678901234567890123"
+		int fieldsPos[] = new int[] { 0, 3, 5, 9, 11, 14, 16, 18, 20, 22, 24, 30, 32, 36, 38, 43 };
+
 		String line1out = "foo1 10.0 ar 1.0 10 10000 true MICKEY";
 		String line2out = "foo2 20.0 bar2 2.0 -20 20000 false MOUSE";
 		String line3out = "foo3 30.0 bar3 3.0 30 3000000 true MINIE";
-		
+
 		// The input is a simple space-separated file with no quotes
 		CommonUtils.writeTXT(line1 + "\n" + line2 + "\n" + line3, new File(IN));
 		Configuration conf = getConf();
@@ -551,7 +579,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		/*
 		 * Define the Input Format and the Output Format!
 		 */
-		
+
 		InputFormat inputFormat = new TupleTextInputFormat(schema, fieldsPos, false, null);
 		OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, ' ',
 		    TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
@@ -559,30 +587,33 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
 		builder.setTupleReducer(new IdentityTupleReducer());
 		builder.setOutput(outPath, outputFormat, ITuple.class, NullWritable.class);
-		builder.createJob().waitForCompletion(true);
 		Job job = builder.createJob();
-		assertRun(job);
-
+		try {
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 		Assert.assertEquals(line1out + "\n" + line2out + "\n" + line3out,
 		    Files.toString(new File(OUT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
 
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
-	
+
 	@Test
-	public void testInputFixedWidthNull() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException {
+	public void testInputFixedWidthNull() throws TupleMRException, IOException, InterruptedException,
+	    ClassNotFoundException {
 
 		String line1 = "foo1 +10.0 bar1 1.0 100 1000000  true MICKEY";
 		String line2 = "foo2 20.0  bar2 2.0 200 2000000 false MOUSE ";
 		String line3 = "foo3  30.0 bar3 3.0 300 3000000 true   MINIE";
-    //             "01234567890123456789012345678901234567890123"
-		int fieldsPos [] = new int[] {0,3, 5,9, 11,14, 16,18, 20,22, 24,30, 32,36, 38,43};
-		
+		// "01234567890123456789012345678901234567890123"
+		int fieldsPos[] = new int[] { 0, 3, 5, 9, 11, 14, 16, 18, 20, 22, 24, 30, 32, 36, 38, 43 };
+
 		String line1out = "foo1 10.0 bar1 1.0 100 1000000 true MICKEY";
 		String line2out = "foo2 20.0 bar2 2.0 200 2000000 false MOUSE";
 		String line3out = "foo3 30.0 bar3 3.0 300 3000000 true MINIE";
-		
+
 		// The input is a simple space-separated file with no quotes
 		CommonUtils.writeTXT(line1 + "\n" + line2 + "\n" + line3, new File(IN));
 		Configuration conf = getConf();
@@ -610,7 +641,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		/*
 		 * Define the Input Format and the Output Format!
 		 */
-		
+
 		InputFormat inputFormat = new TupleTextInputFormat(schema, fieldsPos, false, null);
 		OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, ' ',
 		    TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
@@ -618,23 +649,26 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
 		builder.setTupleReducer(new IdentityTupleReducer());
 		builder.setOutput(outPath, outputFormat, ITuple.class, NullWritable.class);
-		builder.createJob().waitForCompletion(true);
 		Job job = builder.createJob();
-		assertRun(job);
-
+		try {
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 		Assert.assertEquals(line1out + "\n" + line2out + "\n" + line3out,
 		    Files.toString(new File(OUT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
 
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
-	
+
 	@Test
-	public void testFixedWidthNulls() throws IOException, InterruptedException, ClassNotFoundException, TupleMRException, URISyntaxException {
-		
-		String line1 = "1000  - ";	
-		int fieldsPos [] = new int[] {0,3, 5,7};
-		
+	public void testFixedWidthNulls() throws IOException, InterruptedException, ClassNotFoundException,
+	    TupleMRException, URISyntaxException {
+
+		String line1 = "1000  - ";
+		int fieldsPos[] = new int[] { 0, 3, 5, 7 };
+
 		CommonUtils.writeTXT(line1, new File(IN));
 		Configuration conf = getConf();
 		FileSystem fS = FileSystem.get(conf);
@@ -642,10 +676,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		Path inPath = new Path(IN);
 		HadoopUtils.deleteIfExists(fS, outPath);
 
-		Schema schema = new Schema(
-		    "schema",
-		    Fields
-		        .parse("name:string,name2:string"));
+		Schema schema = new Schema("schema", Fields.parse("name:string,name2:string"));
 
 		MapOnlyJobBuilder mO = new MapOnlyJobBuilder(conf);
 		mO.addInput(inPath, new TupleTextInputFormat(schema, fieldsPos, false, "-"),
@@ -653,21 +684,25 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 
 			    protected void map(ITuple key, NullWritable value, Context context,
 			        MultipleOutputsCollector collector) throws IOException, InterruptedException {
-			    	
-			    	try {
-				    	Assert.assertNull(key.get("name2"));
-				    	Assert.assertEquals("1000", key.get("name"));
-			    	} catch(Throwable t) {
-			    		t.printStackTrace();
-			    		throw new RuntimeException(t);
-			    	}
+
+				    try {
+					    Assert.assertNull(key.get("name2"));
+					    Assert.assertEquals("1000", key.get("name"));
+				    } catch(Throwable t) {
+					    t.printStackTrace();
+					    throw new RuntimeException(t);
+				    }
 			    }
 		    });
-		
+
 		mO.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class,
 		    NullWritable.class);
 		Job job = mO.createJob();
-		assertTrue(job.waitForCompletion(true));
+		try {
+			assertTrue(job.waitForCompletion(true));
+		} finally {
+			mO.cleanUpInstanceFiles();
+		}
 
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);

@@ -1,23 +1,29 @@
 package com.datasalt.pangool.tuplemr.serialization;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.datasalt.pangool.io.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.junit.Test;
 
+import com.datasalt.pangool.io.Fields;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.TupleFile;
 import com.datasalt.pangool.tuplemr.IdentityTupleReducer;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
@@ -84,7 +90,12 @@ public class TupleOfTupleOfTuples {
 		builder.addInput(new Path("src/test/resources/foo-file.txt"), new HadoopInputFormat(TextInputFormat.class), new MyHandler());
 		builder.setGroupByFields("group");
 		builder.setTupleReducer(new IdentityTupleReducer());
-		builder.createJob().waitForCompletion(true);
+		Job job = builder.createJob();
+		try {
+			job.waitForCompletion(true);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 
 		Path toRead = new Path(out, "part-r-00000");
 		assertTrue(fS.exists(toRead));

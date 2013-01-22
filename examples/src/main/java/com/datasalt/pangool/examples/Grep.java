@@ -23,6 +23,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.ToolRunner;
@@ -71,7 +72,12 @@ public class Grep extends BaseExampleJob {
 		MapOnlyJobBuilder b = new MapOnlyJobBuilder(conf);
 		b.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
 		b.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new GrepHandler(regex));
-		b.createJob().waitForCompletion(true);
+		Job job = b.createJob();
+		try {
+			job.waitForCompletion(true);
+		} finally {
+			b.cleanUpInstanceFiles();
+		}
 		
 		return 0;
 	}

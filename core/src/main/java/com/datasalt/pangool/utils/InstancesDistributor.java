@@ -42,7 +42,8 @@ import org.apache.hadoop.fs.Path;
 public class InstancesDistributor {
 
 	public final static String HDFS_TMP_FOLDER_CONF = InstancesDistributor.class.getName() + ".hdfs.pangool.tmp.folder";
-
+	public final static String DEFAULT_HDFS_TMP_FOLDER_CONF_VALUE = "./pangool-instances";
+	
 	/**
 	 * Utility method for serializing an object and saving it in a way that later can be recovered
    * anywhere in the cluster.
@@ -61,14 +62,10 @@ public class InstancesDistributor {
 	    throws FileNotFoundException, IOException, URISyntaxException {
 
     FileSystem fS = FileSystem.get(conf);
-		String tmpHdfsFolder = conf.get(HDFS_TMP_FOLDER_CONF);
-		if(tmpHdfsFolder == null) {
-			// set the temporary folder for Pangool instances to the temporary of the user that is running the Job
-			// This folder will be used across the cluster for location the instances. This way, tasktrackers
-			// that are being run as different user will still be able to locate this folder
-			tmpHdfsFolder = conf.get("hadoop.tmp.dir");
-			conf.set(HDFS_TMP_FOLDER_CONF, tmpHdfsFolder);
-		}
+		// set the temporary folder for Pangool instances to the temporary of the user that is running the Job
+		// This folder will be used across the cluster for location the instances.
+    // The default value can be changed by a user-provided one.
+		String tmpHdfsFolder = conf.get(HDFS_TMP_FOLDER_CONF, DEFAULT_HDFS_TMP_FOLDER_CONF_VALUE);
 		Path toHdfs = new Path(tmpHdfsFolder, fileName);
 		if(fS.exists(toHdfs)) { // Optionally, copy to DFS if
 			fS.delete(toHdfs, false);
@@ -125,7 +122,7 @@ public class InstancesDistributor {
 	 * @throws IOException
 	 */
 	private static Path locateFileInCache(Configuration conf, String filename) throws IOException {
-      return new Path(conf.get(HDFS_TMP_FOLDER_CONF, conf.get("hadoop.tmp.dir")),
+      return new Path(conf.get(HDFS_TMP_FOLDER_CONF, DEFAULT_HDFS_TMP_FOLDER_CONF_VALUE),
           filename);
 	}
 

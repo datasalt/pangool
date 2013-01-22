@@ -29,6 +29,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.junit.Test;
@@ -185,7 +186,12 @@ public class TestTupleFieldSerialization extends AbstractHadoopTestLibrary imple
 		});
 		builder.setGroupByFields("partitionId");
 		builder.setOutput(new Path(OUTPUT), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-		builder.createJob().waitForCompletion(true);
+		Job job = builder.createJob();
+		try {
+			job.waitForCompletion(true);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 		trash(INPUT1, INPUT2, OUTPUT);
 	}
 }

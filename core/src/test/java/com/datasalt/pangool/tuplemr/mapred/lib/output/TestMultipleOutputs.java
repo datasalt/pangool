@@ -61,13 +61,15 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 	public final static String TUPLEOUTPUT_1 = "tuple1";
 
 	@SuppressWarnings("serial")
-  public static class MyInputProcessor extends TupleMapper<LongWritable, Text> {
+	public static class MyInputProcessor extends TupleMapper<LongWritable, Text> {
 
 		private Tuple tuple;
-		public void setup(TupleMRContext context, Collector collector) throws IOException, InterruptedException {
+
+		public void setup(TupleMRContext context, Collector collector) throws IOException,
+		    InterruptedException {
 			tuple = new Tuple(context.getTupleMRConfig().getIntermediateSchema(0));
 		}
-		
+
 		@Override
 		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException {
@@ -76,8 +78,8 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 			tuple.set(2, new Text("ES"));
 
 			// We use the multiple outputs here -
-			collector.write(OUTPUT_1, new Utf8((String)tuple.get(0)), new Utf8((Text)tuple.get(2)));
-			collector.write(OUTPUT_2, new IntWritable((Integer)tuple.get(1)), NullWritable.get());
+			collector.write(OUTPUT_1, new Utf8((String) tuple.get(0)), new Utf8((Text) tuple.get(2)));
+			collector.write(OUTPUT_2, new IntWritable((Integer) tuple.get(1)), NullWritable.get());
 			collector.write(TUPLEOUTPUT_1, tuple, NullWritable.get());
 
 			collector.write(tuple);
@@ -85,17 +87,16 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 	}
 
 	@SuppressWarnings("serial")
-  public static class MyGroupHandler extends TupleReducer<DoubleWritable, NullWritable> {
+	public static class MyGroupHandler extends TupleReducer<DoubleWritable, NullWritable> {
 
 		@Override
-		public void reduce(ITuple group, Iterable<ITuple> tuples,
-		    TupleMRContext pangoolContext, Collector collector)
-		    throws IOException, InterruptedException, TupleMRException {
+		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext pangoolContext,
+		    Collector collector) throws IOException, InterruptedException, TupleMRException {
 
 			for(ITuple tuple : tuples) {
 				// We also use the multiple outputs here -
 				collector.write(OUTPUT_1, tuple.get(0), tuple.get(2));
-				collector.write(OUTPUT_2, new IntWritable((Integer)tuple.get(1)), NullWritable.get());
+				collector.write(OUTPUT_2, new IntWritable((Integer) tuple.get(1)), NullWritable.get());
 				collector.write(TUPLEOUTPUT_1, tuple, NullWritable.get());
 			}
 
@@ -104,14 +105,15 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 	}
 
 	private void checkCompression(String path, Class<? extends CompressionCodec> codec) throws IOException {
-		SequenceFile.Reader reader = new SequenceFile.Reader(FileSystem.get(getConf()), new Path(path), getConf());
+		SequenceFile.Reader reader = new SequenceFile.Reader(FileSystem.get(getConf()), new Path(path),
+		    getConf());
 		Assert.assertEquals(reader.getCompressionCodec().getClass(), codec);
-		reader.close();		
+		reader.close();
 	}
-	
+
 	@Test
-	public void test() throws TupleMRException, IOException, InterruptedException,
-	    ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public void test() throws TupleMRException, IOException, InterruptedException, ClassNotFoundException,
+	    InstantiationException, IllegalAccessException {
 
 		initHadoop();
 		trash(INPUT, OUTPUT);
@@ -120,26 +122,35 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		// Business logic in {@link MyInputProcessor}
 		CommonUtils.writeTXT("ignore-me", new File(INPUT));
 
-		getConf().set("mapred.output.compress","true");
-		getConf().set("mapred.output.compression.codec","org.apache.hadoop.io.compress.DefaultCodec");
-		
+		getConf().set("mapred.output.compress", "true");
+		getConf().set("mapred.output.compression.codec", "org.apache.hadoop.io.compress.DefaultCodec");
+
 		TupleMRBuilder builder = new TupleMRBuilder(getConf());
-		Schema baseSchema = new Schema("schema",Fields.parse("name:string, money:int, country:string"));
+		Schema baseSchema = new Schema("schema", Fields.parse("name:string, money:int, country:string"));
 		builder.addIntermediateSchema(baseSchema);
 		builder.setGroupByFields("country");
-		builder.setOrderBy(new OrderBy().add("country",Order.ASC).add("money",Order.DESC).add("name",Order.ASC));
-		builder.addInput(new Path(INPUT), new HadoopInputFormat(TextInputFormat.class), new MyInputProcessor());
+		builder.setOrderBy(new OrderBy().add("country", Order.ASC).add("money", Order.DESC)
+		    .add("name", Order.ASC));
+		builder.addInput(new Path(INPUT), new HadoopInputFormat(TextInputFormat.class),
+		    new MyInputProcessor());
 		builder.setTupleReducer(new MyGroupHandler());
-		builder.setOutput(new Path(OUTPUT), new HadoopOutputFormat(SequenceFileOutputFormat.class), DoubleWritable.class, NullWritable.class);
+		builder.setOutput(new Path(OUTPUT), new HadoopOutputFormat(SequenceFileOutputFormat.class),
+		    DoubleWritable.class, NullWritable.class);
 		// Configure extra outputs
-		builder.addNamedOutput(OUTPUT_1, new HadoopOutputFormat(SequenceFileOutputFormat.class), Utf8.class, Utf8.class);
-		builder.addNamedOutput(OUTPUT_2, new HadoopOutputFormat(SequenceFileOutputFormat.class), IntWritable.class, NullWritable.class);
+		builder.addNamedOutput(OUTPUT_1, new HadoopOutputFormat(SequenceFileOutputFormat.class), Utf8.class,
+		    Utf8.class);
+		builder.addNamedOutput(OUTPUT_2, new HadoopOutputFormat(SequenceFileOutputFormat.class),
+		    IntWritable.class, NullWritable.class);
 		builder.addNamedTupleOutput(TUPLEOUTPUT_1, baseSchema);
 
-		getConf()
-		    .setClass(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, SequenceFileOutputFormat.class, OutputFormat.class);
+		getConf().setClass(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, SequenceFileOutputFormat.class,
+		    OutputFormat.class);
 		Job job = builder.createJob();
-		assertRun(job);
+		try {
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
 
 		// Check outputs
 
@@ -159,10 +170,10 @@ public class TestMultipleOutputs extends AbstractHadoopTestLibrary {
 		tuple.set(0, "Pere");
 		tuple.set(1, 100);
 		tuple.set(2, "ES");
-		
+
 		withTupleOutput(firstMapOutput(OUTPUT + "/" + TUPLEOUTPUT_1), tuple);
 		withTupleOutput(firstReducerOutput(OUTPUT + "/" + TUPLEOUTPUT_1), tuple);
-		
+
 		trash(INPUT, OUTPUT);
 		cleanUp();
 	}
