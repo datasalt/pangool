@@ -95,7 +95,7 @@ public class MultiShakespeareIndexer extends BaseExampleJob implements Serializa
 			}
 			// Add a named output for each category
 			job.addNamedOutput(categoryString, new TupleSolrOutputFormat(new File(
-			    "src/test/resources/shakespeare-solr"), conf), ITuple.class, NullWritable.class);
+			    "src/test/resources/shakespeare-solr"), job.getConf()), ITuple.class, NullWritable.class);
 		}
 		job.setOutput(new Path(output), new HadoopOutputFormat(NullOutputFormat.class), ITuple.class,
 		    NullWritable.class);
@@ -128,7 +128,7 @@ public class MultiShakespeareIndexer extends BaseExampleJob implements Serializa
 	}
 
 	public MultiShakespeareIndexer() {
-		super("Usage: [input-shakespeare] [output-indexes]");
+		super("Usage: [input-shakespeare] [output-indexes] . This example job must be run from pangool-examples home to be able to find SOLR configs in ./src/test/resources.");
 	}
 
 	public static void main(String args[]) throws Exception {

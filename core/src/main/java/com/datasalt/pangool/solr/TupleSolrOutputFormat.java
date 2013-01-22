@@ -159,7 +159,7 @@ public class TupleSolrOutputFormat extends FileOutputFormat<ITuple, NullWritable
 		final URI baseZipUrl = fs.getUri().resolve(zipPath.toString() + '#' + zipName);
 
 		DistributedCache.addCacheArchive(baseZipUrl, conf);
-		LOG.debug("Set Solr cache: " + Arrays.asList(DistributedCache.getCacheArchives(conf)));
+		LOG.info("Set Solr cache: " + Arrays.asList(DistributedCache.getCacheArchives(conf)));
 	}
 
 	private static void createZip(File dir, File out) throws IOException {
