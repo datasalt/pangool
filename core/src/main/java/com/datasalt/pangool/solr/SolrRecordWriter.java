@@ -116,7 +116,7 @@ public class SolrRecordWriter extends RecordWriter<ITuple, NullWritable> {
 	/** The path that the final index will be written to */
 	private Path perm;
 	/** The location in a local temporary directory that the index is built in. */
-	private Path temp;
+	private Path local;
 	/** The directory that the configuration zip file was unpacked into. */
 	private Path solrHome = null;
 
@@ -193,7 +193,7 @@ public class SolrRecordWriter extends RecordWriter<ITuple, NullWritable> {
 			// Note: if using JVM reuse, the sequence number will not be reset for a
 			// new task using the jvm
 
-			temp = conf.getLocalPath("mapred.local.dir",
+			Path temp = conf.getLocalPath("mapred.local.dir",
 			    "solr_" + conf.get("mapred.task.id") + '.' + sequence.incrementAndGet());
 
 			if(outputZipFile && !perm.getName().endsWith(".zip")) {
@@ -201,7 +201,7 @@ public class SolrRecordWriter extends RecordWriter<ITuple, NullWritable> {
 			}
 			fs.delete(temp, true); // delete old, if any
 			fs.delete(perm, true); // delete old, if any
-			Path local = fs.startLocalOutput(perm, temp);
+			local = fs.startLocalOutput(perm, temp);
 
 			solrHome = findSolrConfig(conf);
 
@@ -213,7 +213,7 @@ public class SolrRecordWriter extends RecordWriter<ITuple, NullWritable> {
 
 			// Setup a solr instance that we can batch writes to
 			LOG.info("SolrHome: " + solrHome.toUri());
-			String dataDir = new File(local.toString(), "data").toString();
+			String dataDir = new File(local.toString(), "data").getAbsoluteFile().toString();
 			// copy the schema to the conf dir
 			File confDir = new File(local.toString(), "conf");
 			confDir.mkdirs();
@@ -240,6 +240,8 @@ public class SolrRecordWriter extends RecordWriter<ITuple, NullWritable> {
 
 			this.converter = converter;
 		} catch(Exception e) {
+			e.printStackTrace();
+			LOG.error(e);
 			throw new IllegalStateException(String.format("Failed to initialize record writer for %s, %s",
 			    context.getJobName(), conf.get("mapred.task.id")), e);
 		} finally {
@@ -350,7 +352,7 @@ public class SolrRecordWriter extends RecordWriter<ITuple, NullWritable> {
 				packZipFile(); // Written to the perm location
 			} else {
 				context.setStatus("Copying Index");
-				fs.completeLocalOutput(perm, temp); // copy to dfs
+				fs.completeLocalOutput(perm, local); // copy to dfs
 			}
 		} catch(Exception e) {
 			if(e instanceof IOException) {
@@ -359,9 +361,9 @@ public class SolrRecordWriter extends RecordWriter<ITuple, NullWritable> {
 			throw new IOException(e);
 		} finally {
 			heartBeater.cancelHeartBeat();
-			File tempFile = new File(temp.toString());
+			File tempFile = new File(local.toString());
 			if(tempFile.exists()) {
-				FileUtils.forceDelete(new File(temp.toString()));
+				FileUtils.forceDelete(new File(local.toString()));
 			}
 		}
 
@@ -378,8 +380,8 @@ public class SolrRecordWriter extends RecordWriter<ITuple, NullWritable> {
 			zos = new ZipOutputStream(out);
 
 			String name = perm.getName().replaceAll(".zip$", "");
-			LOG.info("adding index directory" + temp);
-			zipCount = zipDirectory(conf, zos, name, temp.toString(), temp);
+			LOG.info("adding index directory" + local);
+			zipCount = zipDirectory(conf, zos, name, local.toString(), local);
 		} catch(Throwable ohFoo) {
 			LOG.error("packZipFile exception", ohFoo);
 			if(ohFoo instanceof RuntimeException) {
@@ -398,7 +400,7 @@ public class SolrRecordWriter extends RecordWriter<ITuple, NullWritable> {
 					fs.delete(perm, false);
 					// out.close();
 				} else {
-					LOG.info(String.format("Wrote %d items to %s for %s", zipCount, perm, temp));
+					LOG.info(String.format("Wrote %d items to %s for %s", zipCount, perm, local));
 					zos.close();
 				}
 			}
