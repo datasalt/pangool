@@ -242,6 +242,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		assertOutput(reader, "CLOSE 1", tuples[6]);
 		assertOutput(reader, "CLOSE 0", tuples[6]);
 
+		reader.close();
 		cleanUp();
 		trash(TEST_OUT);
 	}
@@ -326,6 +327,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		assertOutput(reader, "CLOSE 2", tuples[6]);
 		assertOutput(reader, "CLOSE 1", tuples[6]);
 
+		reader.close();
 		cleanUp();
 		trash(TEST_OUT);
 	}

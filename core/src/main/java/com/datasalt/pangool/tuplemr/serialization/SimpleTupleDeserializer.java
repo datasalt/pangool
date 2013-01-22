@@ -19,17 +19,17 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
+import com.datasalt.pangool.io.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
 import com.datasalt.pangool.utils.Buffer;
@@ -44,6 +44,8 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	private DataInputStream input;
 	private final HadoopSerialization ser;
 	private final Buffer tmpInputBuffer = new Buffer();
+  private final BitField nullsRelative = new BitField();
+  private final FlagsField nullsAbsolute = new FlagsField();
 	private final Configuration conf;
 
 	private Deserializer[] deserializers; 
@@ -89,9 +91,32 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 
 	public void readFields(ITuple tuple, Deserializer[] customDeserializers) throws IOException {
 		Schema schema = tuple.getSchema();
+    // If there are fields with nulls, read the bit field and set the values that are null
+    if (schema.containsNullableFields()) {
+      List<Integer> nullableFields = schema.getNullableFieldsIdx();
+      nullsAbsolute.ensureSize(schema.getFields().size());
+      nullsAbsolute.clear(nullableFields);
+      nullsRelative.deser(input);
+      for (int i = 0; i < nullableFields.size(); i++) {
+        if (nullsRelative.isSet(i)) {
+          int field = nullableFields.get(i);
+          tuple.set(field, null);
+          nullsAbsolute.flags[field] = true;
+        }
+      }
+    }
+
+    // Field by field deseralization
 		for(int index = 0; index < schema.getFields().size(); index++) {
 			Deserializer customDeser = customDeserializers[index];
 			Field field = schema.getField(index);
+
+      // Nulls control
+      if (field.isNullable() && nullsAbsolute.flags[index]) {
+        // Null field. Nothing to deserialize.
+        continue;
+      }
+
 			switch(field.getType()) {
 			case INT:
 				tuple.set(index, WritableUtils.readVInt(input));
@@ -189,4 +214,24 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 			throw new IOException("Ordinal index out of bounds for " + fieldType + " ordinal=" + ordinal);
 		}
 	}
+
+  /**
+   * Helping class that keeps an array of flags. Used to know if a particular field
+   * is null or not.
+   */
+  private static class FlagsField {
+    public boolean[] flags = new boolean[0];
+
+    public void ensureSize(int size) {
+      if (flags.length < size) {
+        flags = Arrays.copyOf(flags, size);
+      }
+    }
+
+    public void clear(List<Integer> flags) {
+      for (Integer flag : flags) {
+        this.flags[flag] = false;
+      }
+    }
+  }
 }

@@ -38,8 +38,11 @@ public class GroupComparator extends SortComparator {
 	private Criteria groupCriteria;
 	
 	public GroupComparator(){}
-	
-	@SuppressWarnings("rawtypes")
+
+  /**
+   * Never called in MapRed jobs. Just for completion and test purposes
+   */
+  @SuppressWarnings("rawtypes")
   @Override
 	public int compare(ITuple w1, ITuple w2) {
 		int schemaId1 = tupleMRConf.getSchemaIdByName(w1.getSchema().getName());
@@ -54,7 +57,7 @@ public class GroupComparator extends SortComparator {
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
 		try{
 		Schema groupSchema = serInfo.getGroupSchema();
-		return compare(b1,s1,b2,s2,groupSchema,groupCriteria,offsets);
+		return compare(b1,s1,b2,s2,groupSchema,groupCriteria,offsets,nulls);
 		} catch(IOException e){
 			throw new RuntimeException(e);
 		}
