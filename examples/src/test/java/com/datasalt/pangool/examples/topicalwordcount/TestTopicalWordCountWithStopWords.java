@@ -34,7 +34,7 @@ public class TestTopicalWordCountWithStopWords extends AbstractHadoopTestLibrary
 	
 	@Test
 	public void test() throws Exception {
-		trash(OUTPUT);
+        trash(INPUT, STOP_WORDS, OUTPUT);
 		
 		Configuration conf = new Configuration();
 		
@@ -47,6 +47,7 @@ public class TestTopicalWordCountWithStopWords extends AbstractHadoopTestLibrary
 		
 		// Stop words: bar, bloh
 		Files.write(("bar" + "\n" + "bloh").getBytes("UTF-8"), new File(STOP_WORDS));
+	    trash(OUTPUT);
 		ToolRunner.run(getConf(), new TopicalWordCountWithStopWords(), new String[] { INPUT, OUTPUT, STOP_WORDS });
 
 		assertEquals(3, TestTopicalWordCount.assertOutput(OUTPUT + "/part-r-00000", conf));
