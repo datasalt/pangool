@@ -362,7 +362,8 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 								tuple.set(i, null);
 							}
 						} catch(Throwable t) {						
-							LOG.warn("Error parsing value: (" + currentValue + ") in text line: (" + readLine + ")", t);
+							LOG.warn("Error parsing value: (" + currentValue + ") in text line: (" + readLine + "). Expected schema: (" + schema + ")");
+							LOG.debug(t);
 							// On any failure we assume null
 							// The user is responsible for handling nulls afterwards
 							tuple.set(i, null);
