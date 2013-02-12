@@ -138,6 +138,7 @@ public class SerializationInfo {
     return groupToIntermediateIndexes.get(schemaId);
   }
 
+  @SuppressWarnings("serial")
   private void calculateGroupSchema() {
     List<Field> fields = commonSchema.getFields();
     List<Field> groupFields = fields.subList(0, mrConfig.getGroupByFields().size());

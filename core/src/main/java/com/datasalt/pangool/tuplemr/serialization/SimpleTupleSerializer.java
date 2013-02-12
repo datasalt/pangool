@@ -15,6 +15,19 @@
  */
 package com.datasalt.pangool.tuplemr.serialization;
 
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.List;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableUtils;
+import org.apache.hadoop.io.serializer.Serializer;
+
 import com.datasalt.pangool.io.BitField;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
@@ -23,18 +36,6 @@ import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.DataOutputBuffer;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableUtils;
-import org.apache.hadoop.io.serializer.Serializer;
-
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.List;
 
 /**
  * This Serializer holds all the baseline code for serializing Tuples. It is used by the more complex {@link TupleSerializer}.
@@ -240,6 +241,7 @@ public class SimpleTupleSerializer implements Serializer<ITuple> {
   /**
    * Thrown when an unexpected exception happens when serializing a custom object.
    */
+  @SuppressWarnings("serial")
   public static class CustomObjectSerializationException extends Exception {
     public CustomObjectSerializationException() {
     }

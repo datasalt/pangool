@@ -1,4 +1,5 @@
 package com.datasalt.pangool.tuplemr.mapred.lib.output;
+
 /**
  * Copyright [2012] [Datasalt Systems S.L.]
  *
@@ -15,9 +16,9 @@ package com.datasalt.pangool.tuplemr.mapred.lib.output;
  * limitations under the License.
  */
 
-import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.TupleFile;
+import java.io.IOException;
+import java.io.Serializable;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -31,65 +32,76 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import java.io.IOException;
-import java.io.Serializable;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.TupleFile;
 
 /** An {@link org.apache.hadoop.mapreduce.OutputFormat} that writes {@link com.datasalt.pangool.io.ITuple}s. */
 @SuppressWarnings("serial")
 public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> implements Serializable {
 
-  private Schema outputSchema;
+	private Schema outputSchema = null;
 
-  public TupleOutputFormat(Schema outputSchema) {
-    this.outputSchema = outputSchema;
-  }
+	/**
+	 * Empty constructor means the output Schema will be picked from the first Tuple that is emitted. 
+	 */
+	public TupleOutputFormat() {
+	}
 
-  /**
-   * Deprecated. Use {@link #TupleOutputFormat(com.datasalt.pangool.io.Schema)} instead.
-   */
-  @Deprecated
-  public TupleOutputFormat(String outputSchema) {
-    this.outputSchema = Schema.parse(outputSchema);
-  }
+	/**
+	 * Providing output schema enables output validation.
+	 */
+	public TupleOutputFormat(Schema outputSchema) {
+		this.outputSchema = outputSchema;
+	}
 
-  public RecordWriter<ITuple, NullWritable>
-  getRecordWriter(TaskAttemptContext context
-  ) throws IOException, InterruptedException {
-    Configuration conf = context.getConfiguration();
+	/**
+	 * Deprecated. Use {@link #TupleOutputFormat(com.datasalt.pangool.io.Schema)} instead.
+	 */
+	@Deprecated
+	public TupleOutputFormat(String outputSchema) {
+		this.outputSchema = Schema.parse(outputSchema);
+	}
 
-    CompressionCodec codec = null;
-    SequenceFile.CompressionType compressionType = SequenceFile.CompressionType.NONE;
-    if (getCompressOutput(context)) {
-      // find the kind of compression to do
-      compressionType = SequenceFileOutputFormat.getOutputCompressionType(context);
+	private CompressionCodec getCodec(TaskAttemptContext context) {
+		if(getCompressOutput(context)) {
+			// find the right codec
+			Class<?> codecClass = SequenceFileOutputFormat.getOutputCompressorClass(context,
+			    DefaultCodec.class);
+			return (CompressionCodec) ReflectionUtils.newInstance(codecClass, context.getConfiguration());
+		}
+		return null;
+	}
 
-      // find the right codec
-      Class<?> codecClass = SequenceFileOutputFormat.getOutputCompressorClass(context,
-          DefaultCodec.class);
-      codec = (CompressionCodec)
-          ReflectionUtils.newInstance(codecClass, conf);
-    }
+	public RecordWriter<ITuple, NullWritable> getRecordWriter(final TaskAttemptContext context)
+	    throws IOException, InterruptedException {
 
-    // get the path of the temporary output file
-    Path file = getDefaultWorkFile(context, "");
-    FileSystem fs = file.getFileSystem(conf);
-    final TupleFile.Writer out =
-        new TupleFile.Writer(fs, conf, file, outputSchema,
-            compressionType,
-            codec,
-            context);
+		final Configuration conf = context.getConfiguration();
 
-    return new RecordWriter<ITuple, NullWritable>() {
+		final CompressionCodec codec = getCodec(context);
+		final SequenceFile.CompressionType compressionType = getCompressOutput(context) ? SequenceFileOutputFormat
+		    .getOutputCompressionType(context) : SequenceFile.CompressionType.NONE;
+		// get the path of the temporary output file
+		final Path file = getDefaultWorkFile(context, "");
+		final FileSystem fs = file.getFileSystem(conf);
 
-      public void write(ITuple key, NullWritable value)
-          throws IOException {
-        out.append(key);
-      }
+		return new RecordWriter<ITuple, NullWritable>() {
 
-      public void close(TaskAttemptContext context) throws IOException {
-        out.close();
-      }
-    };
-  }
+			TupleFile.Writer out;
+
+			public void write(ITuple key, NullWritable value) throws IOException {
+				if(out == null) {
+					if(outputSchema == null) {
+						outputSchema = key.getSchema();
+					}
+					out = new TupleFile.Writer(fs, conf, file, outputSchema, compressionType, codec, context);
+				}
+				out.append(key);
+			}
+
+			public void close(TaskAttemptContext context) throws IOException {
+				out.close();
+			}
+		};
+	}
 }
-

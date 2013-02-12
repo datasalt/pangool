@@ -60,7 +60,8 @@ public class TestTupleFieldSerialization extends AbstractHadoopTestLibrary imple
 	public final static String INPUT2 = "in-2-" + TestTupleFieldSerialization.class.getName();
 	public final static String OUTPUT = "out-" + TestTupleFieldSerialization.class.getName();
 
-	@Test
+	@SuppressWarnings("deprecation")
+  @Test
 	public void test() throws Exception {
 		initHadoop();
 		trash(INPUT1, INPUT2, OUTPUT);

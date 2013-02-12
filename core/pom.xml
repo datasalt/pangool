@@ -28,6 +28,24 @@
 
 	<dependencies>
 	
+		<dependency>
+			<groupId>cascading</groupId>
+			<artifactId>cascading-hadoop</artifactId>
+  			<version>2.2.0-wip-15</version>
+  			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pig</groupId>
+			<artifactId>pig</artifactId>
+			<version>0.10.1</version>
+			<optional>true</optional>
+			<exclusions>
+				<exclusion>
+					<artifactId>avro</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 <!--
 		<dependency>
 			<groupId>org.apache.hcatalog</groupId>
@@ -194,6 +212,13 @@
 
 	<!-- Build Settings -->
 
+	<repositories>
+		<repository>
+			<id>conjars.org</id>
+  			<url>http://conjars.org/repo</url>
+		</repository>
+	</repositories>
+	
 	<packaging>jar</packaging>
 	<build>
 		<plugins>

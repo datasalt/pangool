@@ -37,14 +37,16 @@ public class TupleOfTupleOfTuples {
 
 	final static Schema schema1 = new Schema("schema1", Fields.parse("a:int,b:string"));
 
-	public static Schema getMetaSchema1() {
+	@SuppressWarnings("deprecation")
+  public static Schema getMetaSchema1() {
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("partition", Type.INT));
 		fields.add(Fields.createTupleField("tuple", schema1));
 		return new Schema("metaSchema1", fields);
 	}
 
-	public static Schema getMetaSchema2() {
+	@SuppressWarnings("deprecation")
+  public static Schema getMetaSchema2() {
 		List<Field> fields = new ArrayList<Field>();
 		fields.add(Field.create("group", Type.STRING));
 		fields.add(Fields.createTupleField("metatuple", getMetaSchema1()));

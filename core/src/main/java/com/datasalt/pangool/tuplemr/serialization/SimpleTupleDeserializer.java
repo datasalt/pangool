@@ -20,16 +20,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
-import com.datasalt.pangool.io.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.io.serializer.Deserializer;
 import org.apache.hadoop.util.ReflectionUtils;
 
+import com.datasalt.pangool.io.BitField;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
 import com.datasalt.pangool.utils.Buffer;
