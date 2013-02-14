@@ -83,7 +83,7 @@ public class BitField implements Comparable<BitField> {
    */
   public boolean isSet(int bit) {
     int bite = byteForBit(bit);
-    if (bite > bits.length || bits.length == 0) {
+    if (bite >= bits.length || bits.length == 0) {
       return false;
     }
     int bitOnByte = bitOnByte(bit, bite);
