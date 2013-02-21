@@ -3,12 +3,16 @@ Pangool Change Log
 
 Pangool 0.60 (DEVELOPMENT)
  IMPROVEMENTS
+  - 2012-02-21 - Native integration with HCatalog through HCatTupleInputFormat.
+  - 2012-02-12 - Native integration with Cascading through CascadingTupleInputFormat.
+  - 2012-02-12 - StoreFunc for Pig for saving Pangool Tuple files directly from Pig.
   - 2012-01-07 - Nulls support. Now you can declare fields as nullable in schemas. Routines for
                  serializing and performing the proper comparison between nulls and objects
                  is properly provided.
-  - 2012-01-16 - Deep copy support for Tuples
+  - 2012-01-16 - Deep copy support for Tuples.
 
  BUG FIXES
+  - 2012-02-14 - Strange race condition in BitField solved.
   - 2012-01-22 - Changed default instances folder to user-located folder ./pangool-instances . 
 		 Before it was /tmp which caused users who didn't have access to it in the HDFS
 		 to fail with this default value.
