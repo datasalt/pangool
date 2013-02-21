@@ -43,6 +43,17 @@ import com.datasalt.pangool.io.Tuple;
  * A bridge between HCatalog and Pangool that makes any HCatInputFormat compatible with Pangool. It delegates to
  * HCatInputFormat and returns a Pangool Tuple mapped from an HCatRecord.
  * <p>
+ * The type mapping is (HCatalog - Pangool):
+ * <ul>
+ * 	 <li>STRING: STRING</li>
+ *   <li>BIGINT: LONG</li>
+ *   <li>SMALLINT: INT</li>
+ *   <li>INT: INT</li>
+ *   <li>FLOAT: FLOAT</li>
+ *   <li>DOUBLE: DOUBLE</li>
+ *   <li>BOOLEAN: BOOLEAN</li>
+ *   <li>TINYINT: INT</li>
+ * </ul>
  * See: http://incubator.apache.org/hcatalog/docs/r0.4.0/inputoutput.html
  */
 @SuppressWarnings("serial")
