@@ -16,9 +16,9 @@ Let's see how to use it.
 
 <h3>Configuring a TupleSolrOutputFormat</h3>
 
-<p>First of all is that you have to include it into your project depedencies if
-you are using maven. Probable you'll need to exclude some thirty party
-dependencies, as can conflict with Hadoop:</p>
+<p>Firstly, you have to include SOLR into your project depedencies if
+you are using Maven. Probably you'll need to exclude some third-party
+dependencies, as they can conflict with Hadoop:</p>
 
 <pre class="prettyprint" id="java">
 &lt;dependency&gt;
@@ -42,7 +42,7 @@ dependencies, as can conflict with Hadoop:</p>
 				&lt;groupId&gt;org.apache.commons&lt;/groupId&gt;
 				&lt;artifactId&gt;commons-io&lt;/artifactId&gt;
 			&lt;/exclusion&gt;				
-			&lt;/exclusions&gt;	
+		&lt;/exclusions&gt;	
 &lt;/dependency&gt;
 </pre>
 
