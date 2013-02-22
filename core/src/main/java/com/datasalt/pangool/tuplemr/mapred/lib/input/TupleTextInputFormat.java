@@ -416,7 +416,7 @@ public class TupleTextInputFormat extends FileInputFormat<ITuple, NullWritable> 
 						tuple.set(pos, Long.parseLong(value));
 						break;
 					default:
-						throw new RuntimeException("Imposible case. You find a bug!");	
+						throw new RuntimeException("Imposible case. You found a bug!");	
 				}
 			} catch (NumberFormatException e) {
 				LOG.warn("Invalid number [" + value + "]. Using null.");

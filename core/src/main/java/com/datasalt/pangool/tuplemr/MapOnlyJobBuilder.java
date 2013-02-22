@@ -131,7 +131,7 @@ public class MapOnlyJobBuilder {
   }
 
   public MapOnlyJobBuilder(Configuration conf, String jobName) {
-    this.conf = conf;
+    this.conf = new Configuration(conf);
     this.jobName = jobName;
     this.multipleInputs = new MultipleInputsInterface(conf);
     this.namedOutputs = new NamedOutputsInterface(conf);
