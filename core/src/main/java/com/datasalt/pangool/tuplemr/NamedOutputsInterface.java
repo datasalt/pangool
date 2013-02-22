@@ -23,10 +23,8 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.PangoolMultipleOutputs;
 @SuppressWarnings("rawtypes")
 public class NamedOutputsInterface {
 
-//	private final Configuration conf;
-
 	public NamedOutputsInterface(Configuration conf) {
-//		this.conf = conf;
+
 	}
 
 	public static final class Output {

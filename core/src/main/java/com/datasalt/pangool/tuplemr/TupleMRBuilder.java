@@ -116,7 +116,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	private Set<String> instanceFilesCreated = new HashSet<String>();
 
 	public TupleMRBuilder(Configuration conf) {
-		this.conf = new Configuration(conf);
+		this.conf = conf;
 		multipleInputs = new MultipleInputsInterface(this.conf);
 		namedOutputs = new NamedOutputsInterface(this.conf);
 	}
@@ -222,6 +222,9 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		failIfNull(outputValueClass, "Need to set outputValueClass");
 		failIfNull(outputPath, "Need to set outputPath");
 
+		// perform a deep copy of the Configuration
+		this.conf = new Configuration(this.conf);
+		
 		TupleMRConfig tupleMRConf = buildConf();
 		// Serialize PangoolConf in Hadoop Configuration
 		instanceFilesCreated.addAll(TupleMRConfig.set(tupleMRConf, conf));

@@ -131,7 +131,7 @@ public class MapOnlyJobBuilder {
   }
 
   public MapOnlyJobBuilder(Configuration conf, String jobName) {
-    this.conf = new Configuration(conf);
+    this.conf = conf;
     this.jobName = jobName;
     this.multipleInputs = new MultipleInputsInterface(conf);
     this.namedOutputs = new NamedOutputsInterface(conf);
@@ -148,13 +148,8 @@ public class MapOnlyJobBuilder {
 	}
 	
   public Job createJob() throws IOException, TupleMRException, URISyntaxException {
-    Job job;
-    if (jobName == null) {
-      job = new Job(conf);
-    } else {
-      job = new Job(conf, jobName);
-    }
-    job.setNumReduceTasks(0);
+  	// perform a deep copy of the configuration
+  	this.conf = new Configuration(this.conf);
 
     String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
     try {
@@ -163,6 +158,15 @@ public class MapOnlyJobBuilder {
     } catch (URISyntaxException e1) {
       throw new TupleMRException(e1);
     }
+  	
+    Job job;
+    if (jobName == null) {
+      job = new Job(conf);
+    } else {
+      job = new Job(conf, jobName);
+    }
+    job.setNumReduceTasks(0);
+    
     job.getConfiguration().set(ProxyOutputFormat.PROXIED_OUTPUT_FORMAT_CONF, uniqueName);
     job.setOutputFormatClass(ProxyOutputFormat.class);
 

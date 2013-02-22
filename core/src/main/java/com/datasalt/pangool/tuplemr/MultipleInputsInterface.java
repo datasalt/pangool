@@ -22,11 +22,8 @@ import com.datasalt.pangool.tuplemr.mapred.lib.input.PangoolMultipleInputs;
 @SuppressWarnings("rawtypes")
 public class MultipleInputsInterface {
 
-	@SuppressWarnings("unused")
-  private final Configuration conf;
-	
 	public MultipleInputsInterface(Configuration conf) {
-		this.conf = conf;
+
 	}
 	
 	private List<Input> multiInputs = new ArrayList<Input>();
