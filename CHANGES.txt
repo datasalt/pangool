@@ -12,6 +12,8 @@ Pangool 0.60 (DEVELOPMENT)
   - 2012-01-16 - Deep copy support for Tuples.
 
  BUG FIXES
+  - 2012-02-22 - MapOnlyJobBuilder needed also to do a deep copy of the Configuration object 
+		 to avoid strange things in Job flows.
   - 2012-02-14 - Strange race condition in BitField solved.
   - 2012-01-22 - Changed default instances folder to user-located folder ./pangool-instances . 
 		 Before it was /tmp which caused users who didn't have access to it in the HDFS
