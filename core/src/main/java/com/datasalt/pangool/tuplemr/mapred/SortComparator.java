@@ -359,11 +359,10 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
           case FLOAT: {
             float value1 = readFloat(b1, o.offset1);
             float value2 = readFloat(b2, o.offset2);
-            if (value1 > value2) {
-              return (sort == Order.ASC) ? 1 : -1;
-            } else if (value1 < value2) {
-              return (sort == Order.ASC) ? -1 : 1;
-            }
+            int comp = Float.compare(value1, value2);
+            if (comp != 0) {
+              return (sort == Order.ASC) ? comp : -comp;
+            } 
             o.offset1 += Float.SIZE / 8;
             o.offset2 += Float.SIZE / 8;
           }
@@ -371,11 +370,10 @@ public class SortComparator implements RawComparator<ITuple>, Configurable {
           case DOUBLE: {
             double value1 = readDouble(b1, o.offset1);
             double value2 = readDouble(b2, o.offset2);
-            if (value1 > value2) {
-              return (sort == Order.ASC) ? 1 : -1;
-            } else if (value1 < value2) {
-              return (sort == Order.ASC) ? -1 : 1;
-            }
+            int comp = Double.compare(value1, value2);
+            if (comp != 0) {
+              return (sort == Order.ASC) ? comp : -comp;
+            } 
             o.offset1 += Double.SIZE / 8;
             o.offset2 += Double.SIZE / 8;
           }
