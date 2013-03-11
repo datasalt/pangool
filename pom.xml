@@ -26,7 +26,7 @@
     </parent>
     <groupId>com.datasalt.pangool</groupId>
     <artifactId>pangool-top-level</artifactId>
-    <version>0.60.0</version>
+    <version>0.60.1-SNAPSHOT</version>
     <modules>
         <module>core</module>
         <module>examples</module>
