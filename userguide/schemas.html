@@ -188,7 +188,7 @@ always be wrapped by an <code>Utf8</code> object.
 <h3>Nulls support</h3>
 
 <p>
-    Pangool supports nulls values in tuples <strong>since version 0.60</strong>. Any field can support null values, but
+    Pangool supports null values in tuples <strong>since version 0.60.0</strong>. Any field can support null values, but
     it must be declared in the schema as nullable. The following example declares two fields,
     <code>nullableField</code> and <code>nullableObj</code> as nullable:
 </p>
@@ -201,9 +201,9 @@ always be wrapped by an <code>Utf8</code> object.
 </pre>
 
 <p>
-    It is enough to add a <code>true</code> as parameter at the end of the <code>Field.createX()</code> method
+    It is enough to add a <code>true</code> value as parameter at the end of the <code>Field.createX()</code> method
     calls to declare a field as nullable. Also, nullable fields can be declared using the <code>parse</code>
-    method by adding the character <code>?</code> to the type declaration:
+    method by adding the <code>?</code> character to the type declaration:
 </p>
 
 <pre class="prettyprint" id="java">
@@ -211,15 +211,14 @@ always be wrapped by an <code>Utf8</code> object.
 </pre>
 
 <p>
-    Nulls support can has some effect on <strong>serialization length of Tuples</strong>. If none of
-    the schema fields are nullable then there is not serialization overhead and Pangool uses
-    the same space to serialize Tuples as before supporting nullables.
+    Nulls support has some effect on <strong>serialization length of Tuples</strong>. If none of
+    the schema fields are nullable then there is no serialization overhead.
 </p>
 
 <p>
-    If at least one field is nullable then Pangool adds a bit field to the serialized form. The bit field
-    length would variate depending on the number of nullable fields in the schema. 1 byte bit field is enough
-    for schemas with less than 8 nullable fields, 2 bytes for schemas between 8 and 14 nullable fields, and so on.
+    Buy if at least one field is nullable then Pangool adds a bit field to the serialized form. The bit field
+    length varies depending on the number of nullable fields in the schema. 1 byte bit field is enough
+    for schemas with less than 8 nullable fields, 2 bytes for schemas between 7 and 14 nullable fields, and so on.
 </p>
 
 <div class="alert alert-info">
