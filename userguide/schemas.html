@@ -221,7 +221,7 @@ always be wrapped by an <code>Utf8</code> object.
     <strong>Advanced:</strong> Nulls support may have some effect on <strong>serialization length of Tuples</strong>. If none of
     the schema fields are nullable then there is no serialization overhead. But if at least one field is nullable then Pangool adds a bit field to the serialized form. The bit field
     length varies depending on the number of nullable fields in the schema. 1 byte bit field is enough for schemas with less than 8 nullable fields, 2 bytes for schemas between 7 and 14 nullable fields, and so on.
-    Also, when using more than one intermediate schema, the number of bytes used depends on the common nullable fields. 
+    When using more than one intermediate schema, the number of bytes used depends on the number of intermediate schemas with non-common nullable fields. 
 </div>
 
 <p><a class="btn btn-primary btn-large" href="TupleMrBuilder.html">Next: Creating Pangool Jobs &raquo;</a></p>
