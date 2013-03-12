@@ -31,7 +31,6 @@ import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.mortbay.log.Log;
 
 import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.utils.InstancesDistributor;
