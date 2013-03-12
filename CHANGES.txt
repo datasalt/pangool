@@ -1,7 +1,13 @@
 Pangool Change Log
 ====================
 
-Pangool 0.60 (DEVELOPMENT)
+Pangool 0.60.1 (DEVELOPMENT)
+
+ IMPROVEMENTS
+  - 2013-03-12 - Specific per-Input-Format context configuration properties, like in Multiple outputs.
+
+Pangool 0.60.0
+
  IMPROVEMENTS
   - 2013-02-21 - Native integration with HCatalog through HCatTupleInputFormat.
   - 2013-02-12 - Native integration with Cascading through CascadingTupleInputFormat.

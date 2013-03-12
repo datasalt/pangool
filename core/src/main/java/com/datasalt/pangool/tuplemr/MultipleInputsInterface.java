@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
@@ -25,19 +26,22 @@ public class MultipleInputsInterface {
 	public MultipleInputsInterface(Configuration conf) {
 
 	}
-	
+
 	private List<Input> multiInputs = new ArrayList<Input>();
-	
+
 	public static final class Input {
 
 		Path path;
-    InputFormat inputFormat;
+		InputFormat inputFormat;
 		Mapper inputProcessor;
 
-		Input(Path path, InputFormat inputFormat, Mapper inputProcessor) {
+		Map<String, String> specificContext;
+
+		Input(Path path, InputFormat inputFormat, Mapper inputProcessor, Map<String, String> specificContext) {
 			this.path = path;
 			this.inputFormat = inputFormat;
 			this.inputProcessor = inputProcessor;
+			this.specificContext = specificContext;
 		}
 	}
 
@@ -49,12 +53,12 @@ public class MultipleInputsInterface {
 		Set<String> instanceFiles = new HashSet<String>();
 		for(Input input : getMultiInputs()) {
 			instanceFiles.addAll(PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat,
-			    input.inputProcessor));
+			    input.inputProcessor, input.specificContext));
 		}
 		return instanceFiles;
 	}
-	
+
 	public List<Input> getMultiInputs() {
-  	return multiInputs;
-  }
+		return multiInputs;
+	}
 }

@@ -17,18 +17,20 @@ package com.datasalt.pangool.tuplemr.mapred.lib.input;
 
 import java.io.IOException;
 
-import com.datasalt.pangool.utils.InstancesDistributor;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import com.datasalt.pangool.utils.InstancesDistributor;
 
 /**
  * This is a delegating RecordReader, which delegates the functionality to the
  * underlying record reader in {@link TaggedInputSplit}
  */
 public class DelegatingRecordReader<K, V> extends RecordReader<K, V> {
-	RecordReader<K, V> originalRR;
+	RecordReader<K, V> originalRecordReader;
 
 	/**
 	 * Constructs the DelegatingRecordReader.
@@ -50,39 +52,43 @@ public class DelegatingRecordReader<K, V> extends RecordReader<K, V> {
 		InputFormat<K, V> inputFormat = (InputFormat<K, V>) InstancesDistributor.loadInstance(
         context.getConfiguration(), InputFormat.class,
         taggedInputSplit.getInputFormatFile(), true);
-		originalRR = inputFormat
+		PangoolMultipleInputs.setSpecificInputContext(context.getConfiguration(), taggedInputSplit.getInputFormatFile());
+		originalRecordReader = inputFormat
 		    .createRecordReader(taggedInputSplit.getInputSplit(), context);
 	}
 
 	@Override
 	public void close() throws IOException {
-		originalRR.close();
+		originalRecordReader.close();
 	}
 
 	@Override
 	public K getCurrentKey() throws IOException, InterruptedException {
-		return originalRR.getCurrentKey();
+		return originalRecordReader.getCurrentKey();
 	}
 
 	@Override
 	public V getCurrentValue() throws IOException, InterruptedException {
-		return originalRR.getCurrentValue();
+		return originalRecordReader.getCurrentValue();
 	}
 
 	@Override
 	public float getProgress() throws IOException, InterruptedException {
-		return originalRR.getProgress();
+		return originalRecordReader.getProgress();
 	}
 
 	@Override
 	public void initialize(InputSplit split, TaskAttemptContext context)
 	    throws IOException, InterruptedException {
-		originalRR.initialize(((TaggedInputSplit) split).getInputSplit(), context);
+		TaggedInputSplit taggedInputSplit = (TaggedInputSplit) split;
+		Configuration conf = new Configuration(context.getConfiguration());
+		PangoolMultipleInputs.setSpecificInputContext(conf, taggedInputSplit.getInputFormatFile());
+		originalRecordReader.initialize(((TaggedInputSplit) split).getInputSplit(), new TaskAttemptContext(conf, context.getTaskAttemptID()));
 	}
 
 	@Override
 	public boolean nextKeyValue() throws IOException, InterruptedException {
-		return originalRR.nextKeyValue();
+		return originalRecordReader.nextKeyValue();
 	}
 
 }

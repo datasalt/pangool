@@ -56,6 +56,7 @@ public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
 			FileInputFormat.setInputPaths(jobCopy, entry.getKey());
 			InputFormat inputFormat = InstancesDistributor.loadInstance(conf, InputFormat.class,
           entry.getValue(), true);
+			PangoolMultipleInputs.setSpecificInputContext(jobCopy.getConfiguration(), entry.getValue());
 			List<InputSplit> pathSplits = inputFormat.getSplits(jobCopy);
 			for(InputSplit pathSplit : pathSplits) {
 				splits.add(new TaggedInputSplit(pathSplit, conf, entry.getValue(), mapperMap

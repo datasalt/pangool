@@ -20,6 +20,7 @@ import static com.datasalt.pangool.tuplemr.TupleMRException.failIfNull;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -149,7 +150,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	 * @see PangoolMultipleInputs
 	 */
 	public void addTupleInput(Path path, TupleMapper<ITuple, NullWritable> tupleMapper) {
-		multipleInputs.getMultiInputs().add(new Input(path, new TupleInputFormat(), tupleMapper));
+		addInput(path, new TupleInputFormat(), tupleMapper);
 	}
 
 	public void addNamedOutput(String namedOutput, OutputFormat outputFormat, Class keyClass,
@@ -174,9 +175,13 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	 * @see PangoolMultipleInputs
 	 */
 	public void addInput(Path path, InputFormat inputFormat, TupleMapper inputProcessor) {
-		multipleInputs.getMultiInputs().add(new Input(path, inputFormat, inputProcessor));
+		multipleInputs.getMultiInputs().add(new Input(path, inputFormat, inputProcessor, new HashMap<String, String>()));
 	}
 
+	public void addInput(Path path, InputFormat inputFormat, TupleMapper inputProcessor, Map<String, String> specificContext) {
+		multipleInputs.getMultiInputs().add(new Input(path, inputFormat, inputProcessor, specificContext));
+	}
+	
 	/**
 	 * 
 	 */

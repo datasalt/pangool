@@ -56,9 +56,7 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	private static final String FORMAT_INSTANCE_FILE = ".format";
 	private static final String KEY = ".key";
 	private static final String VALUE = ".value";
-	private static final String CONF = ".conf"; // Added to allow specific
-																							// Configuration properties for
-																							// named outputs
+	private static final String CONF = ".conf"; 
 
 	private static final String COUNTERS_ENABLED = "pangool.multipleoutputs.counters";
 

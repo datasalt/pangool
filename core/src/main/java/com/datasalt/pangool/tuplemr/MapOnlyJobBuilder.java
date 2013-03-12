@@ -18,11 +18,11 @@ package com.datasalt.pangool.tuplemr;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
@@ -38,6 +38,7 @@ import com.datasalt.pangool.tuplemr.NamedOutputsInterface.Output;
 import com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat;
+import com.datasalt.pangool.utils.InstancesDistributor;
 
 /**
  * The MapOnlyJobBuilder is a simple Pangool primitive that executes map-only Jobs. You must implement
@@ -68,21 +69,15 @@ public class MapOnlyJobBuilder {
     return this;
   }
 
-  /**
-   * Deprecated. Use {@link #addInput(org.apache.hadoop.fs.Path, org.apache.hadoop.mapreduce.InputFormat, com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper)}
-   * instead.
-   */
-  @Deprecated
-  public MapOnlyJobBuilder addInput(Path path, InputFormat inputFormat) {
-    multipleInputs.getMultiInputs().add(new Input(path, inputFormat, null));
-    return this;
-  }
-
   public MapOnlyJobBuilder addInput(Path path, InputFormat inputFormat, MapOnlyMapper processor) {
-    multipleInputs.getMultiInputs().add(new Input(path, inputFormat, processor));
+    return addInput(path, inputFormat, processor, new  HashMap<String, String>());
+  }
+  
+  public MapOnlyJobBuilder addInput(Path path, InputFormat inputFormat, MapOnlyMapper processor, Map<String, String> specificContext) {
+    multipleInputs.getMultiInputs().add(new Input(path, inputFormat, processor, specificContext));
     return this;
   }
-
+  
   public void addNamedOutput(String namedOutput, OutputFormat outputFormat, Class keyClass,
                              Class valueClass) throws TupleMRException {
     addNamedOutput(namedOutput, outputFormat, keyClass, valueClass, null);
