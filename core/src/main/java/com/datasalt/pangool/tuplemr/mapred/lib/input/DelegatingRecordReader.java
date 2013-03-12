@@ -17,7 +17,6 @@ package com.datasalt.pangool.tuplemr.mapred.lib.input;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
@@ -81,9 +80,8 @@ public class DelegatingRecordReader<K, V> extends RecordReader<K, V> {
 	public void initialize(InputSplit split, TaskAttemptContext context)
 	    throws IOException, InterruptedException {
 		TaggedInputSplit taggedInputSplit = (TaggedInputSplit) split;
-		Configuration conf = new Configuration(context.getConfiguration());
-		PangoolMultipleInputs.setSpecificInputContext(conf, taggedInputSplit.getInputFormatFile());
-		originalRecordReader.initialize(((TaggedInputSplit) split).getInputSplit(), new TaskAttemptContext(conf, context.getTaskAttemptID()));
+		PangoolMultipleInputs.setSpecificInputContext(context.getConfiguration(), taggedInputSplit.getInputFormatFile());
+		originalRecordReader.initialize(((TaggedInputSplit) split).getInputSplit(), context);
 	}
 
 	@Override
