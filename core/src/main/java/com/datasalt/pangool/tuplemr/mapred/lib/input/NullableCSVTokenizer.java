@@ -81,17 +81,6 @@ public class NullableCSVTokenizer implements CSVTokenizer {
 				throw new IOException("Field too long: " + sb.length() + " bytes. Did you close properly the quotes on records?");
 			}
 			
-			// Escaping characters.
-			if(c == escapeCharacter && useEscape) {
-				pointer++;
-				char next = line.charAt(pointer);
-				if (next != NEW_LINE) {
-					sb.append(next);
-					pointer++;
-				}
-				continue;
-			}
-			
 			switch(state) {
 			case NORMAL:
 				if(c == DELIMITER || c == NEW_LINE) {
@@ -128,6 +117,18 @@ public class NullableCSVTokenizer implements CSVTokenizer {
 				break;
 
 			case QUOTED:
+				
+				// Escaping characters.
+				if(c == escapeCharacter && useEscape) {
+					pointer++;
+					char next = line.charAt(pointer);
+					if (next != NEW_LINE) {
+						sb.append(next);
+						pointer++;
+					}
+					continue;
+				}
+				
 				if(c == NEW_LINE && reader != null) {
 					sb.append(NEW_LINE);
 					pointer = -1;
