@@ -1,9 +1,14 @@
 Pangool Change Log
 ====================
 
-Pangool 0.60.1 (DEVELOPMENT)
+Pangool 0.60.2 (DEVELOPMENT)
 
- IMPROVEMENTS
+ BUG FIXES
+  - 2013-03-13 - Text tokenizer was using escape character always, but it should use it only when there are quotes.
+
+Pangool 0.60.1 (minor release)
+
+ NEW FEATURES
   - 2013-03-12 - Specific per-Input-Format context configuration properties, like in Multiple outputs.
 
 Pangool 0.60.0
@@ -99,75 +104,59 @@ Pangool 0.43.3 (2012-10-01)
 Pangool 0.43.2 (2012-06-28)
 
  BUG FIXES
-
  - 2012-06-28 - NullPointerException with RollupReducer for empty reduce
                 tasks
 
 Pangool 0.43.1 (17/05/2012)
 
  NEW FEATURES
-
  - 16/05/2012 - Possibility of serializing Tuples inside Tuples
  - 17/05/2012 - Improved TupleSolrOutputFormat to copy all SOLR config into the output
 
 Pangool 0.43.0 (11/05/2012)
 
  NEW FEATURES
-
  - 11/05/2012 - Implemented seamlessly integration with SOLR (TupleSolrOutputFormat)
 
 Pangool 0.42.1 (09/05/2012)
 
  NEW FEATURES
-
  - 09/05/2012 - Minor : added utility in Fields to create Avro fields easily.
 
 Pangool 0.42.0 (24/04/2012)
 
  NEW FEATURES
-
  - 24/04/2012 - Avro{Input,Output}Format Pangool's version using Serializable instances, not statically configured via Configuration
  - 23/04/2012 - Avro{Input,Output}Format implemented in new hadoop's API (mapreduce.lib.{input,output}). Should be in avro-mapred artifact.
 
  IMPROVEMENTS
-
  - 23/04/2012 - Redesign of the custom serialization API
  
 
 Pangool 0.41.0 (20/04/2012)
 
  NEW FEATURES
-
  - 18/04/2012 - Added custom serialization for type OBJECT
  - 16/04/2012 - Added type BYTES
 
  IMPROVEMENTS
-
  - Simplification:custom serialization and comparison just for type OBJECT.
  - Moved from Avro 1.6.2 to 1.6.3 (efficiency enhancement in Utf8) 
 
 Pangool 0.40.2 (2/04/2012)
 
  NEW FEATURES
-
  - 29/03/2012 - Added field aliases in TupleMRBuilder.
 
  IMPROVEMENTS
- 
  - 29/03/2012 - Solved NullPointerException when used unknown field in Tuple.set(fieldname,value) and Tuple.get(fieldname)
 
 
 Pangool 0.40.1 (27/03/2012)
 
-  NEW FEATURES
-
-  IMPROVEMENTS
-
   BUG FIXES
-
   - Fixed HashPartitioner bug when treating Utf8 or String with more than 1 reducer
-
 
 Pangool 0.40 (5/03/2012) 
 
-  - Initial Release!!
+  - Initial Release!
