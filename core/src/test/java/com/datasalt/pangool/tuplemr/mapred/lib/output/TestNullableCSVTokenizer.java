@@ -56,7 +56,8 @@ public class TestNullableCSVTokenizer {
 		String[] fields = getCSVParser("\"Hello\",,\\N,3", ',', '"', '\\', false, "").readNext();
 		assertEquals("Hello", fields[0]);
 		assertEquals(null, fields[1]);
-		assertEquals("N", fields[2]);
+		// Important: escape only works with quotes!
+		assertEquals("\\N", fields[2]);
 		assertEquals("3", fields[3]);
 		
 		// Strict quoting
@@ -67,11 +68,11 @@ public class TestNullableCSVTokenizer {
 		assertEquals(null, fields[3]);
 		
 		// Only \N means null
-		fields = getCSVParser("\"Hello\",,\\\\N,3\\\"", ',', '"', '\\', false, "\\N").readNext();
+		fields = getCSVParser("\"Hello\",,\\N,\"\\\"\"", ',', '"', '\\', false, "\\N").readNext();
 		assertEquals("Hello", fields[0]);
 		assertEquals("", fields[1]);
 		assertEquals(null, fields[2]);
-		assertEquals("3\"", fields[3]);
+		assertEquals("\"", fields[3]);
 		
 		// No quotes. Empty string means null
 		fields = getCSVParser("3, ,", ',', TupleTextInputFormat.NO_QUOTE_CHARACTER, TupleTextInputFormat.NO_ESCAPE_CHARACTER, false, "").readNext();
