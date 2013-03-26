@@ -15,15 +15,16 @@
  */
 package com.datasalt.pangool.tuplemr.mapred.lib.output;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import com.datasalt.pangool.io.*;
-import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat;
 import junit.framework.Assert;
 
 import org.apache.commons.logging.Log;
@@ -34,7 +35,12 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -42,8 +48,13 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.Test;
 
 import com.datasalt.pangool.BaseTest;
+import com.datasalt.pangool.io.Fields;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Schema.Field.Type;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.TupleFile;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
 import com.datasalt.pangool.tuplemr.IdentityTupleMapper;
 import com.datasalt.pangool.tuplemr.IdentityTupleReducer;
@@ -53,11 +64,11 @@ import com.datasalt.pangool.tuplemr.TupleMRException;
 import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.TupleReducer;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat;
 import com.datasalt.pangool.utils.CommonUtils;
 import com.datasalt.pangool.utils.HadoopUtils;
+import com.datasalt.pangool.utils.TaskAttemptContextFactory;
 import com.google.common.io.Files;
-
-import static org.junit.Assert.assertEquals;
 
 public class TestTupleInputOutputFormat extends BaseTest {
 
@@ -157,13 +168,13 @@ public class TestTupleInputOutputFormat extends BaseTest {
 	}
 
 	@Test
-	public void testSplits() throws IOException, InterruptedException {
+	public void testSplits() throws IOException, InterruptedException, IllegalArgumentException, SecurityException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		testSplits(Long.MAX_VALUE, 20);
 		testSplits(1, 20);
 		testSplits(20, 40);
 	}
 
-	public void testSplits(long maxSplitSize, int generatedRows) throws IOException, InterruptedException {
+	public void testSplits(long maxSplitSize, int generatedRows) throws IOException, InterruptedException, IllegalArgumentException, SecurityException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		logger.info("Testing maxSplitSize: " + maxSplitSize + " and generatedRows:" + generatedRows);
 		FileSystem fS = FileSystem.get(getConf());
 		Random r = new Random(1);
@@ -191,7 +202,7 @@ public class TestTupleInputOutputFormat extends BaseTest {
 		int count = 0;
 		for(InputSplit split : format.getSplits(job)) {
 			TaskAttemptID attemptId = new TaskAttemptID(new TaskID(), 1);
-			TaskAttemptContext attemptContext = new TaskAttemptContext(getConf(), attemptId);
+			TaskAttemptContext attemptContext = TaskAttemptContextFactory.get(getConf(), attemptId);
 			logger.info("Sampling split: " + split);
 			RecordReader<ITuple, NullWritable> reader = format.createRecordReader(split, attemptContext);
 			reader.initialize(split, attemptContext);

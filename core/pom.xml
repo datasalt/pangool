@@ -19,8 +19,8 @@
 	</parent>
 	<artifactId>pangool-core</artifactId>
 	<properties>
-		<!-- hadoop.version>0.20.205.0</hadoop.version -->
-		<hadoop.version>0.20.2</hadoop.version>
+		<hadoop.1.version>0.20.2</hadoop.1.version>
+		<hadoop.2.version>2.0.0-alpha</hadoop.2.version>
 		<jackson.version>1.7.9</jackson.version>
 		<avro.version>1.6.3</avro.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,6 +33,70 @@
 		</repository>
 	</repositories>
 
+	<profiles>
+    	<profile>
+    		<id>hadoop-2</id>
+    	 	<activation>
+      			<property>
+        			<name>hadoop.version</name>
+        			<value>2.0</value>
+	    		</property>
+    		</activation>
+    		<dependencies>
+    			<dependency>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-mapreduce-client-core</artifactId>
+					<version>${hadoop.2.version}</version>
+					<scope>provided</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+					<version>${hadoop.2.version}</version>
+					<scope>provided</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-common</artifactId>
+					<version>${hadoop.2.version}</version>
+					<scope>provided</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-hdfs</artifactId>
+					<version>${hadoop.2.version}</version>
+					<scope>provided</scope>
+				</dependency>
+				<!-- Copied from Pig dependencies, unit test fails otherwise -->
+				<dependency>
+					<groupId>com.google.protobuf</groupId>
+					<artifactId>protobuf-java</artifactId>
+					<version>2.4.0a</version>
+					<scope>provided</scope>
+				</dependency>
+			</dependencies>
+    	</profile>
+    	
+		<profile>
+    		<id>hadoop-1</id>
+    	 	<activation>
+      			<property>
+        			<name>hadoop.version</name>
+        			<value>1.0</value>
+      			</property>
+       			<activeByDefault>true</activeByDefault>
+     		</activation>
+     		<dependencies>
+     		 	<dependency>
+            		<groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-core</artifactId>
+         			<version>${hadoop.1.version}</version>
+                	<scope>provided</scope>
+            	</dependency>
+			</dependencies>     		
+    	</profile>
+   	</profiles>
+   
 	<dependencies>
 	
 		<dependency>
@@ -150,12 +214,7 @@
 			<artifactId>jackson-mapper-lgpl</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-core</artifactId>
-			<version>${hadoop.version}</version>
-			<scope>provided</scope>
-		</dependency>
+		
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-io</artifactId>
@@ -281,31 +340,7 @@
 		</plugins>
 	</reporting>
 
-	<!-- ////////////// -->
-
-	<!-- Project Information -->
-
 	<name>Pangool Core</name>
 
 	<description />
-
-	<!-- /////////////////// -->
-
-	<!-- Build Environment -->
-
-	<!-- Environment Information -->
-
-	<!-- /////////////////////// -->
-
-	<!-- Maven Environment -->
-
-	<profiles>
-		<!-- <profile> <id>profile-buildthrift</id> <activation> <file> <exists>/usr/local/bin/thrift</exists> 
-			</file> </activation> <build> <plugins> <plugin> <artifactId>maven-antrun-plugin</artifactId> 
-			<executions> <execution> <id>generate-thrift</id> <phase>generate-test-sources</phase> 
-			<configuration> <tasks> <mkdir dir="target/test/generated-thrift/java/" /> 
-			<exec executable="/usr/local/bin/thrift"> <arg value="-o" /> <arg value="target/test/generated-thrift/java/" /> <arg value="src/test/resources/pangool-test.thrift" /> </exec> </tasks> 
-			</configuration> <goals> <goal>run</goal> </goals> </execution> </executions> 
-			</plugin> </plugins> </build> </profile> -->
-	</profiles>
 </project>

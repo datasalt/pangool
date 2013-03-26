@@ -16,6 +16,7 @@
 
 package com.datasalt.pangool.tuplemr.mapred;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import org.apache.hadoop.io.NullWritable;
@@ -60,7 +61,13 @@ public class TupleIterator<OUTPUT_KEY, OUTPUT_VALUE> implements Iterator<ITuple>
 	@Override
 	public ITuple next() {
 		iterator.next(); // advances one key
-		return context.getCurrentKey().datum();
+		try {
+	    return context.getCurrentKey().datum();
+    } catch(Throwable e) {
+    	// catching Throwable here because in Hadoop 1.0 there is no exception thrown
+    	// but there are signed exceptions in Hadoop 2.0.
+	    throw new RuntimeException(e);
+    }
 	}
 
 	@Override

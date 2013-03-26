@@ -180,7 +180,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("country", "age", "name");
 		builder.setOrderBy(new OrderBy().add("country", Order.ASC).add("age", Order.ASC)
-		    .add("name", Order.ASC));
+		    .add("name", Order.ASC).add("height", Order.DESC));
 		builder.setRollupFrom("country");
 		builder.setTupleReducer(new IdentityRed());
 		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class,
@@ -270,7 +270,7 @@ public class TestRollup extends AbstractHadoopTestLibrary {
 		builder.addIntermediateSchema(schema);
 		builder.setGroupByFields("age", "name", "country");
 		builder.setOrderBy(new OrderBy().add("country", Order.ASC).add("age", Order.ASC)
-		    .add("name", Order.ASC));
+		    .add("name", Order.ASC).add("height", Order.DESC));
 		builder.setRollupFrom("age");
 		builder.setTupleReducer(new IdentityRed());
 		builder.setOutput(outputPath, new HadoopOutputFormat(SequenceFileOutputFormat.class), Text.class,

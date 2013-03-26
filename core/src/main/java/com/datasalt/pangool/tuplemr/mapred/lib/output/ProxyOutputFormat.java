@@ -16,12 +16,13 @@
 package com.datasalt.pangool.tuplemr.mapred.lib.output;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 
-import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.JobContext;
+import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.OutputCommitter;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.RecordWriter;
@@ -29,24 +30,25 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
+import com.datasalt.pangool.utils.InstancesDistributor;
+import com.datasalt.pangool.utils.JobContextFactory;
+import com.datasalt.pangool.utils.TaskAttemptContextFactory;
+
 /**
- * This special implementation of {@link FileOutputFormat} is used as a proxy
- * for being able to support any type of OutputFormat at the same time that we
- * support Multiple Output Formats (also with any type of OutputFormat).
+ * This special implementation of {@link FileOutputFormat} is used as a proxy for being able to support any type of
+ * OutputFormat at the same time that we support Multiple Output Formats (also with any type of OutputFormat).
  * <p>
- * The idea is to use the "_temporary" folder for storing everything (including
- * multiple sub/folders) so that we have the full control over the commit / fail
- * process.
+ * The idea is to use the "_temporary" folder for storing everything (including multiple sub/folders) so that we have
+ * the full control over the commit / fail process.
  * <p>
- * The wrapped (proxied) output format can be of any type. It is configured
- * through {@link #PROXIED_OUTPUT_FORMAT_CONF}.
+ * The wrapped (proxied) output format can be of any type. It is configured through {@link #PROXIED_OUTPUT_FORMAT_CONF}.
  * 
  */
 @SuppressWarnings("rawtypes")
 public class ProxyOutputFormat extends FileOutputFormat implements Configurable {
 
-	public final static String PROXIED_OUTPUT_FORMAT_CONF = ProxyOutputFormat.class
-	    .getName() + ".proxied.output.format";
+	public final static String PROXIED_OUTPUT_FORMAT_CONF = ProxyOutputFormat.class.getName()
+	    + ".proxied.output.format";
 
 	protected Configuration conf;
 	protected OutputFormat outputFormat;
@@ -86,26 +88,30 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 
 	private void createOutputFormatIfNeeded(JobContext context) throws IOException {
 		if(outputFormat == null) {
-			outputFormat = InstancesDistributor.loadInstance(context.getConfiguration(),
-          OutputFormat.class,
-          context.getConfiguration().get(PROXIED_OUTPUT_FORMAT_CONF, null), true);
+			outputFormat = InstancesDistributor.loadInstance(context.getConfiguration(), OutputFormat.class,
+			    context.getConfiguration().get(PROXIED_OUTPUT_FORMAT_CONF, null), true);
 		}
 	}
 
 	@Override
-	public OutputCommitter getOutputCommitter(TaskAttemptContext context)
-	    throws IOException {
+	public OutputCommitter getOutputCommitter(TaskAttemptContext context) throws IOException {
 		createOutputFormatIfNeeded(context);
 
 		String outDir = context.getConfiguration().get("mapred.output.dir");
 		originalDir = outDir;
-		FileOutputCommitter committer = (FileOutputCommitter) super
-		    .getOutputCommitter(context);
+		FileOutputCommitter committer = (FileOutputCommitter) super.getOutputCommitter(context);
 		baseDir = committer.getWorkPath() + "";
 		Configuration conf = new Configuration(context.getConfiguration());
-		TaskAttemptContext reContext = new TaskAttemptContext(conf,
-		    context.getTaskAttemptID());
+		TaskAttemptContext reContext;
+		try {
+			reContext = TaskAttemptContextFactory.get(conf, context.getTaskAttemptID());
+		} catch(Exception e) {
+			throw new IOException(e);
+		}
+
 		reContext.getConfiguration().set("mapred.output.dir", baseDir);
+		// This is for Hadoop 2.0 :
+		reContext.getConfiguration().set("mapreduce.output.fileoutputformat.outputdir", baseDir);
 
 		try {
 			return new ProxyOutputCommitter(new Path(originalDir), context,
@@ -119,14 +125,13 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 
 		OutputCommitter committer;
 
-		public ProxyOutputCommitter(Path outputPath, TaskAttemptContext context,
-		    OutputCommitter committer) throws IOException {
+		public ProxyOutputCommitter(Path outputPath, TaskAttemptContext context, OutputCommitter committer)
+		    throws IOException {
 			this(outputPath, context);
 			this.committer = committer;
 		}
 
-		public ProxyOutputCommitter(Path outputPath, TaskAttemptContext context)
-		    throws IOException {
+		public ProxyOutputCommitter(Path outputPath, TaskAttemptContext context) throws IOException {
 			super(outputPath, context);
 		}
 
@@ -154,9 +159,24 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 		@Override
 		public void commitTask(TaskAttemptContext taskContext) throws IOException {
 			committer.commitTask(taskContext);
+			try {
+				// This is a trick for Hadoop 2.0 where there is extra business logic in commitJob()
+	      JobContext jContext = JobContextFactory.get(taskContext.getConfiguration(), new JobID());
+      	Class cl = Class.forName(OutputCommitter.class.getName());
+      	Method method = cl.getMethod("commitJob", Class.forName(JobContext.class.getName()));
+      	if(method != null) {
+      		method.invoke(committer, jContext);
+      	}
+      } catch(Exception e) {
+      	// Hadoop 2.0 : do nothing
+      	// we need to call commitJob as a trick, but the trick itself may throw an IOException.
+      	// it doesn't mean that something went wrong.
+      	// If there was something really wrong it would have failed before.
+      }
+			
 			super.commitTask(taskContext);
 		}
-
+		
 		@Override
 		public void abortTask(TaskAttemptContext taskContext) {
 			try {
@@ -164,7 +184,12 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 			} catch(IOException e) {
 				throw new RuntimeException(e);
 			}
-			super.abortTask(taskContext);
+			try {
+				super.abortTask(taskContext);
+			} catch(Throwable e) {
+				// catching Throwable here to maintain compatibility with Hadoop 1.0 where there is no Exception thrown
+				throw new RuntimeException(e);
+			}
 		}
 	}
 }
