@@ -15,8 +15,7 @@
  */
 package com.datasalt.pangool.examples;
 
-import org.apache.hadoop.util.ProgramDriver;
-
+import com.datasalt.pangool.PangoolDriver;
 import com.datasalt.pangool.examples.gameoflife.GameOfLifeJob;
 import com.datasalt.pangool.examples.movingaverage.MovingAverage;
 import com.datasalt.pangool.examples.movingaverage.MovingAverageGenerateData;
@@ -38,7 +37,7 @@ import com.datasalt.pangool.examples.urlresolution.UrlResolutionGenerateData;
 import com.datasalt.pangool.examples.useractivitynormalizer.UserActivityNormalizer;
 import com.datasalt.pangool.examples.useractivitynormalizer.UserActivityNormalizerGenerateData;
 
-public class Driver extends ProgramDriver {
+public class Driver extends PangoolDriver {
 
 	public Driver() throws Throwable {
 		super();

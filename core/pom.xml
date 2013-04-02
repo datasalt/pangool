@@ -18,13 +18,6 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>pangool-core</artifactId>
-	<properties>
-		<hadoop.1.version>0.20.2</hadoop.1.version>
-		<hadoop.2.version>2.0.0-alpha</hadoop.2.version>
-		<jackson.version>1.7.9</jackson.version>
-		<avro.version>1.6.3</avro.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 	
 	<repositories>
 		<repository>
@@ -32,70 +25,6 @@
   			<url>http://conjars.org/repo</url>
 		</repository>
 	</repositories>
-
-	<profiles>
-    	<profile>
-    		<id>hadoop-2</id>
-    	 	<activation>
-      			<property>
-        			<name>hadoop.version</name>
-        			<value>2.0</value>
-	    		</property>
-    		</activation>
-    		<dependencies>
-    			<dependency>
-					<groupId>org.apache.hadoop</groupId>
-					<artifactId>hadoop-mapreduce-client-core</artifactId>
-					<version>${hadoop.2.version}</version>
-					<scope>provided</scope>
-				</dependency>
-				<dependency>
-					<groupId>org.apache.hadoop</groupId>
-					<artifactId>hadoop-mapreduce-client-jobclient</artifactId>
-					<version>${hadoop.2.version}</version>
-					<scope>provided</scope>
-				</dependency>
-				<dependency>
-					<groupId>org.apache.hadoop</groupId>
-					<artifactId>hadoop-common</artifactId>
-					<version>${hadoop.2.version}</version>
-					<scope>provided</scope>
-				</dependency>
-				<dependency>
-					<groupId>org.apache.hadoop</groupId>
-					<artifactId>hadoop-hdfs</artifactId>
-					<version>${hadoop.2.version}</version>
-					<scope>provided</scope>
-				</dependency>
-				<!-- Copied from Pig dependencies, unit test fails otherwise -->
-				<dependency>
-					<groupId>com.google.protobuf</groupId>
-					<artifactId>protobuf-java</artifactId>
-					<version>2.4.0a</version>
-					<scope>provided</scope>
-				</dependency>
-			</dependencies>
-    	</profile>
-    	
-		<profile>
-    		<id>hadoop-1</id>
-    	 	<activation>
-      			<property>
-        			<name>hadoop.version</name>
-        			<value>1.0</value>
-      			</property>
-       			<activeByDefault>true</activeByDefault>
-     		</activation>
-     		<dependencies>
-     		 	<dependency>
-            		<groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-core</artifactId>
-         			<version>${hadoop.1.version}</version>
-                	<scope>provided</scope>
-            	</dependency>
-			</dependencies>     		
-    	</profile>
-   	</profiles>
    
 	<dependencies>
 	
