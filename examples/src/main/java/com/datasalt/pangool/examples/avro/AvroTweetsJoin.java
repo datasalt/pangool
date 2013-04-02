@@ -188,6 +188,7 @@ public class AvroTweetsJoin extends BaseExampleJob {
 		mr.addIntermediateSchema(getPangoolRetweetSchema());
 		mr.setGroupByFields("tweet_id");
 		mr.setOrderBy(new OrderBy().add("tweet_id", Order.ASC).addSchemaOrder(Order.ASC));
+		mr.setSpecificOrderBy("retweet", new OrderBy().add("username", Order.ASC));
 
 		mr.addInput(tweetsPath, new AvroInputFormat<Record>(getAvroTweetSchema()), new TweetsMapper());
 		mr.addInput(retweetsPath, new HadoopInputFormat(TextInputFormat.class), new RetweetsMapper());

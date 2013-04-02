@@ -144,6 +144,7 @@ public class UrlResolution extends BaseExampleJob {
 		mr.setFieldAliases("urlMap", new Aliases().add("url", "nonCanonicalUrl"));
 		mr.setGroupByFields("url");
 		mr.setOrderBy(new OrderBy().add("url", Order.ASC).addSchemaOrder(Order.ASC));
+		mr.setSpecificOrderBy("urlRegister", new OrderBy().add("timestamp", Order.ASC));
 		mr.setTupleReducer(new Handler());
 		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
 		    NullWritable.class);
