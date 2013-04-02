@@ -209,11 +209,17 @@
 	<plugin>
            <artifactId>maven-jar-plugin</artifactId>
            <executions>
-             <execution>
+<!--             <execution>
                <phase>package</phase>
                <goals>
                  <goal>jar</goal>
                </goals>
+               <configuration>
+                 <classifier>mr${hadoop.version}</classifier>
+               </configuration>
+             </execution> -->
+	     <execution>
+	       <id>default-jar</id>
                <configuration>
                  <classifier>mr${hadoop.version}</classifier>
                </configuration>
