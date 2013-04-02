@@ -1,5 +1,5 @@
 <assembly>
-  <id>jar-with-deps</id>
+  <id>hadoop-mr${hadoop.version}</id>
   <formats>
     <format>jar</format>
   </formats>

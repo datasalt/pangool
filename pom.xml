@@ -206,6 +206,20 @@
                     </execution>
                 </executions>
             </plugin>-->
+	<plugin>
+           <artifactId>maven-jar-plugin</artifactId>
+           <executions>
+             <execution>
+               <phase>package</phase>
+               <goals>
+                 <goal>jar</goal>
+               </goals>
+               <configuration>
+                 <classifier>mr${hadoop.version}</classifier>
+               </configuration>
+             </execution>
+           </executions>
+         </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -317,6 +331,7 @@
         <pluginRepositories />
 
         <properties>
+		<hadoop.version>1.0</hadoop.version>
 		<hadoop.1.version>0.20.2</hadoop.1.version>
 		<hadoop.2.version>2.0.0-alpha</hadoop.2.version>
 		<jackson.version>1.7.9</jackson.version>

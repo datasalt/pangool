@@ -227,6 +227,7 @@
 					<descriptors>
 						<descriptor>src/main/assembly/jar-with-deps.xml</descriptor>
 					</descriptors>
+					<classifier>foo</classifier>
 					<archive />
 				</configuration>
 				<!--executions> <execution> <id>make-assembly</id> <phase>package</phase> 
@@ -246,7 +247,8 @@
 						<link>http://avro.apache.org/docs/${avro.version}/api/java/</link>
 						<link>http://docs.oracle.com/javase/6/docs/api/</link>
 						<link>http://jackson.codehaus.org/${jackson.version}/javadoc/</link>
-						<link>http://hadoop.apache.org/common/docs/r${hadoop.version}/api/</link>
+						<link>http://hadoop.apache.org/common/docs/r${hadoop.1.version}/api/</link>
+						<link>http://hadoop.apache.org/common/docs/r${hadoop.2.version}/api/</link>
 					</links>
 				</configuration>
 			</plugin>
