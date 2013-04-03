@@ -32,13 +32,6 @@
 			<artifactId>guava</artifactId>
 			<version>11.0.2</version>
 		</dependency>
-		
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<version>${project.version}</version>
-			<classifier>mr${hadoop.version}</classifier>
-			<artifactId>pangool-core</artifactId>
-		</dependency>
 
         <dependency>
             <groupId>org.apache.avro</groupId>
@@ -120,6 +113,42 @@
     </dependencies>
 
 	<!-- ///////////////// -->
+
+    <profiles>
+
+        <profile>
+            <id>mr1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <examples.assembly>hadoop</examples.assembly>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <version>${project.version}</version>
+                    <artifactId>pangool-core</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>mr2</id>
+            <properties>
+                <examples.assembly>hadoop-mr${hadoop.version}</examples.assembly>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <version>${project.version}</version>
+                    <classifier>mr${hadoop.version}</classifier>
+                    <artifactId>pangool-core</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+
+    </profiles>
 
 	<!-- Build Settings -->
 

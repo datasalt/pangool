@@ -233,7 +233,6 @@
 					<descriptors>
 						<descriptor>src/main/assembly/jar-with-deps.xml</descriptor>
 					</descriptors>
-					<classifier>foo</classifier>
 					<archive />
 				</configuration>
 				<!--executions> <execution> <id>make-assembly</id> <phase>package</phase> 
