@@ -20,7 +20,7 @@ There are two options for starting working with Pangool:
 <p> 
 
 <div class="row-fluid">
-	<div class="span5 well">
+	<div class="span4 well">
 		<h3>
 			Bootstrap project
 		</h3>
@@ -30,21 +30,45 @@ There are two options for starting working with Pangool:
 		</p>
 	</div>
 
-	<div class="span5 well">
+	<div class="span4 well">
 		<h3>
 			Maven artifact
-		</h3>	
+		</h3>
+        <h4>
+            for Hadoop 0.20.X and 1.X
+        </h4>
 		 <pre class="prettyprint">
   &lt;dependency&gt;
     &lt;groupId&gt;com.datasalt.pangool&lt;/groupId&gt;
     &lt;artifactId&gt;pangool-core&lt;/artifactId&gt;
-    &lt;version&gt;0.60.2&lt;/version&gt;
+    &lt;version&gt;0.60.3&lt;/version&gt;
   &lt;/dependency&gt; 
    </pre> 
    
 	<p> And include a Hadoop dependency for the Hadoop version you are using (preferible with
 	scope "provided") </p>
 	</div>
+
+    <div class="span4 well">
+        <h3>
+            Maven artifact
+        </h3>
+        <h4>
+            for Hadoop 2.X and YARN
+        </h4>
+		 <pre class="prettyprint">
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.datasalt.pangool&lt;/groupId&gt;
+    &lt;artifactId&gt;pangool-core&lt;/artifactId&gt;
+    &lt;version&gt;0.60.3&lt;/version&gt;
+    &lt;classifier&gt;mr2&lt;/classifier&gt;
+  &lt;/dependency&gt;
+   </pre>
+
+        <p> And include a Hadoop dependency for the Hadoop version you are using (preferible with
+            scope "provided") </p>
+    </div>
+
 </div>
 
 <h2>Using Pangool Bootstrap</h2>
