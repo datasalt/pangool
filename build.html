@@ -25,15 +25,25 @@ git clone git://github.com/datasalt/pangool.git
 mvn install
 </pre>
 
+There is a sepparated profile "mr2" for MapReduce 2.0 and YARN compatible Pangool version. You can build it
+using:
+
+<pre>
+mvn install -Pmr2
+</pre>
+
 <h2>Releases</h2>
 <h3>Maven dependency</h3>
 <pre class="prettyprint">
  &lt;dependency&gt;
      &lt;groupId&gt;com.datasalt.pangool&lt;/groupId&gt;
      &lt;artifactId&gt;pangool-core&lt;/artifactId&gt;
-     &lt;version&gt;0.60.2&lt;/version&gt;
+     &lt;version&gt;0.60.3&lt;/version&gt;
  &lt;/dependency&gt;
 </pre>
+
+Use the Maven classifier "mr2" for the MapReduce 2.X Pangool version.
+
 <h2>Snapshots</h2>
 <h3>Pangool Snapshot Repository</h3>
 <pre class="prettyprint">
@@ -54,6 +64,6 @@ mvn install
  &lt;dependency&gt;
      &lt;groupId&gt;com.datasalt.pangool&lt;/groupId&gt;
      &lt;artifactId&gt;pangool-core&lt;/artifactId&gt;
-     &lt;version&gt;0.60.3-SNAPSHOT&lt;/version&gt;
+     &lt;version&gt;0.60.4-SNAPSHOT&lt;/version&gt;
  &lt;/dependency&gt;
 </pre>
