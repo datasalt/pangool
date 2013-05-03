@@ -55,7 +55,7 @@ For moving averages of 3 days we'll have as output:
 For each Pangool example there as an associated random input data generator. We can execute the Moving average input data generator like:
 </p>
 <pre>
-hadoop jar pangool-examples-*.jar moving_average_gen_data url_regs.txt 10000 200
+hadoop jar pangool-examples-*-hadoop.jar moving_average_gen_data url_regs.txt 10000 200
 </pre>
 <p>
 (If you missed the parameters, an meaningful help line will appear to guide you).
@@ -70,7 +70,7 @@ hadoop fs -put url_regs.txt .
 Now you can execute the example against the fresh "url_regs.txt" file:
 </p>
 <pre>
-hadoop jar pangool-examples-*.jar moving_average url_regs.txt out-moving-average 5
+hadoop jar pangool-examples-*-hadoop.jar moving_average url_regs.txt out-moving-average 5
 </pre>
 <p>
 After this has finished, you'd have generated 5-day moving averages for your input data file.
@@ -89,4 +89,110 @@ If you are working from an IDE such as Eclipse, you can execute the following co
 <div class="alert alert-info">
 <i class="icon-warning-sign"></i>
 Should you encounter any problem, please make sure that both Pangool and Pangool-examples JARs are in the classpath.
+</div>
+
+
+<h2>Executing examples using Oozie</h2>
+
+<p>Create a folder with the following structure:</p>
+
+<pre>
+oozie-app/
+├── lib
+│   ├── antlr-2.7.7.jar
+│   ├── antlr-3.0.1.jar
+
+[many more]
+
+│   ├── jetty-util-6.1.14.jar
+│   ├── jline-0.9.94.jar
+│   ├── joblibs
+│       ├── antlr-2.7.7.jar
+│       ├── antlr-3.0.1.jar
+
+[many more]
+
+│       ├── jetty-6.1.14.jar
+│       ├── jetty-util-6.1.14.jar
+│       ├── xml-apis-1.3.04.jar
+│       ├── xz-1.0.jar
+│       └── zookeeper-3.4.3.jar
+└── workflow.xml
+</pre>
+
+<p>
+Libraries on lib and joblibs folder must be the same. These folders must contain all dependencies of examples plus the pangool-examples.jar. In other words, it must contain all libraries that you can find in the lib folder if you decompress pangool-examples-*-hadoop.jar plus the pangool-examples.jar.
+</p>
+
+
+The file workflow.xml should looks like the following:
+
+<pre class="prettyprint" id="xml">
+
+<![CDATA[
+
+<workflow-app xmlns='uri:oozie:workflow:0.1' name='java-main-wf'>
+    <start to='java1' />
+    <action name='java1'>
+        <java>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>default</value>
+                </property>
+            </configuration>
+            <main-class>com.datasalt.pangool.examples.Driver</main-class>
+            <arg>game_of_life</arg>
+            <arg>-libjars</arg>
+            <arg>
+                joblibs/json-20090211.jar,joblibs/protostuff-api-1.0.1.jar,joblibs/avro-mapred-1.6.3.jar,joblibs/slf4j-api-1.6.4.jar,joblibs/jackson-mapper-lgpl-1.7.9.jar,joblibs/hive-service-0.10.0.jar,joblibs/lucene-highlighter-4.0.0-BETA.jar,joblibs/commons-digester-1.8.jar,joblibs/mockito-all-1.8.2.jar,joblibs/lucene-analyzers-common-4.0.0-BETA.jar,joblibs/velocity-1.7.jar,joblibs/commons-codec-1.6.jar,joblibs/servlet-api-2.5-20081211.jar,joblibs/lucene-queryparser-4.0.0-BETA.jar,joblibs/datanucleus-rdbms-2.0.3.jar,joblibs/stop.jar,joblibs/lucene-memory-4.0.0-BETA.jar,joblibs/datanucleus-core-2.0.3.jar,joblibs/wstx-asl-3.2.7.jar,joblibs/httpclient-4.1.3.jar,joblibs/commons-io-2.1.jar,joblibs/lucene-analyzers-morfologik-4.0.0-BETA.jar,joblibs/libfb303-0.9.0.jar,joblibs/lucene-misc-4.0.0-BETA.jar,joblibs/JavaEWAH-0.3.2.jar,joblibs/paranamer-2.3.jar,joblibs/protobuf-java-2.3.0.jar,joblibs/jetty-util-6.1.14.jar,joblibs/commons-compress-1.4.1.jar,joblibs/xercesImpl-2.9.1.jar,joblibs/stringtemplate-3.2.1.jar,joblibs/httpcore-4.1.4.jar,joblibs/lucene-analyzers-kuromoji-4.0.0-BETA.jar,joblibs/avro-ipc-1.6.3.jar,joblibs/commons-logging-api-1.0.4.jar,joblibs/xz-1.0.jar,joblibs/solr-core-4.0.0-BETA.jar,joblibs/libthrift-0.6.1.jar,joblibs/httpmime-4.1.3.jar,joblibs/commons-beanutils-1.7.0.jar,joblibs/hive-common-0.10.0.jar,joblibs/hcatalog-core-0.5.0-incubating.jar,joblibs/hive-cli-0.10.0.jar,joblibs/commons-beanutils-core-1.8.0.jar,joblibs/hive-builtins-0.10.0.jar,joblibs/pangool-examples-0.60.3.jar,joblibs/morfologik-stemming-1.5.3.jar,joblibs/commons-cli-1.2.jar,joblibs/jackson-mapper-asl-1.8.8.jar,joblibs/hive-metastore-0.10.0.jar,joblibs/commons-fileupload-1.2.1.jar,joblibs/protostuff-model-1.0.1.jar,joblibs/hive-shims-0.10.0.jar,joblibs/commons-logging-1.0.4.jar,joblibs/jline-0.9.94.jar,joblibs/jdo2-api-2.3-ec.jar,joblibs/protostuff-parser-1.0.1.jar,joblibs/jsr305-1.3.9.jar,joblibs/avro-1.6.3.jar,joblibs/lucene-queries-4.0.0-BETA.jar,joblibs/spatial4j-0.2.jar,joblibs/hive-pdk-0.10.0.jar,joblibs/lucene-spatial-4.0.0-BETA.jar,joblibs/commons-pool-1.5.4.jar,joblibs/morfologik-polish-1.5.3.jar,joblibs/hive-exec-0.10.0.jar,joblibs/javolution-5.5.1.jar,joblibs/hive-serde-0.10.0.jar,joblibs/jetty-6.1.14.jar,joblibs/slf4j-log4j12-1.5.8.jar,joblibs/antlr-runtime-3.0.1.jar,joblibs/lucene-analyzers-phonetic-4.0.0-BETA.jar,joblibs/jcsv-1.4.0.jar,joblibs/zookeeper-3.4.3.jar,joblibs/xml-apis-1.3.04.jar,joblibs/guava-11.0.2.jar,joblibs/asm-3.1.jar,joblibs/datanucleus-connectionpool-2.0.3.jar,joblibs/snappy-java-1.0.4.1.jar,joblibs/log4j-1.2.16.jar,joblibs/lucene-core-4.0.0-BETA.jar,joblibs/protostuff-core-1.0.1.jar,joblibs/jackson-core-lgpl-1.7.9.jar,joblibs/lucene-suggest-4.0.0-BETA.jar,joblibs/commons-io-1.3.2.jar,joblibs/commons-lang-2.5.jar,joblibs/antlr-2.7.7.jar,joblibs/opencsv-2.3.jar,joblibs/solr-solrj-4.0.0-BETA.jar,joblibs/commons-collections-3.2.jar,joblibs/jackson-core-asl-1.8.8.jar,joblibs/pangool-core-0.60.3.jar,joblibs/jackson-jaxrs-1.7.9.jar,joblibs/commons-configuration-1.6.jar,joblibs/derby-10.4.2.0.jar,joblibs/antlr-3.0.1.jar,joblibs/netty-3.2.7.Final.jar,joblibs/joda-time-2.0.jar,joblibs/morfologik-fsa-1.5.3.jar,joblibs/datanucleus-enhancer-2.0.3.jar,joblibs/servlet-api-2.5.jar,joblibs/commons-dbcp-1.4.jar,joblibs/lucene-grouping-4.0.0-BETA.jar,joblibs/protostuff-compiler-1.0.1.jar
+            </arg>
+            <arg>gameoflife-out</arg>
+            <arg>2</arg>
+            <arg>4</arg>
+        </java>
+        <ok to="end" />
+        <error to="fail" />
+    </action>
+    <kill name="fail">
+        <message>Java failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name='end' />
+</workflow-app>
+
+]]>
+
+</pre>
+
+<p>As you can see, we have to include the list of jars your Job depends on. You can obtain this list with the following command: find joblibs|grep jar|sed -r 's/\.\///'|xargs|tr ' ' ','</p>
+
+<p>Finally, you need a file job.properties with the following content:</p>
+
+<pre>
+
+nameNode=hdfs://localhost:9000
+jobTracker=localhost:9001
+queueName=default
+
+oozie.wf.application.path=${nameNode}/user/${user.name}/oozie-app
+
+</pre>
+
+<p>Now you are ready to upload the oozie-app to the hdfs and run the Oozie workflow:</p>
+
+<pre>
+hadoop fs -put oozie-app oozie-app
+oozie job -oozie http://localhost:11000/oozie -config oozie-app/job.properties -run
+</pre>
+
+<div class="alert alert-info">
+    <i class="icon-warning-sign"></i>
+    Instead of including all jars inside the joblibs folder, you can have the libraries in the HDFS folder and use a full qualified path with the -libjars parameter. For example, -libjar hdfs://hadoop-cluster:54310/workflow/lib/pangool-plc.jar,[...].
+</div>
+
+<div class="alert alert-info">
+    <i class="icon-warning-sign"></i>
+    Another alternative instead using the joblibs folder is include the pangool-examples-*-hadoop.jar instead the pangool-examples.jar in the lib folder.
 </div>
