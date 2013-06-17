@@ -66,6 +66,7 @@ public class NaiveBayesClassifier extends BaseExampleJob implements Serializable
 				tokensPerCategory.put(category, MapUtils.getInteger(tokensPerCategory, category, 0) + count);
 				wordCountPerCategory.get(category).put(word, count);
 			}
+			reader.close();
 		}
 		V = vocabulary.size();
 	}

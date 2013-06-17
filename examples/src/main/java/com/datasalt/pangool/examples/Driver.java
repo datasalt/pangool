@@ -17,6 +17,7 @@ package com.datasalt.pangool.examples;
 
 import com.datasalt.pangool.PangoolDriver;
 import com.datasalt.pangool.examples.gameoflife.GameOfLifeJob;
+import com.datasalt.pangool.examples.mongo.QypeScrapper;
 import com.datasalt.pangool.examples.movingaverage.MovingAverage;
 import com.datasalt.pangool.examples.movingaverage.MovingAverageGenerateData;
 import com.datasalt.pangool.examples.naivebayes.NaiveBayesClassifier;
@@ -69,6 +70,8 @@ public class Driver extends PangoolDriver {
 		addClass("multi_shakespeare_indexer", MultiShakespeareIndexer.class, "Create four SOLR indexes out of Shakespeare's plays");
 		// 
 		addClass("hcatalog_integration_test", HCatalogIntegrationTest.class, "Reads an HCatalog table, converts it into Tuples and prints the Tuples to System.out.");
+		// 
+		addClass("qype_scrapper_mongodb", QypeScrapper.class, "An HTML review scrapper that uses MongoDB as output. To be provided with a parsing configuration file such as src/test/resources/mongo/parsing.config");
 	}
 
 	public static void main(String[] args) throws Throwable {

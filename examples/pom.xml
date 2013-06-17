@@ -92,6 +92,13 @@
 			</exclusions>
 		</dependency>
 
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-hadoop-core_0.20.205.0</artifactId>
+			<version>1.0.0</version>
+			<optional>true</optional>
+		</dependency>
+            
         <dependency>
             <groupId>com.dyuproject.protostuff</groupId>
             <artifactId>protostuff-api</artifactId>
