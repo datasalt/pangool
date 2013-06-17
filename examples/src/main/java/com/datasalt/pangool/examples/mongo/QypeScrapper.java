@@ -140,6 +140,10 @@ public class QypeScrapper extends BaseExampleJob implements Serializable {
 		} finally {
 			builder.cleanUpInstanceFiles();
 		}
+		
+		// we are not interested in the output folder, so delete it
+		delete(outPath);
+		
 		return 1;
 	}
 
