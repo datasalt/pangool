@@ -76,7 +76,11 @@ public class Driver extends PangoolDriver {
 
 	public static void main(String[] args) throws Throwable {
 		Driver driver = new Driver();
-		driver.driver(args);
+    try {
+		  driver.driver(args);
+    } catch (IllegalArgumentException e) {
+      System.exit(1);
+    }
 		System.exit(0);
 	}
 }

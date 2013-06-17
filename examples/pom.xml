@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>com.datasalt.pangool</groupId>
 		<artifactId>pangool-top-level</artifactId>
-		<version>0.60.3-SNAPSHOT</version>
+		<version>0.60.4-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>pangool-examples</artifactId>
@@ -31,13 +31,6 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>11.0.2</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<version>${project.version}</version>
-			<classifier>mr${hadoop.version}</classifier>
-			<artifactId>pangool-core</artifactId>
 		</dependency>
 
         <dependency>
@@ -127,6 +120,42 @@
     </dependencies>
 
 	<!-- ///////////////// -->
+
+    <profiles>
+
+        <profile>
+            <id>mr1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <examples.assembly>hadoop</examples.assembly>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <version>${project.version}</version>
+                    <artifactId>pangool-core</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>mr2</id>
+            <properties>
+                <examples.assembly>hadoop-mr${hadoop.version}</examples.assembly>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <version>${project.version}</version>
+                    <classifier>mr${hadoop.version}</classifier>
+                    <artifactId>pangool-core</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+
+    </profiles>
 
 	<!-- Build Settings -->
 

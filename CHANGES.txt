@@ -1,7 +1,18 @@
 Pangool Change Log
 ====================
 
-Pangool 0.60.2 (DEVELOPMENT)
+Pangool 0.60.4 (DEVELOPMENT)
+
+Pangool 0.60.3
+
+ NEW FEATURES
+
+  - 2013-04-03 - Support for MapReduce 2 and YARN. Includes Maven pom
+                 modifications to support the compilation to MapReduce 1 and
+                 MapReduce 2. A new maven profile "mr2" can be used to
+                 create a Pangool version ready for MapReduce 2 and YARN.
+
+Pangool 0.60.2
 
  BUG FIXES
   - 2013-03-13 - Text tokenizer was using escape character always, but it should use it only when there are quotes.
