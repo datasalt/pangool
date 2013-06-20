@@ -135,6 +135,12 @@
 			<artifactId>mongo-hadoop-core_1.0.2</artifactId>
 			<version>1.0.0</version>
 			<optional>true</optional>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
             </dependencies>
         </profile>
@@ -156,6 +162,32 @@
 			<artifactId>mongo-hadoop-core_cdh4b1</artifactId>
 			<version>1.0.0</version>
 			<optional>true</optional>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-common</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-mapreduce-client-app</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-mapreduce-client-common</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-mapreduce-client-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-mapreduce-client-shuffle</artifactId>
+				</exclusion>
+			</exclusions>	
 		</dependency>
             </dependencies>
         </profile>
