@@ -84,13 +84,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
-		<dependency>
-			<groupId>org.mongodb</groupId>
-			<artifactId>mongo-hadoop-core_0.20.205.0</artifactId>
-			<version>1.0.0</version>
-			<optional>true</optional>
-		</dependency>
             
         <dependency>
             <groupId>com.dyuproject.protostuff</groupId>
@@ -137,6 +130,12 @@
                     <version>${project.version}</version>
                     <artifactId>pangool-core</artifactId>
                 </dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-hadoop-core_1.0.2</artifactId>
+			<version>1.0.0</version>
+			<optional>true</optional>
+		</dependency>
             </dependencies>
         </profile>
 
@@ -152,6 +151,12 @@
                     <classifier>mr${hadoop.version}</classifier>
                     <artifactId>pangool-core</artifactId>
                 </dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-hadoop-core_cdh4b1</artifactId>
+			<version>1.0.0</version>
+			<optional>true</optional>
+		</dependency>
             </dependencies>
         </profile>
 
