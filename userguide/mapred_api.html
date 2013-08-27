@@ -31,6 +31,10 @@ The Pangool MapReduce API is formed by:
 	This class can also be used as a Combiner, as long as the output types are (ITuple, NullWritable).</p>
 	</li>
 
+	<li>TupleMRContext:
+	</p>
+	<p>(An instance of this class is received by both TupleMapper and TupleReducer. The user can get the standard Hadoop Context object through <strong>getHadoopContext()</strong> to use counters, progress(), etc.)</p>
+	</li>
 
 	<li><strong><a href='https://github.com/datasalt/pangool/blob/master/core/src/main/java/com/datasalt/pangool/tuplemr/TupleRollupReducer.java'>TupleRollupReducer</a></strong> :
 	</p>
