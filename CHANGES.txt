@@ -1,7 +1,11 @@
 Pangool Change Log
 ====================
 
-Pangool 0.60.4 (DEVELOPMENT)
+Pangool 0.60.4
+
+ NEW FEATURES
+
+  - 2013-09-01 - Official support for CDH4, with a small fix added.
 
 Pangool 0.60.3
 
