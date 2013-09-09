@@ -369,7 +369,8 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			    .getOutputCommitter(this.context));
 
 			// The trick is to create a new Job for each output
-			Job job = new Job(this.context.getConfiguration());
+			Configuration c = new Configuration(this.context.getConfiguration());
+			Job job = new Job(c);
 			job.setOutputKeyClass(getNamedOutputKeyClass(this.context, baseFileName));
 			job.setOutputValueClass(getNamedOutputValueClass(this.context, baseFileName));
 			// Check possible specific context for the output
@@ -386,6 +387,7 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			// create
 			// We put it inside the main output work path -> in case the Job fails,
 			// everything will be discarded
+			
 			taskContext.getConfiguration().set("mapred.output.dir",
 			    baseOutputCommitter.getBaseDir() + "/" + baseFileName);
 			// This is for Hadoop 2.0 :

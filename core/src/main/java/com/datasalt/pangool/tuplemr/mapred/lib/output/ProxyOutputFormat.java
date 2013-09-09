@@ -101,6 +101,7 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 		originalDir = outDir;
 		FileOutputCommitter committer = (FileOutputCommitter) super.getOutputCommitter(context);
 		baseDir = committer.getWorkPath() + "";
+		
 		Configuration conf = new Configuration(context.getConfiguration());
 		TaskAttemptContext reContext;
 		try {
