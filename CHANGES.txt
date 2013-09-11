@@ -1,11 +1,17 @@
 Pangool Change Log
 ====================
 
-Pangool 0.60.4
+Pangool 0.60.7 (DEVELOPMENT)
 
  NEW FEATURES
 
-  - 2013-09-01 - Official support for CDH4, with a small fix added.
+  - 2013-09-11 - More flexible named outputs. By setting default parameters, any number of named outputs can be opened in runtime.
+
+Pangool 0.60.6
+
+ NEW FEATURES
+
+  - 2013-09-01 - Official support for CDH4, with a small fix added. Maven profile "cdh4" added.
 
 Pangool 0.60.3
 
