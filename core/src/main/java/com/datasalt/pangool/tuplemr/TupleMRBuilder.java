@@ -158,13 +158,41 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 		addNamedOutput(namedOutput, outputFormat, keyClass, valueClass, null);
 	}
 
+  /**
+   * Sets the default named output specs. By using this method one can use an arbitrary number of named outputs
+   * without pre-defining them beforehand.
+   */
+  public void setDefaultNamedOutput(OutputFormat outputFormat, Class keyClass, Class valueClass) throws TupleMRException {
+  	setDefaultNamedOutput(outputFormat, keyClass, valueClass, null);
+  }
+  
+  /**
+   * Sets the default named output specs. By using this method one can use an arbitrary number of named outputs
+   * without pre-defining them beforehand.
+   * <p>
+   * The specific (key, value) default context defined here will be applied to ALL named outputs.
+   */
+  public void setDefaultNamedOutput(OutputFormat outputFormat, Class keyClass, Class valueClass, Map<String, String> specificContext)  throws TupleMRException {
+  	namedOutputs.add(new Output(true, "DEFAULT", outputFormat, keyClass, valueClass, specificContext));
+  }
+  
+  /**
+   * Sets the default named output (Tuple format) specs. By using this method one can use an arbitrary number of named outputs
+   * without pre-defining them beforehand.
+   */
+  public void setDefaultNamedOutput(Schema outputSchema) throws TupleMRException {
+  	Output output = new Output(true, "DEFAULT", new TupleOutputFormat(outputSchema),
+        ITuple.class, NullWritable.class, null);
+    namedOutputs.add(output);
+  }
+  
 	public void addNamedOutput(String namedOutput, OutputFormat outputFormat, Class keyClass,
 	    Class valueClass, Map<String, String> specificContext) throws TupleMRException {
-		namedOutputs.add(new Output(namedOutput, outputFormat, keyClass, valueClass, specificContext));
+		namedOutputs.add(new Output(false, namedOutput, outputFormat, keyClass, valueClass, specificContext));
 	}
 
 	public void addNamedTupleOutput(String namedOutput, Schema outputSchema) throws TupleMRException {
-		Output output = new Output(namedOutput, new TupleOutputFormat(outputSchema), ITuple.class,
+		Output output = new Output(false, namedOutput, new TupleOutputFormat(outputSchema), ITuple.class,
 		    NullWritable.class, null);
 		namedOutputs.add(output);
 	}

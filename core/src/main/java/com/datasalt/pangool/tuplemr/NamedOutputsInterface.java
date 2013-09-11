@@ -17,8 +17,8 @@ import org.apache.hadoop.mapreduce.OutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.PangoolMultipleOutputs;
 
 /**
- * This class encapsulates the functionality of a builder such as {@link TupleMRBuilder} that provides Named Outputs.
- * To be used by other builders like {@link MapOnlyJobBuilder}.
+ * This class encapsulates the functionality of a builder such as {@link TupleMRBuilder} that provides Named Outputs. To
+ * be used by other builders like {@link MapOnlyJobBuilder}.
  */
 @SuppressWarnings("rawtypes")
 public class NamedOutputsInterface {
@@ -29,15 +29,17 @@ public class NamedOutputsInterface {
 
 	public static final class Output {
 
+		boolean isDefault;
 		String name;
-    OutputFormat outputFormat;
+		OutputFormat outputFormat;
 		Class keyClass;
 		Class valueClass;
 
 		Map<String, String> specificContext = new HashMap<String, String>();
 
-		Output(String name, OutputFormat outputFormat, Class keyClass, Class valueClass,
+		Output(boolean isDefault, String name, OutputFormat outputFormat, Class keyClass, Class valueClass,
 		    Map<String, String> specificContext) {
+			this.isDefault = isDefault;
 			this.outputFormat = outputFormat;
 			this.keyClass = keyClass;
 			this.valueClass = valueClass;
@@ -54,11 +56,11 @@ public class NamedOutputsInterface {
 		NamedOutputsInterface.validateNamedOutput(output.name, namedOutputs);
 		namedOutputs.add(output);
 	}
-	
+
 	public List<Output> getNamedOutputs() {
-  	return namedOutputs;
-  }
-	
+		return namedOutputs;
+	}
+
 	/**
 	 * Use this method for configuring a Job instance according to the named outputs specs that has been specified.
 	 * Returns the instance files that have been created.
@@ -67,14 +69,19 @@ public class NamedOutputsInterface {
 		Set<String> instanceFiles = new HashSet<String>();
 		for(Output output : getNamedOutputs()) {
 			try {
-				instanceFiles.add(PangoolMultipleOutputs.addNamedOutput(job, output.name, output.outputFormat,
-				    output.keyClass, output.valueClass));
+				if(output.isDefault) {
+					instanceFiles.add(PangoolMultipleOutputs.setDefaultNamedOutput(job, output.outputFormat,
+					    output.keyClass, output.valueClass));
+				} else {
+					instanceFiles.add(PangoolMultipleOutputs.addNamedOutput(job, output.name, output.outputFormat,
+					    output.keyClass, output.valueClass));
+				}
 			} catch(URISyntaxException e1) {
 				throw new TupleMRException(e1);
 			}
 			for(Map.Entry<String, String> contextKeyValue : output.specificContext.entrySet()) {
-				PangoolMultipleOutputs.addNamedOutputContext(job, output.name,
-				    contextKeyValue.getKey(), contextKeyValue.getValue());
+				PangoolMultipleOutputs.addNamedOutputContext(job, output.name, contextKeyValue.getKey(),
+				    contextKeyValue.getValue());
 			}
 		}
 		return instanceFiles;

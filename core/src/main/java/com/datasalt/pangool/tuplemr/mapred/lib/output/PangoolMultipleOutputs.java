@@ -55,6 +55,7 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	private static final String MULTIPLE_OUTPUTS = "pangool.multipleoutputs";
 
 	private static final String MO_PREFIX = "pangool.multipleoutputs.namedOutput.";
+	private static final String DEFAULT_MO_PREFIX = "pangool.multipleoutputs.defaultNamedOutput.";
 
 	private static final String FORMAT_INSTANCE_FILE = ".format";
 	private static final String KEY = ".key";
@@ -165,6 +166,21 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 		return job.getConfiguration().getClass(MO_PREFIX + namedOutput + VALUE, null, Object.class);
 	}
 
+	// Returns the DEFAULT named output OutputFormat.
+	private static String getDefaultNamedOutputFormatInstanceFile(JobContext job) {
+		return job.getConfiguration().get(DEFAULT_MO_PREFIX + FORMAT_INSTANCE_FILE, null);
+	}
+
+	// Returns the DEFAULT key class for a named output.
+	private static Class<?> getDefaultNamedOutputKeyClass(JobContext job) {
+		return job.getConfiguration().getClass(DEFAULT_MO_PREFIX + KEY, null, Object.class);
+	}
+
+	// Returns the DEFAULT value class for a named output.
+	private static Class<?> getDefaultNamedOutputValueClass(JobContext job) {
+		return job.getConfiguration().getClass(DEFAULT_MO_PREFIX + VALUE, null, Object.class);
+	}
+
 	/**
 	 * Adds a named output for the job. Returns the instance file that has been created.
 	 */
@@ -179,6 +195,21 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 		conf.set(MO_PREFIX + namedOutput + FORMAT_INSTANCE_FILE, uniqueName);
 		conf.setClass(MO_PREFIX + namedOutput + KEY, keyClass, Object.class);
 		conf.setClass(MO_PREFIX + namedOutput + VALUE, valueClass, Object.class);
+		return uniqueName;
+	}
+
+	/**
+	 * Adds a the specs of the default named output for the job (any named output which is not explicitly defined). 
+	 * Returns the instance file that has been created.
+	 */
+	public static String setDefaultNamedOutput(Job job, OutputFormat outputFormat, Class<?> keyClass,
+	    Class<?> valueClass) throws FileNotFoundException, IOException, URISyntaxException {
+		Configuration conf = job.getConfiguration();
+		String uniqueName = UUID.randomUUID().toString() + '.' + "out-format.dat";
+		InstancesDistributor.distribute(outputFormat, uniqueName, conf);
+		conf.set(DEFAULT_MO_PREFIX + FORMAT_INSTANCE_FILE, uniqueName);
+		conf.setClass(DEFAULT_MO_PREFIX + KEY, keyClass, Object.class);
+		conf.setClass(DEFAULT_MO_PREFIX + VALUE, valueClass, Object.class);
 		return uniqueName;
 	}
 
@@ -216,6 +247,13 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			if(confKey.startsWith(MO_PREFIX + namedOutput + CONF)) {
 				// Specific context key, value found
 				String contextKey = confKey.substring((MO_PREFIX + namedOutput + CONF + ".").length(),
+				    confKey.length());
+				job.getConfiguration().set(contextKey, confValue);
+			}
+
+			if(confKey.startsWith(DEFAULT_MO_PREFIX + CONF)) {
+				// Default context applied to all named outputs
+				String contextKey = confKey.substring((DEFAULT_MO_PREFIX + CONF + ".").length(),
 				    confKey.length());
 				job.getConfiguration().set(contextKey, confValue);
 			}
@@ -371,8 +409,14 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			// The trick is to create a new Job for each output
 			Configuration c = new Configuration(this.context.getConfiguration());
 			Job job = new Job(c);
-			job.setOutputKeyClass(getNamedOutputKeyClass(this.context, baseFileName));
-			job.setOutputValueClass(getNamedOutputValueClass(this.context, baseFileName));
+
+			Class<?> keyClass = getNamedOutputKeyClass(this.context, baseFileName);
+			job.setOutputKeyClass(keyClass == null ? getDefaultNamedOutputKeyClass(this.context) : keyClass);
+
+			Class<?> valueClass = getNamedOutputValueClass(this.context, baseFileName);
+			job.setOutputValueClass(valueClass == null ? getDefaultNamedOutputValueClass(this.context)
+			    : valueClass);
+
 			// Check possible specific context for the output
 			setSpecificNamedOutputContext(this.context.getConfiguration(), job, baseFileName);
 			TaskAttemptContext taskContext;
@@ -387,7 +431,7 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			// create
 			// We put it inside the main output work path -> in case the Job fails,
 			// everything will be discarded
-			
+
 			taskContext.getConfiguration().set("mapred.output.dir",
 			    baseOutputCommitter.getBaseDir() + "/" + baseFileName);
 			// This is for Hadoop 2.0 :
@@ -396,9 +440,13 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			context.taskAttemptContext = taskContext;
 
 			// Load the OutputFormat instance
+			String outputFormatFile = getNamedOutputFormatInstanceFile(this.context, baseFileName);
+			if(outputFormatFile == null) {
+				outputFormatFile = getDefaultNamedOutputFormatInstanceFile(this.context);
+			}
+
 			OutputFormat outputFormat = InstancesDistributor.loadInstance(
-			    context.taskAttemptContext.getConfiguration(), OutputFormat.class,
-			    getNamedOutputFormatInstanceFile(this.context, baseFileName), true);
+			    context.taskAttemptContext.getConfiguration(), OutputFormat.class, outputFormatFile, true);
 			// We have to create a JobContext for meeting the contract of the
 			// OutputFormat
 			JobContext jobContext;
@@ -440,24 +488,25 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			outputContext.recordWriter.close(outputContext.taskAttemptContext);
 			outputContext.outputCommitter.commitTask(outputContext.taskAttemptContext);
 			// This is a trick for Hadoop 2.0 where there is extra business logic in commitJob()
-      JobContext jContext;
-      try {
-	      jContext = JobContextFactory.get(outputContext.taskAttemptContext.getConfiguration(), new JobID());
-      } catch(Exception e) {
-      	throw new IOException(e);
-      }
-      try {
-      	Class cl = Class.forName(OutputCommitter.class.getName());
-      	Method method = cl.getMethod("commitJob", Class.forName(JobContext.class.getName()));
-      	if(method != null) {
-      		method.invoke(outputContext.outputCommitter, jContext);
-      	}
-      } catch(Exception e) {
-      	// Hadoop 2.0 : do nothing
-      	// we need to call commitJob as a trick, but the trick itself may throw an IOException.
-      	// it doesn't mean that something went wrong.
-      	// If there was something really wrong it would have failed before.
-      }
+			JobContext jContext;
+			try {
+				jContext = JobContextFactory.get(outputContext.taskAttemptContext.getConfiguration(),
+				    new JobID());
+			} catch(Exception e) {
+				throw new IOException(e);
+			}
+			try {
+				Class cl = Class.forName(OutputCommitter.class.getName());
+				Method method = cl.getMethod("commitJob", Class.forName(JobContext.class.getName()));
+				if(method != null) {
+					method.invoke(outputContext.outputCommitter, jContext);
+				}
+			} catch(Exception e) {
+				// Hadoop 2.0 : do nothing
+				// we need to call commitJob as a trick, but the trick itself may throw an IOException.
+				// it doesn't mean that something went wrong.
+				// If there was something really wrong it would have failed before.
+			}
 			outputContext.outputCommitter.cleanupJob(outputContext.jobContext);
 		}
 	}
