@@ -183,6 +183,18 @@ public class Tuple implements ITuple, Serializable, Cloneable {
     return 42; // any arbitrary constant will do
   }
 
+	
+  /**
+   * Simple shallow copy of this Tuple to another Tuple.
+	 *
+   * @param tupleDest The destination Tuple (should have the same Schema or a super-set of it).
+   */
+	public void shallowCopy(ITuple tupleDest) {
+		for(Field field: this.getSchema().getFields()) {
+			tupleDest.set(field.getName(), this.get(field.getName()));
+		}
+	}
+	
   /**
    * Performs a deep copy of this Tuple. <br/>
    * Custom {@link FieldClonator}s can be provided for each individual field.
