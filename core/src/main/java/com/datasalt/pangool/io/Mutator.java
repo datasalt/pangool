@@ -15,18 +15,49 @@ public class Mutator {
 	public static int COUNTER = 0;
 
 	/**
+	 * Creates a new schema which has exactly the same fields as the input Schema minus the field names
+	 * that are specified as "minusFields". This is equivalent to calling {@link #subSetOf(Schema, String...)}
+	 * with the list of Fields that must remain, but instead here we specify the fields that should NOT remain.
+	 * <p>
+	 * The name of the schema is auto-generated with a static counter.
+	 */
+	public static Schema minusFields(Schema schema, String... minusFields) {
+		return minusFields("minusSchema" + (COUNTER++), schema, minusFields);
+	}
+	
+	/**
+	 * Creates a new schema which has exactly the same fields as the input Schema minus the field names
+	 * that are specified as "minusFields". This is equivalent to calling {@link #subSetOf(Schema, String...)}
+	 * with the list of Fields that must remain, but instead here we specify the fields that should NOT remain.
+	 * <p>
+	 * The name of the schema is also specified as a parameter.
+	 */
+	public static Schema minusFields(String newName, Schema schema, String... minusFields) {
+		List<Field> newSchema = new ArrayList<Field>();
+		l1: for(Field f: schema.getFields()) {
+			for(String minsField: minusFields) {
+				if(f.getName().equals(minsField)) {
+					continue l1;
+				}
+			}
+			newSchema.add(f);
+		}
+		return new Schema(newName, newSchema);		
+	}
+	
+	/**
 	 * Creates a subset of the input Schema exactly with the fields whose names are specified.
 	 * The name of the schema is auto-generated with a static counter.
 	 */
 	public static Schema subSetOf(Schema schema, String... subSetFields) {
-		return subSetOf(schema, "subSetSchema" + (COUNTER++), subSetFields);
+		return subSetOf("subSetSchema" + (COUNTER++), schema, subSetFields);
 	}
 
 	/**
 	 * Creates a subset of the input Schema exactly with the fields whose names are specified.
 	 * The name of the schema is also specified as a parameter.
 	 */
-	public static Schema subSetOf(Schema schema, String newName, String... subSetFields) {
+	public static Schema subSetOf(String newName, Schema schema, String... subSetFields) {
 		List<Field> newSchema = new ArrayList<Field>();
 		for(String subSetField: subSetFields) {
 			newSchema.add(schema.getField(subSetField));
@@ -40,7 +71,7 @@ public class Mutator {
 	 * The name of the schema is auto-generated with a static counter.
 	 */
 	public static Schema superSetOf(Schema schema, Field... newFields) {
-		return superSetOf(schema, "superSetSchema" + (COUNTER++), newFields);
+		return superSetOf("superSetSchema" + (COUNTER++), schema, newFields);
 	}
 	
 	/**
@@ -48,7 +79,7 @@ public class Mutator {
 	 * and adding some new ones. The new fields are fully specified in a Field class. 
 	 * The name of the schema is also specified as a parameter.
 	 */
-	public static Schema superSetOf(Schema schema, String newName, Field... newFields) {
+	public static Schema superSetOf(String newName, Schema schema, Field... newFields) {
 		List<Field> newSchema = new ArrayList<Field>();
 		newSchema.addAll(schema.getFields());
 		for(Field newField: newFields) {
@@ -66,7 +97,7 @@ public class Mutator {
 	 * The name of the schema is auto-generated with a static counter.
 	 */
 	public static Schema jointSchema(Schema leftSchema, Schema rightSchema) {
-		return jointSchema(leftSchema, rightSchema, "jointSchema" + (COUNTER++));
+		return jointSchema("jointSchema" + (COUNTER++), leftSchema, rightSchema);
 	}
 	
 	/**
@@ -77,7 +108,7 @@ public class Mutator {
 	 * <p>
 	 * The name of the schema is also specified as a parameter.
 	 */
-	public static Schema jointSchema(Schema leftSchema, Schema rightSchema, String newName) {
+	public static Schema jointSchema(String newName, Schema leftSchema, Schema rightSchema) {
 		List<Field> newSchema = new ArrayList<Field>();
 		for(Field field: leftSchema.getFields()) {
 			newSchema.add(field);
