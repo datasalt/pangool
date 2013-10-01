@@ -32,14 +32,16 @@ import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
 import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.TupleFile;
 import com.datasalt.pangool.io.Utf8;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.tuplemr.SerializationInfo;
 import com.datasalt.pangool.utils.Buffer;
 
 /**
- * This Deserializer holds all the baseline code for deserializing Tuples. It is used by the more complex {@link TupleDeserializer}.
- * It is also used by a stateful Tuple field serializer {@link TupleFieldSerialization}. 
+ * This Deserializer holds all the baseline code for deserializing Tuples. It is used by the more complex
+ * {@link TupleDeserializer}. It is also used by a stateful Tuple field serializer {@link TupleFieldSerialization} and
+ * finally it is also used by the stateful {@link TupleFile}.
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class SimpleTupleDeserializer implements Deserializer<ITuple> {
@@ -47,28 +49,57 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	private DataInputStream input;
 	private final HadoopSerialization ser;
 	private final Buffer tmpInputBuffer = new Buffer();
-  private final BitField nullsRelative = new BitField();
-  private final FlagsField nullsAbsolute = new FlagsField();
+	private final BitField nullsRelative = new BitField();
+	private final FlagsField nullsAbsolute = new FlagsField();
 	private final Configuration conf;
 
-	private Deserializer[] deserializers; 
-	private Schema schemaToDeserialize;
+	private Deserializer[] deserializers;
+	private Schema readSchema = null, destSchema = null;
+	private int[] backwardsCompatibiltyLookupVector = null;
+
+	// Constant that indicates a field of a Tuple is not being used
+	private final static int UNUSED = -1;
 	
-	public SimpleTupleDeserializer(HadoopSerialization ser, Configuration conf) {
+	/**
+	 * Package-visibility constructor used by {@link TupleDeserializer} . For efficiency, a Schema is not pre-configured.
+	 * Read schemas are then passed dynamically in {@link #readFields(ITuple, Schema, Deserializer[])}. Note that this is
+	 * not the most intuitive way of using this class, but it is made for efficiency.
+	 */
+	SimpleTupleDeserializer(HadoopSerialization ser, Configuration conf) {
 		this.ser = ser;
 		this.conf = conf;
 	}
 
-  /**
-   * Constructor where you must include the scheme. Mandatory if you are
-   * using custom stateful serializers.
-   */
+	/**
+	 * Constructor with one Schema. This Schema will be used to read Tuples.
+	 */
 	public SimpleTupleDeserializer(Schema schemaToDeserialize, HadoopSerialization ser, Configuration conf) {
-		this(ser, conf);
-		this.schemaToDeserialize = schemaToDeserialize;
-		deserializers = SerializationInfo.getDeserializers(schemaToDeserialize, conf);
+		this(schemaToDeserialize, schemaToDeserialize, ser, conf);
 	}
-	
+
+	/**
+	 * Constructor with two schemas. In this case we deserialize one Schema but we write the final result into another one
+	 * (which should be backwards compatible).
+	 */
+	public SimpleTupleDeserializer(Schema readSchema, Schema destSchema, HadoopSerialization ser,
+	    Configuration conf) {
+		this(ser, conf);
+		this.readSchema = readSchema;
+		this.destSchema = destSchema;
+		// calculate a lookup table for backwards compatibility
+		// "UNUSED" will mean the field is not used anymore
+		backwardsCompatibiltyLookupVector = new int[readSchema.getFields().size()];
+		for(int i = 0; i < readSchema.getFields().size(); i++) {
+			backwardsCompatibiltyLookupVector[i] = UNUSED;
+			Field field = readSchema.getFields().get(i);
+			if(destSchema.containsField(field.getName())) {
+				backwardsCompatibiltyLookupVector[i] = destSchema.getFieldPos(field.getName());
+			}
+		}
+
+		deserializers = SerializationInfo.getDeserializers(readSchema, conf);
+	}
+
 	@Override
 	public void close() throws IOException {
 		input.close();
@@ -77,7 +108,7 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	@Override
 	public ITuple deserialize(ITuple tuple) throws IOException {
 		if(tuple == null) {
-			tuple = new Tuple(schemaToDeserialize);
+			tuple = new Tuple(destSchema);
 		}
 		readFields(tuple, deserializers);
 		return tuple;
@@ -92,62 +123,137 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 		}
 	}
 
+	/**
+	 * Read fields using the specified "readSchema" in the constructor.
+	 */
 	public void readFields(ITuple tuple, Deserializer[] customDeserializers) throws IOException {
-		Schema schema = tuple.getSchema();
-    // If there are fields with nulls, read the bit field and set the values that are null
-    if (schema.containsNullableFields()) {
-      List<Integer> nullableFields = schema.getNullableFieldsIdx();
-      nullsAbsolute.ensureSize(schema.getFields().size());
-      nullsAbsolute.clear(nullableFields);
-      nullsRelative.deser(input);
-      for (int i = 0; i < nullableFields.size(); i++) {
-        if (nullsRelative.isSet(i)) {
-          int field = nullableFields.get(i);
-          tuple.set(field, null);
-          nullsAbsolute.flags[field] = true;
-        }
-      }
-    }
+		readFields(tuple, readSchema, customDeserializers);
+	}
 
-    // Field by field deserialization
+	/**
+	 * If the deserializer has been configured to use two schemas (read and dest) then there is a lookup vector, otherwise
+	 * same schema is assumed.
+	 */
+	private int backwardsCompatibleIndex(int i) {
+		return backwardsCompatibiltyLookupVector == null ? i : backwardsCompatibiltyLookupVector[i];
+	}
+
+	ITuple cachedReadTuple = null;
+
+	/**
+	 * Private tuple that will be used to skip certain fields for backwards-compatibility. Because we save cached Objects
+	 * in the Tuple for deserializing custom Objects it is convenient to have such a Tuple event if no-one uses it
+	 * afterwards.
+	 */
+	private ITuple cachedReadTuple() {
+		if(cachedReadTuple == null) {
+			cachedReadTuple = new Tuple(readSchema);
+		}
+		return cachedReadTuple;
+	}
+
+	/**
+	 * Read fields using an ad-hoc Schema passed by parameter. This method is package-visibility since this is not the
+	 * standard way of using this Deserializer. This method is used by {@link TupleDeserializer}.
+	 */
+	void readFields(ITuple tuple, Schema schema, Deserializer[] customDeserializers) throws IOException {
+		// If there are fields with nulls, read the bit field and set the values that are null
+		if(schema.containsNullableFields()) {
+			List<Integer> nullableFields = schema.getNullableFieldsIdx();
+			nullsAbsolute.ensureSize(schema.getFields().size());
+			nullsAbsolute.clear(nullableFields);
+			nullsRelative.deser(input);
+			for(int i = 0; i < nullableFields.size(); i++) {
+				if(nullsRelative.isSet(i)) {
+					int field = backwardsCompatibleIndex(nullableFields.get(i));
+					tuple.set(field, null);
+					nullsAbsolute.flags[field] = true;
+				}
+			}
+		}
+
+		// Field by field deserialization
 		for(int index = 0; index < schema.getFields().size(); index++) {
 			Deserializer customDeser = customDeserializers[index];
 			Field field = schema.getField(index);
 
-      // Nulls control
-      if (field.isNullable() && nullsAbsolute.flags[index]) {
-        // Null field. Nothing to deserialize.
-        continue;
-      }
+			// Nulls control
+			if(field.isNullable() && nullsAbsolute.flags[index]) {
+				// Null field. Nothing to deserialize.
+				continue;
+			}
+
+			/*
+			 * If we configured the Deserializer to use two Schemas,
+			 * this will give us the real index for the destination Tuple.
+			 * If it gives "UNUSED" it means the field being read is not used.
+			 * We will deal with this depending on wether we read a primitive field or 
+			 * a complex data type.
+			 */
+			int idx = backwardsCompatibleIndex(index);
 
 			switch(field.getType()) {
 			case INT:
-				tuple.set(index, WritableUtils.readVInt(input));
+				int iVal = WritableUtils.readVInt(input);
+				if(idx != UNUSED) {
+					tuple.set(idx, iVal);
+				} // If the primitive field is not used we just don't set it
 				break;
 			case LONG:
-				tuple.set(index, WritableUtils.readVLong(input));
+				long lVal = WritableUtils.readVLong(input);
+				if(idx != UNUSED) {
+					tuple.set(idx, lVal);
+				} // If the primitive field is not used we just don't set it
 				break;
 			case DOUBLE:
-				tuple.set(index, input.readDouble());
+				double dVal = input.readDouble();
+				if(idx != UNUSED) {
+					tuple.set(idx, dVal);
+				} // If the primitive field is not used we just don't set it
 				break;
 			case FLOAT:
-				tuple.set(index, input.readFloat());
+				float fVal = input.readFloat();
+				if(idx != UNUSED) {
+					tuple.set(idx, fVal);
+				} // If the primitive field is not used we just don't set it
 				break;
 			case STRING:
-				readUtf8(input, tuple, index);
+				if(idx == UNUSED) {
+					// The field is unused so we use a private cached Tuple for skipping its bytes
+					readUtf8(input, cachedReadTuple(), index);
+				} else {
+					readUtf8(input, tuple, idx);
+				}
 				break;
 			case BOOLEAN:
 				byte b = input.readByte();
-				tuple.set(index, (b != 0));
+				if(idx != UNUSED) {
+					tuple.set(idx, (b != 0));
+				} // If the primitive field is not used we just don't set it
 				break;
 			case ENUM:
-				readEnum(input, tuple, field.getObjectClass(), index);
+				if(idx == UNUSED) {
+					// The field is unused so we use a private cached Tuple for skipping its bytes
+					readEnum(input, cachedReadTuple(), field.getObjectClass(), index);
+				} else {
+					readEnum(input, tuple, field.getObjectClass(), idx);
+				}
 				break;
 			case BYTES:
-				readBytes(input, tuple, index);
+				if(idx == UNUSED) {
+					// The field is unused so we use a private cached Tuple for skipping its bytes
+					readBytes(input, cachedReadTuple(), index);
+				} else {
+					readBytes(input, tuple, idx);
+				}
 				break;
 			case OBJECT:
-				readCustomObject(input, tuple, field.getObjectClass(), index, customDeser);
+				if(idx == UNUSED) {
+					// The field is unused so we use a private cached Tuple for skipping its bytes
+					readCustomObject(input, cachedReadTuple(), field.getObjectClass(), index, customDeser);
+				} else {
+					readCustomObject(input, tuple, field.getObjectClass(), idx, customDeser);
+				}
 				break;
 			default:
 				throw new IOException("Not supported type:" + field.getType());
@@ -156,14 +262,14 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	}
 
 	protected void readUtf8(DataInputStream input, ITuple tuple, int index) throws IOException {
-    Object t = tuple.get(index);
-    if(t == null || !(t instanceof Utf8)) {
-      t = new Utf8();
-      tuple.set(index, t);
-    }
-    ((Utf8) t).readFields(input);
+		Object t = tuple.get(index);
+		if(t == null || !(t instanceof Utf8)) {
+			t = new Utf8();
+			tuple.set(index, t);
+		}
+		((Utf8) t).readFields(input);
 
-  }
+	}
 
 	protected void readCustomObject(DataInputStream input, ITuple tuple, Class<?> expectedType, int index,
 	    Deserializer customDeser) throws IOException {
@@ -185,7 +291,8 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 				tuple.set(index, ob);
 			}
 		} else {
-			throw new IOException("Error deserializing, custom object serialized with negative length : " + size);
+			throw new IOException("Error deserializing, custom object serialized with negative length : "
+			    + size);
 		}
 	}
 
@@ -205,10 +312,11 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	}
 
 	public DataInputStream getInput() {
-  	return input;
-  }
+		return input;
+	}
 
-	protected void readEnum(DataInputStream input, ITuple tuple, Class<?> fieldType, int index) throws IOException {
+	protected void readEnum(DataInputStream input, ITuple tuple, Class<?> fieldType, int index)
+	    throws IOException {
 		int ordinal = WritableUtils.readVInt(input);
 		try {
 			Object[] enums = fieldType.getEnumConstants();
@@ -218,23 +326,22 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 		}
 	}
 
-  /**
-   * Helping class that keeps an array of flags. Used to know if a particular field
-   * is null or not.
-   */
-  private static class FlagsField {
-    public boolean[] flags = new boolean[0];
+	/**
+	 * Helping class that keeps an array of flags. Used to know if a particular field is null or not.
+	 */
+	private static class FlagsField {
+		public boolean[] flags = new boolean[0];
 
-    public void ensureSize(int size) {
-      if (flags.length < size) {
-        flags = Arrays.copyOf(flags, size);
-      }
-    }
+		public void ensureSize(int size) {
+			if(flags.length < size) {
+				flags = Arrays.copyOf(flags, size);
+			}
+		}
 
-    public void clear(List<Integer> flags) {
-      for (Integer flag : flags) {
-        this.flags[flag] = false;
-      }
-    }
-  }
+		public void clear(List<Integer> flags) {
+			for(Integer flag : flags) {
+				this.flags[flag] = false;
+			}
+		}
+	}
 }

@@ -101,10 +101,10 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 		CachedTuples tuples = cachedTuples.datum();
 		ITuple commonTuple = tuples.commonTuple;
 
-		simpleTupleDeSer.readFields(commonTuple, serInfo.getCommonSchemaDeserializers());
+		simpleTupleDeSer.readFields(commonTuple, commonTuple.getSchema(), serInfo.getCommonSchemaDeserializers());
 		int schemaId = WritableUtils.readVInt(simpleTupleDeSer.getInput());
 		ITuple specificTuple = tuples.specificTuples.get(schemaId);
-		simpleTupleDeSer.readFields(specificTuple, serInfo.getSpecificSchemaDeserializers().get(schemaId));
+		simpleTupleDeSer.readFields(specificTuple, specificTuple.getSchema(), serInfo.getSpecificSchemaDeserializers().get(schemaId));
 		ITuple result = tuples.resultTuples.get(schemaId);
 		mixIntermediateIntoResult(commonTuple, specificTuple, result, schemaId);
 		return result;
@@ -127,7 +127,7 @@ public class TupleDeserializer implements Deserializer<DatumWrapper<ITuple>> {
 	private ITuple deserializeOneSource(ITuple reuse) throws IOException {
 		CachedTuples tuples = cachedTuples.datum();
 		ITuple commonTuple = tuples.commonTuple;
-		simpleTupleDeSer.readFields(commonTuple, serInfo.getCommonSchemaDeserializers());
+		simpleTupleDeSer.readFields(commonTuple, commonTuple.getSchema(), serInfo.getCommonSchemaDeserializers());
 		if(reuse == null) {
 			reuse = tuples.resultTuples.get(0);
 		}
