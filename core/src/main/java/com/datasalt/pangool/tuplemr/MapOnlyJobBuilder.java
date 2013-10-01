@@ -36,6 +36,7 @@ import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.tuplemr.MultipleInputsInterface.Input;
 import com.datasalt.pangool.tuplemr.NamedOutputsInterface.Output;
 import com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.ProxyOutputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleOutputFormat;
 import com.datasalt.pangool.utils.InstancesDistributor;
@@ -68,6 +69,23 @@ public class MapOnlyJobBuilder {
     this.jarByClass = jarByClass;
     return this;
   }
+
+  /**
+   * Adds an input file associated with a TupleFile.
+   */
+	public void addTupleInput(Path path, MapOnlyMapper tupleMapper) {
+		addInput(path, new TupleInputFormat(), tupleMapper);
+	}
+
+	/**
+	 * Adds an input file associated with a TupleFile.
+	 * <p>
+	 * A specific "Target Schema" is specified, which should be backwards-compatible with the Schema in the
+	 * Tuple File (new nullable fields are allowed, not used old fields too).
+	 */
+	public void addTupleInput(Path path, Schema targetSchema, MapOnlyMapper tupleMapper) {
+		addInput(path, new TupleInputFormat(targetSchema), tupleMapper);
+	}
 
   public MapOnlyJobBuilder addInput(Path path, InputFormat inputFormat, MapOnlyMapper processor) {
     return addInput(path, inputFormat, processor, new  HashMap<String, String>());

@@ -39,7 +39,7 @@ import com.datasalt.pangool.io.Schema.Field.FieldConfigurable;
 
 public class AvroFieldSerialization<T> implements Serialization<T>, FieldConfigurable {
 
-	private Schema schema;
+	private Schema targetSchema;
 	private boolean isReflect;
 
 	public AvroFieldSerialization() {
@@ -48,19 +48,30 @@ public class AvroFieldSerialization<T> implements Serialization<T>, FieldConfigu
 
 	@Override
 	public Deserializer<T> getDeserializer(Class<T> clazz) {
-		return new AvroFieldDeserializer<T>(schema, isReflect);
+		return new AvroFieldDeserializer<T>(targetSchema, isReflect);
 	}
 
 	@Override
 	public Serializer<T> getSerializer(Class<T> clazz) {
-		return new AvroFieldSerializer<T>(schema, isReflect);
+		return new AvroFieldSerializer<T>(targetSchema, isReflect);
 	}
 
 	@SuppressWarnings("deprecation")
   @Override
-	public void setFieldProperties(Map<String, String> properties) {
-		schema = Schema.parse(properties.get("avro.schema"));
-		String r = properties.get("avro.reflection");
+	public void setFieldProperties(Map<String, String> readProperties, Map<String, String> targetProperties) {
+		/*
+		 * If target properties are specified, these take priority over read properties. 
+		 * Otherwise "read" properties are used.
+		 */
+		Map<String, String> props = targetProperties;
+		if(targetProperties == null) {
+			props = readProperties;
+		}
+		if(props == null) {
+			throw new IllegalArgumentException("No read / no target properties / schema. Can't deserialize nor serialize!");
+		}
+		targetSchema = Schema.parse(props.get("avro.schema"));
+		String r = props.get("avro.reflection");
 		isReflect = (r != null) && Boolean.parseBoolean(r);
 	}
 
@@ -87,7 +98,6 @@ public class AvroFieldSerialization<T> implements Serialization<T>, FieldConfigu
 			// method and the Hadoop framework called it when needed rather
 			// than for every record.
 			encoder.flush();
-
 		}
 
 		@Override

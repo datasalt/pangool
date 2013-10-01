@@ -286,19 +286,17 @@ public class TupleFile {
     ITuple tuple;
 
     /**
-     * Open the named file. A specific Schema will be used in a backwards-compatible way.
-     * The Schema in the file will be read according to it, so that unused fields will be
-     * skipped and new fields will be initialized as null.
+     * Open the named file. A specific Schema may be used in a backwards-compatible way.
      */
-    public Reader(FileSystem fs, Schema destSchema, Configuration conf, Path file) throws IOException {
+    public Reader(FileSystem fs, Schema targetSchema, Configuration conf, Path file) throws IOException {
       this.file = file;
       innerReader = new SequenceFile.Reader(fs, file, conf);
       loadSchema();
 
       HadoopSerialization ser = new HadoopSerialization(conf);
-      if(destSchema != null) {
-        this.deser = new SimpleTupleDeserializer(schema, destSchema, ser, conf);
-        this.tuple = new Tuple(destSchema);
+      if(targetSchema != null) {
+        this.deser = new SimpleTupleDeserializer(schema, targetSchema, ser, conf);
+        this.tuple = new Tuple(targetSchema);
       } else {
         this.deser = new SimpleTupleDeserializer(schema, ser, conf);      	
         this.tuple = new Tuple(schema);

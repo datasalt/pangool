@@ -145,14 +145,22 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	}
 
 	/**
-	 * Defines an input as in {@link PangoolMultipleInputs} using {@link TupleInputFormat}
-	 * 
-	 * @see PangoolMultipleInputs
+	 * Adds an input file associated with a TupleFile.
 	 */
 	public void addTupleInput(Path path, TupleMapper<ITuple, NullWritable> tupleMapper) {
 		addInput(path, new TupleInputFormat(), tupleMapper);
 	}
 
+	/**
+	 * Adds an input file associated with a TupleFile.
+	 * <p>
+	 * A specific "Target Schema" is specified, which should be backwards-compatible with the Schema in the
+	 * Tuple File (new nullable fields are allowed, not used old fields too).
+	 */
+	public void addTupleInput(Path path, Schema targetSchema, TupleMapper<ITuple, NullWritable> tupleMapper) {
+		addInput(path, new TupleInputFormat(targetSchema), tupleMapper);
+	}
+	
 	public void addNamedOutput(String namedOutput, OutputFormat outputFormat, Class keyClass,
 	    Class valueClass) throws TupleMRException {
 		addNamedOutput(namedOutput, outputFormat, keyClass, valueClass, null);

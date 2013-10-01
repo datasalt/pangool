@@ -34,13 +34,25 @@ import com.datasalt.pangool.serialization.HadoopSerialization;
  */
 public class TupleFieldSerialization implements Serialization<ITuple>, FieldConfigurable, Configurable {
 
-	private Schema schema;
+	private Schema readSchema, targetSchema;
 	private HadoopSerialization ser;
 	private Configuration conf;
 	
 	@Override
-  public void setFieldProperties(Map<String, String> props) {
-		schema = Schema.parse(props.get("schema"));
+  public void setFieldProperties(Map<String, String> readProps, Map<String, String> targetProps) {
+		if(readProps != null) {
+			readSchema = Schema.parse(readProps.get("schema"));
+		}
+		if(targetProps != null) {
+			targetSchema = Schema.parse(targetProps.get("schema"));
+		}
+		if(readSchema == null && targetSchema == null) {
+			throw new IllegalArgumentException("No read schema / no target schema: can't deserialize nor serialize!");
+		}
+		if(readSchema != null && targetSchema == null) {
+			// Assume target schema equals read schema
+			targetSchema = readSchema;
+		}
   }
 
 	@Override
@@ -50,12 +62,12 @@ public class TupleFieldSerialization implements Serialization<ITuple>, FieldConf
 
 	@Override
   public Deserializer<ITuple> getDeserializer(Class<ITuple> argClazz) {
-	  return new SimpleTupleDeserializer(schema, ser, conf);
+	  return new SimpleTupleDeserializer(readSchema, targetSchema, ser, conf);
   }
 
 	@Override
   public Serializer<ITuple> getSerializer(Class<ITuple> argClazz) {
-	  return new SimpleTupleSerializer(schema, ser, conf);
+	  return new SimpleTupleSerializer(targetSchema, ser, conf);
   }
 
 	@Override

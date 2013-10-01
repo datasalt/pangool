@@ -21,8 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import junit.framework.Assert;
@@ -51,8 +49,6 @@ import com.datasalt.pangool.BaseTest;
 import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.io.TupleFile;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
@@ -95,7 +91,7 @@ public class TestTupleInputOutputFormat extends BaseTest {
 		}
 	}
 
-	public static class MyGroupHandler extends TupleReducer<Text, Text> {
+	public static class MyGroupHandler extends TupleReducer<Text, NullWritable> {
 
 		private static final long serialVersionUID = 1L;
 
@@ -103,7 +99,7 @@ public class TestTupleInputOutputFormat extends BaseTest {
 		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException, TupleMRException {
 			for(ITuple tuple : tuples) {
-				collector.write((Text) tuple.get(0), (Text) tuple.get(1));
+				collector.write((Text) tuple.get(0), NullWritable.get());
 			}
 		}
 	}
@@ -120,18 +116,15 @@ public class TestTupleInputOutputFormat extends BaseTest {
 		HadoopUtils.deleteIfExists(fS, outPath);
 		HadoopUtils.deleteIfExists(fS, outPathText);
 
-		List<Field> fields = new ArrayList<Field>();
-		fields.add(Field.create("title", Type.STRING));
-		fields.add(Field.create("content", Type.STRING));
-		Schema schema = new Schema("schema", fields);
+		Schema originalSchema = new Schema("schema", Fields.parse("title:string, content:string"));
 
 		TupleMRBuilder builder = new TupleMRBuilder(conf);
-		builder.addIntermediateSchema(schema);
+		builder.addIntermediateSchema(originalSchema);
 		builder.setGroupByFields("title");
 		builder.setOrderBy(new OrderBy().add("title", Order.ASC).add("content", Order.ASC));
 
 		builder.setTupleReducer(new IdentityTupleReducer());
-		builder.setTupleOutput(outPath, schema); // setTupleOutput method
+		builder.setTupleOutput(outPath, originalSchema);
 		builder.addInput(inPath, new HadoopInputFormat(TextInputFormat.class), new MyInputProcessor());
 
 		Job job = builder.createJob();
@@ -142,15 +135,17 @@ public class TestTupleInputOutputFormat extends BaseTest {
 		}
 
 		// Use output as input of new TupleMRBuilder
+		// To make things nicer, we evolve the Schema and use a different Schema for reading the Tuple File.
+		// We remove the "content" and add a new nullable field.
+		Schema evolvedSchema = new Schema("evolved", Fields.parse("content:string, new_field:string?"));
 
 		builder = new TupleMRBuilder(conf);
-		builder.addIntermediateSchema(schema);
-		builder.setGroupByFields("title");
-		builder.setOrderBy(new OrderBy().add("title", Order.ASC).add("content", Order.ASC));
+		builder.addTupleInput(outPath, evolvedSchema, new IdentityTupleMapper()); 
+		builder.addIntermediateSchema(evolvedSchema);
+		builder.setGroupByFields("content");
 		builder.setTupleReducer(new MyGroupHandler());
 		builder.setOutput(outPathText, new HadoopOutputFormat(TextOutputFormat.class), Text.class,
-		    Text.class);
-		builder.addTupleInput(outPath, new IdentityTupleMapper()); // addTupleInput method
+				NullWritable.class);
 
 		job = builder.createJob();
 		try {
@@ -159,7 +154,7 @@ public class TestTupleInputOutputFormat extends BaseTest {
 			builder.cleanUpInstanceFiles();
 		}
 
-		Assert.assertEquals("title\tbar2 foo2\ntitle\tfoo1 bar1",
+		Assert.assertEquals("bar2 foo2\nfoo1 bar1",
 		    Files.toString(new File(OUT_TEXT + "/" + "part-r-00000"), Charset.forName("UTF-8")).trim());
 
 		HadoopUtils.deleteIfExists(fS, inPath);

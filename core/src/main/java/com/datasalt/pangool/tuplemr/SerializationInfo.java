@@ -188,10 +188,10 @@ public class SerializationInfo {
   private void initCommonAndGroupSchemaSerialization() {
     //TODO Should SerializationInfo contain Configuration ?
     commonSerializers = getSerializers(commonSchema, null);
-    commonDeserializers = getDeserializers(commonSchema, null);
+    commonDeserializers = getDeserializers(commonSchema, commonSchema, null);
 
     groupSerializers = getSerializers(groupSchema, null);
-    groupDeserializers = getDeserializers(groupSchema, null);
+    groupDeserializers = getDeserializers(groupSchema, groupSchema, null);
   }
 
   private void initSpecificSchemaSerialization() {
@@ -201,7 +201,7 @@ public class SerializationInfo {
       Schema specificSchema = specificSchemas.get(i);
       //TODO Should SerializationInfo contain Configuration ?
       specificSerializers.add(getSerializers(specificSchema, null));
-      specificDeserializers.add(getDeserializers(specificSchema, null));
+      specificDeserializers.add(getDeserializers(specificSchema, specificSchema, null));
     }
   }
 
@@ -212,7 +212,7 @@ public class SerializationInfo {
       if (field.getObjectSerialization() != null) {
         Serialization serialization = ReflectionUtils.newInstance(field.getObjectSerialization(), conf);
         if (serialization instanceof FieldConfigurable) {
-          ((FieldConfigurable) serialization).setFieldProperties(field.getProps());
+          ((FieldConfigurable) serialization).setFieldProperties(null, field.getProps());
         }
         result[i] = serialization.getSerializer(field.getObjectClass());
       }
@@ -220,17 +220,29 @@ public class SerializationInfo {
     return result;
   }
 
-  public static Deserializer[] getDeserializers(Schema schema, Configuration conf) {
-    Deserializer[] result = new Deserializer[schema.getFields().size()];
+  public static Deserializer[] getDeserializers(Schema readSchema, Schema targetSchema, Configuration conf) {
+    Deserializer[] result = new Deserializer[readSchema.getFields().size()];
     for (int i = 0; i < result.length; i++) {
-      Field field = schema.getField(i);
-      if (field.getObjectSerialization() != null) {
-        Serialization serialization = ReflectionUtils.newInstance(field.getObjectSerialization(), conf);
-        if (serialization instanceof FieldConfigurable) {
-          ((FieldConfigurable) serialization).setFieldProperties(field.getProps());
-        }
-        result[i] = serialization.getDeserializer(field.getObjectClass());
+      Field field = readSchema.getField(i);
+      if (field.getObjectSerialization() == null) {
+      	continue;
       }
+      Serialization serialization = ReflectionUtils.newInstance(field.getObjectSerialization(), conf);
+      if (serialization instanceof FieldConfigurable) {
+      	Map<String, String> targetSchemaMetadata = null;
+      	// Look if this field is also in the target Schema, so we extract both metadata
+      	if(targetSchema.containsField(field.getName())) {
+      		Field targetSchemaField = targetSchema.getField(field.getName());
+      		if(targetSchemaField.getObjectSerialization() == null ||
+      			!targetSchemaField.getObjectSerialization().equals(field.getObjectSerialization())) {
+      			// Error: field in target schema with same name but different serialization mechanism!
+      			throw new RuntimeException("Target schema has field [" + field.getName() + "] with different serialization than read schema field with same name.");
+      		}
+      		targetSchemaMetadata = targetSchemaField.getProps();
+      	}
+        ((FieldConfigurable) serialization).setFieldProperties(field.getProps(), targetSchemaMetadata);
+      }
+      result[i] = serialization.getDeserializer(field.getObjectClass());
     }
     return result;
   }

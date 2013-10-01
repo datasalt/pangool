@@ -54,7 +54,7 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	private final Configuration conf;
 
 	private Deserializer[] deserializers;
-	private Schema readSchema = null, destSchema = null;
+	private Schema readSchema = null, targetSchema = null;
 	private int[] backwardsCompatibiltyLookupVector = null;
 
 	// Constant that indicates a field of a Tuple is not being used
@@ -81,23 +81,23 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	 * Constructor with two schemas. In this case we deserialize one Schema but we write the final result into another one
 	 * (which should be backwards compatible).
 	 */
-	public SimpleTupleDeserializer(Schema readSchema, Schema destSchema, HadoopSerialization ser,
+	public SimpleTupleDeserializer(Schema readSchema, Schema targetSchema, HadoopSerialization ser,
 	    Configuration conf) {
 		this(ser, conf);
 		this.readSchema = readSchema;
-		this.destSchema = destSchema;
+		this.targetSchema = targetSchema;
 		// calculate a lookup table for backwards compatibility
 		// "UNUSED" will mean the field is not used anymore
 		backwardsCompatibiltyLookupVector = new int[readSchema.getFields().size()];
 		for(int i = 0; i < readSchema.getFields().size(); i++) {
 			backwardsCompatibiltyLookupVector[i] = UNUSED;
 			Field field = readSchema.getFields().get(i);
-			if(destSchema.containsField(field.getName())) {
-				backwardsCompatibiltyLookupVector[i] = destSchema.getFieldPos(field.getName());
+			if(targetSchema.containsField(field.getName())) {
+				backwardsCompatibiltyLookupVector[i] = targetSchema.getFieldPos(field.getName());
 			}
 		}
 
-		deserializers = SerializationInfo.getDeserializers(readSchema, conf);
+		deserializers = SerializationInfo.getDeserializers(readSchema, targetSchema, conf);
 	}
 
 	@Override
@@ -108,7 +108,7 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	@Override
 	public ITuple deserialize(ITuple tuple) throws IOException {
 		if(tuple == null) {
-			tuple = new Tuple(destSchema);
+			tuple = new Tuple(targetSchema);
 		}
 		readFields(tuple, deserializers);
 		return tuple;
@@ -131,14 +131,15 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	}
 
 	/**
-	 * If the deserializer has been configured to use two schemas (read and dest) then there is a lookup vector, otherwise
+	 * If the deserializer has been configured to use two schemas (read and target) then there is a lookup vector, otherwise
 	 * same schema is assumed.
 	 */
 	private int backwardsCompatibleIndex(int i) {
 		return backwardsCompatibiltyLookupVector == null ? i : backwardsCompatibiltyLookupVector[i];
 	}
 
-	ITuple cachedReadTuple = null;
+	// Private tuple that will be used to skip certain fields for backwards-compatibility
+	private ITuple cachedReadTuple = null;
 
 	/**
 	 * Private tuple that will be used to skip certain fields for backwards-compatibility. Because we save cached Objects

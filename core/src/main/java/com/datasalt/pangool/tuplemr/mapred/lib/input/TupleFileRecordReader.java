@@ -16,9 +16,8 @@ package com.datasalt.pangool.tuplemr.mapred.lib.input;
  * limitations under the License.
  */
 
-import com.datasalt.pangool.io.ITuple;
-import com.datasalt.pangool.io.Tuple;
-import com.datasalt.pangool.io.TupleFile;
+import java.io.IOException;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -27,7 +26,10 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
-import java.io.IOException;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Tuple;
+import com.datasalt.pangool.io.TupleFile;
 
 
 /**
@@ -41,7 +43,20 @@ public class TupleFileRecordReader extends RecordReader<ITuple, NullWritable> {
   private ITuple tuple = null;
   private NullWritable value = NullWritable.get();
   protected Configuration conf;
+  private final Schema targetSchema;
 
+  public TupleFileRecordReader() {
+  	this(null);
+  }
+  
+  /**
+   * If a schema is specified, it will be used as target schema, trying to preserve
+   * backwards compatibility always when possible.
+   */
+	public TupleFileRecordReader(Schema targetSchema) {
+		this.targetSchema = targetSchema;
+  }
+  
   @Override
   public void initialize(InputSplit split,
                          TaskAttemptContext context
@@ -51,7 +66,11 @@ public class TupleFileRecordReader extends RecordReader<ITuple, NullWritable> {
     conf = context.getConfiguration();
     Path path = fileSplit.getPath();
     FileSystem fs = path.getFileSystem(conf);
-    this.in = new TupleFile.Reader(fs, conf, path);
+    if(targetSchema == null) {
+    	this.in = new TupleFile.Reader(fs, conf, path);
+    } else {
+    	this.in = new TupleFile.Reader(fs, targetSchema, conf, path);
+    }
     this.end = fileSplit.getStart() + fileSplit.getLength();
 
     if (fileSplit.getStart() > in.getPosition()) {
@@ -61,7 +80,11 @@ public class TupleFileRecordReader extends RecordReader<ITuple, NullWritable> {
     this.start = in.getPosition();
     more = start < end;
 
-    tuple = new Tuple(in.getSchema());
+    if(targetSchema == null) {
+    	tuple = new Tuple(in.getSchema());
+    } else {
+    	tuple = new Tuple(targetSchema);
+    }
   }
 
   @Override
