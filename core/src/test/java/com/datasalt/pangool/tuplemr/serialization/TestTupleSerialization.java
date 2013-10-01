@@ -15,8 +15,19 @@
  */
 package com.datasalt.pangool.tuplemr.serialization;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.hadoop.conf.Configuration;
+import org.junit.Test;
+
 import com.datasalt.pangool.BaseTest;
-import com.datasalt.pangool.io.*;
+import com.datasalt.pangool.io.DatumWrapper;
+import com.datasalt.pangool.io.Fields;
+import com.datasalt.pangool.io.ITuple;
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.serialization.HadoopSerialization;
 import com.datasalt.pangool.thrift.test.A;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
@@ -24,17 +35,6 @@ import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRConfig;
 import com.datasalt.pangool.tuplemr.TupleMRConfigBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.utils.AvroRecordToTupleConverter;
-import com.datasalt.pangool.utils.AvroUtils;
-import com.datasalt.pangool.utils.TupleToAvroRecordConverter;
-import org.apache.avro.generic.GenericData.Record;
-import org.apache.hadoop.conf.Configuration;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class TestTupleSerialization extends BaseTest {
@@ -113,34 +113,6 @@ public class TestTupleSerialization extends BaseTest {
     for (int i = 0; i < NUM_ITERATIONS/2; i++) {
       fillTuple(true, wrapper.datum());
       assertSerializable(serializer, deser, wrapper, false);
-    }
-  }
-
-  @Test
-  public void testTupleToRecordConversion() throws Exception {
-    Schema schema = SCHEMA; //TODO add permutations of this schema
-    Configuration conf = getConf();
-    //ThriftSerialization.enableThriftSerialization(conf);
-
-    TupleToAvroRecordConverter pangoolToAvro =
-        new TupleToAvroRecordConverter(schema, conf);
-    org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(schema);
-    Schema convertedSchema = AvroUtils.toPangoolSchema(avroSchema);
-    Assert.assertEquals(schema, convertedSchema);
-
-    AvroRecordToTupleConverter avroToPangool =
-        new AvroRecordToTupleConverter(avroSchema, conf);
-
-    ITuple tuple = new Tuple(schema);
-    ITuple convertedTuple = null;
-    Record record = null;
-    int NUM_ITERATIONS = 10000;
-    for (int i = 0; i < NUM_ITERATIONS; i++) {
-      fillTuple(true, tuple);
-      record = pangoolToAvro.toRecord(tuple, record);
-
-      convertedTuple = avroToPangool.toTuple(record, convertedTuple);
-      Assert.assertEquals(tuple, convertedTuple);
     }
   }
 
