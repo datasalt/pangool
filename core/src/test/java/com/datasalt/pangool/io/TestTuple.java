@@ -16,17 +16,20 @@
 
 package com.datasalt.pangool.io;
 
-import com.datasalt.pangool.BaseTest;
-import org.apache.avro.generic.GenericData;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.thrift.TBase;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import static org.junit.Assert.*;
+import org.apache.avro.generic.GenericData;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.thrift.TBase;
+import org.junit.Test;
+
+import com.datasalt.pangool.BaseTest;
 
 public class TestTuple extends BaseTest {
 
@@ -138,4 +141,36 @@ public class TestTuple extends BaseTest {
     }
   }
 
+  @Test
+  public void testNewGetters() {
+  	Schema schema = new Schema("foo", Fields.parse("a:int, b:double, c:long, d:string, e:float, f:boolean"));
+  	Tuple tuple = new Tuple(schema);
+  	tuple.set(0, 10);
+  	tuple.set("b", 4.5d);
+  	tuple.set(2, 1000l);
+  	tuple.set("d", "foo1");
+  	tuple.set(4, 10.5f);
+  	tuple.set(5, true);
+  	
+  	assertEquals(tuple.get(0), 10);
+  	assertEquals(tuple.get(1), 4.5d);
+  	assertEquals(tuple.get(2), 1000l);
+  	assertEquals(tuple.get(3).toString(), "foo1");
+  	assertEquals(tuple.get(4), 10.5f);
+  	assertEquals(tuple.get(5), true);
+  	
+		assertEquals(tuple.getInteger(0), tuple.get(0));
+		assertEquals(tuple.getDouble(1), tuple.get(1));
+		assertEquals(tuple.getLong(2), tuple.get(2));
+		assertEquals(tuple.getString(3), tuple.get(3).toString());
+		assertEquals(tuple.getFloat(4), tuple.get(4));
+		assertEquals(tuple.getBoolean(5), tuple.get(5));
+		
+		assertEquals(tuple.getInteger("a"), tuple.get(0));
+		assertEquals(tuple.getDouble("b"), tuple.get(1));
+		assertEquals(tuple.getLong("c"), tuple.get(2));
+		assertEquals(tuple.getString("d"), tuple.get(3).toString());
+		assertEquals(tuple.getFloat("e"), tuple.get(4));
+		assertEquals(tuple.getBoolean("f"), tuple.get(5));
+  }
 }

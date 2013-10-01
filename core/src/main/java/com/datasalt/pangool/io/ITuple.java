@@ -29,6 +29,24 @@ public interface ITuple {
 	public Object get(int pos);
 	public Object get(String field);
 	
+	public Integer getInteger(int pos);
+	public Integer getInteger(String field);
+	
+	public Long getLong(int pos);
+	public Long getLong(String field);
+	
+	public Float getFloat(int pos);
+	public Float getFloat(String field);
+	
+	public Double getDouble(int pos);
+	public Double getDouble(String field);
+	
+	public Boolean getBoolean(int pos);
+	public Boolean getBoolean(String field);
+	
+	public String getString(int pos);
+	public String getString(String field);
+	
 	public void set(int pos, Object object);
 	public void set(String field, Object object);
 }

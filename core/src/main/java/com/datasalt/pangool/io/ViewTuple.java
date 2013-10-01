@@ -97,4 +97,65 @@ public class ViewTuple implements ITuple {
 		return Tuple.toString(this);
 	}
 
+	@Override
+  public Integer getInteger(int pos) {
+	  return (Integer) get(pos);
+  }
+
+	@Override
+  public Integer getInteger(String field) {
+		return (Integer) get(field);
+	}
+
+	@Override
+  public Long getLong(int pos) {
+	  return (Long) get(pos);
+  }
+
+	@Override
+  public Long getLong(String field) {
+		return (Long) get(field);
+	}
+
+	@Override
+  public Float getFloat(int pos) {
+		return (Float) get(pos);
+	}
+
+	@Override
+  public Float getFloat(String field) {
+		return (Float) get(field);
+	}
+
+	@Override
+  public Double getDouble(int pos) {
+		return (Double) get(pos);
+	}
+
+	@Override
+  public Double getDouble(String field) {
+		return (Double) get(field);
+  }
+
+	@Override
+  public Boolean getBoolean(int pos) {
+		return (Boolean) get(pos);
+	}
+
+	@Override
+  public Boolean getBoolean(String field) {
+		return (Boolean) get(field);
+	}
+
+	@Override
+  public String getString(int pos) {
+		Object obj = get(pos);
+		return obj == null ? null : obj.toString();
+	}
+
+	@Override
+  public String getString(String field) {
+		Object obj = get(field);
+		return obj == null ? null : obj.toString();
+	}
 }

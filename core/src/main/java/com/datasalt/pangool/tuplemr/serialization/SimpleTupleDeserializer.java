@@ -109,7 +109,7 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
       }
     }
 
-    // Field by field deseralization
+    // Field by field deserialization
 		for(int index = 0; index < schema.getFields().size(); index++) {
 			Deserializer customDeser = customDeserializers[index];
 			Field field = schema.getField(index);

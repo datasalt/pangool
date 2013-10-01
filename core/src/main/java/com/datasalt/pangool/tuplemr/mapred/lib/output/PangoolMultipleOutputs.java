@@ -69,6 +69,18 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 	 */
 	private static final String COUNTERS_GROUP = PangoolMultipleOutputs.class.getName();
 
+
+	/**
+	 * Exception that is thrown when someone tries to access an invalid named output.
+	 */
+	@SuppressWarnings("serial")
+  public final static class InvalidNamedOutputException extends IOException {
+		
+		public InvalidNamedOutputException(String message) {
+			super(message);
+		}
+	}
+	
 	/**
 	 * Checks if a named output name is valid token.
 	 * 
@@ -411,6 +423,9 @@ public class PangoolMultipleOutputs<KEYOUT, VALUEOUT> {
 			Job job = new Job(c);
 
 			Class<?> keyClass = getNamedOutputKeyClass(this.context, baseFileName);
+			if(keyClass == null && getDefaultNamedOutputKeyClass(this.context) == null) {
+				throw new InvalidNamedOutputException("No pre-configured named output for this name / no default named output format specified.");
+			}
 			job.setOutputKeyClass(keyClass == null ? getDefaultNamedOutputKeyClass(this.context) : keyClass);
 
 			Class<?> valueClass = getNamedOutputValueClass(this.context, baseFileName);
