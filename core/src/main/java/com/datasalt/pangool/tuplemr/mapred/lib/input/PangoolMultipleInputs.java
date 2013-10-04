@@ -18,7 +18,6 @@ package com.datasalt.pangool.tuplemr.mapred.lib.input;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -44,8 +43,8 @@ import com.datasalt.pangool.utils.InstancesDistributor;
 @SuppressWarnings("rawtypes")
 public class PangoolMultipleInputs {
 
-	public final static String PANGOOL_INPUT_DIR_FORMATS_CONF = "pangool.input.dir.formats";
-	public final static String PANGOOL_INPUT_DIR_MAPPERS_CONF = "pangool.input.dir.mappers";
+	public final static String PANGOOL_INPUT_DIR_FORMATS_PREFIX_CONF = "pangool.input.dir.formats.";
+	public final static String PANGOOL_INPUT_DIR_MAPPERS_PREFIX_CONF = "pangool.input.dir.mappers.";
 
 	private static final String MI_PREFIX = "pangool.inputs.input.";
 	private static final String CONF = ".conf";
@@ -91,10 +90,7 @@ public class PangoolMultipleInputs {
 		}
 		addInputPath(job, path, uniqueNameInputFormat);
 		Configuration conf = job.getConfiguration();
-		String mapperMapping = path.toString() + ";" + uniqueNameMapper;
-		String mappers = conf.get(PANGOOL_INPUT_DIR_MAPPERS_CONF);
-		conf.set(PANGOOL_INPUT_DIR_MAPPERS_CONF, mappers == null ? mapperMapping : mappers + ","
-		    + mapperMapping);
+		conf.set(PANGOOL_INPUT_DIR_MAPPERS_PREFIX_CONF + path.toString(), uniqueNameMapper);
 		job.setMapperClass(DelegatingMapper.class);
 		return instanceFiles;
 	}
@@ -103,11 +99,8 @@ public class PangoolMultipleInputs {
 		/*
 		 * Only internal -> not allowed to add inputs without associated InputProcessor files
 		 */
-		String inputFormatMapping = path.toString() + ";" + inputFormatInstance;
 		Configuration conf = job.getConfiguration();
-		String inputFormats = conf.get(PANGOOL_INPUT_DIR_FORMATS_CONF);
-		conf.set(PANGOOL_INPUT_DIR_FORMATS_CONF, inputFormats == null ? inputFormatMapping : inputFormats
-		    + "," + inputFormatMapping);
+		conf.set(PANGOOL_INPUT_DIR_FORMATS_PREFIX_CONF + path.toString(), inputFormatInstance);
 
 		job.setInputFormatClass(DelegatingInputFormat.class);
 	}
@@ -115,10 +108,11 @@ public class PangoolMultipleInputs {
 	static Map<Path, String> getInputFormatMap(JobContext job) {
 		Map<Path, String> m = new HashMap<Path, String>();
 		Configuration conf = job.getConfiguration();
-		String[] pathMappings = conf.get(PANGOOL_INPUT_DIR_FORMATS_CONF).split(",");
-		for(String pathMapping : pathMappings) {
-			String[] split = pathMapping.split(";");
-			m.put(new Path(split[0]), split[1]);
+		for(Map.Entry<String, String> confEntry: conf) {
+			if(confEntry.getKey().startsWith(PANGOOL_INPUT_DIR_FORMATS_PREFIX_CONF)) {
+				String key = confEntry.getKey().substring(PANGOOL_INPUT_DIR_FORMATS_PREFIX_CONF.length(), confEntry.getKey().length());
+				m.put(new Path(key), confEntry.getValue());
+			}
 		}
 		return m;
 	}
@@ -132,15 +126,12 @@ public class PangoolMultipleInputs {
 	 */
 	static Map<Path, String> getInputProcessorFileMap(JobContext job) {
 		Configuration conf = job.getConfiguration();
-		if(conf.get(PANGOOL_INPUT_DIR_MAPPERS_CONF) == null) {
-			return Collections.emptyMap();
-		}
 		Map<Path, String> m = new HashMap<Path, String>();
-		String[] pathMappings = conf.get(PANGOOL_INPUT_DIR_MAPPERS_CONF).split(",");
-		for(String pathMapping : pathMappings) {
-			String[] split = pathMapping.split(";");
-			String inputProcessorFile = split[1];
-			m.put(new Path(split[0]), inputProcessorFile);
+		for(Map.Entry<String, String> confEntry: conf) {
+			if(confEntry.getKey().startsWith(PANGOOL_INPUT_DIR_MAPPERS_PREFIX_CONF)) {
+				String key = confEntry.getKey().substring(PANGOOL_INPUT_DIR_MAPPERS_PREFIX_CONF.length(), confEntry.getKey().length());
+				m.put(new Path(key), confEntry.getValue());
+			}
 		}
 		return m;
 	}
