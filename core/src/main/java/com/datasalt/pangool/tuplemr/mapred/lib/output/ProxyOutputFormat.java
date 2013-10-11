@@ -101,7 +101,7 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 		originalDir = outDir;
 		FileOutputCommitter committer = (FileOutputCommitter) super.getOutputCommitter(context);
 		baseDir = committer.getWorkPath() + "";
-		
+
 		Configuration conf = new Configuration(context.getConfiguration());
 		TaskAttemptContext reContext;
 		try {
@@ -110,11 +110,11 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 			throw new IOException(e);
 		}
 
-		reContext.getConfiguration().set("mapred.output.dir", baseDir);
+		// reContext.getConfiguration().set("mapred.output.dir", baseDir);
 		// This is for Hadoop 2.0 :
 		reContext.getConfiguration().set("mapreduce.output.fileoutputformat.outputdir", baseDir);
-		reContext.getConfiguration().setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false);
-		
+//		reContext.getConfiguration().setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false);
+
 		try {
 			return new ProxyOutputCommitter(new Path(originalDir), context,
 			    outputFormat.getOutputCommitter(reContext));
@@ -163,22 +163,23 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 			committer.commitTask(taskContext);
 			try {
 				// This is a trick for Hadoop 2.0 where there is extra business logic in commitJob()
-	      JobContext jContext = JobContextFactory.get(taskContext.getConfiguration(), new JobID());
-      	Class cl = Class.forName(OutputCommitter.class.getName());
-      	Method method = cl.getMethod("commitJob", Class.forName(JobContext.class.getName()));
-      	if(method != null) {
-      		method.invoke(committer, jContext);
-      	}
-      } catch(Exception e) {
-      	// Hadoop 2.0 : do nothing
-      	// we need to call commitJob as a trick, but the trick itself may throw an IOException.
-      	// it doesn't mean that something went wrong.
-      	// If there was something really wrong it would have failed before.
-      }
-			
+				JobContext jContext = JobContextFactory.get(taskContext.getConfiguration(), new JobID());
+				Class cl = Class.forName(OutputCommitter.class.getName());
+				@SuppressWarnings("unchecked")
+        Method method = cl.getMethod("commitJob", Class.forName(JobContext.class.getName()));
+				if(method != null) {
+					method.invoke(committer, jContext);
+				}
+			} catch(Exception e) {
+				// Hadoop 2.0 : do nothing
+				// we need to call commitJob as a trick, but the trick itself may throw an IOException.
+				// it doesn't mean that something went wrong.
+				// If there was something really wrong it would have failed before.
+			}
+
 			super.commitTask(taskContext);
 		}
-		
+
 		@Override
 		public void abortTask(TaskAttemptContext taskContext) {
 			try {
