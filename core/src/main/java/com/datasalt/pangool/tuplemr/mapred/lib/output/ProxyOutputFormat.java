@@ -110,10 +110,9 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 			throw new IOException(e);
 		}
 
-		// reContext.getConfiguration().set("mapred.output.dir", baseDir);
+		reContext.getConfiguration().set("mapred.output.dir", baseDir);
 		// This is for Hadoop 2.0 :
 		reContext.getConfiguration().set("mapreduce.output.fileoutputformat.outputdir", baseDir);
-//		reContext.getConfiguration().setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false);
 
 		try {
 			return new ProxyOutputCommitter(new Path(originalDir), context,
@@ -166,7 +165,7 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 				JobContext jContext = JobContextFactory.get(taskContext.getConfiguration(), new JobID());
 				Class cl = Class.forName(OutputCommitter.class.getName());
 				@SuppressWarnings("unchecked")
-        Method method = cl.getMethod("commitJob", Class.forName(JobContext.class.getName()));
+				Method method = cl.getMethod("commitJob", Class.forName(JobContext.class.getName()));
 				if(method != null) {
 					method.invoke(committer, jContext);
 				}
