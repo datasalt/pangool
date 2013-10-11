@@ -113,7 +113,8 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 		reContext.getConfiguration().set("mapred.output.dir", baseDir);
 		// This is for Hadoop 2.0 :
 		reContext.getConfiguration().set("mapreduce.output.fileoutputformat.outputdir", baseDir);
-
+		reContext.getConfiguration().setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false);
+		
 		try {
 			return new ProxyOutputCommitter(new Path(originalDir), context,
 			    outputFormat.getOutputCommitter(reContext));
