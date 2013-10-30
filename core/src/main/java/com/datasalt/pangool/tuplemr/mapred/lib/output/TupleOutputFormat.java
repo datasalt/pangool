@@ -100,7 +100,9 @@ public class TupleOutputFormat extends FileOutputFormat<ITuple, NullWritable> im
 			}
 
 			public void close(TaskAttemptContext context) throws IOException {
-				out.close();
+				if(out != null) {
+					out.close();
+				}
 			}
 		};
 	}
