@@ -88,6 +88,9 @@ public class TupleHashPartitioner extends Partitioner<DatumWrapper<ITuple>, Null
 		int result = 0;
 		for(int field : fields) {
 			Object o = tuple.get(field);
+			if(o == null) { // nulls don't account for hashcode
+				continue;
+			}
 			int hashCode;
 			if(o instanceof String) { // since String.hashCode() != Utf8.hashCode()
 				HELPER_UTF8.set((String) o);

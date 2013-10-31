@@ -15,6 +15,8 @@
  */
 package com.datasalt.pangool.tuplemr.mapred;
 
+import static org.junit.Assert.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.datasalt.pangool.io.DatumWrapper;
+import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
 import com.datasalt.pangool.io.Schema.Field;
@@ -105,6 +108,23 @@ public class TestTupleHashPartitioner extends AbstractBaseTest{
 			}
 		}
 	}
+  
+  /**
+   * Since pangool supports optional nulls, we should be able to hashcode tuples with nulls
+   */
+  @Test
+  public void testNulls() throws TupleMRException, IOException {
+		TupleHashPartitioner partitioner = new TupleHashPartitioner();
+
+		Schema schema = new Schema("schema", Fields.parse("a:string, b:int, c:long, d:double"));
+		Tuple tuple = new Tuple(schema);
+		
+		assertEquals(0, partitioner.partialHashCode(tuple, new int[] { 0, 1, 2, 3}));
+		
+		tuple.set("b", 100);
+		
+		assertEquals(new Integer(100).hashCode(), partitioner.partialHashCode(tuple, new int[] { 0, 1, 2, 3}));
+  }
 	
 	@Test
 	public void sanityTest() throws TupleMRException, IOException {
