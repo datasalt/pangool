@@ -537,6 +537,39 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		HadoopUtils.deleteIfExists(fS, inPath);
 		HadoopUtils.deleteIfExists(fS, outPath);
 	}
+	
+	@Test
+	public void testBadEncoding() throws TupleMRException, IOException, InterruptedException,
+	    ClassNotFoundException {
+
+		Configuration conf = getConf();
+		FileSystem fS = FileSystem.get(conf);
+		Path outPath = new Path(OUT);
+		Path inPath = new Path("src/test/resources/broken-encoding.txt");
+		HadoopUtils.deleteIfExists(fS, outPath);
+		
+		Schema schema = new Schema("schema", Fields.parse("plugin:string?, count:int?"));
+
+		TupleMRBuilder builder = new TupleMRBuilder(conf);
+		builder.addIntermediateSchema(schema);
+		builder.setGroupByFields("plugin"); // but we don't care, really
+		/*
+		 * Define the Input Format and the Output Format!
+		 */
+
+		InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ',', '"', '\\', null, null);
+		builder.addInput(inPath, inputFormat, new IdentityTupleMapper());
+		builder.setTupleReducer(new IdentityTupleReducer());
+		builder.setTupleOutput(outPath, schema);
+		Job job = builder.createJob();
+		try {
+			assertRun(job);
+		} finally {
+			builder.cleanUpInstanceFiles();
+		}
+
+		HadoopUtils.deleteIfExists(fS, outPath);
+	}
 
 	@Test
 	public void testInputFixedWidth() throws TupleMRException, IOException, InterruptedException,
