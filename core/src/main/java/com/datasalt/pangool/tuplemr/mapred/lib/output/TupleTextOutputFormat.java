@@ -47,19 +47,29 @@ public class TupleTextOutputFormat extends FileOutputFormat<ITuple, NullWritable
 	private final char quoteCharacter;
 	private final char escapeCharacter;
 	private final boolean addHeader;
-
+	private final String nullString;
+	
+	public TupleTextOutputFormat(Schema schema, boolean addHeader, char separatorCharacter, char quoteCharacter,
+	    char escapeCharacter) {
+		this(schema, addHeader, separatorCharacter, quoteCharacter, escapeCharacter, null);
+	}
+	
 	/**
 	 * You must specify the Schema that will be used for Tuples being written and the CSV semantics (if any). Use
 	 * {@link #NO_ESCAPE_CHARACTER} and {@link #NO_QUOTE_CHARACTER} if you don't want to add CSV semantics to the output.
 	 * If addHeader is true, the name of the Fields in the Schema will be used to add a header to the file.
+	 * <p>
+	 * Use "nullString" to replace nulls with some string.
 	 */
 	public TupleTextOutputFormat(Schema schema, boolean addHeader, char separatorCharacter, char quoteCharacter,
-	    char escapeCharacter) {
+	    char escapeCharacter, String nullString) {
+		
 		this.schema = schema;
 		this.addHeader = addHeader;
 		this.separatorCharacter = separatorCharacter;
 		this.quoteCharacter = quoteCharacter;
 		this.escapeCharacter = escapeCharacter;
+		this.nullString = nullString;
 	}
 
 	@Override
@@ -77,7 +87,7 @@ public class TupleTextOutputFormat extends FileOutputFormat<ITuple, NullWritable
 			}
 			csvWriter.writeNext(header);
 		}
-		return new TupleTextRecordWriter(schema, csvWriter);
+		return new TupleTextRecordWriter(schema, csvWriter, nullString);
 	}
 
 	public static class TupleTextRecordWriter extends RecordWriter<ITuple, NullWritable> {
@@ -85,12 +95,14 @@ public class TupleTextOutputFormat extends FileOutputFormat<ITuple, NullWritable
 		private final CSVWriter writer;
 		private final Schema schema;
 		private final String[] lineToWrite;
+		private final String nullString;
 
-		public TupleTextRecordWriter(Schema schema, CSVWriter writer) {
+		public TupleTextRecordWriter(Schema schema, CSVWriter writer, String nullString) {
 			this.writer = writer;
 			this.schema = schema;
 			int nFields = schema.getFields().size();
 			lineToWrite = new String[nFields];
+			this.nullString = nullString;
 		}
 
 		@Override
@@ -111,7 +123,14 @@ public class TupleTextOutputFormat extends FileOutputFormat<ITuple, NullWritable
 			}
 			// Convert the tuple to an array of Strings
 			for(int i = 0; i < tuple.getSchema().getFields().size(); i++) {
-				lineToWrite[i] = tuple.get(i).toString();
+				Object obj = tuple.get(i);
+				if(obj != null) {
+					lineToWrite[i] = obj.toString();
+				} else if(nullString != null) {
+					lineToWrite[i] = nullString;
+				} else {
+					throw new IOException("Null object in field (" + tuple.getSchema().getField(i).getName() + ") and no null string specified by constructor.");
+				}
 			}
 			// Write it to the CSV writer
 			writer.writeNext(lineToWrite);
