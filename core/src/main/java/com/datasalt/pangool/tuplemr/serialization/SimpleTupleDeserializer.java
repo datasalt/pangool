@@ -167,8 +167,10 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 			for(int i = 0; i < nullableFields.size(); i++) {
 				if(nullsRelative.isSet(i)) {
 					int field = backwardsCompatibleIndex(nullableFields.get(i));
-					tuple.set(field, null);
-					nullsAbsolute.flags[field] = true;
+					if(field != UNUSED) {
+						tuple.set(field, null);
+					}
+					nullsAbsolute.flags[nullableFields.get(i)] = true;
 				}
 			}
 		}
