@@ -15,15 +15,31 @@
  */
 package com.datasalt.pangool.tuplemr;
 
-import org.junit.Ignore;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
+
+import com.datasalt.pangool.io.Schema;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
 
 public class TestSchema {
 
-	@Ignore
-	@Test
-	public void testNotMutable(){
+	@Test(expected=IllegalArgumentException.class)
+	public void testNotRepeatedFields(){
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("foo", Type.STRING));
+		fields.add(Field.create("foo", Type.STRING));
 		
+		new Schema("schema", fields);
 	}
 	
+	@Test(expected=IllegalArgumentException.class)
+	public void testNameForSchemaNotNull(){
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("foo", Type.STRING));
+		
+		new Schema(null, fields);
+	}
 }

@@ -497,6 +497,9 @@ public class Schema implements Serializable {
 		ArrayList<Integer> nullableFields = new ArrayList<Integer>();
 		nullablePositionByIndex = new int[fields.size()];
 		for(Field field : this.fields) {
+			if(indexByFieldName.get(field.getName()) != null) {
+				throw new IllegalArgumentException("More than one field with the same name in the provided Field list, can't create a Schema.");
+			}
 			indexByFieldName.put(field.getName(), index);
 			if(field.isNullable()) {
 				nullableFields.add(index);
