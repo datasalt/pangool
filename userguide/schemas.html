@@ -141,6 +141,32 @@ You can set tuple values by field name or field index.
 
 </p>
 
+<h4>Special getters</h4>
+
+<p>
+The following methods are available in Pangool Tuples in order to avoid explicit casting in users' code:
+</p>
+
+<pre class="prettyprint" id="java">
+public Integer getInteger(int pos);
+public Integer getInteger(String field);
+	
+public Long getLong(int pos);
+public Long getLong(String field);
+	
+public Float getFloat(int pos);
+public Float getFloat(String field);
+	
+public Double getDouble(int pos);
+public Double getDouble(String field);
+	
+public Boolean getBoolean(int pos);
+public Boolean getBoolean(String field);
+	
+public String getString(int pos);
+public String getString(String field);
+</pre>
+
 <h4>Access by index</h4>
 
 <p>
@@ -159,6 +185,11 @@ by accessing the position 0.
 </p>
 
 <h4>Strings</h4>
+
+<p>
+Users should always use <code>getString()</code> method, as strings may come sometimes as <code>Utf8</code> objects.
+</p>
+
 <p>
 An alternative way of setting strings is the following:
 </p>
