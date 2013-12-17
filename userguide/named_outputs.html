@@ -32,10 +32,6 @@ If you want to put away the lookup of the named output for every write, you can 
 the <code>setup()</code> method. 
 <p>
 
-<h3>Default named output</h3>
-
-<p>You can avoid declaring a huge amount of named outputs by using the methods <code>setDefaultNamedOutput(...)</code>. By declaring a default "spec", you can open an arbitrary named output from your Mapper or Reducer and its format will default to that which has been defined there.</p>
-
 <h3>Named outputs for tuples</h3>
 <p>
 Pangool allows us to persist tuples efficiently in binary format from a named output. The code below shows how easy it is to add a named output 
@@ -46,11 +42,6 @@ for persisting tuples:
  Schema urlsSchema = new Schema("schema", Fields.parse("url:string, content:string"));
  mr.addNamedTupleOutput("urls", urlsSchema);
 </pre>
-
-<h3>Specific context</h3>
-
-<p>Some Hadoop-based OutputFormats may require properties in the Hadoop Configuration for operating. Because Pangool can have an arbitrary number of those opened at a time, it can't use the Job's Configuration object for that purpose. In order to overcome this limitation some methods that configure named outputs accept a <code>Map&lt;String, String&gt;</code> which can be used
-to pass specific key, value configuration pairs to every named output.</p> 
 
 <p>
 Then it is possible to write tuples from the mapper or the reducer in the following way:
@@ -67,6 +58,15 @@ Then it is possible to write tuples from the mapper or the reducer in the follow
 Note that you have to use <code>NullWritable</code> as a second parameter in 
 the <code>write()</code> method. This is a small bureaucracy needed in order to be compatible with the Hadoop "key, value" API.
 </div>
+
+<h3>Advanced: default named output</h3>
+
+<p>You can <b>avoid declaring a huge amount of named outputs</b> by using the methods <code>setDefaultNamedOutput(...)</code>. By declaring a default "spec", you can open an arbitrary named output from your Mapper or Reducer and its format will default to that which has been defined there.</p>
+
+<h3>Advanced: specific context</h3>
+
+<p>Some Hadoop-based OutputFormats may require <b>properties in the Hadoop Configuration</b> for operating. Because Pangool can have an arbitrary number of those opened at a time, it can't use the Job's Configuration object for that purpose. In order to overcome this limitation some methods that configure named outputs accept a <code>Map&lt;String, String&gt;</code> which can be used
+to pass specific key, value configuration pairs to every named output.</p> 
 
 <h3>Folder structure</h3>
 <p>
