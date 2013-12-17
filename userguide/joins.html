@@ -51,8 +51,7 @@ We’ll configure a Pangool Job to accept two inputs and therefore use two inter
  	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
 </pre>
 
-<p>
-Same thing for this one: just parsing and emitting a Tuple. 
+<p> 
 Let’s now check to see the Reducer that performs the join:
 </p>
 
@@ -71,10 +70,10 @@ Let’s now check to see the Reducer that performs the join:
        if("urlMap".equals(tuple.getSchema().getName())) {
          cannonicalUrl = tuple.get("canonicalUrl").toString();
        } else {
-		 result.set("url", cannonicalUrl);
-		 result.set("timestamp", tuple.get("timestamp"));
-		 result.set("ip", tuple.get("ip"));
-		 collector.write(result, NullWritable.get());
+         result.set("url", cannonicalUrl);
+         result.set("timestamp", tuple.get("timestamp"));
+         result.set("ip", tuple.get("ip"));
+         collector.write(result, NullWritable.get());
        }
      }
    }

@@ -9,7 +9,7 @@ title: Pangool - User guide - Mapred API
 <h1>Mapred API</h1>
 
 <p>
-The Pangool MapReduce API is formed by:
+The Pangool MapReduce API is mainly formed by:
 </p>
 
 <ul>
@@ -44,6 +44,11 @@ The Pangool MapReduce API is formed by:
 	</p>
 	</li>
 
+	<li><strong><a href='map_only_jobs.html'>MapOnlyJobBuilder</a></strong> :
+	<p>
+	Use this class to conveniently create jobs that only have Mapper steps.
+	</p>
+	
 	<li><strong><a href='TupleMrBuilder.html'>TupleMRBuilder</a></strong> :
 	</p>
 	<p>
@@ -60,14 +65,27 @@ The Pangool MapReduce API is formed by:
 	<tr><td>setOutput</td><td>Allows the user to define the job’s main output Path and format.</td></tr>
 	<tr><td>setTupleOutput</td><td>This method must be used when writing tuples as the main output of the Job. 
 	It will have an associated Schema so that Pangool knows how to write the Tuples.</td></tr>
-	<tr><td>addNamedOutput</td><td>Same as setTupleOutput, but for <a href='named_outputs.html'>named outputs</a>.</td></tr>
-	<tr><td>addNamedTupleOutput</td><td>Same as setTupleOutput, but for <a href='named_outputs.html'>named outputs</a>.</td></tr>
+	<tr><td>addNamedOutput</td><td>See <a href='named_outputs.html'>named outputs</a>.</td></tr>
+	<tr><td>addNamedTupleOutput</td><td>See <a href='named_outputs.html'>named outputs</a>.</td></tr>
+	<tr><td>setDefaultNamedOutput</td><td>See <a href='named_outputs.html'>named outputs</a>.</td></tr>
 	<tr><td>setTupleReducer</td><td>Sets the TupleReducer instance to be used.</td></tr>
 	<tr><td>setTupleCombiner</td><td>Sets the TupleReducer<ITuple, NullWritable> instance to be used as Combiner for the Job.</td></tr>
 	<tr><td>setGroupByFields / setOrderBy</td><td>Configures how Pangool will sort and group by the intermediate tuples. For more info, check the “<a href='group_and_sort.html'>Group & Sort by</a>” section.</td></tr>
 	<tr><td>createJob()</td><td>Returns the job instance read to be run.</td></tr>
 	</table>		
 	
+	<li><strong><a href='http://pangool.net/apidocs/com/datasalt/pangool/tuplemr/mapred/lib/input/TupleTextInputFormat.html'>TupleTextInputFormat</a></strong></li>
+	</p>
+	<p>
+	Use this input format for reading text files into Pangool's Tuples. See <a href='text_io.html'>Text I/O</a> for more info.
+	</p>
+	
+	<li><strong><a href='http://pangool.net/apidocs/com/datasalt/pangool/tuplemr/mapred/lib/output/TupleTextOutputFormat.html'>TupleTextOutputFormat</a></strong></li>
+	</p>
+	<p>
+	Use this output format for writing text files out of Pangool's Tuples. See <a href='text_io.html'>Text I/O</a> for more info.
+	</p>
+		
 	<li><strong><a href='https://github.com/datasalt/pangool/blob/master/core/src/main/java/com/datasalt/pangool/tuplemr/IdentityTupleMapper.java'>IdentityTupleMapper</a></strong> :
 	</p>
 	<p>

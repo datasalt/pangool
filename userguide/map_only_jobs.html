@@ -13,10 +13,13 @@ Pangool comes with a convenient builder for Map-only jobs that accepts instances
 </p>
 
 <pre class="prettyprint" id="java">
-  MapOnlyJobBuilder b = new MapOnlyJobBuilder(conf);
-  b.setHandler(new GrepHandler(regex));
-  b.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
-  b.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class));
+MapOnlyJobBuilder b = new MapOnlyJobBuilder(conf);
+b.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+b.addInput(new Path(input), new HadoopInputFormat(TextInputFormat.class), new GrepHandler(regex));
 </pre>
+
+<p>
+Map-only Jobs have the same available features than Pangool MapReduce Jobs: named outputs, binary tuple serialization, etc.
+</p>
 
 <p><a class="btn btn-primary btn-large" href="rollup.html">Next: Rollup &raquo;</a></p>

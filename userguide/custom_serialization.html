@@ -61,11 +61,11 @@ Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the field's
 
 <pre class="prettyprint" id="java">
   List&lt;Field&gt; fields = new ArrayList&lt;Field&gt;(); 
-  fields.add(Field.createObject("my_writable",TextLongWritable.class);
+  fields.add(Field.createObject("my_writable", TextLongWritable.class);
   Schema schema = new Schema("schema", fields);
   
   Tuple tuple = new Tuple(schema);
-  tuple.set("my_writable",new TextLongWritable("eric",89L));
+  tuple.set("my_writable",new TextLongWritable("eric", 89L));
 </pre>
 
 <h3>Avro</h3>
@@ -73,19 +73,19 @@ Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the field's
 
 <pre class="prettyprint" id="java">
   List&lt;Field&gt; fields = new ArrayList&lt;Field&gt;(); 
-  fields.add(Fields.createAvroField("my_avro_field",myAvroSchema));
+  fields.add(Fields.createAvroField("my_avro_field", myAvroSchema));
   Schema schema = new Schema("schema", fields);
   
   Tuple tuple = new Tuple(schema);
   Record avroRecord = new Record(myAvroSchema); //Avro Record
-  tuple.set("my_avro_field",avroRecord);
+  tuple.set("my_avro_field", avroRecord);
 </pre>
 
 <h3>Thrift</h3>
 <br>
 <pre class="prettyprint" id="java">
   List&lt;Field&gt; fields = new ArrayList&lt;Field&gt;(); 
-  fields.add(Field.createObject("my_thrift_field",MyThrifObject.class));
+  fields.add(Field.createObject("my_thrift_field", MyThrifObject.class));
   Schema schema = new Schema("schema", fields);
   
   Tuple tuple = new Tuple(schema1);
@@ -96,7 +96,7 @@ Note how the <b>AvroFieldSerialization</b>'s state is retrieved from the field's
 <br>
 <pre class="prettyprint" id="java">
   List&lt;Field&gt; fields = new ArrayList&lt;Field&gt;(); 
-  fields.add(Field.createObject("my_protostuff_field",MyProtoStuffObject.class));
+  fields.add(Field.createObject("my_protostuff_field", MyProtoStuffObject.class));
   Schema schema = new Schema("schema", fields);
   
   Tuple tuple = new Tuple(schema);
