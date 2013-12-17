@@ -183,6 +183,7 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 			// Nulls control
 			if(field.isNullable() && nullsAbsolute.flags[index]) {
 				// Null field. Nothing to deserialize.
+				// TODO Add default value if specified
 				continue;
 			}
 

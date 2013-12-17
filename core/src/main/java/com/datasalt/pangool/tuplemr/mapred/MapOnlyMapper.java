@@ -44,12 +44,28 @@ public abstract class MapOnlyMapper<I1, I2, O1, O2> extends Mapper<I1, I2, O1, O
 		map(key, value, context, collector);
 	}
 
-	protected void setup(Mapper<I1, I2, O1, O2>.Context context) throws IOException, InterruptedException {
+	/**
+	 * Override this method, not the other declared as final.
+	 */
+	protected void setup(Mapper<I1, I2, O1, O2>.Context context, MultipleOutputsCollector mOuts)  throws IOException, InterruptedException {
+		
+	}
+	
+	protected final void setup(Mapper<I1, I2, O1, O2>.Context context) throws IOException, InterruptedException {
 		collector = new MultipleOutputsCollector(context);
+		this.setup(context, collector);
 	}
 
-	protected void cleanup(Mapper<I1, I2, O1, O2>.Context context) throws java.io.IOException,
+	/**
+	 * Override this method, not the other declared as final.
+	 */
+	protected void cleanup(Mapper<I1, I2, O1, O2>.Context context, MultipleOutputsCollector mOuts)  throws IOException, InterruptedException {
+		
+	}
+	
+	protected final void cleanup(Mapper<I1, I2, O1, O2>.Context context) throws java.io.IOException,
 	    InterruptedException {
+		this.cleanup(context, collector);
 		collector.close();
 	}
 }

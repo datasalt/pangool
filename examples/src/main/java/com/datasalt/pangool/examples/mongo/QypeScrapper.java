@@ -19,6 +19,7 @@ import org.bson.BasicBSONObject;
 
 import com.datasalt.pangool.examples.BaseExampleJob;
 import com.datasalt.pangool.tuplemr.MapOnlyJobBuilder;
+import com.datasalt.pangool.tuplemr.MultipleOutputsCollector;
 import com.datasalt.pangool.tuplemr.mapred.MapOnlyMapper;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
 import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
@@ -83,7 +84,7 @@ public class QypeScrapper extends BaseExampleJob implements Serializable {
 			    }
 
 			    @Override
-			    protected void cleanup(Context context) throws IOException, InterruptedException {
+			    protected void cleanup(Context context, MultipleOutputsCollector coll) throws IOException, InterruptedException {
 				    String html = inMemoryHtml.toString();
 
 				    Matcher startMatcher = startPattern.matcher(html);
