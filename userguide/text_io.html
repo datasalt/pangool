@@ -31,7 +31,7 @@ Pangool comes with a convenient InputFormat and OutputFormat for text files, whi
 
 <pre class="prettyprint" id="java">
 InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, '\t', 
-	TupleTextInputFormat.NO_QUOTE_CHARACTER, TupleTextInputFormat.NO_ESCAPE_CHARACTER, null, null);
+  TupleTextInputFormat.NO_QUOTE_CHARACTER, TupleTextInputFormat.NO_ESCAPE_CHARACTER, null, null);
 </pre>
 
 <p>The following line instantiates an InputFormat which reads a header-less CSV which uses " as quote character and \ as escape character:</p>
@@ -64,7 +64,7 @@ InputFormat inputFormat = new TupleTextInputFormat(schema, true, true, ',', '"',
 
 <pre class="prettyprint" id="java">
 OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, '\t', 
-	TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
+  TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
 </pre>
 	
 <p>The following line instantiates a TupleTextOutputFormat which serializes tuples as strictly quoted CSV with null strings as \N :</p>

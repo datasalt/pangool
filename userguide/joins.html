@@ -46,9 +46,9 @@ We’ll configure a Pangool Job to accept two inputs and therefore use two inter
  mr.addIntermediateSchema(getURLMapSchema());
  mr.addIntermediateSchema(getURLRegisterSchema());
  mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t',
-	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+   NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
  mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t', 
- 	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+   NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
 </pre>
 
 <p> 

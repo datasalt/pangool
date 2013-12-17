@@ -20,16 +20,16 @@ URL resolution example</a>:
  mr.addIntermediateSchema(getURLMapSchema());
  mr.addIntermediateSchema(getURLRegisterSchema());
  mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t', 
- 	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+   NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
  mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t', 
- 	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+   NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
  mr.setFieldAliases("urlMap", new Aliases().add("url", "nonCanonicalUrl"));
  mr.setGroupByFields("url");
  mr.setOrderBy(new OrderBy().add("url", Order.ASC).addSchemaOrder(Order.ASC));
  mr.setSpecificOrderBy("urlRegister", new OrderBy().add("timestamp", Order.ASC));
  mr.setTupleReducer(new Handler());
  mr.setOutput(new Path(output), new TupleTextOutputFormat(getURLRegisterSchema(), false, '\t', 
- 	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER), ITuple.class, NullWritable.class);
+   NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER), ITuple.class, NullWritable.class);
 </pre>
 
 <div class="alert alert-info">
@@ -98,9 +98,9 @@ For parsing input text files into Tuples we use "TupleTextInputFormat" (see <a h
 
 <pre class="prettyprint" id="java">
 mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t', 
-	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+  NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
 mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t', 
-	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+  NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
 </pre>
 
 <div class="alert alert-info">
@@ -149,7 +149,7 @@ the folder <code>output</code> using Pangool's Text I/O:
 
 <pre class="prettyprint" id="java">
  mr.setOutput(new Path(output), new TupleTextOutputFormat(getURLRegisterSchema(), false, '\t', 
- 	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER), ITuple.class, NullWritable.class);
+   NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER), ITuple.class, NullWritable.class);
 </pre>
 
 <p>
