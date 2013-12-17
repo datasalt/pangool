@@ -21,7 +21,7 @@ You can add named outputs to a Pangool job in the <code>TupleMRBuilder</code> in
 </pre>
 
 <p> 
-You can add as many as you want. It will then be possible to write to each of the named outputs from the mapper or the reducer in the following way:
+You can add as many as you want. It will then be possible to write to each of the named outputs from the mapper or the reducer in the following way:</p>
 
 <pre class="prettyprint" id="java">
  collector.getNamedOutput("urls").write(new Text("http://www.datasalt.com"), new Text("<html>...</html>"));
@@ -32,12 +32,21 @@ If you want to put away the lookup of the named output for every write, you can 
 the <code>setup()</code> method. 
 <p>
 
+<h3>Default named output</h3>
+
+<p>You can avoid declaring a huge amount of named outputs by using the methods <code>setDefaultNamedOutput(...)</code>. By declaring a default "spec", you can open an arbitrary named output from your Mapper or Reducer and its format will default to that which has been defined there.</p>
+
 <h3>Named outputs for tuples</h3>
 <p>
 Pangool allows us to persist Tuples in binary format by using 
 <code>TupleOutputFormat</code>. The code below shows how easy it is to add a named output 
 for persisting tuples:
 </p>
+
+<h3>Specific context</h3>
+
+<p>Some Hadoop-based OutputFormats may require properties in the Hadoop Configuration for operating. Because Pangool can have an arbitrary number of those opened at a time, it can't use the Job's Configuration object for that purpose. In order to overcome this limitation some methods that configure named outputs accept a <code>Map&lt;String, String&gt;</code> which can be used
+to pass specific key, value configuration pairs to every named output.</p> 
 
 <pre class="prettyprint" id="java">
  Schema urlsSchema = new Schema("schema", Fields.parse("url:string, content:string"));

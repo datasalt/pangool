@@ -19,7 +19,7 @@ Pangool allows tuples be grouped by a subset of their fields. For instance:
 <p>
 <pre class="prettyprint" id="java">
  TupleMRBuilder b = new TupleMRBuilder();
- b.addIntermediateSchema(new Schema("my_schema",Fields.parse("url:string, timestamp:long")));
+ b.addIntermediateSchema(new Schema("my_schema", Fields.parse("url:string, timestamp:long")));
  b.setGroupByFields(“url”);
 </pre>
 </p>
@@ -38,7 +38,7 @@ as adding:
 
 <p>
 <pre class="prettyprint" id="java">
- b.setOrderBy(new OrderBy().add("url", Order.DESC))
+ b.setOrderBy(OrderBy.parse("url:desc"))
 </pre>
 </p>
 
@@ -62,7 +62,7 @@ This way of ordering is called <b>Secondary Order</b> and it's achieved easily i
 <p>
 <pre class="prettyprint" id="java">
  b.setGroupByFields("url");
- b.setOrderBy(new OrderBy().add("url",Order.DESC).add("timestamp",Order.DESC))
+ b.setOrderBy(OrderBy.parse("url:desc, timestamp:desc"))
 </pre>
 </p>
 
@@ -97,8 +97,8 @@ features. Let's see the next example:
 <p>
 <pre class="prettyprint" id="java">
  TupleMRBuilder b = new TupleMRBuilder();
- b.addIntermediateSchema(new Schema("urls_register",Fields.parse("url:string,timestamp:long")));
- b.addIntermediateSchema(new Schema("urls_map",Fields.parse("url:string,canonical_url:string")));
+ b.addIntermediateSchema(new Schema("urls_register", Fields.parse("url:string,timestamp:long")));
+ b.addIntermediateSchema(new Schema("urls_map", Fields.parse("url:string,canonical_url:string")));
  b.setGroupByFields(“url”);
 </pre>
 </p>
@@ -140,8 +140,8 @@ That is, given the dataset below:
 According to the definition above :
 <pre class="prettyprint" id="java">
  TupleMRBuilder b = new TupleMRBuilder();
- b.addIntermediateSchema(new Schema("urls_register",Fields.parse("url:string,timestamp:long")));
- b.addIntermediateSchema(new Schema("urls_map",Fields.parse("url:string,canonical_url:string")));
+ b.addIntermediateSchema(new Schema("urls_register", Fields.parse("url:string,timestamp:long")));
+ b.addIntermediateSchema(new Schema("urls_map", Fields.parse("url:string,canonical_url:string")));
  b.setGroupByFields(“url”);
  b.setOrderBy(new OrderBy().add("url",Order.ASC).addSchemaOrder(Order.DESC)));
 </pre>
