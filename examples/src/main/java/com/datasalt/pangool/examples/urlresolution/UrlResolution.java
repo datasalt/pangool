@@ -16,32 +16,26 @@
 package com.datasalt.pangool.examples.urlresolution;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.ToolRunner;
 
 import com.datasalt.pangool.examples.BaseExampleJob;
+import com.datasalt.pangool.io.Fields;
 import com.datasalt.pangool.io.ITuple;
 import com.datasalt.pangool.io.Schema;
-import com.datasalt.pangool.io.Schema.Field;
-import com.datasalt.pangool.io.Schema.Field.Type;
 import com.datasalt.pangool.io.Tuple;
 import com.datasalt.pangool.tuplemr.Aliases;
 import com.datasalt.pangool.tuplemr.Criteria.Order;
+import com.datasalt.pangool.tuplemr.IdentityTupleMapper;
 import com.datasalt.pangool.tuplemr.OrderBy;
 import com.datasalt.pangool.tuplemr.TupleMRBuilder;
 import com.datasalt.pangool.tuplemr.TupleMRException;
-import com.datasalt.pangool.tuplemr.TupleMapper;
 import com.datasalt.pangool.tuplemr.TupleReducer;
-import com.datasalt.pangool.tuplemr.mapred.lib.input.HadoopInputFormat;
-import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleTextInputFormat;
+import com.datasalt.pangool.tuplemr.mapred.lib.output.TupleTextOutputFormat;
+import static com.datasalt.pangool.tuplemr.mapred.lib.input.TupleTextInputFormat.*;
 
 /**
  * This example shows how to perform reduce-side joins using Pangool. We have one file with URL Registers: ["url",
@@ -52,70 +46,32 @@ import com.datasalt.pangool.tuplemr.mapred.lib.output.HadoopOutputFormat;
 public class UrlResolution extends BaseExampleJob {
 
 	static Schema getURLRegisterSchema() {
-		List<Field> urlRegisterFields = new ArrayList<Field>();
-		urlRegisterFields.add(Field.create("url", Type.STRING));
-		urlRegisterFields.add(Field.create("timestamp", Type.LONG));
-		urlRegisterFields.add(Field.create("ip", Type.STRING));
-		return new Schema("urlRegister", urlRegisterFields);
+		return new Schema("urlRegister", Fields.parse("url:string, timestamp:long, ip:string"));
 	}
 
 	static Schema getURLMapSchema() {
-		List<Field> urlMapFields = new ArrayList<Field>();
-		urlMapFields.add(Field.create("nonCanonicalUrl", Type.STRING));
-		urlMapFields.add(Field.create("canonicalUrl", Type.STRING));
-		return new Schema("urlMap", urlMapFields);
+		return new Schema("urlMap", Fields.parse("nonCanonicalUrl:string, canonicalUrl:string"));
 	}
 
 	@SuppressWarnings("serial")
-	public static class UrlProcessor extends TupleMapper<LongWritable, Text> {
+	public static class Handler extends TupleReducer<ITuple, NullWritable> {
 
-		private Tuple tuple = new Tuple(getURLRegisterSchema());
-
-		@Override
-		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
-		    throws IOException, InterruptedException {
-
-			String[] fields = value.toString().split("\t");
-			tuple.set("url", fields[0]);
-			tuple.set("timestamp", Long.parseLong(fields[1]));
-			tuple.set("ip", fields[2]);
-			collector.write(tuple);
-		}
-	}
-
-	@SuppressWarnings("serial")
-	public static class UrlMapProcessor extends TupleMapper<LongWritable, Text> {
-
-		private Tuple tuple = new Tuple(getURLMapSchema());
-
-		@Override
-		public void map(LongWritable key, Text value, TupleMRContext context, Collector collector)
-		    throws IOException, InterruptedException {
-
-			String[] fields = value.toString().split("\t");
-			tuple.set("nonCanonicalUrl", fields[0]);
-			tuple.set("canonicalUrl", fields[1]);
-			collector.write(tuple);
-		}
-	}
-
-	@SuppressWarnings("serial")
-	public static class Handler extends TupleReducer<Text, NullWritable> {
-
-		private Text result;
+		private Tuple result;
 
 		@Override
 		public void reduce(ITuple group, Iterable<ITuple> tuples, TupleMRContext context, Collector collector)
 		    throws IOException, InterruptedException, TupleMRException {
 			if(result == null) {
-				result = new Text();
+				result = new Tuple(getURLRegisterSchema());
 			}
 			String cannonicalUrl = null;
 			for(ITuple tuple : tuples) {
 				if("urlMap".equals(tuple.getSchema().getName())) {
-					cannonicalUrl = tuple.get("canonicalUrl").toString();
+					cannonicalUrl = tuple.getString("canonicalUrl");
 				} else {
-					result.set(cannonicalUrl + "\t" + tuple.get("timestamp") + "\t" + tuple.get("ip"));
+					result.set("url", cannonicalUrl);
+					result.set("timestamp", tuple.get("timestamp"));
+					result.set("ip", tuple.get("ip"));
 					collector.write(result, NullWritable.get());
 				}
 			}
@@ -141,15 +97,17 @@ public class UrlResolution extends BaseExampleJob {
 		TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Url Resolution");
 		mr.addIntermediateSchema(getURLMapSchema());
 		mr.addIntermediateSchema(getURLRegisterSchema());
+		mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t',
+		    NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+		mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t',
+		    NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
 		mr.setFieldAliases("urlMap", new Aliases().add("url", "nonCanonicalUrl"));
 		mr.setGroupByFields("url");
 		mr.setOrderBy(new OrderBy().add("url", Order.ASC).addSchemaOrder(Order.ASC));
 		mr.setSpecificOrderBy("urlRegister", new OrderBy().add("timestamp", Order.ASC));
 		mr.setTupleReducer(new Handler());
-		mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class,
-		    NullWritable.class);
-		mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
-		mr.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
+		mr.setOutput(new Path(output), new TupleTextOutputFormat(getURLRegisterSchema(), false, '\t',
+		    NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER), ITuple.class, NullWritable.class);
 
 		try {
 			mr.createJob().waitForCompletion(true);
