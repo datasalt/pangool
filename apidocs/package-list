@@ -1,5 +1,6 @@
 com.datasalt.pangool
 com.datasalt.pangool.io
+com.datasalt.pangool.pig
 com.datasalt.pangool.serialization
 com.datasalt.pangool.solr
 com.datasalt.pangool.tuplemr
