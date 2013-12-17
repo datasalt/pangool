@@ -14,17 +14,17 @@ Pangool comes with a convenient InputFormat and OutputFormat for text files, whi
 
 <h3>Using TupleTextInputFormat</h3>
 
-TupleTextInputFormat's constructor has several available options:
+<p><a href='<a href='http://pangool.net/apidocs/com/datasalt/pangool/tuplemr/mapred/lib/input/TupleTextInputFormat.html'>TupleTextInputFormat</a>'s constructor has several available options:</p>
 
 <ul>
-	<li>schema: The target schema to use. A Tuple with this schema will be instantiated and fed into the Mapper.</li>
-	<li>hasHeader: If true, the reader will skip the first line of every file.</li>
-	<li>strictQuotes: If true, the reader will provide null values for any value which is not quoted.</li>
-	<li>separator: The character used to separate fields in the input files.</li>
-	<li>quoteCharacter: The character used to quote fields in the input files. Use NO_QUOTE_CHARACTER if the file has no quotes.</li>
-	<li>escapeCharacter: The character used to escape characters inside quoted fields in the input files. Use NO_ESCAPE_CHARACTER if the file has no escape character.</li>
-	<li>fieldSelector: An optional 0-index based selector that allows to read only some columns of the input files. The selector must match the target schema. That is, no matter how many columns the original file has, it the selector has 5 selected fields then the target schema must have 5 fields. Use null if no field selection is needed.</li>
-	<li>nullString: A string which can be identified as null value (e.g. \N in MySQL dumps). Use null if no nullString is needed.</li>
+	<li><b>schema</b>: The target schema to use. A Tuple with this schema will be instantiated and fed into the Mapper.</li>
+	<li><b>hasHeader</b>: If true, the reader will skip the first line of every file.</li>
+	<li><b>strictQuotes</b>: If true, the reader will provide null values for any value which is not quoted.</li>
+	<li><b>separator</b>: The character used to separate fields in the input files.</li>
+	<li><b>quoteCharacter</b>: The character used to quote fields in the input files. Use NO_QUOTE_CHARACTER if the file has no quotes.</li>
+	<li><b>escapeCharacter</b>: The character used to escape characters inside quoted fields in the input files. Use NO_ESCAPE_CHARACTER if the file has no escape character.</li>
+	<li><b>fieldSelector</b>: An optional 0-index based selector that allows to read only some columns of the input files. The selector must match the target schema. That is, no matter how many columns the original file has, it the selector has 5 selected fields then the target schema must have 5 fields. Use null if no field selection is needed.</li>
+	<li><b>nullString</b>: A string which can be identified as null value (e.g. \N in MySQL dumps). Use null if no nullString is needed.</li>
 </ul>
 
 <p>The following line instantiates an InputFormat which reads a simple TSV with no quotes nor escape characters:</p>
@@ -48,15 +48,15 @@ InputFormat inputFormat = new TupleTextInputFormat(schema, true, true, ',', '"',
 
 <h3>Using TupleTextOutputFormat</h3>
 
-<p>TupleTextOutputFormat's constructor has several available options, similar to thos in TupleTextInputFormat:</p>
+<p><a href='http://pangool.net/apidocs/com/datasalt/pangool/tuplemr/mapred/lib/output/TupleTextOutputFormat.html'>TupleTextOutputFormat</a>'s constructor has several available options, similar to thos in TupleTextInputFormat:</p>
 
 <ul>
-	<li>schema: The target schema to use. A Tuple with this schema will be instantiated and fed into the Mapper.</li>
-	<li>addHeader: If true, the writer will append a header line to every produced file.</li>
-	<li>separatorCharacter: The character to use for separating fields.</li>
-	<li>quoteCharacter: The character used to quote fields. If provided, output will be strictly quoted. Use NO_QUOTE_CHARACTER to not use quotes.</li>
-	<li>escapeCharacter: The character used to escape characters inside quoted fields. Used if quoteCharacter is provided. Use NO_ESCAPE_CHARACTER to not use it.</li>
-	<li>nullString: An optional string which can be used to serialize null values (e.g. \N as in MySQL dumps). Use null if no nullString is needed. If provided, this string won't be quoted even if the writer uses quotes.</li>
+	<li><b>schema</b>: The target schema to use. A Tuple with this schema will be instantiated and fed into the Mapper.</li>
+	<li><b>addHeader</b>: If true, the writer will append a header line to every produced file.</li>
+	<li><b>separatorCharacter</b>: The character to use for separating fields.</li>
+	<li><b>quoteCharacter</b>: The character used to quote fields. If provided, output will be strictly quoted. Use NO_QUOTE_CHARACTER to not use quotes.</li>
+	<li><b>escapeCharacter</b>: The character used to escape characters inside quoted fields. Used if quoteCharacter is provided. Use NO_ESCAPE_CHARACTER to not use it.</li>
+	<li><b>nullString</b>: An optional string which can be used to serialize null values (e.g. \N as in MySQL dumps). Use null if no nullString is needed. If provided, this string won't be quoted even if the writer uses quotes.</li>
 </ul>
 
 <p>The following line instantiates a TupleTextOutputFormat which serializes tuples as a simple TSV:</p>

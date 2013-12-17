@@ -17,18 +17,16 @@ URL resolution example</a>:
 
 <pre class="prettyprint" id="java">
  TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Url Resolution");
- mr.addIntermediateSchema(new Schema("urlMap", urlMapFields));
- mr.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
+ mr.addIntermediateSchema(getURLMapSchema());
+ mr.addIntermediateSchema(getURLRegisterSchema());
+ mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+ mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+ mr.setFieldAliases("urlMap", new Aliases().add("url", "nonCanonicalUrl"));
  mr.setGroupByFields("url");
- mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
- mr.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
+ mr.setOrderBy(new OrderBy().add("url", Order.ASC).addSchemaOrder(Order.ASC));
+ mr.setSpecificOrderBy("urlRegister", new OrderBy().add("timestamp", Order.ASC));
  mr.setTupleReducer(new Handler());
- mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
- try {
-   mr.createJob().waitForCompletion(true);
- } finally {
-   mr.cleanUpInstanceFiles();
- }
+ mr.setOutput(new Path(output), new TupleTextOutputFormat(getURLRegisterSchema(), false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER), ITuple.class, NullWritable.class);
 </pre>
 
 <div class="alert alert-info">
@@ -53,15 +51,15 @@ We need to define which schemas (if more than one) will be allowed for <code>Tup
 </p>
 
 <pre class="prettyprint" id="java">
- mr.addIntermediateSchema(new Schema("urlMap", urlMapFields));
- mr.addIntermediateSchema(new Schema("urlRegister", urlRegisterFields));
+ mr.addIntermediateSchema(getURLMapSchema());
+ mr.addIntermediateSchema(getURLRegisterSchema());
 </pre>
 
 <div class="alert alert-info">
 <p>
 <strong>Important:</strong> The order in which intermediate schemas are provided to the 
-<code>TupleMRBuilder</code> is important. It will have impact in the
-order in which tuples of different schemas will be received in the 
+<code>TupleMRBuilder</code> is important. It may have impact in the
+default order in which tuples of different schemas will be received in the 
 <code>TupleReducer</code>. See <a href="joins.html">Reduce-side joins</a> for 
 more information.
 </p>
@@ -83,44 +81,41 @@ tuples are grouped by <code>url</code>. Sorting is not specified.
 See <a href="group_and_sort.html">Grouping and Sorting</a> for more possibilities.
 </p>
 
-<p>
-You can also configure the job to be a rollup job. See 
-<a href="rollup.html">the rollup page</a> for more information.
-
 <h3>Setting the job input and associated TupleMapper</h3>
 
 <p>
 You can configure a particular <code>TupleMapper</code> per each input path. 
 That is, you can have several inputs, and each of them can be processed differently.
 For this particular example, we are configuring two input paths (input1 and input2),
- one to be processed by the <code>UrlMapProcessor</code> tuple mapper, and the other
-to be processed by <code>UrlProcessor</code> tuple mapper:
+ an both are processed by a default Pangool's mapper IdentityTupleMapper, because we don't need
+ to perform any specific mapping logic.</p>
+ 
+<p>
+For parsing input text files into Tuples we use "TupleTextInputFormat" (see <a href='text_io.html'>Text Input/Output</a> for more information).</p>
 
 <pre class="prettyprint" id="java">
- mr.addInput(new Path(input1), new HadoopInputFormat(TextInputFormat.class), new UrlMapProcessor());
- mr.addInput(new Path(input2), new HadoopInputFormat(TextInputFormat.class), new UrlProcessor());
+mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
 </pre>
-
-<p>
-We use <code>TextInputFormat</code> because the input is a text file.  
-</p>
 
 <div class="alert alert-info">
 <p>
-The wrapper class <code>HadoopInputFormat</code> allows us to reuse static Hadoop input
-formats inside Pangool. Like Mappers, Reducers, Combiners, RawComparators, Input / Output formats are configured via object instance.     
+Pangool can also use old Hadoop-native InputFormats like TextInputFormat. For that, a wrapper class <code>HadoopInputFormat</code> exists which receives a class as argument (unlike in Hadoop, in Pangool everything are instances: Mapper, Reducer, Input/Output Format, ...)     
 </p>
 </div>
 
-<h4 class="small">Using Tuples as input</h4>
+<h4 class="small">Using (binary) Tuples as input/output</h4>
 
 <p>
-Pangool has its own input format for tuples. You can configure your job to use
-it by using the method <code>addTupleInput()</code> instead of <code>addInput()</code>
+Pangool can serialize Tuples in an efficient binary format with the method <code>setTupleOutput()</code>.
 </p>
 
+<p>You can also use <code>addTupleInput(Path path, Schema targetSchema, ...)</code> to read binary tuple files whose schema don't necessarily match another target schema.
+Fields that are not used anymore will be skipped, and new fields not present in the input file will be received as null values.</p>
+
 <p>
-Pangool serializes the tuples in binary format using Avro with <code>TupleOutputFormat</code>.
+Pangool has its own efficient binary input format for tuples. You can configure your job to use
+it by using the method <code>addTupleInput()</code> instead of <code>addInput()</code>. You must have saved the output of a previous job as binary Tuples before.
 </p>
 
 <h3>Setting the reducer</h3>
@@ -141,34 +136,20 @@ can see an example of its use in the
 topical word count</a> example. 
 </p>
 
-<p>If you are using <a href="rollup.html">rollup</a>, your reducer should extend
-<code>TupleRollupReducer</code>.
-</p> 
-
-
 <h3>Setting the job output</h3>
 
 <p>
 The next step is to set the job output. We want to store the output into
-the folder <code>output</code>, using the Hadoop output format <code>TextOutputFormat</code>.
-The output will have rows with <code>Text</code> as key and <code>NullWritable</code> (the 
-Hadoop synonym for <code>null</code>) as value.
+the folder <code>output</code> using Pangool's Text I/O:
 </p>
 
 <pre class="prettyprint" id="java">
- mr.setOutput(new Path(output), new HadoopOutputFormat(TextOutputFormat.class), Text.class, NullWritable.class);
+ mr.setOutput(new Path(output), new TupleTextOutputFormat(getURLRegisterSchema(), false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER), ITuple.class, NullWritable.class);
 </pre>
 
 <p>
-Note that <code>TupleMapper</code> and <code>TupleReducer</code> can have more than one output by using
+Note that <code>TupleMapper</code> and <code>TupleReducer</code> can also have more than one output by using
 <a href="named_outputs.html">named outputs</a>.
-</p>
-
-<h4>Writing Tuples as output</h4>
-
-<p>
-Pangool has its own output format for tuples. You can configure your job to use
-it by using the method <code>setTupleOutput()</code> instead of <code>setOutput()</code>
 </p>
 
 <h3>And finally... build and launch your job!</h3>
