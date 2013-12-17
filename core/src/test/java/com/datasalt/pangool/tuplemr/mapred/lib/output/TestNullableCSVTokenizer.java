@@ -2,17 +2,13 @@ package com.datasalt.pangool.tuplemr.mapred.lib.output;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.charset.Charset;
-import java.util.Arrays;
 
 import org.junit.Test;
 
 import com.datasalt.pangool.tuplemr.mapred.lib.input.NullableCSVTokenizer;
 import com.datasalt.pangool.tuplemr.mapred.lib.input.TupleTextInputFormat;
-import com.google.common.io.Files;
 import com.googlecode.jcsv.CSVStrategy;
 import com.googlecode.jcsv.reader.CSVReader;
 import com.googlecode.jcsv.reader.internal.CSVReaderBuilder;

@@ -333,6 +333,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 	    TupleMRException, URISyntaxException {
 
 		String line1 = "\"Joe\",\\N,,\"\\\"Joan\\\"\",\"\"";
+		System.out.println(line1);
 
 		CommonUtils.writeTXT(line1, new File(IN));
 		Configuration conf = getConf();
@@ -347,7 +348,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 		MapOnlyJobBuilder mO = new MapOnlyJobBuilder(conf);
 		mO.addInput(inPath, new TupleTextInputFormat(schema, false, true, ',', '"', '\\',
 		    FieldSelector.NONE, TupleTextInputFormat.NO_NULL_STRING),
-		    new MapOnlyMapper<ITuple, NullWritable, NullWritable, NullWritable>() {
+		    new MapOnlyMapper<ITuple, NullWritable, ITuple, NullWritable>() {
 
 			    protected void map(ITuple key, NullWritable value, Context context,
 			        MultipleOutputsCollector collector) throws IOException, InterruptedException {
@@ -358,6 +359,7 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 					    Assert.assertEquals("Joe", key.get("name"));
 					    Assert.assertEquals("\"Joan\"", key.get("name3"));
 					    Assert.assertEquals("", key.get("emptystring"));
+					    context.write(key, value);
 				    } catch(Throwable t) {
 					    t.printStackTrace();
 					    throw new RuntimeException(t);
@@ -365,11 +367,13 @@ public class TestTupleTextInputOutputFormat extends BaseTest implements Serializ
 			    }
 		    });
 
-		mO.setOutput(outPath, new HadoopOutputFormat(NullOutputFormat.class), NullWritable.class,
+		mO.setOutput(outPath, new TupleTextOutputFormat(schema, false, ',', '"', '\\', "\\N"), NullWritable.class,
 		    NullWritable.class);
 		Job job = mO.createJob();
 		try {
 			assertTrue(job.waitForCompletion(true));
+			String str = Files.toString(new File(outPath.toString() + "/part-m-00000"), Charset.defaultCharset());
+			assertEquals("\"Joe\",\\N,\\N,\"\\\"Joan\\\"\",\"\"", str.trim());
 		} finally {
 			mO.cleanUpInstanceFiles();
 		}
