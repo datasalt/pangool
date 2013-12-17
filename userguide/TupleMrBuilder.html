@@ -19,14 +19,17 @@ URL resolution example</a>:
  TupleMRBuilder mr = new TupleMRBuilder(conf, "Pangool Url Resolution");
  mr.addIntermediateSchema(getURLMapSchema());
  mr.addIntermediateSchema(getURLRegisterSchema());
- mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
- mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+ mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t', 
+ 	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+ mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t', 
+ 	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
  mr.setFieldAliases("urlMap", new Aliases().add("url", "nonCanonicalUrl"));
  mr.setGroupByFields("url");
  mr.setOrderBy(new OrderBy().add("url", Order.ASC).addSchemaOrder(Order.ASC));
  mr.setSpecificOrderBy("urlRegister", new OrderBy().add("timestamp", Order.ASC));
  mr.setTupleReducer(new Handler());
- mr.setOutput(new Path(output), new TupleTextOutputFormat(getURLRegisterSchema(), false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER), ITuple.class, NullWritable.class);
+ mr.setOutput(new Path(output), new TupleTextOutputFormat(getURLRegisterSchema(), false, '\t', 
+ 	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER), ITuple.class, NullWritable.class);
 </pre>
 
 <div class="alert alert-info">
@@ -94,8 +97,10 @@ For this particular example, we are configuring two input paths (input1 and inpu
 For parsing input text files into Tuples we use "TupleTextInputFormat" (see <a href='text_io.html'>Text Input/Output</a> for more information).</p>
 
 <pre class="prettyprint" id="java">
-mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
-mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t', 
+	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
+mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t', 
+	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
 </pre>
 
 <div class="alert alert-info">
@@ -110,13 +115,12 @@ Pangool can also use old Hadoop-native InputFormats like TextInputFormat. For th
 Pangool can serialize Tuples in an efficient binary format with the method <code>setTupleOutput()</code>.
 </p>
 
+<p>
+You can then configure your job to read binary tuples by using the method <code>addTupleInput()</code> instead of <code>addInput()</code>.
+</p>
+
 <p>You can also use <code>addTupleInput(Path path, Schema targetSchema, ...)</code> to read binary tuple files whose schema don't necessarily match another target schema.
 Fields that are not used anymore will be skipped, and new fields not present in the input file will be received as null values.</p>
-
-<p>
-Pangool has its own efficient binary input format for tuples. You can configure your job to use
-it by using the method <code>addTupleInput()</code> instead of <code>addInput()</code>. You must have saved the output of a previous job as binary Tuples before.
-</p>
 
 <h3>Setting the reducer</h3>
 
@@ -144,7 +148,8 @@ the folder <code>output</code> using Pangool's Text I/O:
 </p>
 
 <pre class="prettyprint" id="java">
- mr.setOutput(new Path(output), new TupleTextOutputFormat(getURLRegisterSchema(), false, '\t', NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER), ITuple.class, NullWritable.class);
+ mr.setOutput(new Path(output), new TupleTextOutputFormat(getURLRegisterSchema(), false, '\t', 
+ 	NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER), ITuple.class, NullWritable.class);
 </pre>
 
 <p>

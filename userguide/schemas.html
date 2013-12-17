@@ -33,9 +33,8 @@ Or we can also create it leveraging the <code>Fields.parse()</code> method:
 
 <h3>Types</h3>
 <p>
-Pangool supports any data type which is "Hadoop serializable" (<code>Writables</code>,
-<a href="http://thrift.apache.org/">Thrift</a>, <a href="http://code.google.com/p/protostuff/">
-ProtoStuff</a>, etc). It natively supports some primitive types as well.
+Pangool supports any data type which is "Hadoop serializable", including <code>Writables</code>,
+<a href="http://thrift.apache.org/">Thrift</a>, <a href="http://code.google.com/p/protostuff/">, ProtoStuff</a> and <a href="http://avro.apache.org/">Avro</a> objects. It natively supports some primitive types as well.
 </p>
 
  <p>
@@ -87,21 +86,23 @@ There are two ways of serializing OBJECT fields:
   Schema schema1 = new Schema("schema1", fields);
  </pre>
  </p>
- <li><b>Setting custom serialization:</b> Pangool's will use the serialization factory
+ <li><b>Setting custom serialization:</b> Pangool will use the serialization factory
  specified in the field's properties:</li>
  <p>
  <pre class="prettyprint" id="java">
   List<Field> fields = new ArrayList<Field>();
-  Field field = Field.createObject("my_avro_field",Record.class);
+  Field field = Field.createObject("my_avro_field", Record.class);
   field.setSerialization(AvroFieldSerialization.class);
-  field.addProps("avro.schema",myAvroSchema.toString());
-  field.addProps("avro.reflection",false);
+  field.addProps("avro.schema", myAvroSchema.toString());
+  field.addProps("avro.reflection", false);
   Schema schema1 = new Schema("schema1", fields);
  </pre>
  </p>
 
+ <div class="alert alert-info">
  <p>
- To know more about custom serialization take a look at <a href="custom_serialization.html">this</a>
+ To know more about custom serialization take a look at <a href="custom_serialization.html">this section</a>.
+ </div>
  </p>
 </ul>
 </p>
@@ -111,7 +112,7 @@ There are two ways of serializing OBJECT fields:
 </p>
 
 <p>
-You can enable Thrift / ProtoStuff object serialization in Pangool with:
+You can enable Pangool's native support for Thrift / ProtoStuff objects with:
 </p>
 
 <pre class="prettyprint" id="java">
