@@ -97,9 +97,9 @@ For this particular example, we are configuring two input paths (input1 and inpu
 For parsing input text files into Tuples we use "TupleTextInputFormat" (see <a href='text_io.html'>Text Input/Output</a> for more information).</p>
 
 <pre class="prettyprint" id="java">
-mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t', 
+ mr.addInput(new Path(input1), new TupleTextInputFormat(getURLMapSchema(), false, false, '\t', 
   NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
-mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t', 
+ mr.addInput(new Path(input2), new TupleTextInputFormat(getURLRegisterSchema(), false, false, '\t', 
   NO_QUOTE_CHARACTER, NO_ESCAPE_CHARACTER, null, null), new IdentityTupleMapper());
 </pre>
 

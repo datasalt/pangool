@@ -30,14 +30,14 @@ Pangool comes with a convenient InputFormat and OutputFormat for text files, whi
 <p>The following line instantiates an InputFormat which reads a simple TSV with no quotes nor escape characters:</p>
 
 <pre class="prettyprint" id="java">
-InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, '\t', 
+ InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, '\t', 
   TupleTextInputFormat.NO_QUOTE_CHARACTER, TupleTextInputFormat.NO_ESCAPE_CHARACTER, null, null);
 </pre>
 
 <p>The following line instantiates an InputFormat which reads a header-less CSV which uses " as quote character and \ as escape character:</p>
 
 <pre class="prettyprint" id="java">
-InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ',', '"', '\\', null, null);
+ InputFormat inputFormat = new TupleTextInputFormat(schema, false, false, ',', '"', '\\', null, null);
 </pre>
 
 <p>The following line instantiates an InputFormat which reads strict quotes CSV files with header and null values optionally identified as \N, and selects only columns 1, 4 and 6 (remember that indexes are 0-based):</p> 
@@ -63,14 +63,14 @@ InputFormat inputFormat = new TupleTextInputFormat(schema, true, true, ',', '"',
 <p>The following line instantiates a TupleTextOutputFormat which serializes tuples as a simple TSV:</p>
 
 <pre class="prettyprint" id="java">
-OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, '\t', 
+ OutputFormat outputFormat = new TupleTextOutputFormat(schema, false, '\t', 
   TupleTextOutputFormat.NO_QUOTE_CHARACTER, TupleTextOutputFormat.NO_ESCAPE_CHARACTER);
 </pre>
 	
 <p>The following line instantiates a TupleTextOutputFormat which serializes tuples as strictly quoted CSV with null strings as \N :</p>
 
 <pre class="prettyprint" id="java">
-OutputFormat outputFormat = new TupleTextOutputFormat(schema, true, ',', '"', '\\', "\\N")
+ OutputFormat outputFormat = new TupleTextOutputFormat(schema, true, ',', '"', '\\', "\\N")
 </pre>
 
 <p><a class="btn btn-primary btn-large" href="solrintegration.html">Next: SOLR Integration &raquo;</a></p>

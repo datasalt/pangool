@@ -52,9 +52,9 @@ The following code instantiates a <a href='http://pangool.net/apidocs/com/datasa
 </p>
 
 <pre class="prettyprint" id="java">
-Configuration conf = new Configuration();
-File solrHome = new File("my-solr-home");
-TupleSolrOutputFormat outputFormat = new TupleSolrOutputFormat(solrHome, conf);
+ Configuration conf = new Configuration();
+ File solrHome = new File("my-solr-home");
+ TupleSolrOutputFormat outputFormat = new TupleSolrOutputFormat(solrHome, conf);
 </pre>
 
 <p>
@@ -62,11 +62,11 @@ It is OK to use <a href='http://pangool.net/apidocs/com/datasalt/pangool/solr/Tu
 </p>
 
 <pre class="prettyprint" id="java">
-Configuration conf = new Configuration();
-Path jobOutput = new Path("job-output");
-job.addNamedOutput("namedOutput1", new TupleSolrOutputFormat(new File("solr-home1"), conf), ITuple.class, NullWritable.class);
-job.addNamedOutput("namedOutput2", new TupleSolrOutputFormat(new File("solr-home2"), conf), ITuple.class, NullWritable.class);
-job.setOutput(jobOutput, new TupleSolrOutputFormat(new File("solr-home3"), conf), ITuple.class, NullWritable.class);
+ Configuration conf = new Configuration();
+ Path jobOutput = new Path("job-output");
+ job.addNamedOutput("namedOutput1", new TupleSolrOutputFormat(new File("solr-home1"), conf), ITuple.class, NullWritable.class);
+ job.addNamedOutput("namedOutput2", new TupleSolrOutputFormat(new File("solr-home2"), conf), ITuple.class, NullWritable.class);
+ job.setOutput(jobOutput, new TupleSolrOutputFormat(new File("solr-home3"), conf), ITuple.class, NullWritable.class);
 </pre>
 
 <h3>TupleDocumentConverter</h3>
@@ -77,10 +77,10 @@ More advanced converters can be implemented and passed as a parameter to the Out
 </p>
 
 <pre class="prettyprint" id="java">
-Configuration conf = new Configuration();
-File solrHome = new File("my-solr-home");
-TupleDocumentConverter converter = new MyCustomTupleDocumentConverter();
-TupleSolrOutputFormat outputFormat = new TupleSolrOutputFormat(solrHome, conf, converter);
+ Configuration conf = new Configuration();
+ File solrHome = new File("my-solr-home");
+ TupleDocumentConverter converter = new MyCustomTupleDocumentConverter();
+ TupleSolrOutputFormat outputFormat = new TupleSolrOutputFormat(solrHome, conf, converter);
 </pre>
 
 <h3>Advanced configuration</h3>
