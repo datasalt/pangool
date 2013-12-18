@@ -359,6 +359,8 @@ public class Schema implements Serializable {
 			return createEnum(name, clazz, false);
 		}
 
+		private Object cachedDefaultValue;
+		
 		/**
 		 * @return Null if this field has no associated default value, or the strongly typed
 		 *  default value otherwise. Default values can be set by Field constructor and are 
@@ -369,28 +371,41 @@ public class Schema implements Serializable {
 			if(str == null) {
 				return null;
 			}
+			
+			if(cachedDefaultValue != null) {
+				return cachedDefaultValue;
+			}
 
 			try {
 				switch(type) {
 				case INT:
-					return Integer.parseInt(str);
+					cachedDefaultValue = Integer.parseInt(str);
+					break;
 				case DOUBLE:
-					return Double.parseDouble(str);
+					cachedDefaultValue = Double.parseDouble(str);
+					break;
 				case FLOAT:
-					return Float.parseFloat(str);
+					cachedDefaultValue = Float.parseFloat(str);
+					break;
 				case BOOLEAN:
-					return Boolean.parseBoolean(str);
+					cachedDefaultValue = Boolean.parseBoolean(str);
+					break;
 				case LONG:
-					return Long.parseLong(str);
+					cachedDefaultValue = Long.parseLong(str);
+					break;
 				case BYTES:
-					return str.getBytes("UTF-8");
+					cachedDefaultValue = str.getBytes("UTF-8");
+					break;
 				default:
-					return str;
+					cachedDefaultValue = str;
+					break;
 				}
 			} catch(Throwable t) {
 				throw new RuntimeException("Corrupted default value (" + str + ") for field " + this.name
 				    + ", this shouldn't happen.");
 			}
+			
+			return cachedDefaultValue;
 		}
 
 		private Field(String name, Type type, Class<?> clazz, boolean nullable, Object defaultValue) {

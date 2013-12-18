@@ -19,7 +19,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -57,6 +57,8 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	private Deserializer[] deserializers;
 	private Schema readSchema = null, targetSchema = null;
 	private int[] backwardsCompatibiltyLookupVector = null;
+	// Fields that are present in the target schema but not in the read schema
+	private List<Field> newFields = new ArrayList<Field>();
 
 	// Constant that indicates a field of a Tuple is not being used
 	private final static int UNUSED = -1;
@@ -95,6 +97,12 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 			Field field = readSchema.getFields().get(i);
 			if(targetSchema.containsField(field.getName())) {
 				backwardsCompatibiltyLookupVector[i] = targetSchema.getFieldPos(field.getName());
+			}
+		}
+		for(int i = 0; i < targetSchema.getFields().size(); i++) {
+			Field field = targetSchema.getFields().get(i);
+			if(!readSchema.containsField(field.getName())) {
+				newFields.add(field);
 			}
 		}
 
@@ -159,13 +167,11 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	 * standard way of using this Deserializer. This method is used by {@link TupleDeserializer}.
 	 */
 	void readFields(ITuple tuple, Schema schema, Deserializer[] customDeserializers) throws IOException {
-		// Set default values if there are in the target tuple
-		for(Field field: tuple.getSchema().getFields()) {
-			Object defaultValue = field.getDefaultValue();
-			if(defaultValue != null) {
-				tuple.set(field.getName(), defaultValue);
-			}
+		// Set default values / clean values if there are "new fields"
+		for(Field field: newFields) {
+			tuple.set(field.getName(), field.getDefaultValue());
 		}
+		
 		// If there are fields with nulls, read the bit field and set the values that are null
 		if(schema.containsNullableFields()) {
 			List<Integer> nullableFields = schema.getNullableFieldsIdx();
