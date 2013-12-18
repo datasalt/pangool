@@ -19,6 +19,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -158,6 +159,13 @@ public class SimpleTupleDeserializer implements Deserializer<ITuple> {
 	 * standard way of using this Deserializer. This method is used by {@link TupleDeserializer}.
 	 */
 	void readFields(ITuple tuple, Schema schema, Deserializer[] customDeserializers) throws IOException {
+		// Set default values if there are in the target tuple
+		for(Field field: tuple.getSchema().getFields()) {
+			Object defaultValue = field.getDefaultValue();
+			if(defaultValue != null) {
+				tuple.set(field.getName(), defaultValue);
+			}
+		}
 		// If there are fields with nulls, read the bit field and set the values that are null
 		if(schema.containsNullableFields()) {
 			List<Integer> nullableFields = schema.getNullableFieldsIdx();

@@ -42,4 +42,76 @@ public class TestSchema {
 		
 		new Schema(null, fields);
 	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testIncorrectDefaultValuesString() {
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("foo", Type.STRING, false, 32));
+
+		new Schema("foo", fields);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testIncorrectDefaultValuesInt() {
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("foo", Type.INT, false, "foo"));
+
+		new Schema("foo", fields);
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testIncorrectDefaultValuesLong() {
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("foo", Type.LONG, false, 32));
+
+		new Schema("foo", fields);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testIncorrectDefaultValuesFloat() {
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("foo", Type.FLOAT, false, "xxx"));
+
+		new Schema("foo", fields);
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testIncorrectDefaultValuesDouble() {
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("foo", Type.DOUBLE, false, "xxx"));
+
+		new Schema("foo", fields);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testIncorrectDefaultValuesBoolean() {
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("foo", Type.BOOLEAN, false, "xxx"));
+
+		new Schema("foo", fields);
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testIncorrectDefaultValuesBytes() {
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("foo", Type.BYTES, false, "xxx"));
+
+		new Schema("foo", fields);
+	}
+		
+	@Test
+	public void testCorrectDefaultValue() {
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("foo1", Type.BOOLEAN, false, true));		
+		fields.add(Field.create("foo2", Type.BYTES, false, new byte[] { 1, 2 }));
+		fields.add(Field.create("foo3", Type.INT, false, 12));
+		fields.add(Field.create("foo4", Type.LONG, false, 12l));
+		fields.add(Field.create("foo5", Type.FLOAT, false, 12.5f));
+		fields.add(Field.create("foo6", Type.DOUBLE, false, 12.5d));
+		fields.add(Field.create("foo7", Type.STRING, false, "foo"));
+		
+		new Schema("foo", fields);
+		
+		
+	}
 }

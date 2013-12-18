@@ -4,17 +4,22 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
 import com.datasalt.pangool.BaseTest;
+import com.datasalt.pangool.io.Schema.Field;
+import com.datasalt.pangool.io.Schema.Field.Type;
 
 public class TestTupleFile extends BaseTest {
 
 	public static String OUT = TestTupleFile.class.getName() + "-out";
 	public static String OUT_2 = TestTupleFile.class.getName() + "-out-2";
+	public static String OUT_3 = TestTupleFile.class.getName() + "-out-3";
 
 	@Test
 	public void testWriteAndRead() throws IOException {
@@ -40,6 +45,56 @@ public class TestTupleFile extends BaseTest {
 		reader.close();
 
 		fs.delete(new Path(OUT), true);
+	}
+	
+	@Test
+	public void testBackwardsCompatibleReadWithDefaultValues() throws IOException {
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(Field.create("foo", Type.STRING, false));		
+		Schema firstSchema = new Schema("first", fields);
+
+		fields.add(Field.create("a", Type.INT, true, 10));
+		fields.add(Field.create("b", Type.DOUBLE, true, 100d));
+		fields.add(Field.create("c", Type.STRING, true, "foo"));
+		fields.add(Field.create("d", Type.FLOAT, true, 10f));
+		fields.add(Field.create("e", Type.BOOLEAN, true, true));
+		fields.add(Field.create("f", Type.LONG, true, 100l));
+		fields.add(Field.create("g", Type.BYTES, true, new byte[] { (byte)1, (byte)2 }));
+
+		Schema secondSchema = new Schema("second", fields);
+		
+		int numTuples = 10;
+		ITuple tuples[] = new ITuple[numTuples];
+		for(int i = 0; i < numTuples; i++) {
+			tuples[i] = new Tuple(firstSchema);
+			tuples[i].set("foo", "str" + i);
+		}
+		
+		FileSystem fs = FileSystem.get(getConf());
+		TupleFile.Writer writer = new TupleFile.Writer(fs, getConf(), new Path(OUT_3), firstSchema);
+		for(ITuple tuple : tuples) {
+			writer.append(tuple);
+		}
+		writer.close();
+		
+		// Read it with an evolved schema
+		TupleFile.Reader reader = new TupleFile.Reader(fs, secondSchema, getConf(), new Path(OUT_3));
+		Tuple inTuple = new Tuple(secondSchema);
+		int count = 0;
+		while(reader.next(inTuple)) {
+			assertEquals(tuples[count].getString("foo"), inTuple.getString("foo"));
+			assertEquals(10, inTuple.get("a"));
+			assertEquals(100d, inTuple.get("b"));
+			assertEquals("foo", inTuple.get("c"));
+			assertEquals(10f, inTuple.get("d"));
+			assertEquals(true, inTuple.get("e"));
+			assertEquals(100l, inTuple.get("f"));
+			byte[] bts = (byte[])inTuple.get("g");
+			assertEquals((byte)1, (byte)bts[0]);
+			assertEquals((byte)2, (byte)bts[1]);
+			count++;
+		}
+		reader.close();
 	}
 
 	@Test

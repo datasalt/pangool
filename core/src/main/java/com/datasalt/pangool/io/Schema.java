@@ -15,8 +15,21 @@
  */
 package com.datasalt.pangool.io;
 
-import com.datasalt.pangool.PangoolRuntimeException;
-import com.datasalt.pangool.tuplemr.serialization.TupleFieldSerialization;
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.hadoop.io.serializer.Serialization;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
@@ -24,11 +37,8 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.*;
+import com.datasalt.pangool.PangoolRuntimeException;
+import com.datasalt.pangool.tuplemr.serialization.TupleFieldSerialization;
 
 /**
  * A list of {@link Field} elements that a {@link ITuple} instance contains.
@@ -93,11 +103,12 @@ public class Schema implements Serializable {
 		public static final String METADATA_OBJECT_SERIALIZATION = "pangool.object.java-serialization-class";
 		// this is to mark a BYTES Avro type as pangool OBJECT
 		public static final String METADATA_BYTES_AS_OBJECT = "pangool.object.mark";
+		public static final String METADATA_DEFAULT_VALUE = "pangool.schema.field.default.value";
 
 		static {
 			Set<String> reserved = new HashSet<String>();
 			Collections.addAll(reserved, METADATA_OBJECT_CLASS, METADATA_OBJECT_SERIALIZATION,
-			    METADATA_BYTES_AS_OBJECT);
+			    METADATA_BYTES_AS_OBJECT, METADATA_DEFAULT_VALUE);
 			RESERVED_KEYWORDS = Collections.unmodifiableSet(reserved);
 		}
 
@@ -161,14 +172,30 @@ public class Schema implements Serializable {
 		 *          {@link Type} of the field
 		 * @param nullable
 		 *          True if null values are allowed for this field
+		 * @param defaultValue
+		 *          The default value for this field if the field is missing in some read schema
 		 */
-		public static Field create(String name, Type type, boolean nullable) {
+		public static Field create(String name, Type type, boolean nullable, Object defaultValue) {
 			if(type == Type.ENUM) {
 				throw new IllegalArgumentException("Not allowed 'ENUM' type. Use 'Field.createEnum' method");
 			} else if(type == Type.OBJECT) {
 				throw new IllegalArgumentException("Not allowed 'OBJECT' type. Use 'Field.createObject' method");
 			}
-			return new Field(name, type, null, nullable);
+			return new Field(name, type, null, nullable, defaultValue);
+		}
+
+		/**
+		 * Crates a field of the given type.
+		 * 
+		 * @param name
+		 *          Field's name
+		 * @param type
+		 *          {@link Type} of the field
+		 * @param nullable
+		 *          True if null values are allowed for this field
+		 */
+		public static Field create(String name, Type type, boolean nullable) {
+			return create(name, type, nullable, null);
 		}
 
 		/**
@@ -194,7 +221,7 @@ public class Schema implements Serializable {
 		 *          True if null values are allowed for this field
 		 */
 		public static Field createObject(String name, Class<?> clazz, boolean nullable) {
-			return new Field(name, Type.OBJECT, clazz, nullable);
+			return new Field(name, Type.OBJECT, clazz, nullable, null);
 		}
 
 		/**
@@ -207,7 +234,7 @@ public class Schema implements Serializable {
 		 * @return
 		 */
 		public static Field createObject(String name, Class<?> clazz) {
-			return new Field(name, Type.OBJECT, clazz, false);
+			return createObject(name, clazz, false);
 		}
 
 		/**
@@ -217,13 +244,28 @@ public class Schema implements Serializable {
 		 *          Field's name
 		 * @param schema
 		 *          The schema of the field
+		 * @param nullable
+		 *          True if null values are allowed for this field
 		 * @return
 		 */
-		public static Field createTupleField(String name, Schema schema) {
-			Field field = Field.createObject(name, Object.class);
+		public static Field createTupleField(String name, Schema schema, boolean nullable) {
+			Field field = Field.createObject(name, Object.class, nullable);
 			field.setObjectSerialization(TupleFieldSerialization.class);
 			field.addProp("schema", schema.toString());
 			return field;
+		}
+
+		/**
+		 * Creates a non-nullable field containing a Pangool Tuple.
+		 * 
+		 * @param name
+		 *          Field's name
+		 * @param schema
+		 *          The schema of the field
+		 * @return
+		 */
+		public static Field createTupleField(String name, Schema schema) {
+			return createTupleField(name, schema);
 		}
 
 		/**
@@ -281,14 +323,31 @@ public class Schema implements Serializable {
 		 *          Enum class
 		 * @param nullable
 		 *          True if null values are allowed for this field.
+		 * @param defaultValue
+		 *          The defaultValue to assign if this field is not present in some read schema.
 		 * @return
 		 */
-		public static Field createEnum(String name, Class<?> clazz, boolean nullable) {
-			return new Field(name, Type.ENUM, clazz, nullable);
+		public static Field createEnum(String name, Class<?> clazz, boolean nullable, Object defaultValue) {
+			return new Field(name, Type.ENUM, clazz, nullable, defaultValue);
 		}
 
 		/**
-		 * Creates a non nullable enum field, based in a enum class
+		 * Creates an enum field, based in a enum class
+		 * 
+		 * @param name
+		 *          Field's name
+		 * @param clazz
+		 *          Enum class
+		 * @param nullable
+		 *          True if null values are allowed for this field.
+		 * @return
+		 */
+		public static Field createEnum(String name, Class<?> clazz, boolean nullable) {
+			return createEnum(name, clazz, nullable, null);
+		}
+
+		/**
+		 * Creates a non-nullable enum field, based in a enum class
 		 * 
 		 * @param name
 		 *          Field's name
@@ -297,10 +356,44 @@ public class Schema implements Serializable {
 		 * @return
 		 */
 		public static Field createEnum(String name, Class<?> clazz) {
-			return new Field(name, Type.ENUM, clazz, false);
+			return createEnum(name, clazz, false);
 		}
 
-		private Field(String name, Type type, Class<?> clazz, boolean nullable) {
+		/**
+		 * @return Null if this field has no associated default value, or the strongly typed
+		 *  default value otherwise. Default values can be set by Field constructor and are 
+		 *  enforced to its corret type, then serialized to string.
+		 */
+		public Object getDefaultValue() {
+			String str = getProp(METADATA_DEFAULT_VALUE);
+			if(str == null) {
+				return null;
+			}
+
+			try {
+				switch(type) {
+				case INT:
+					return Integer.parseInt(str);
+				case DOUBLE:
+					return Double.parseDouble(str);
+				case FLOAT:
+					return Float.parseFloat(str);
+				case BOOLEAN:
+					return Boolean.parseBoolean(str);
+				case LONG:
+					return Long.parseLong(str);
+				case BYTES:
+					return str.getBytes("UTF-8");
+				default:
+					return str;
+				}
+			} catch(Throwable t) {
+				throw new RuntimeException("Corrupted default value (" + str + ") for field " + this.name
+				    + ", this shouldn't happen.");
+			}
+		}
+
+		private Field(String name, Type type, Class<?> clazz, boolean nullable, Object defaultValue) {
 			if(name == null) {
 				throw new IllegalArgumentException("Field name can't be null");
 			}
@@ -328,6 +421,65 @@ public class Schema implements Serializable {
 			this.name = name;
 			this.type = type;
 			this.nullable = nullable;
+			// Default values supported since Pangool 0.60.7 (backwards compatibility)
+			if(defaultValue != null) {
+				switch(type) {
+				case INT:
+					if(!(defaultValue instanceof Integer)) {
+						throw new IllegalArgumentException("Invalid default value (" + defaultValue
+						    + ") for field type " + type);
+					}
+					break;
+				case DOUBLE:
+					if(!(defaultValue instanceof Double)) {
+						throw new IllegalArgumentException("Invalid default value (" + defaultValue
+						    + ") for field type " + type);
+					}
+					break;
+				case FLOAT:
+					if(!(defaultValue instanceof Float)) {
+						throw new IllegalArgumentException("Invalid default value (" + defaultValue
+						    + ") for field type " + type);
+					}
+					break;
+				case BOOLEAN:
+					if(!(defaultValue instanceof Boolean)) {
+						throw new IllegalArgumentException("Invalid default value (" + defaultValue
+						    + ") for field type " + type);
+					}
+					break;
+				case LONG:
+					if(!(defaultValue instanceof Long)) {
+						throw new IllegalArgumentException("Invalid default value (" + defaultValue
+						    + ") for field type " + type);
+					}
+					break;
+				case STRING:
+					if(!(defaultValue instanceof String)) {
+						throw new IllegalArgumentException("Invalid default value (" + defaultValue
+						    + ") for field type " + type);
+					}
+					break;
+				case BYTES:
+					if(!(defaultValue instanceof byte[])) {
+						throw new IllegalArgumentException("Invalid default value (" + defaultValue
+						    + ") for field type " + type);
+					}
+					break;
+				}
+
+				String strRep = null;
+
+				switch(type) {
+				case BYTES:
+					strRep = new String((byte[]) defaultValue, Charset.forName("UTF-8"));
+					break;
+				default:
+					strRep = defaultValue.toString();
+				}
+
+				props.put(METADATA_DEFAULT_VALUE, strRep);
+			}
 		}
 
 		public Type getType() {
@@ -498,7 +650,8 @@ public class Schema implements Serializable {
 		nullablePositionByIndex = new int[fields.size()];
 		for(Field field : this.fields) {
 			if(indexByFieldName.get(field.getName()) != null) {
-				throw new IllegalArgumentException("More than one field with the same name in the provided Field list, can't create a Schema.");
+				throw new IllegalArgumentException(
+				    "More than one field with the same name in the provided Field list, can't create a Schema.");
 			}
 			indexByFieldName.put(field.getName(), index);
 			if(field.isNullable()) {
