@@ -265,7 +265,7 @@ public class Schema implements Serializable {
 		 * @return
 		 */
 		public static Field createTupleField(String name, Schema schema) {
-			return createTupleField(name, schema);
+			return createTupleField(name, schema, false);
 		}
 
 		/**
