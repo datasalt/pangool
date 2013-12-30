@@ -232,7 +232,7 @@ public class SimpleTupleSerializer implements Serializer<ITuple> {
   }
 
   private void raisedCustomObjectException(CustomObjectSerializationException cause, Field field, Object element, Serializer serializer) throws IOException {
-    throw new IOException("Custom object field '" + field.getName() + " with value " + element +
+    throw new IOException("Custom object field '" + field.getName() + "' with value " + element +
         " of type " + ((element != null) ? element.getClass().getCanonicalName() : "null") +
         " using serializer " + serializer + " thrown an exception.",
         cause);
