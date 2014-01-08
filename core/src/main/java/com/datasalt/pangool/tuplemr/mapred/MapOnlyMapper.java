@@ -45,13 +45,21 @@ public abstract class MapOnlyMapper<I1, I2, O1, O2> extends Mapper<I1, I2, O1, O
 	}
 
 	/**
-	 * Override this method, not the other declared as final.
+	 * Override this method, not the other one. This one will be automatically called by the default setup() after
+	 * initializing MultipleOutputs.
 	 */
-	protected void setup(Mapper<I1, I2, O1, O2>.Context context, MultipleOutputsCollector mOuts)  throws IOException, InterruptedException {
-		
+	protected void setup(Mapper<I1, I2, O1, O2>.Context context, MultipleOutputsCollector mOuts)
+	    throws IOException, InterruptedException {
+
 	}
-	
-	protected final void setup(Mapper<I1, I2, O1, O2>.Context context) throws IOException, InterruptedException {
+
+	/**
+	 * @deprecated This method shouldn't be implemented, otherwise MultipleOutputs may not work. When implemented,
+	 *             super.setup() should be called if MultipleOutputs are to be used. Therefore we have created another
+	 *             signature with the MultipleOutputsCollector in order to avoid this, which will be the official setup()
+	 *             method in the future (this one will be declared final in further versions).
+	 */
+	protected void setup(Mapper<I1, I2, O1, O2>.Context context) throws IOException, InterruptedException {
 		collector = new MultipleOutputsCollector(context);
 		this.setup(context, collector);
 	}
@@ -59,10 +67,11 @@ public abstract class MapOnlyMapper<I1, I2, O1, O2> extends Mapper<I1, I2, O1, O
 	/**
 	 * Override this method, not the other declared as final.
 	 */
-	protected void cleanup(Mapper<I1, I2, O1, O2>.Context context, MultipleOutputsCollector mOuts)  throws IOException, InterruptedException {
-		
+	protected void cleanup(Mapper<I1, I2, O1, O2>.Context context, MultipleOutputsCollector mOuts)
+	    throws IOException, InterruptedException {
+
 	}
-	
+
 	protected final void cleanup(Mapper<I1, I2, O1, O2>.Context context) throws java.io.IOException,
 	    InterruptedException {
 		this.cleanup(context, collector);
