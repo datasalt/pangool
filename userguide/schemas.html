@@ -217,6 +217,18 @@ The following code is right:
 always be wrapped by an <code>Utf8</code> object.
 </div>
 
+<h3>Mutating schemas</h3>
+
+<p>
+ Since 0.70 it is possible to easily mutate schemas with the <code>Mutator</code> class. As an example, 
+ the following code creates a mutated schema which contains only some fields of the original schema:
+</p>
+
+<pre class="prettyprint" id="java">
+ Schema schema = new Schema("a_schema", Fields.parse("a:int, b:int, c:double, e:string"));
+ Schema mutated = Mutator.subSetOf("mutated", schema, "b", "e");
+</pre>
+ 
 <h3>Nulls support</h3>
 
 <p>

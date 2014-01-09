@@ -208,6 +208,11 @@ With this setting, we are saying that we want to group by these two fields
  cg.setGroupByFields("topic", "word");
 </pre>
 
+<p>
+Because the input is JSON, we will use a Hadoop input format for the input to receive the whole line of text in the mapper.
+(If we wanted to parse the input text directly into a tuple, we could use Pangool's <a href='http://pangool.net/userguide/text_io.html'>native Text Input/Output</a>).
+</p>
+
 <pre class="prettyprint" id="java">
  cg.addInput(new Path(args[0]), new HadoopInputFormat(TextInputFormat.class), new TokenizeMapper());
 </pre>

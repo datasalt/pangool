@@ -43,8 +43,8 @@ Pangool comes with a convenient InputFormat and OutputFormat for text files, whi
 <p>The following line instantiates an InputFormat which reads strict quotes CSV files with header and null values optionally identified as \N, and selects only columns 1, 4 and 6 (remember that indexes are 0-based):</p> 
 
 <pre class="prettyprint" id="java">
-FieldSelector selector = new FieldSelector(1, 4, 6);
-InputFormat inputFormat = new TupleTextInputFormat(schema, true, true, ',', '"', '\\', selector, "\\N");
+ FieldSelector selector = new FieldSelector(1, 4, 6);
+ InputFormat inputFormat = new TupleTextInputFormat(schema, true, true, ',', '"', '\\', selector, "\\N");
 </pre>
 
 <h3>Using TupleTextOutputFormat</h3>
