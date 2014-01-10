@@ -23,7 +23,7 @@ Pangool comes with a convenient InputFormat and OutputFormat for text files, whi
 	<li><b>separator</b>: The character used to separate fields in the input files.</li>
 	<li><b>quoteCharacter</b>: The character used to quote fields in the input files. Use NO_QUOTE_CHARACTER if the file has no quotes.</li>
 	<li><b>escapeCharacter</b>: The character used to escape characters inside quoted fields in the input files. Use NO_ESCAPE_CHARACTER if the file has no escape character.</li>
-	<li><b>fieldSelector</b>: An optional 0-index based selector that allows to read only some columns of the input files. The selector must match the target schema. That is, no matter how many columns the original file has, it the selector has 5 selected fields then the target schema must have 5 fields. Use null if no field selection is needed.</li>
+	<li><b>fieldSelector</b>: An optional 0-index based selector that allows to read only some columns of the input files. The selector must match the target schema. That is, no matter how many columns the original file has, if the selector has 5 selected fields then the target schema must have 5 fields. Use null if no explicit field selection is needed.</li>
 	<li><b>nullString</b>: A string which can be identified as null value (e.g. \N in MySQL dumps). Use null if no nullString is needed.</li>
 </ul>
 
@@ -49,7 +49,7 @@ Pangool comes with a convenient InputFormat and OutputFormat for text files, whi
 
 <h3>Using TupleTextOutputFormat</h3>
 
-<p><a href='http://pangool.net/apidocs/com/datasalt/pangool/tuplemr/mapred/lib/output/TupleTextOutputFormat.html'>TupleTextOutputFormat</a>'s constructor has several available options, similar to thos in TupleTextInputFormat:</p>
+<p><a href='http://pangool.net/apidocs/com/datasalt/pangool/tuplemr/mapred/lib/output/TupleTextOutputFormat.html'>TupleTextOutputFormat</a>'s constructor has several available options, similar to those in TupleTextInputFormat:</p>
 
 <ul>
 	<li><b>schema</b>: The target schema to use. A Tuple with this schema will be instantiated and fed into the Mapper.</li>
@@ -72,5 +72,20 @@ Pangool comes with a convenient InputFormat and OutputFormat for text files, whi
 <pre class="prettyprint" id="java">
  OutputFormat outputFormat = new TupleTextOutputFormat(schema, true, ',', '"', '\\', "\\N")
 </pre>
+
+<h3>Advanced: Fixed-width fields reader</h3>
+
+<p>Some input text files have fixed-width fields. In this case there is no way to parse the file using delimiters, etc. Pangool also
+supports such files via a special constructor in <code>TupleTextInputFormat</code>. The following code instantiates an InputFormat
+that reads a fixed-width fields file with two fields:</p>
+
+<pre class="prettyprint" id="java">
+ int fieldsPos[] = new int[] { 0, 3, 4, 5 };
+ InputFormat inputFormat = new TupleTextInputFormat(schema, fieldsPos, false, "-");
+</pre>
+
+<p>The <code>fieldsPos</code> array is interpreted by taking pairs of consecutive numbers which indicate the absolute char position
+where every field starts. In this example, there are two fields: the first one is read from chars 0 to 3 and the second one from
+chars 4 to 5.</p>
 
 <p><a class="btn btn-primary btn-large" href="solrintegration.html">Next: SOLR Integration &raquo;</a></p>
