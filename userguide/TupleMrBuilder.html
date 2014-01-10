@@ -122,6 +122,14 @@ You can then configure your job to read binary tuples by using the method <code>
 <p>You can also use <code>addTupleInput(Path path, Schema targetSchema, ...)</code> to read binary tuple files whose schema don't necessarily match another target schema.
 Fields that are not used anymore will be skipped, and new fields not present in the input file will be received as null values.</p>
 
+<p>In order to take full advantage of backwards compatibility, you can also use default values for fields in your Schema. In this way, instead of receiving null
+values for new fields, you will receive default values. Use the appropriate <code>Field</code> creator for this. The following code creates a string <code>Field</code>
+with default value <code>"foo"</code>:</p>
+
+<pre class="prettyprint" id="java">
+ Field.create("c", Type.STRING, true, "foo")
+</pre>
+
 <h3>Setting the reducer</h3>
 
 <p>
