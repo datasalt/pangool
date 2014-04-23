@@ -15,6 +15,8 @@
  */
 package com.datasalt.pangool.tuplemr;
 
+import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,7 +113,16 @@ public class TestSchema {
 		fields.add(Field.create("foo7", Type.STRING, false, "foo"));
 		
 		new Schema("foo", fields);
-		
-		
+	}
+	
+	@Test
+	public void testDefaultValueSerDe() {
+		List<Field> field = new ArrayList<Field>();
+		field.add(Field.create("foo", Type.INT, false, 0));
+		Schema schema = new Schema("foo", field);
+		String str = schema.toString();
+		Schema deSer = Schema.parse(str);
+		assertEquals(0, deSer.getField(0).getDefaultValue());
+		assertFalse(deSer.getField(0).isNullable());
 	}
 }

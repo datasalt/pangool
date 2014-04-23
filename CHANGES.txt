@@ -1,22 +1,30 @@
 Pangool Change Log
 ====================
 
-Pangool 0.60.7 (DEVELOPMENT)
+Pangool 0.71 (DEVELOPMENT)
+
+Pangool 0.70
+
+ BUF FIXES
+  - 2013-11-27 - Solved an issue with not throwing an exception if repeated field-names for a Schema are provided.
+  - 2013-10-30 - Bug in TupleOutputFormat (NPE when not emitting any record) solved.
+  - 2013-10-04 - MultipleInputs was not handling special characters properly.
 
  NEW FEATURES
-
+  - 2013-12-18 - #20 Backwards compatibility for tuple input formats and readers.
+  - 2013-12-17 - #34 TupleTextOutputFormat supports nulls as well
+  - 2013-10-01 - New strong typed getters for Tuple
+  - 2013-09-26 - New class Mutator for mutating schemas.
   - 2013-09-11 - More flexible named outputs. By setting default parameters, any number of named outputs can be opened in runtime.
 
 Pangool 0.60.6
 
  NEW FEATURES
-
   - 2013-09-01 - Official support for CDH4, with a small fix added. Maven profile "cdh4" added.
 
 Pangool 0.60.3
 
  NEW FEATURES
-
   - 2013-04-03 - Support for MapReduce 2 and YARN. Includes Maven pom
                  modifications to support the compilation to MapReduce 1 and
                  MapReduce 2. A new maven profile "mr2" can be used to

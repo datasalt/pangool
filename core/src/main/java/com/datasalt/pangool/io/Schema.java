@@ -108,7 +108,7 @@ public class Schema implements Serializable {
 		static {
 			Set<String> reserved = new HashSet<String>();
 			Collections.addAll(reserved, METADATA_OBJECT_CLASS, METADATA_OBJECT_SERIALIZATION,
-			    METADATA_BYTES_AS_OBJECT, METADATA_DEFAULT_VALUE);
+			    METADATA_BYTES_AS_OBJECT);
 			RESERVED_KEYWORDS = Collections.unmodifiableSet(reserved);
 		}
 
