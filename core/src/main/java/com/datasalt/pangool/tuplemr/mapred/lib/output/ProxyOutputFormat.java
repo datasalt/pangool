@@ -157,6 +157,8 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 			return true;
 		}
 
+		final int maxRetries = 5;
+
 		@Override
 		public void commitTask(TaskAttemptContext taskContext) throws IOException {
 			committer.commitTask(taskContext);
@@ -176,7 +178,36 @@ public class ProxyOutputFormat extends FileOutputFormat implements Configurable 
 				// If there was something really wrong it would have failed before.
 			}
 
-			super.commitTask(taskContext);
+			/**
+			 * This code is made to overcome race conditions in CDH4 where two tasks try to commit at the same time
+			 * and IOExceptions happen. This is due to some particular implementation of FileOutputFormat and this issue
+			 * is not a general issue in Hadoop 1 or Hadoop 2. Therefore we implemented this small trick which just retries
+			 * until the task can be committed.
+			 */
+			int retries = 0;
+			boolean succeed = false;
+			IOException lastException = null;
+
+			do {
+				try {
+					super.commitTask(taskContext);
+					succeed = true;
+				} catch(IOException e) {
+					e.printStackTrace();
+					lastException = e;
+					retries++;
+					try {
+						// Two tasks collide: wait a bit before retrying...
+	          Thread.sleep((long)(Math.random()*2000));
+          } catch(InterruptedException e1) {
+          	//
+          }
+				}
+			} while(!succeed && retries < maxRetries);
+			
+			if(!succeed) {
+				throw lastException;
+			}
 		}
 
 		@Override
