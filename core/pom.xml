@@ -1,80 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright [2012] [Datasalt Systems S.L.] Licensed under the Apache License, 
-	Version 2.0 (the "License"); you may not use this file except in compliance 
-	with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
-	Unless required by applicable law or agreed to in writing, software distributed 
-	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
-	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
-	the specific language governing permissions and limitations under the License. -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<!-- Copyright [2012] [Datasalt Systems S.L.] Licensed under the Apache License, Version 2.0 (the "License"); you may not 
+    use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+    Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS 
+    IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language 
+    governing permissions and limitations under the License. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<!-- POM Relationships -->
+    <!-- POM Relationships -->
 
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>com.datasalt.pangool</groupId>
-		<artifactId>pangool-top-level</artifactId>
-		<version>0.71-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
-	<artifactId>pangool-core</artifactId>
-	
-	<repositories>
-        <!-- Just for speed up resolution. Otherwise maven will check conjars repo always in first place,
-             making the process to slow -->
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.datasalt.pangool</groupId>
+        <artifactId>pangool-top-level</artifactId>
+        <version>0.71-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>pangool-core</artifactId>
+
+    <repositories>
+        <!-- Just for speed up resolution. Otherwise maven will check conjars repo always in first place, making the process 
+            to slow -->
         <repository>
             <id>central-repeated</id>
             <url>http://repo1.maven.org/maven2</url>
         </repository>
-		<repository>
-			<id>conjars.org</id>
-  			<url>http://conjars.org/repo</url>
-		</repository>
-	</repositories>
-   
-	<dependencies>
-	
-		<dependency>
-			<groupId>cascading</groupId>
-			<artifactId>cascading-hadoop</artifactId>
-  			<version>2.2.0-wip-15</version>
-  			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.pig</groupId>
-			<artifactId>pig</artifactId>
-			<version>0.10.1</version>
-			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<artifactId>avro</artifactId>
-					<groupId>org.apache.hadoop</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.hcatalog</groupId>
-			<artifactId>hcatalog-core</artifactId>
-			<version>0.5.0-incubating</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.opencsv</groupId>
-			<artifactId>opencsv</artifactId>
-			<version>2.3</version>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.8.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.avro</groupId>
-			<artifactId>avro</artifactId>
-			<version>${avro.version}</version>
+        <repository>
+            <id>conjars.org</id>
+            <url>http://conjars.org/repo</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>cascading</groupId>
+            <artifactId>cascading-hadoop</artifactId>
+            <version>2.2.0-wip-15</version>
             <optional>true</optional>
-		</dependency>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pig</groupId>
+            <artifactId>pig</artifactId>
+            <version>0.10.1</version>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <artifactId>avro</artifactId>
+                    <groupId>org.apache.hadoop</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hcatalog</groupId>
+            <artifactId>hcatalog-core</artifactId>
+            <version>0.5.0-incubating</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>${avro.version}</version>
+            <optional>true</optional>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.avro</groupId>
@@ -84,194 +83,194 @@
         </dependency>
 
         <!-- Very usefull Google's guava - Nice collections API -->
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>10.0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>3.2</version>
-		</dependency>
-		<!-- Logging: SL4J flexible logging API -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.6.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.6.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.thrift</groupId>
-			<artifactId>libthrift</artifactId>
-			<version>0.6.1</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>httpclient</artifactId>
-					<groupId>org.apache.httpcomponents</groupId>
-				</exclusion>
-			</exclusions>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>10.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2</version>
+        </dependency>
+        <!-- Logging: SL4J flexible logging API -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>0.6.1</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>httpclient</artifactId>
+                    <groupId>org.apache.httpcomponents</groupId>
+                </exclusion>
+            </exclusions>
             <optional>true</optional>
-		</dependency>
-		<!-- Xerces for XML parsing -->
-		<dependency>
-			<groupId>xerces</groupId>
-			<artifactId>xercesImpl</artifactId>
-			<version>2.9.1</version>
-		</dependency>
-		<!-- Jackson: fast JSON ser/de -->
-		<dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-core-asl</artifactId>
-			<version>${jackson.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-core-lgpl</artifactId>
-			<version>${jackson.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-jaxrs</artifactId>
-			<version>${jackson.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-mapper-asl</artifactId>
-			<version>${jackson.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-mapper-lgpl</artifactId>
-			<version>${jackson.version}</version>
-		</dependency>
+        </dependency>
+        <!-- Xerces for XML parsing -->
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.9.1</version>
+        </dependency>
+        <!-- Jackson: fast JSON ser/de -->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-asl</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-lgpl</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-jaxrs</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-lgpl</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>com.dyuproject.protostuff</groupId>
-			<artifactId>protostuff-api</artifactId>
-			<version>1.0.1</version>
+        <dependency>
+            <groupId>com.dyuproject.protostuff</groupId>
+            <artifactId>protostuff-api</artifactId>
+            <version>1.0.1</version>
             <optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>com.dyuproject.protostuff</groupId>
-			<artifactId>protostuff-core</artifactId>
-			<version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dyuproject.protostuff</groupId>
+            <artifactId>protostuff-core</artifactId>
+            <version>1.0.1</version>
             <optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>com.dyuproject.protostuff</groupId>
-			<artifactId>protostuff-compiler</artifactId>
-			<version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dyuproject.protostuff</groupId>
+            <artifactId>protostuff-compiler</artifactId>
+            <version>1.0.1</version>
             <optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>com.dyuproject.protostuff</groupId>
-			<artifactId>protostuff-model</artifactId>
-			<version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dyuproject.protostuff</groupId>
+            <artifactId>protostuff-model</artifactId>
+            <version>1.0.1</version>
             <optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.solr</groupId>
-			<artifactId>solr-core</artifactId>
-			<version>4.0.0-BETA</version>
-			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<artifactId>jcl-over-slf4j</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-jdk14</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.commons</groupId>
-					<artifactId>commons-io</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>com.googlecode.jcsv</groupId>
-			<artifactId>jcsv</artifactId>
-			<version>1.4.0</version>
-		</dependency>
-	</dependencies>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-core</artifactId>
+            <version>4.0.0-BETA</version>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-jdk14</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.jcsv</groupId>
+            <artifactId>jcsv</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+    </dependencies>
 
-	<!-- ///////////////// -->
+    <!-- ///////////////// -->
 
-	<!-- Build Settings -->
-	
-	<packaging>jar</packaging>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-			<!-- In order to add aditional source folders -->
-			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>build-helper-maven-plugin</artifactId> 
-				<executions> <execution> <id>add-source</id> <phase>generate-test-sources</phase> 
-				<goals> <goal>add-test-source</goal> </goals> <configuration> <sources> <source>target/test/generated-thrift/java/gen-javabean</source> 
-				</sources> </configuration> </execution> </executions> </plugin> -->
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2.1</version>
-				<configuration>
-					<descriptors>
-						<descriptor>src/main/assembly/jar-with-deps.xml</descriptor>
-					</descriptors>
-					<archive />
-				</configuration>
-				<!--executions> <execution> <id>make-assembly</id> <phase>package</phase> 
-					<goals> <goal>single</goal> </goals> </execution> </executions -->
-			</plugin>
-		</plugins>
-	</build>
+    <!-- Build Settings -->
 
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.8.1</version>
-				<configuration>
-					<links>
-						<link>http://avro.apache.org/docs/${avro.version}/api/java/</link>
-						<link>http://docs.oracle.com/javase/6/docs/api/</link>
-						<link>http://jackson.codehaus.org/${jackson.version}/javadoc/</link>
-						<link>http://hadoop.apache.org/common/docs/r${hadoop.1.version}/api/</link>
-						<link>http://hadoop.apache.org/common/docs/r${hadoop.2.version}/api/</link>
-					</links>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.soebes.maven.plugins.dmg</groupId>
-				<artifactId>doxygen-maven-plugin</artifactId>
-				<configuration>
-					<quiet>false</quiet>
-					<projectname>Pangool</projectname>
-					<projectnumber>1.0</projectnumber>
-					<outputlanguage>english</outputlanguage>
-					<optimizeoutputjava>true</optimizeoutputjava>
-					<extractall>true</extractall>
-					<extractprivate>true</extractprivate>
-					<referencesrelation>true</referencesrelation>
-					<input>src/main/java</input>
-					<recursive>true</recursive>
-				</configuration>
-			</plugin>
-		</plugins>
-	</reporting>
+    <packaging>jar</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <!-- In order to add aditional source folders -->
+            <!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>build-helper-maven-plugin</artifactId> <executions> 
+                <execution> <id>add-source</id> <phase>generate-test-sources</phase> <goals> <goal>add-test-source</goal> </goals> <configuration> 
+                <sources> <source>target/test/generated-thrift/java/gen-javabean</source> </sources> </configuration> </execution> </executions> 
+                </plugin> -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2.1</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/jar-with-deps.xml</descriptor>
+                    </descriptors>
+                    <archive />
+                </configuration>
+                <!--executions> <execution> <id>make-assembly</id> <phase>package</phase> <goals> <goal>single</goal> </goals> 
+                    </execution> </executions -->
+            </plugin>
+        </plugins>
+    </build>
 
-	<name>Pangool Core</name>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.8.1</version>
+                <configuration>
+                    <links>
+                        <link>http://avro.apache.org/docs/${avro.version}/api/java/</link>
+                        <link>http://docs.oracle.com/javase/6/docs/api/</link>
+                        <link>http://jackson.codehaus.org/${jackson.version}/javadoc/</link>
+                        <link>http://hadoop.apache.org/common/docs/r${hadoop.1.version}/api/</link>
+                        <link>http://hadoop.apache.org/common/docs/r${hadoop.2.version}/api/</link>
+                    </links>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.soebes.maven.plugins.dmg</groupId>
+                <artifactId>doxygen-maven-plugin</artifactId>
+                <configuration>
+                    <quiet>false</quiet>
+                    <projectname>Pangool</projectname>
+                    <projectnumber>1.0</projectnumber>
+                    <outputlanguage>english</outputlanguage>
+                    <optimizeoutputjava>true</optimizeoutputjava>
+                    <extractall>true</extractall>
+                    <extractprivate>true</extractprivate>
+                    <referencesrelation>true</referencesrelation>
+                    <input>src/main/java</input>
+                    <recursive>true</recursive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 
-	<description />
+    <name>Pangool Core</name>
+
+    <description />
 </project>
