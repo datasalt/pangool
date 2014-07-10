@@ -45,9 +45,6 @@
             <properties>
                 <hadoop.version>1</hadoop.version>
             </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.commons</groupId>
@@ -61,6 +58,23 @@
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <artifactId>maven-jar-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>default-jar</id>
+                                    <configuration>
+                                        <classifier>mr${hadoop.version}</classifier>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
         </profile>
 
         <profile>
@@ -101,6 +115,9 @@
             <properties>
                 <hadoop.version>2</hadoop.version>
             </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.commons</groupId>
@@ -139,23 +156,6 @@
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <artifactId>maven-jar-plugin</artifactId>
-                            <executions>
-                                <execution>
-                                    <id>default-jar</id>
-                                    <configuration>
-                                        <classifier>mr${hadoop.version}</classifier>
-                                    </configuration>
-                                </execution>
-                            </executions>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
         </profile>
 
     </profiles>
@@ -246,9 +246,9 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>com.soebes.maven.plugins.dmg</groupId>
-                    <artifactId>doxygen-maven-plugin</artifactId>
-                    <version>1.0.1</version>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>

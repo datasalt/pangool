@@ -121,16 +121,14 @@
 
         <profile>
             <id>mr1</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
-                <examples.assembly>hadoop</examples.assembly>
+                <examples.assembly>hadoop-mr${hadoop.version}</examples.assembly>
             </properties>
             <dependencies>
                 <dependency>
                     <groupId>${project.groupId}</groupId>
                     <version>${project.version}</version>
+                    <classifier>mr${hadoop.version}</classifier>
                     <artifactId>pangool-core</artifactId>
                 </dependency>
                 <dependency>
@@ -151,13 +149,15 @@
         <profile>
             <id>mr2</id>
             <properties>
-                <examples.assembly>hadoop-mr${hadoop.version}</examples.assembly>
+                <examples.assembly>hadoop</examples.assembly>
             </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>${project.groupId}</groupId>
                     <version>${project.version}</version>
-                    <classifier>mr${hadoop.version}</classifier>
                     <artifactId>pangool-core</artifactId>
                 </dependency>
                 <dependency>

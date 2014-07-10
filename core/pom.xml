@@ -254,6 +254,7 @@
             <plugin>
                 <groupId>com.soebes.maven.plugins.dmg</groupId>
                 <artifactId>doxygen-maven-plugin</artifactId>
+                <version>1.0.1</version>
                 <configuration>
                     <quiet>false</quiet>
                     <projectname>Pangool</projectname>
