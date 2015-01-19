@@ -111,6 +111,12 @@
             <artifactId>protostuff-model</artifactId>
             <version>1.0.1</version>
             <optional>true</optional>
+            <exclusions>
+				<exclusion>
+					<artifactId>protobuf-java</artifactId>
+					<groupId>com.google.protobuf</groupId>
+				</exclusion>
+	    	</exclusions>
         </dependency>
 
     </dependencies>
