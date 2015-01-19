@@ -82,12 +82,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Very usefull Google's guava - Nice collections API -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>10.0.1</version>
-        </dependency>
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
@@ -172,6 +166,12 @@
             <artifactId>protostuff-model</artifactId>
             <version>1.0.1</version>
             <optional>true</optional>
+	    <exclusions>
+		<exclusion>
+			<artifactId>protobuf-java</artifactId>
+			<groupId>com.google.protobuf</groupId>
+		</exclusion>
+	    </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.solr</groupId>
