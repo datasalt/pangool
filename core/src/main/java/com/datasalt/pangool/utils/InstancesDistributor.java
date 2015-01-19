@@ -30,107 +30,132 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 /**
- * This class contains useful methods for serializing/deserializing
- * instances that implement {@link java.io.Serializable}. This class is used in Pangool
- * to distribute the instances around the cluster
+ * This class contains useful methods for serializing/deserializing instances
+ * that implement {@link java.io.Serializable}. This class is used in Pangool to
+ * distribute the instances around the cluster
  * <p>
- * You can do things like saving a Java Serializable instance and recovering it afterwards. Check methods
+ * You can do things like saving a Java Serializable instance and recovering it
+ * afterwards. Check methods
  * {@link InstancesDistributor#distribute(Object, String, Configuration)} and
- * {@link InstancesDistributor#loadInstance(Configuration, Class, String, boolean)} for this purpose.
+ * {@link InstancesDistributor#loadInstance(Configuration, Class, String, boolean)}
+ * for this purpose.
  * 
  */
 public class InstancesDistributor {
 
-	public final static String HDFS_TMP_FOLDER_CONF = InstancesDistributor.class.getName() + ".hdfs.pangool.tmp.folder";
-	public final static String DEFAULT_HDFS_TMP_FOLDER_CONF_VALUE = "./pangool-instances";
-	
-	/**
-	 * Utility method for serializing an object and saving it in a way that later can be recovered
-   * anywhere in the cluster.
-	 * <p>
-	 * The file where it has been serialized will be saved into a Hadoop Configuration property so that you can call
-	 * {@link InstancesDistributor#loadInstance(Configuration, Class, String, boolean)} to re-instantiate the serialized instance.
-	 * 
-	 * @param obj The obj instance to serialize using Java serialization.
-	 * @param fileName The file name where the instance will be serialized.
-	 * @param conf The Hadoop Configuration.
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 */
-	public static void distribute(Object obj, String fileName, Configuration conf)
-	    throws FileNotFoundException, IOException, URISyntaxException {
+  public final static String HDFS_TMP_FOLDER_CONF = InstancesDistributor.class.getName() + ".hdfs.pangool.tmp.folder";
+  public final static String DEFAULT_HDFS_TMP_FOLDER_CONF_VALUE = "./pangool-instances";
+  // Since Hadoop 2.4:
+  // http://stackoverflow.com/questions/23903113/mapreduce-error-usergroupinformation-priviledgedactionexception
+  public final static String DEFAULT_LOCAL_TMP_FOLDER_CONF_VALUE = "/tmp";
+
+  // Since Hadoop 2.4:
+  // http://stackoverflow.com/questions/23903113/mapreduce-error-usergroupinformation-priviledgedactionexception
+  protected static String getInstancesFolder(FileSystem fS, Configuration conf) throws IOException {
+    return conf.get(HDFS_TMP_FOLDER_CONF, fS.equals(FileSystem.getLocal(conf)) ? DEFAULT_LOCAL_TMP_FOLDER_CONF_VALUE
+        : DEFAULT_HDFS_TMP_FOLDER_CONF_VALUE);
+  }
+
+  /**
+   * Utility method for serializing an object and saving it in a way that later
+   * can be recovered anywhere in the cluster.
+   * <p>
+   * The file where it has been serialized will be saved into a Hadoop
+   * Configuration property so that you can call
+   * {@link InstancesDistributor#loadInstance(Configuration, Class, String, boolean)}
+   * to re-instantiate the serialized instance.
+   * 
+   * @param obj
+   *          The obj instance to serialize using Java serialization.
+   * @param fileName
+   *          The file name where the instance will be serialized.
+   * @param conf
+   *          The Hadoop Configuration.
+   * @throws FileNotFoundException
+   * @throws IOException
+   * @throws URISyntaxException
+   */
+  public static void distribute(Object obj, String fileName, Configuration conf) throws FileNotFoundException,
+      IOException, URISyntaxException {
 
     FileSystem fS = FileSystem.get(conf);
-		// set the temporary folder for Pangool instances to the temporary of the user that is running the Job
-		// This folder will be used across the cluster for location the instances.
+    // set the temporary folder for Pangool instances to the temporary of the
+    // user that is running the Job
+    // This folder will be used across the cluster for location the instances.
     // The default value can be changed by a user-provided one.
-		String tmpHdfsFolder = conf.get(HDFS_TMP_FOLDER_CONF, DEFAULT_HDFS_TMP_FOLDER_CONF_VALUE);
-		Path toHdfs = new Path(tmpHdfsFolder, fileName);
-		if(fS.exists(toHdfs)) { // Optionally, copy to DFS if
-			fS.delete(toHdfs, false);
-		}
+    String tmpHdfsFolder = getInstancesFolder(fS, conf);
+    Path toHdfs = new Path(tmpHdfsFolder, fileName);
+    if (fS.exists(toHdfs)) { // Optionally, copy to DFS if
+      fS.delete(toHdfs, false);
+    }
 
     ObjectOutput out = new ObjectOutputStream(fS.create(toHdfs));
     out.writeObject(obj);
     out.close();
 
-		DistributedCache.addCacheFile(toHdfs.toUri(), conf);
-	}
+    DistributedCache.addCacheFile(toHdfs.toUri(), conf);
+  }
 
-	/**
-	 * Given a Hadoop Configuration property and an Class, this method can re-instantiate an Object instance that was
-	 * previously distributed using	 * {@link InstancesDistributor#distribute(Object, String, Configuration)}.
-	 * 
-	 * @param <T>  The object type.
-	 * @param conf The Hadoop Configuration.
-	 * @param objClass The object type class.
-	 * @param fileName The file name to locate the instance
-	 * @param callSetConf If true, will call setConf() if deserialized instance is {@link Configurable}
-	 * @throws IOException
-	 */
-	public static <T> T loadInstance(Configuration conf, Class<T> objClass, String fileName,
-                                   boolean callSetConf) throws IOException {
+  /**
+   * Given a Hadoop Configuration property and an Class, this method can
+   * re-instantiate an Object instance that was previously distributed using *
+   * {@link InstancesDistributor#distribute(Object, String, Configuration)}.
+   * 
+   * @param <T>
+   *          The object type.
+   * @param conf
+   *          The Hadoop Configuration.
+   * @param objClass
+   *          The object type class.
+   * @param fileName
+   *          The file name to locate the instance
+   * @param callSetConf
+   *          If true, will call setConf() if deserialized instance is
+   *          {@link Configurable}
+   * @throws IOException
+   */
+  public static <T> T loadInstance(Configuration conf, Class<T> objClass, String fileName, boolean callSetConf)
+      throws IOException {
 
-		Path path = InstancesDistributor.locateFileInCache(conf, fileName);
-		T obj;
-		ObjectInput in;
-		if (path == null){
-			throw new IOException("Path is null");
-		}
-		in = new ObjectInputStream(FileSystem.get(conf).open(path));
+    Path path = InstancesDistributor.locateFileInCache(conf, fileName);
+    T obj;
+    ObjectInput in;
+    if (path == null) {
+      throw new IOException("Path is null");
+    }
+    in = new ObjectInputStream(FileSystem.get(conf).open(path));
 
-		try {
-			obj = objClass.cast(in.readObject());
-		} catch(ClassNotFoundException e) {
-			throw new RuntimeException(e);
-		}
-		in.close();
-		if(obj instanceof Configurable && callSetConf) {
-			((Configurable) obj).setConf(conf);
-		}
-		return obj;
-	}
+    try {
+      obj = objClass.cast(in.readObject());
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+    in.close();
+    if (obj instanceof Configurable && callSetConf) {
+      ((Configurable) obj).setConf(conf);
+    }
+    return obj;
+  }
 
-	/**
-	 * Locates a file in the temporal folder
-	 * 
-	 * @param conf
-	 *          The Hadoop Configuration.
-	 * @param filename
-	 *          The file name.
-	 * @throws IOException
-	 */
-	private static Path locateFileInCache(Configuration conf, String filename) throws IOException {
-      return new Path(conf.get(HDFS_TMP_FOLDER_CONF, DEFAULT_HDFS_TMP_FOLDER_CONF_VALUE),
-          filename);
-	}
+  /**
+   * Locates a file in the temporal folder
+   * 
+   * @param conf
+   *          The Hadoop Configuration.
+   * @param filename
+   *          The file name.
+   * @throws IOException
+   */
+  private static Path locateFileInCache(Configuration conf, String filename) throws IOException {
+    return new Path(getInstancesFolder(FileSystem.get(conf), conf), filename);
+  }
 
-	/**
-	 * Delete a file that has been distributed using {@link #distribute(Object, String, Configuration)}.
-	 */
-	public static void removeFromCache(Configuration conf, String filename) throws IOException {
-    FileSystem fS = FileSystem.get(conf); 
-		fS.delete(locateFileInCache(conf, filename), true);
-	}
+  /**
+   * Delete a file that has been distributed using
+   * {@link #distribute(Object, String, Configuration)}.
+   */
+  public static void removeFromCache(Configuration conf, String filename) throws IOException {
+    FileSystem fS = FileSystem.get(conf);
+    fS.delete(locateFileInCache(conf, filename), true);
+  }
 }
