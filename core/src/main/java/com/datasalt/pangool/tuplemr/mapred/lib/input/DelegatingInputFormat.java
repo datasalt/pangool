@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.datasalt.pangool.utils.InstancesDistributor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.InputFormat;
@@ -30,6 +29,8 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+
+import com.datasalt.pangool.utils.InstancesDistributor;
 
 /**
  * An {@link InputFormat} that delegates behavior of paths to multiple other
@@ -42,34 +43,36 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 @SuppressWarnings("rawtypes")
 public class DelegatingInputFormat<K, V> extends InputFormat<K, V> {
 
-	@SuppressWarnings("unchecked")
-	public List<InputSplit> getSplits(JobContext job) throws IOException,
-	    InterruptedException {
-		Configuration conf = job.getConfiguration();
-		Job jobCopy = new Job(conf);
-		List<InputSplit> splits = new ArrayList<InputSplit>();
+  @SuppressWarnings("unchecked")
+  public List<InputSplit> getSplits(JobContext job) throws IOException, InterruptedException {
+    Configuration conf = job.getConfiguration();
+    Job jobCopy = new Job(conf);
+    List<InputSplit> splits = new ArrayList<InputSplit>();
 
-		Map<Path, String> formatMap = PangoolMultipleInputs.getInputFormatMap(job);
-		Map<Path, String> mapperMap = PangoolMultipleInputs.getInputProcessorFileMap(job);
+    Map<Path, List<String>> formatMap = PangoolMultipleInputs.getInputFormatMap(job);
+    Map<Path, List<String>> mapperMap = PangoolMultipleInputs.getInputProcessorFileMap(job);
 
-		for(Map.Entry<Path, String> entry : formatMap.entrySet()) {
-			FileInputFormat.setInputPaths(jobCopy, entry.getKey());
-			InputFormat inputFormat = InstancesDistributor.loadInstance(conf, InputFormat.class,
-          entry.getValue(), true);
-			PangoolMultipleInputs.setSpecificInputContext(jobCopy.getConfiguration(), entry.getValue());
-			List<InputSplit> pathSplits = inputFormat.getSplits(jobCopy);
-			for(InputSplit pathSplit : pathSplits) {
-				splits.add(new TaggedInputSplit(pathSplit, conf, entry.getValue(), mapperMap
-				    .get(entry.getKey())));
-			}
-		}
+    for (Map.Entry<Path, List<String>> entry : formatMap.entrySet()) {
+      for (int inputId = 0; inputId < entry.getValue().size(); inputId++) {
+        FileInputFormat.setInputPaths(jobCopy, entry.getKey());
+        InputFormat inputFormat = InstancesDistributor.loadInstance(conf, InputFormat.class, entry.getValue().get(
+            inputId), true);
+        PangoolMultipleInputs.setSpecificInputContext(jobCopy.getConfiguration(), entry.getValue().get(inputId),
+            inputId);
+        List<InputSplit> pathSplits = inputFormat.getSplits(jobCopy);
+        for (InputSplit pathSplit : pathSplits) {
+          splits.add(new TaggedInputSplit(pathSplit, conf, entry.getValue().get(inputId), mapperMap.get(entry.getKey())
+              .get(inputId), inputId));
+        }
+      }
+    }
 
-		return splits;
-	}
+    return splits;
+  }
 
-	@Override
-	public RecordReader<K, V> createRecordReader(InputSplit split,
-	    TaskAttemptContext context) throws IOException, InterruptedException {
-		return new DelegatingRecordReader<K, V>(split, context);
-	}
+  @Override
+  public RecordReader<K, V> createRecordReader(InputSplit split, TaskAttemptContext context) throws IOException,
+      InterruptedException {
+    return new DelegatingRecordReader<K, V>(split, context);
+  }
 }

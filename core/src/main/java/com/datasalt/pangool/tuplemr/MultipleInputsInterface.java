@@ -15,50 +15,67 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import com.datasalt.pangool.tuplemr.mapred.lib.input.PangoolMultipleInputs;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
- * This class encapsulates the functionality of a builder such as {@link TupleMRBuilder} that provides Multiple Inputs.
- * To be used by other builders like {@link MapOnlyJobBuilder}.
+ * This class encapsulates the functionality of a builder such as
+ * {@link TupleMRBuilder} that provides Multiple Inputs. To be used by other
+ * builders like {@link MapOnlyJobBuilder}.
  */
 @SuppressWarnings("rawtypes")
 public class MultipleInputsInterface {
 
-	public MultipleInputsInterface(Configuration conf) {
+  public MultipleInputsInterface(Configuration conf) {
 
-	}
+  }
 
-	private List<Input> multiInputs = new ArrayList<Input>();
+  private Map<Path, List<Input>> multiInputs = Maps.newHashMap();
+  private List<Input> allInputs = Lists.newArrayList();
+  
+  public static final class Input {
 
-	public static final class Input {
+    Path path;
+    InputFormat inputFormat;
+    Mapper inputProcessor;
 
-		Path path;
-		InputFormat inputFormat;
-		Mapper inputProcessor;
+    Map<String, String> specificContext;
 
-		Map<String, String> specificContext;
+    Input(Path path, InputFormat inputFormat, Mapper inputProcessor, Map<String, String> specificContext) {
+      this.path = path;
+      this.inputFormat = inputFormat;
+      this.inputProcessor = inputProcessor;
+      this.specificContext = specificContext;
+    }
+  }
 
-		Input(Path path, InputFormat inputFormat, Mapper inputProcessor, Map<String, String> specificContext) {
-			this.path = path;
-			this.inputFormat = inputFormat;
-			this.inputProcessor = inputProcessor;
-			this.specificContext = specificContext;
-		}
-	}
+  /**
+   * Use this method for configuring a Job instance according to the multiple
+   * input specs that has been specified. Returns the instance files created.
+   */
+  public Set<String> configureJob(Job job) throws FileNotFoundException, IOException {
+    Set<String> instanceFiles = new HashSet<String>();
+    for (Map.Entry<Path, List<Input>> entry : multiInputs.entrySet()) {
+      for (int inputId = 0; inputId < entry.getValue().size(); inputId++) {
+        Input input = entry.getValue().get(inputId);
+        instanceFiles.addAll(PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat,
+            input.inputProcessor, input.specificContext, inputId));
+      }
+    }
+    return instanceFiles;
+  }
 
-	/**
-	 * Use this method for configuring a Job instance according to the multiple input specs that has been specified.
-	 * Returns the instance files created.
-	 */
-	public Set<String> configureJob(Job job) throws FileNotFoundException, IOException {
-		Set<String> instanceFiles = new HashSet<String>();
-		for(Input input : getMultiInputs()) {
-			instanceFiles.addAll(PangoolMultipleInputs.addInputPath(job, input.path, input.inputFormat,
-			    input.inputProcessor, input.specificContext));
-		}
-		return instanceFiles;
-	}
-
-	public List<Input> getMultiInputs() {
-		return multiInputs;
-	}
+  public void addInput(Input input) {
+    List<Input> inputs = multiInputs.get(input.path);
+    if (inputs == null) {
+      inputs = new ArrayList<Input>();
+      multiInputs.put(input.path, inputs);
+    }
+    inputs.add(input);
+    allInputs.add(input);
+  }
+  
+  public List<Input> getAllInputs() {
+    return allInputs;
+  }
 }

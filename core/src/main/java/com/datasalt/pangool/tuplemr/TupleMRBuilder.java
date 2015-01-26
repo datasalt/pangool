@@ -211,11 +211,11 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	 * @see PangoolMultipleInputs
 	 */
 	public void addInput(Path path, InputFormat inputFormat, TupleMapper inputProcessor) {
-		multipleInputs.getMultiInputs().add(new Input(path, inputFormat, inputProcessor, new HashMap<String, String>()));
+		multipleInputs.addInput(new Input(path, inputFormat, inputProcessor, new HashMap<String, String>()));
 	}
 
 	public void addInput(Path path, InputFormat inputFormat, TupleMapper inputProcessor, Map<String, String> specificContext) {
-		multipleInputs.getMultiInputs().add(new Input(path, inputFormat, inputProcessor, specificContext));
+		multipleInputs.addInput(new Input(path, inputFormat, inputProcessor, specificContext));
 	}
 	
 	/**
@@ -257,7 +257,7 @@ public class TupleMRBuilder extends TupleMRConfigBuilder {
 	public Job createJob() throws IOException, TupleMRException {
 
 		failIfNull(tupleReducer, "Need to set a group handler");
-		failIfEmpty(multipleInputs.getMultiInputs(), "Need to add at least one input");
+		failIfEmpty(multipleInputs.getAllInputs(), "Need to add at least one input");
 		failIfNull(outputFormat, "Need to set output format");
 		failIfNull(outputKeyClass, "Need to set outputKeyClass");
 		failIfNull(outputValueClass, "Need to set outputValueClass");

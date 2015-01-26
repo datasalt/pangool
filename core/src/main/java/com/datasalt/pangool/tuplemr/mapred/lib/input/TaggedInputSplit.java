@@ -43,12 +43,11 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
 
   private Class<? extends InputSplit> inputSplitClass;
 
-  private InputSplit inputSplit;
-  
+  private InputSplit inputSplit;  
 	private String inputFormatFile;
-
   private String inputProcessorFile;
-
+  private int inputId;
+  
   private Configuration conf;
 
   public TaggedInputSplit() {
@@ -63,12 +62,13 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
    */
   public TaggedInputSplit(InputSplit inputSplit, Configuration conf,
       String inputFormatFile,
-      String inputProcessorFile) {
+      String inputProcessorFile, int inputId) {
     this.inputSplitClass = inputSplit.getClass();
     this.inputSplit = inputSplit;
     this.conf = conf;
     this.inputFormatFile = inputFormatFile;
     this.inputProcessorFile = inputProcessorFile;
+    this.inputId = inputId;
   }
 
   /**
@@ -96,6 +96,10 @@ public class TaggedInputSplit extends InputSplit implements Configurable, Writab
     return inputSplit.getLocations();
   }
 
+  public int getInputId() {
+    return inputId;
+  }
+  
   @SuppressWarnings("unchecked")
   public void readFields(DataInput in) throws IOException {
     inputSplitClass = (Class<? extends InputSplit>) readClass(in);

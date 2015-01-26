@@ -92,7 +92,7 @@ public class MapOnlyJobBuilder {
   }
   
   public MapOnlyJobBuilder addInput(Path path, InputFormat inputFormat, MapOnlyMapper processor, Map<String, String> specificContext) {
-    multipleInputs.getMultiInputs().add(new Input(path, inputFormat, processor, specificContext));
+    multipleInputs.addInput(new Input(path, inputFormat, processor, specificContext));
     return this;
   }
   
@@ -220,7 +220,7 @@ public class MapOnlyJobBuilder {
 
     Input lastInput = null;
 
-    for (Input input : multipleInputs.getMultiInputs()) {
+    for (Input input : multipleInputs.getAllInputs()) {
       if (input.inputProcessor == null) {
         input.inputProcessor = mapOnlyMapper;
         if (input.inputProcessor == null) {

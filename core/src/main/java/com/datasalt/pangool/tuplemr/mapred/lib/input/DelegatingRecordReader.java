@@ -29,64 +29,61 @@ import com.datasalt.pangool.utils.InstancesDistributor;
  * underlying record reader in {@link TaggedInputSplit}
  */
 public class DelegatingRecordReader<K, V> extends RecordReader<K, V> {
-	RecordReader<K, V> originalRecordReader;
+  RecordReader<K, V> originalRecordReader;
 
-	/**
-	 * Constructs the DelegatingRecordReader.
-	 * 
-	 * @param split
-	 *          TaggegInputSplit object
-	 * @param context
-	 *          TaskAttemptContext object
-	 * 
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	@SuppressWarnings("unchecked")
-	public DelegatingRecordReader(InputSplit split, TaskAttemptContext context)
-	    throws IOException, InterruptedException {
-		// Find the InputFormat and then the RecordReader from the
-		// TaggedInputSplit.
-		TaggedInputSplit taggedInputSplit = (TaggedInputSplit) split;
-		InputFormat<K, V> inputFormat = (InputFormat<K, V>) InstancesDistributor.loadInstance(
-        context.getConfiguration(), InputFormat.class,
-        taggedInputSplit.getInputFormatFile(), true);
-		PangoolMultipleInputs.setSpecificInputContext(context.getConfiguration(), taggedInputSplit.getInputFormatFile());
-		originalRecordReader = inputFormat
-		    .createRecordReader(taggedInputSplit.getInputSplit(), context);
-	}
+  /**
+   * Constructs the DelegatingRecordReader.
+   * 
+   * @param split
+   *          TaggegInputSplit object
+   * @param context
+   *          TaskAttemptContext object
+   * 
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  @SuppressWarnings("unchecked")
+  public DelegatingRecordReader(InputSplit split, TaskAttemptContext context) throws IOException, InterruptedException {
+    // Find the InputFormat and then the RecordReader from the
+    // TaggedInputSplit.
+    TaggedInputSplit taggedInputSplit = (TaggedInputSplit) split;
+    InputFormat<K, V> inputFormat = (InputFormat<K, V>) InstancesDistributor.loadInstance(context.getConfiguration(),
+        InputFormat.class, taggedInputSplit.getInputFormatFile(), true);
+    PangoolMultipleInputs.setSpecificInputContext(context.getConfiguration(), taggedInputSplit.getInputFormatFile(),
+        taggedInputSplit.getInputId());
+    originalRecordReader = inputFormat.createRecordReader(taggedInputSplit.getInputSplit(), context);
+  }
 
-	@Override
-	public void close() throws IOException {
-		originalRecordReader.close();
-	}
+  @Override
+  public void close() throws IOException {
+    originalRecordReader.close();
+  }
 
-	@Override
-	public K getCurrentKey() throws IOException, InterruptedException {
-		return originalRecordReader.getCurrentKey();
-	}
+  @Override
+  public K getCurrentKey() throws IOException, InterruptedException {
+    return originalRecordReader.getCurrentKey();
+  }
 
-	@Override
-	public V getCurrentValue() throws IOException, InterruptedException {
-		return originalRecordReader.getCurrentValue();
-	}
+  @Override
+  public V getCurrentValue() throws IOException, InterruptedException {
+    return originalRecordReader.getCurrentValue();
+  }
 
-	@Override
-	public float getProgress() throws IOException, InterruptedException {
-		return originalRecordReader.getProgress();
-	}
+  @Override
+  public float getProgress() throws IOException, InterruptedException {
+    return originalRecordReader.getProgress();
+  }
 
-	@Override
-	public void initialize(InputSplit split, TaskAttemptContext context)
-	    throws IOException, InterruptedException {
-		TaggedInputSplit taggedInputSplit = (TaggedInputSplit) split;
-		PangoolMultipleInputs.setSpecificInputContext(context.getConfiguration(), taggedInputSplit.getInputFormatFile());
-		originalRecordReader.initialize(((TaggedInputSplit) split).getInputSplit(), context);
-	}
+  @Override
+  public void initialize(InputSplit split, TaskAttemptContext context) throws IOException, InterruptedException {
+    TaggedInputSplit taggedInputSplit = (TaggedInputSplit) split;
+    PangoolMultipleInputs.setSpecificInputContext(context.getConfiguration(), taggedInputSplit.getInputFormatFile(), taggedInputSplit.getInputId());
+    originalRecordReader.initialize(((TaggedInputSplit) split).getInputSplit(), context);
+  }
 
-	@Override
-	public boolean nextKeyValue() throws IOException, InterruptedException {
-		return originalRecordReader.nextKeyValue();
-	}
+  @Override
+  public boolean nextKeyValue() throws IOException, InterruptedException {
+    return originalRecordReader.nextKeyValue();
+  }
 
 }
