@@ -69,28 +69,28 @@ public class HCatTupleInputFormat extends InputFormat<ITuple, NullWritable> impl
 		for(HCatFieldSchema fieldSchema : schema.getFields()) {
 			switch(fieldSchema.getType()) {
 			case BIGINT:
-				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.LONG));
+				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.LONG, true));
 				break;
 			case BOOLEAN:
-				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.BOOLEAN));
+				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.BOOLEAN, true));
 				break;
 			case DOUBLE:
-				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.DOUBLE));
+				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.DOUBLE, true));
 				break;
 			case FLOAT:
-				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.FLOAT));
+				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.FLOAT, true));
 				break;
 			case INT:
-				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.INT));
+				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.INT, true));
 				break;
 			case SMALLINT:
-				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.INT));
+				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.INT, true));
 				break;
 			case STRING:
-				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.STRING));
+				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.STRING, true));
 				break;
 			case TINYINT:
-				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.INT));
+				pangoolSchemaFields.add(Field.create(fieldSchema.getName(), Schema.Field.Type.INT, true));
 				break;
 			default:
 				throw new IllegalArgumentException("Field type not supported (" + fieldSchema.getType()

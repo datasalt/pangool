@@ -3,9 +3,12 @@ Pangool Change Log
 
 Pangool 0.71 (DEVELOPMENT)
 
+ BUG FIXES
+  - 2014-11-10 - HCatTupleInputFormat must read all fields as nullable.
+
 Pangool 0.70
 
- BUF FIXES
+ BUG FIXES
   - 2013-11-27 - Solved an issue with not throwing an exception if repeated field-names for a Schema are provided.
   - 2013-10-30 - Bug in TupleOutputFormat (NPE when not emitting any record) solved.
   - 2013-10-04 - MultipleInputs was not handling special characters properly.
