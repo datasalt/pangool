@@ -28,6 +28,8 @@ import org.apache.hive.hcatalog.data.HCatRecord;
 import org.apache.hive.hcatalog.data.schema.HCatFieldSchema;
 import org.apache.hive.hcatalog.data.schema.HCatSchema;
 import org.apache.hive.hcatalog.mapreduce.HCatInputFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -58,12 +60,14 @@ import org.apache.hcatalog.mapreduce.HCatInputFormat;*/
  */
 @SuppressWarnings("serial")
 public class HCatTupleInputFormat extends InputFormat<ITuple, NullWritable> implements Serializable {
+  private static Logger log = LoggerFactory.getLogger(HCatTupleInputFormat.class);
 
 	private HCatSchema schema;
 	private Schema pangoolSchema;
 
 	public HCatTupleInputFormat(String dbName, String tableName, Configuration conf) throws IOException {
-		HCatInputFormat.setInput(conf, dbName, tableName);
+    log.info("HCatalog reading from database[" + dbName + "] table[" + tableName + "]");
+    HCatInputFormat.setInput(conf, dbName, tableName);
 		schema = HCatInputFormat.getTableSchema(conf);
 		List<Field> pangoolSchemaFields = new ArrayList<Field>();
 		for(HCatFieldSchema fieldSchema : schema.getFields()) {
@@ -99,7 +103,8 @@ public class HCatTupleInputFormat extends InputFormat<ITuple, NullWritable> impl
 		}
 		// Instantiate a Pangool schema with the same name than the HCatalog table name
 		this.pangoolSchema = new Schema(tableName, pangoolSchemaFields);
-	}
+    log.info("HCat schema[" + schema + "] translated to Pangool schema[" + pangoolSchema + "]");
+  }
 
 	public HCatSchema getSchema() {
 		return schema;
