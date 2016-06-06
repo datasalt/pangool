@@ -321,11 +321,6 @@
         <url>https://github.com/datasalt/pangool</url>
     </issueManagement>
 
-    <ciManagement>
-        <system>Jenkins CI</system>
-        <url>http://clinker.datasalt.com/jenkins</url>
-    </ciManagement>
-
     <!-- /////////////////////// -->
 
     <!-- Maven Environment -->
@@ -344,13 +339,6 @@
     </repositories>
 
     <pluginRepositories />
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>datasalt-snapshots</id>
-            <url>http://clinker.datasalt.com/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <!-- ///////////////// -->
 
