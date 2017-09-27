@@ -65,9 +65,9 @@ public class HCatTupleInputFormat extends InputFormat<ITuple, NullWritable> impl
 	private HCatSchema schema;
 	private Schema pangoolSchema;
 
-	public HCatTupleInputFormat(String dbName, String tableName, Configuration conf) throws IOException {
+    public HCatTupleInputFormat(String dbName, String tableName, Configuration conf, String filter) throws IOException {
     log.info("HCatalog reading from database[" + dbName + "] table[" + tableName + "]");
-    HCatInputFormat.setInput(conf, dbName, tableName);
+        HCatInputFormat.setInput(conf, dbName, tableName, filter);
 		schema = HCatInputFormat.getTableSchema(conf);
 		List<Field> pangoolSchemaFields = new ArrayList<Field>();
 		for(HCatFieldSchema fieldSchema : schema.getFields()) {

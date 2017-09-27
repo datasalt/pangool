@@ -5,7 +5,7 @@
     IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language 
     governing permissions and limitations under the License. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <!-- POM Relationships -->
 
@@ -32,7 +32,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencies />
+    <dependencies/>
 
     <!-- ///////////////// -->
 
@@ -181,7 +181,7 @@
                 <version>2.9</version>
                 <configuration>
                     <projectNameTemplate>[artifactId]</projectNameTemplate>
-                    <manifest />
+                    <manifest/>
                     <downloadSources>false</downloadSources>
                     <downloadJavadocs>false</downloadJavadocs>
                     <additionalBuildcommands>
@@ -272,7 +272,7 @@
 
     <name>Pangool</name>
     <url>http://pangool.net</url>
-    <inceptionYear />
+    <inceptionYear/>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -327,7 +327,7 @@
 
     <!-- Environment Information -->
 
-    <mailingLists />
+    <mailingLists/>
 
     <scm>
         <url>https://github.com/datasalt/pangool</url>
@@ -362,14 +362,7 @@
         </repository>
     </repositories>
 
-    <pluginRepositories />
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>datasalt-snapshots</id>
-            <url>http://clinker.datasalt.com/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
+    <pluginRepositories/>
 
     <!-- ///////////////// -->
 
